@@ -21,6 +21,10 @@ Physics2DSettings.asset
 ProjectSettings.asset
 EditorUserBuildSettings.asset
 
+# Unity User Settings (ignore user-specific settings)
+UserSettings/
+UserSettings/*
+
 # Unity Metadata and Backup Files
 *.meta
 *.bak
@@ -39,8 +43,8 @@ EditorUserBuildSettings.asset
 # ------------------------------------------
 # OS-specific Files
 # ------------------------------------------
-.DS_Store        # macOS Finder metadata
-Thumbs.db        # Windows Explorer thumbnail cache
+.DS_Store
+Thumbs.db
 
 # ------------------------------------------
 # Log and Temporary Files
