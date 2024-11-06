@@ -1,0 +1,92 @@
+# User-specific files
+*.rsuser
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+# Build results and temporary files
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+[Oo]bj/
+[Bb]in/
+Generated\ Files/
+*.log
+*.tlog
+*.tmp
+*.cache
+
+# Visual Studio Code settings
+.vscode/*
+!.vscode/settings.json
+*.code-workspace
+.vshistory/
+.localhistory/
+
+# C# project files
+*.nupkg
+*.snupkg
+.csx/
+*.build.csdef
+
+# Python files
+__pycache__/
+*.pyc
+
+# Unity - Core project directories
+[Ll]ibrary/
+[Tt]emp/
+[Bb]uild/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+MemoryCaptures/
+Recordings/
+
+# Unity - Gradle cache and exported files
+.gradle/
+ExportedObj/
+StreamingAssets/aa.meta
+StreamingAssets/aa/*
+AddressableAssetsData/*/*.bin*
+Packages/
+ProjectSettings/
+Library/PackageCache/
+
+# Unity - Build artifacts
+*.apk
+*.aab
+*.app
+*.unitypackage
+
+# Unity - Crashlytics files
+crashlytics-build.properties
+
+# Visual Studio solution and project files (Not using Visual Studio)
+*.sln
+*.csproj
+*.unityproj
+.vs/
+*.suo
+*.vcxproj*
+*.vcxproj.filters
+
+# JetBrains Rider (if used as an alternative IDE)
+.idea/
+*.sln.iml
+out/
+
+# Unity additional temporary files
+.DS_Store
+Thumbs.db
+*.pidb
+*.svd
+*.mdb
+sysinfo.txt
+*.pidb.meta
+*.pdb.meta
+*.mdb.meta
+
+# Unity - Collaborate temporary files
+collab/
