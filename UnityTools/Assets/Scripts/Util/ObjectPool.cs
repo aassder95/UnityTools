@@ -67,5 +67,10 @@ namespace UnityTools.Util
             obj.OnReturn();
             _actives.Enqueue(obj);
         }
+
+        public void Clear()
+        {
+            _actives.Clear();
+        }
     }
 }
