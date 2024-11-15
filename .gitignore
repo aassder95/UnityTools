@@ -22,6 +22,11 @@ ProjectSettings.asset
 EditorUserBuildSettings.asset
 GraphicsSettings.asset
 
+# Unity Auto-Generated C# Project Files
+*.csproj
+*.sln
+*.user
+
 # Unity User Settings (ignore user-specific settings)
 UserSettings/
 UserSettings/*
