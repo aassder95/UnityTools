@@ -10,7 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 3706336222439209304}
   - component: {fileID: 7362456960701096315}
-  - component: {fileID: 5987638243438908737}
+  - component: {fileID: 8810801761609323040}
   m_Layer: 0
   m_Name: Square
   m_TagString: Untagged
@@ -88,7 +88,7 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_MaskInteraction: 0
   m_SpriteSortPoint: 0
---- !u!114 &5987638243438908737
+--- !u!114 &8810801761609323040
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -97,6 +97,6 @@ MonoBehaviour:
   m_GameObject: {fileID: 5349452547580425355}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ce5d5fe520435e84dbd1da59e97fe39e, type: 3}
+  m_Script: {fileID: 11500000, guid: 350e03299e5bc0b498863e28025dbb9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
