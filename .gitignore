@@ -20,6 +20,7 @@ AssetDatabaseVersion.txt
 Physics2DSettings.asset
 ProjectSettings.asset
 EditorUserBuildSettings.asset
+GraphicsSettings.asset
 
 # Unity User Settings (ignore user-specific settings)
 UserSettings/
