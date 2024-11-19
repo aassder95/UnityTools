@@ -8,12 +8,12 @@ namespace UnityTools.Presenter
         readonly RankModel _model;
         readonly RankView _view;
 
-        public RankPresenter(RankModel model, RankView view)
+        public RankPresenter(RankView view)
         {
-            _model = model;
+            _model = new RankModel(10);
             _view = view;
 
-            _view.InitView(this);
+            _view.InitView(this, _model.ItemModels.Count);
             UpdateView();
         }
 

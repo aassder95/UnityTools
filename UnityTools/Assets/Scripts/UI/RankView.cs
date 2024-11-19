@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityTools.Presenter;
 using UnityTools.Model;
-using UnityTools.Util;
 
 namespace UnityTools.UI
 {
@@ -12,10 +11,10 @@ namespace UnityTools.UI
 
         RankPresenter _presenter;
 
-        public void InitView(RankPresenter presenter)
+        public void InitView(RankPresenter presenter, int totalCnt)
         {
             _presenter = presenter;
-            _scrollView.InitView(100);
+            _scrollView.InitView(totalCnt);
         }
 
         public void UpdateView(List<RankItemModel> itemModels)

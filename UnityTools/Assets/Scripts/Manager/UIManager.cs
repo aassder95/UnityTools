@@ -10,13 +10,11 @@ namespace UnityTools.Manager
     {
         [SerializeField] RankView _rankView;
 
-        RankModel _rankModel;
         RankPresenter _rankPresenter;
 
         void Awake()
         {
-            _rankModel = new RankModel(10);
-            _rankPresenter = new RankPresenter(_rankModel, _rankView);
+            _rankPresenter = new RankPresenter(_rankView);
         }
     }
 }

@@ -22,24 +22,74 @@ namespace UnityTools.Util
         public void InitView(int size)
         {
             _itemViewPool = new ObjectPool<TView>(_rtContent, _itemView, size);
+
+            EnsureItemViewCount(0, size);
         }
 
         public void UpdateView(List<TModel> itemModels)
         {
-            foreach (TView itemView in _activeItemViews)
+            AdjustContentSize(itemModels.Count);
+            int activeCnt = _activeItemViews.Count;
+            int modelCnt = itemModels.Count;
+
+            EnsureItemViewCount(activeCnt, modelCnt);
+            UpdateItemViewsData(itemModels);
+            RemoveExcessItemViews(activeCnt, modelCnt);
+        }
+
+        void AdjustContentSize(int modelCount)
+        {
+            _rtContent.SetSizeHeight(modelCount * _rtItemView.sizeDelta.y);
+        }
+
+        void EnsureItemViewCount(int activeCnt, int modelCnt)
+        {
+            if (activeCnt < modelCnt)
             {
-                _itemViewPool.Return(itemView);
+                AddNewItemViews(activeCnt, modelCnt);
             }
-            _activeItemViews.Clear();
+        }
 
-            _rtContent.SetSizeHeight(itemModels.Count * _rtItemView.sizeDelta.y);
-
-            for (int i = 0; i < itemModels.Count; i++)
+        void AddNewItemViews(int startIndex, int endIndex)
+        {
+            for (int i = startIndex; i < endIndex; i++)
             {
                 TView itemView = _itemViewPool.Get();
-                itemView.SetData(itemModels[i]);
-                itemView.SetPositionY(_rtContent.sizeDelta.y / 2.0f - _rtItemView.sizeDelta.y / 2.0f - i * _rtItemView.sizeDelta.y);
+                float positionY = CalculateItemPositionY(i);
+                itemView.SetPositionY(positionY);
                 _activeItemViews.Add(itemView);
+            }
+        }
+
+        float CalculateItemPositionY(int index)
+        {
+            return _rtContent.sizeDelta.y / 2.0f - _rtItemView.sizeDelta.y / 2.0f - index * _rtItemView.sizeDelta.y;
+        }
+
+        void UpdateItemViewsData(List<TModel> itemModels)
+        {
+            for (int i = 0; i < itemModels.Count; i++)
+            {
+                TView itemView = _activeItemViews[i];
+                itemView.SetData(itemModels[i]);
+            }
+        }
+
+        void RemoveExcessItemViews(int activeCnt, int modelCnt)
+        {
+            if (activeCnt > modelCnt)
+            {
+                ReturnExcessItemViews(modelCnt, activeCnt);
+                _activeItemViews.RemoveRange(modelCnt, activeCnt - modelCnt);
+            }
+        }
+
+        void ReturnExcessItemViews(int startIndex, int endIndex)
+        {
+            for (int i = startIndex; i < endIndex; i++)
+            {
+                TView itemView = _activeItemViews[i];
+                _itemViewPool.Return(itemView);
             }
         }
     }
