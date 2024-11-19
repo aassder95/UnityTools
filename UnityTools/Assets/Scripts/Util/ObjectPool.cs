@@ -16,6 +16,7 @@ namespace UnityTools.Util
         readonly Queue<T> _actives = new Queue<T>();
         readonly Func<T, T> _generator;
 
+        public ObjectPool(T obj, int size) : this(null, obj, size) { }
         public ObjectPool(Transform trParent, T obj, int size)
         {
             _originObj = obj;
