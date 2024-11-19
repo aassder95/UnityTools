@@ -3,48 +3,43 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
-    public interface IDynamicScrollViewChild
+    public interface IDynamicScrollItem<TModel>
     {
-        void UpdateView();
-        void SetIndex(int idx);
+        void SetData(TModel model);
         void SetPositionY(float y);
     }
 
-    public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollViewChild, IPoolable
+    public class DynamicScrollView<TModel, TView> : MonoBehaviour
+        where TView : Component, IDynamicScrollItem<TModel>, IPoolable
     {
-        [SerializeField] TView _view;
+        [SerializeField] TView _itemView;
         [SerializeField] RectTransform _rtContent;
-        [SerializeField] RectTransform _rtView;
+        [SerializeField] RectTransform _rtItemView;
 
-        int _idx;
-        ObjectPool<TView> _viewPool;
-        List<TView> _views = new();
+        ObjectPool<TView> _itemViewPool;
+        readonly List<TView> _activeItemViews = new();
 
-        void Awake()
+        public void InitView(int size)
         {
-            _viewPool = new ObjectPool<TView>(_rtContent, _view, 10);
+            _itemViewPool = new ObjectPool<TView>(_rtContent, _itemView, size);
         }
 
-        public void Init(int maxCnt)
+        public void UpdateView(List<TModel> itemModels)
         {
-            _rtContent.SetSizeHeight(maxCnt * _rtView.sizeDelta.y);
-
-            for (int i = 0; i < maxCnt; i++)
+            foreach (TView itemView in _activeItemViews)
             {
-                TView view = _viewPool.Get();
-                view.SetIndex(i);
-                view.SetPositionY(_rtContent.sizeDelta.y / 2.0f - _rtView.sizeDelta.y / 2.0f - i * _rtView.sizeDelta.y);
-                _views.Add(view);
+                _itemViewPool.Return(itemView);
             }
+            _activeItemViews.Clear();
 
-            UpdateView();
-        }
+            _rtContent.SetSizeHeight(itemModels.Count * _rtItemView.sizeDelta.y);
 
-        public void UpdateView()
-        {
-            for (int i = 0; i < _views.Count; i++)
+            for (int i = 0; i < itemModels.Count; i++)
             {
-                _views[i].UpdateView();
+                TView itemView = _itemViewPool.Get();
+                itemView.SetData(itemModels[i]);
+                itemView.SetPositionY(_rtContent.sizeDelta.y / 2.0f - _rtItemView.sizeDelta.y / 2.0f - i * _rtItemView.sizeDelta.y);
+                _activeItemViews.Add(itemView);
             }
         }
     }

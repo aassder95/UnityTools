@@ -116,7 +116,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cefd4d1ddece7bc4d857478b39ff2cf0, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _svRank: {fileID: 4693622660775926057}
+  _scrollView: {fileID: 6853492623535389552}
 --- !u!1 &6580667886382303897
 GameObject:
   m_ObjectHideFlags: 0
@@ -273,8 +273,8 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
-        m_TargetAssemblyTypeName: UnityTools.UI.UIRank, Assembly-CSharp
-        m_MethodName: OnRadomScore
+        m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
+        m_MethodName: OnRandomScore
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -296,7 +296,7 @@ GameObject:
   - component: {fileID: 6905388974475265780}
   - component: {fileID: 2870505692318034162}
   - component: {fileID: 937577139747376834}
-  - component: {fileID: 4693622660775926057}
+  - component: {fileID: 6853492623535389552}
   m_Layer: 5
   m_Name: SvIItem
   m_TagString: Untagged
@@ -392,7 +392,7 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
---- !u!114 &4693622660775926057
+--- !u!114 &6853492623535389552
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -404,9 +404,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9ea07396686db2140a17808a4c76163c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _view: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
+  _itemView: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
   _rtContent: {fileID: 5172910845234880920}
-  _rtView: {fileID: 6073759464390998191, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
+  _rtItemView: {fileID: 6073759464390998191, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
 --- !u!1 &8883215428189257535
 GameObject:
   m_ObjectHideFlags: 0

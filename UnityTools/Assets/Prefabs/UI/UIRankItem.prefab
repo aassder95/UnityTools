@@ -230,7 +230,7 @@ MonoBehaviour:
   _txtId: {fileID: 5265764136587440543}
   _txtRank: {fileID: 9024319488396618004}
   _txtScore: {fileID: 4793709653725167051}
-  _rtItem: {fileID: 6073759464390998191}
+  _rtView: {fileID: 6073759464390998191}
 --- !u!1 &6322864043387208369
 GameObject:
   m_ObjectHideFlags: 0
