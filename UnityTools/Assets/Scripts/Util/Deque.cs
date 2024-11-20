@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,6 +22,14 @@ namespace UnityTools.Util
         public T PeekBack() => PeekNode(_deque.Last);
 
         public void Clear() => _deque.Clear();
+
+        public void ForEach(Action<T> onAction)
+        {
+            foreach (var item in _deque)
+            {
+                onAction(item);
+            }
+        }
 
         T PeekNode(LinkedListNode<T> node)
         {

@@ -8,12 +8,17 @@ namespace UnityTools.Model
 
         public List<RankItemModel> ItemModels => _itemModels;
 
-        public RankModel(int count)
+        public RankModel(int cnt)
         {
-            for (int i = 0; i < count; i++)
+            for (int i = 0; i < cnt; i++)
             {
                 _itemModels.Add(new RankItemModel(i));
             }
+        }
+
+        public RankItemModel GetItemModel(int idx)
+        {
+            return _itemModels[idx];
         }
 
         public void SetRandomScore()

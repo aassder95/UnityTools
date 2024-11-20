@@ -1,7 +1,5 @@
-using System.Collections.Generic;
 using UnityEngine;
 using UnityTools.Presenter;
-using UnityTools.Model;
 
 namespace UnityTools.UI
 {
@@ -14,12 +12,14 @@ namespace UnityTools.UI
         public void InitView(RankPresenter presenter, int totalCnt)
         {
             _presenter = presenter;
+
+            _scrollView.OnTest += _presenter.OnTest;
             _scrollView.InitView(totalCnt);
         }
 
-        public void UpdateView(List<RankItemModel> itemModels)
+        public void UpdateView()
         {
-            _scrollView.UpdateView(itemModels);
+            _scrollView.UpdateView();
         }
 
         public void OnRandomScore()
