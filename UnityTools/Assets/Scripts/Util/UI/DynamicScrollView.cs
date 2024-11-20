@@ -12,85 +12,45 @@ namespace UnityTools.Util
     public class DynamicScrollView<TModel, TView> : MonoBehaviour
         where TView : Component, IDynamicScrollItem<TModel>, IPoolable
     {
-        [SerializeField] TView _itemView;
+        [SerializeField] TView _item;
         [SerializeField] RectTransform _rtContent;
-        [SerializeField] RectTransform _rtItemView;
+        [SerializeField] RectTransform _rtItem;
 
-        ObjectPool<TView> _itemViewPool;
-        readonly List<TView> _activeItemViews = new();
+        ObjectPool<TView> _itemPool;
+        readonly Deque<TView> _visibleItems = new();
 
         public void InitView(int size)
         {
-            _itemViewPool = new ObjectPool<TView>(_rtContent, _itemView, size);
+            _itemPool = new ObjectPool<TView>(_rtContent, _item, size);
 
-            EnsureItemViewCount(0, size);
-        }
+            SetContentSize(size);
 
-        public void UpdateView(List<TModel> itemModels)
-        {
-            AdjustContentSize(itemModels.Count);
-            int activeCnt = _activeItemViews.Count;
-            int modelCnt = itemModels.Count;
-
-            EnsureItemViewCount(activeCnt, modelCnt);
-            UpdateItemViewsData(itemModels);
-            RemoveExcessItemViews(activeCnt, modelCnt);
-        }
-
-        void AdjustContentSize(int modelCount)
-        {
-            _rtContent.SetSizeHeight(modelCount * _rtItemView.sizeDelta.y);
-        }
-
-        void EnsureItemViewCount(int activeCnt, int modelCnt)
-        {
-            if (activeCnt < modelCnt)
+            for (int i = 0; i < size; i++)
             {
-                AddNewItemViews(activeCnt, modelCnt);
+                TView item = _itemPool.Get();
+                item.SetPositionY(CalculateItemPositionY(i));
+                _visibleItems.Enqueue(item);
             }
         }
 
-        void AddNewItemViews(int startIndex, int endIndex)
+        public void UpdateView(List<TModel> models)
         {
-            for (int i = startIndex; i < endIndex; i++)
+            int idx = 0;
+            foreach (TView item in _visibleItems)
             {
-                TView itemView = _itemViewPool.Get();
-                float positionY = CalculateItemPositionY(i);
-                itemView.SetPositionY(positionY);
-                _activeItemViews.Add(itemView);
+                item.SetData(models[idx]);
+                idx++;
             }
         }
 
-        float CalculateItemPositionY(int index)
+        float CalculateItemPositionY(int idx)
         {
-            return _rtContent.sizeDelta.y / 2.0f - _rtItemView.sizeDelta.y / 2.0f - index * _rtItemView.sizeDelta.y;
+            return _rtContent.sizeDelta.y / 2.0f - _rtItem.sizeDelta.y / 2.0f - idx * _rtItem.sizeDelta.y;
         }
 
-        void UpdateItemViewsData(List<TModel> itemModels)
+        void SetContentSize(int totalCnt)
         {
-            for (int i = 0; i < itemModels.Count; i++)
-            {
-                TView itemView = _activeItemViews[i];
-                itemView.SetData(itemModels[i]);
-            }
-        }
-
-        void RemoveExcessItemViews(int activeCnt, int modelCnt)
-        {
-            if (activeCnt > modelCnt)
-            {
-                ReturnExcessItemViews(modelCnt, activeCnt);
-                _activeItemViews.RemoveRange(modelCnt, activeCnt - modelCnt);
-            }
-        }
-
-        void ReturnExcessItemViews(int startIndex, int endIndex)
-        {
-            for (int i = startIndex; i < endIndex; i++)
-            {
-                TView itemView = _activeItemViews[i];
-                _itemViewPool.Return(itemView);
-            }
+            _rtContent.SetSizeHeight(totalCnt * _rtItem.sizeDelta.y);
         }
     }
 }

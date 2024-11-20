@@ -14,7 +14,8 @@ namespace UnityTools.Manager
 
         void Awake()
         {
-            _rankPresenter = new RankPresenter(_rankView);
+            RankModel model = new RankModel(10);
+            _rankPresenter = new RankPresenter(model, _rankView);
         }
     }
 }
