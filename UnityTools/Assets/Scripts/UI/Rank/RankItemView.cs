@@ -16,7 +16,7 @@ namespace UnityTools.UI
 
         public void UpdateView(RankItemModel model)
         {
-            _txtId.SetText("{0}", model?.Id ?? 0);
+            _txtId.SetText("{0}", model?.Id ?? Index);
             _txtRank.SetText("{0}", model?.Rank ?? 0);
             _txtScore.SetText("{0}", model?.Score ?? 0);
         }
@@ -28,12 +28,10 @@ namespace UnityTools.UI
 
         void IPoolable.OnGet()
         {
-
         }
 
         void IPoolable.OnReturn()
         {
-
         }
     }
 }
