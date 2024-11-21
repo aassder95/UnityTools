@@ -12,10 +12,13 @@ namespace UnityTools.Manager
 
         RankPresenter _rankPresenter;
 
-        void Awake()
+        void Start()
         {
-            RankModel model = new RankModel(10);
-            _rankPresenter = new RankPresenter(model, _rankView);
+            if (_rankView != null)
+            {
+                RankModel model = new RankModel(10);
+                _rankPresenter = new RankPresenter(model, _rankView);
+            }
         }
     }
 }

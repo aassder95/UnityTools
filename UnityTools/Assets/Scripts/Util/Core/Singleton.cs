@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
-    public class Singleton<T> : MonoBehaviour where T : MonoBehaviour
+    public class Singleton<T> : MonoBehaviour where T : Component
     {
         static T _instance;
         public static T Instance
@@ -13,7 +13,7 @@ namespace UnityTools.Util
                     _instance = FindFirstObjectByType<T>();
 
                 if (_instance == null)
-                    Debug.LogWarning($"[Singleton:Instance] {typeof(T).Name} is null");
+                    throw new MissingReferenceException($"[Singleton:Instance] {typeof(T).Name} is not found");
 
                 return _instance;
             }
