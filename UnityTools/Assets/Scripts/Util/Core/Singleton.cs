@@ -13,7 +13,7 @@ namespace UnityTools.Util
                     _instance = FindFirstObjectByType<T>();
 
                 if (_instance == null)
-                    throw new MissingReferenceException($"[Singleton:Instance] {typeof(T).Name} is not found");
+                    Debug.LogError($"[Singleton:Instance] {typeof(T).Name} is not found");
 
                 return _instance;
             }

@@ -418,7 +418,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
-  _originVisibleItemCnt: 3
+  _originVisibleItemCnt: 4
+  _spacing: 10
   _rtContent: {fileID: 5172910845234880920}
   _rtItem: {fileID: 6073759464390998191, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
 --- !u!1 &8883215428189257535
