@@ -18,6 +18,12 @@ namespace UnityTools.Util
 
         public ObjectPool(Transform parent, T prefab, int initialSize)
         {
+            if (prefab == null)
+            {
+                Debug.LogError("[ObjectPool] Prefab is null.");
+                return;
+            }
+
             _originObj = prefab;
             _generator = (original) =>
             {
@@ -43,6 +49,12 @@ namespace UnityTools.Util
 
         public void Return(T obj)
         {
+            if (obj == null)
+            {
+                Debug.LogWarning("[ObjectPool:Return] Object is null");
+                return;
+            }
+
             obj.OnReturn();
             obj.gameObject.SetActive(false);
             _pool.Enqueue(obj);
