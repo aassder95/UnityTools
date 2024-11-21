@@ -14,6 +14,7 @@ namespace UnityTools.Util
     {
         [SerializeField] TView _item;
         [SerializeField] int _originVisibleItemCnt = 3;
+        [SerializeField] float _spacing = 0.0f;
         [SerializeField] RectTransform _rtContent;
         [SerializeField] RectTransform _rtItem;
 
@@ -24,6 +25,8 @@ namespace UnityTools.Util
         readonly Deque<TView> _visibleItems = new();
 
         public Action<TView> OnItemUpdated;
+
+        float ItemHeight => _rtItem.sizeDelta.y + _spacing;
 
         public void InitView(int totalCnt)
         {
@@ -62,7 +65,7 @@ namespace UnityTools.Util
 
         float CalculateItemPositionY(int idx)
         {
-            return _rtContent.sizeDelta.y / 2.0f - _rtItem.sizeDelta.y / 2.0f - idx * _rtItem.sizeDelta.y;
+            return _rtContent.sizeDelta.y / 2.0f - _rtItem.sizeDelta.y / 2.0f - idx * ItemHeight;
         }
 
         int ClampIndex(int idx)
@@ -72,12 +75,12 @@ namespace UnityTools.Util
 
         void SetContentSize(int totalCnt)
         {
-            _rtContent.SetSizeHeight(totalCnt * _rtItem.sizeDelta.y);
+            _rtContent.SetSizeHeight(totalCnt * ItemHeight - _spacing);
         }
 
         public void OnScrollValueChanged(Vector2 value)
         {
-            int newIdx = ClampIndex(Mathf.FloorToInt(_rtContent.anchoredPosition.y / _rtItem.sizeDelta.y + 0.0001f));
+            int newIdx = ClampIndex(Mathf.FloorToInt(_rtContent.anchoredPosition.y / ItemHeight + 0.0001f));
             if (_idx == newIdx)
                 return;
 
