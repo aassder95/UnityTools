@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityTools.Util;
 
 namespace UnityTools.Model
 {
@@ -18,7 +19,7 @@ namespace UnityTools.Model
 
         public RankItemModel GetItemModel(int idx)
         {
-            if (idx < 0 || _itemModels.Count <= idx)
+            if (!_itemModels.IsValidIndex(idx))
                 return null;
 
             return _itemModels[idx];

@@ -9,11 +9,17 @@ namespace UnityTools.Util
         {
             if (list == null)
             {
-                Debug.LogWarning("[Utils:IsValidIndex] List is null");
+                Debug.LogWarning("[CollectionExtensions:IsValidIndex] List is null");
                 return false;
             }
 
-            return 0 <= index && index < list.Count;
+            if (0 > index || index >= list.Count)
+            {
+                Debug.LogWarning("[CollectionExtensions:IsValidIndex] Index out of range");
+                return false;
+            }
+
+            return true;
         }
     }
 }
