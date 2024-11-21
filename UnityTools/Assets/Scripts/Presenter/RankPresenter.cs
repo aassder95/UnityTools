@@ -16,15 +16,15 @@ namespace UnityTools.Presenter
             _view.InitView(this, _model.ItemModels.Count);
         }
 
+        public void OnItemViewUpdated(RankItemView itemView)
+        {
+            itemView.UpdateView(_model.GetItemModel(itemView.Index));
+        }
+
         public void OnRandomScore()
         {
             _model.SetRandomScore();
             _view.UpdateView();
-        }
-
-        public void OnItemViewUpdated(RankItemView itemView)
-        {
-            itemView.UpdateView(_model.GetItemModel(itemView.Index));
         }
     }
 }

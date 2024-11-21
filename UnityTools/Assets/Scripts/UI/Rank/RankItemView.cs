@@ -33,8 +33,7 @@ namespace UnityTools.UI
 
         void IPoolable.OnReturn()
         {
-            Index = -1;
-            UpdateView(null);
+
         }
     }
 }

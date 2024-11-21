@@ -26,5 +26,15 @@ namespace UnityTools.UI
         {
             _presenter.OnRandomScore();
         }
+
+        public void OnIncreaseItemView()
+        {
+            _scrollView.SetVisibleItemCount(_scrollView.VisibleItemCount + 1);
+        }
+
+        public void OnDecreaseItemView()
+        {
+            _scrollView.SetVisibleItemCount(_scrollView.VisibleItemCount - 1);
+        }
     }
 }

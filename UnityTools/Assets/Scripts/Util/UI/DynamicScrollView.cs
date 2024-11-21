@@ -26,6 +26,7 @@ namespace UnityTools.Util
 
         public Action<TView> OnItemUpdated;
 
+        public int VisibleItemCount => _visibleItemCnt;
         float ItemHeight => _rtItem.sizeDelta.y + _spacing;
 
         public void InitView(int totalCnt)
@@ -49,17 +50,27 @@ namespace UnityTools.Util
             TView item = _itemPool.Get();
             item.Index = idx;
             item.SetPositionY(CalculateItemPositionY(idx));
-            OnItemUpdated?.Invoke(item);
+
+            if (idx < _totalItemCnt)
+                OnItemUpdated?.Invoke(item);
 
             return item;
         }
 
-        void AddVisibleItems(int endIdx) => AddVisibleItems(_idx, endIdx);
-        void AddVisibleItems(int startIdx, int endIdx)
+        void AddVisibleItems(int cnt) => AddVisibleItems(_idx, cnt);
+        void AddVisibleItems(int startIdx, int cnt)
         {
-            for (int i = startIdx; i < startIdx + endIdx; i++)
+            for (int i = startIdx; i < startIdx + cnt; i++)
             {
                 _visibleItems.Enqueue(GenerateItem(i));
+            }
+        }
+
+        void RemoveVisibleItems(int cnt)
+        {
+            for (int i = 0; i < cnt; i++)
+            {
+                _itemPool.Return(_visibleItems.DequeueBack());
             }
         }
 
@@ -76,6 +87,20 @@ namespace UnityTools.Util
         void SetContentSize(int totalCnt)
         {
             _rtContent.SetSizeHeight(totalCnt * ItemHeight - _spacing);
+        }
+
+        public void SetVisibleItemCount(int cnt)
+        {
+            if (cnt == _visibleItemCnt || cnt <= 0 || cnt > _totalItemCnt)
+                return;
+
+            int oldVisibleItemCnt = _visibleItemCnt;
+            _visibleItemCnt = cnt;
+
+            if (_visibleItemCnt < oldVisibleItemCnt)
+                RemoveVisibleItems(oldVisibleItemCnt - _visibleItemCnt);
+            else if (_visibleItemCnt > oldVisibleItemCnt)
+                AddVisibleItems(_idx + oldVisibleItemCnt, _visibleItemCnt - oldVisibleItemCnt);
         }
 
         public void OnScrollValueChanged(Vector2 value)
