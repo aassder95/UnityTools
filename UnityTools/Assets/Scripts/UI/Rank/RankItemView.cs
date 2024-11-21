@@ -16,9 +16,9 @@ namespace UnityTools.UI
 
         public void UpdateView(RankItemModel model)
         {
-            _txtId.SetText("{0}", model.Id);
-            _txtRank.SetText("{0}", model.Rank);
-            _txtScore.SetText("{0}", model.Score);
+            _txtId.SetText("{0}", model?.Id ?? 0);
+            _txtRank.SetText("{0}", model?.Rank ?? 0);
+            _txtScore.SetText("{0}", model?.Score ?? 0);
         }
 
         void IDynamicScrollItem.SetPositionY(float y)
@@ -33,7 +33,8 @@ namespace UnityTools.UI
 
         void IPoolable.OnReturn()
         {
-
+            Index = -1;
+            UpdateView(null);
         }
     }
 }

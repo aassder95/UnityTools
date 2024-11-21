@@ -13,7 +13,7 @@ namespace UnityTools.Util
                     _instance = FindFirstObjectByType<T>();
 
                 if (_instance == null)
-                    Debug.LogWarning($"[Singleton:Instance] {typeof(T).Name} IsNull");
+                    Debug.LogWarning($"[Singleton:Instance] {typeof(T).Name} is null");
 
                 return _instance;
             }

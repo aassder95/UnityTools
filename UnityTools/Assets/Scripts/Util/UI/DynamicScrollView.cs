@@ -23,7 +23,7 @@ namespace UnityTools.Util
         int _visibleItemCnt;
         readonly Deque<TView> _visibleItems = new();
 
-        public Action<TView> OnTest;
+        public Action<TView> OnItemUpdated;
 
         public void InitView(int totalCnt)
         {
@@ -33,12 +33,12 @@ namespace UnityTools.Util
             _visibleItemCnt = _originVisibleItemCnt;
 
             SetContentSize(_totalItemCnt);
-            AddVisibleItems(_idx, _visibleItemCnt);
+            AddVisibleItems(_visibleItemCnt);
         }
 
         public void UpdateView()
         {
-            _visibleItems.ForEach(item => OnTest?.Invoke(item));
+            _visibleItems.ForEach(item => OnItemUpdated?.Invoke(item));
         }
 
         TView GenerateItem(int idx)
@@ -46,11 +46,12 @@ namespace UnityTools.Util
             TView item = _itemPool.Get();
             item.Index = idx;
             item.SetPositionY(CalculateItemPositionY(idx));
-            OnTest?.Invoke(item);
+            OnItemUpdated?.Invoke(item);
 
             return item;
         }
 
+        void AddVisibleItems(int endIdx) => AddVisibleItems(_idx, endIdx);
         void AddVisibleItems(int startIdx, int endIdx)
         {
             for (int i = startIdx; i < startIdx + endIdx; i++)
@@ -76,7 +77,7 @@ namespace UnityTools.Util
 
         public void OnScrollValueChanged(Vector2 value)
         {
-            int newIdx = ClampIndex(Mathf.FloorToInt(_rtContent.anchoredPosition.y / _rtItem.sizeDelta.y));
+            int newIdx = ClampIndex(Mathf.FloorToInt(_rtContent.anchoredPosition.y / _rtItem.sizeDelta.y + 0.0001f));
             if (_idx == newIdx)
                 return;
 

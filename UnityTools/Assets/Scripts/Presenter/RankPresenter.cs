@@ -22,7 +22,7 @@ namespace UnityTools.Presenter
             _view.UpdateView();
         }
 
-        public void OnTest(RankItemView itemView)
+        public void OnItemViewUpdated(RankItemView itemView)
         {
             itemView.UpdateView(_model.GetItemModel(itemView.Index));
         }

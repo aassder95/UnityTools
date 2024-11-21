@@ -35,7 +35,7 @@ namespace UnityTools.Util
         {
             if (IsEmpty)
             {
-                Debug.LogWarning("[Deque:PeekNode] IsEmpty");
+                Debug.LogWarning("[Deque:PeekNode] Is empty");
                 return default;
             }
 
@@ -46,7 +46,7 @@ namespace UnityTools.Util
         {
             if (IsEmpty)
             {
-                Debug.LogWarning("[Deque:RemoveNode] IsEmpty");
+                Debug.LogWarning("[Deque:RemoveNode] Is empty");
                 return default;
             }
 

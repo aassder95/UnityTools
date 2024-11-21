@@ -18,6 +18,9 @@ namespace UnityTools.Model
 
         public RankItemModel GetItemModel(int idx)
         {
+            if (idx < 0 || _itemModels.Count <= idx)
+                return null;
+
             return _itemModels[idx];
         }
 

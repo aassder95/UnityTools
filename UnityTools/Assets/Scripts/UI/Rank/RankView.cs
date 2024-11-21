@@ -13,7 +13,7 @@ namespace UnityTools.UI
         {
             _presenter = presenter;
 
-            _scrollView.OnTest += _presenter.OnTest;
+            _scrollView.OnItemUpdated += _presenter.OnItemViewUpdated;
             _scrollView.InitView(totalCnt);
         }
 
