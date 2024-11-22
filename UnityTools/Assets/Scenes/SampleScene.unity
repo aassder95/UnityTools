@@ -367,7 +367,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rankView: {fileID: 1743875462}
-  _rankModelCnt: 10
+  _rankModelCnt: 20
 --- !u!1001 &1743875461
 PrefabInstance:
   m_ObjectHideFlags: 0

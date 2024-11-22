@@ -12,19 +12,21 @@ namespace UnityTools.Util
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
         [SerializeField] TView _item;
-        [SerializeField] protected int _visibleCnt = 3;
+        [SerializeField] int _visibleCnt = 3;
         [SerializeField] float _spacing = 0.0f;
         [SerializeField] RectTransform _rtContent;
         [SerializeField] RectTransform _rtItem;
 
         ObjectPool<TView> _pool;
-        protected int _totalCnt;
+        int _totalCnt;
         readonly Deque<TView> _items = new();
 
         public event UnityAction<TView> OnItemUpdated;
 
         int FirstIndex => _items.Peek()?.Index ?? 0;
         int FirstVisibleIndex => Utils.ClampIndexFromPositionY(_rtContent.anchoredPosition.y, ItemHeight, _totalCnt - _visibleCnt);
+        public int TotalCount => _totalCnt;
+        public int VisibleCount => _visibleCnt;
         float ItemHeight => _rtItem.sizeDelta.y + _spacing;
 
         void OnDestroy()
