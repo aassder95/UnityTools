@@ -259,7 +259,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
         m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
-        m_MethodName: OnDecreaseTotalItemView
+        m_MethodName: OnDecreaseTotalItemViewInspector
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -666,7 +666,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
         m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
-        m_MethodName: OnIncreaseVisibleItemView
+        m_MethodName: OnIncreaseVisibleItemViewInspector
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1071,7 +1071,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
         m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
-        m_MethodName: OnDecreaseVisibleItemView
+        m_MethodName: OnDecreaseVisibleItemViewInspector
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1204,7 +1204,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
         m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
-        m_MethodName: OnIncreaseTotalItemView
+        m_MethodName: OnIncreaseTotalItemViewInspector
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1493,7 +1493,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
         m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
-        m_MethodName: OnRandomScore
+        m_MethodName: OnRandomScoreInspector
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1637,7 +1637,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
-  _originVisibleCnt: 4
+  _visibleCnt: 4
   _spacing: 10
   _rtContent: {fileID: 5172910845234880920}
   _rtItem: {fileID: 6073759464390998191, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}

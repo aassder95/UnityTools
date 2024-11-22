@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityTools.Presenter;
+using UnityEngine.Events;
 
 namespace UnityTools.UI
 {
@@ -7,13 +7,12 @@ namespace UnityTools.UI
     {
         [SerializeField] RankScrollView _scrollView;
 
-        RankPresenter _presenter;
+        public RankScrollView ScrollView => _scrollView;
 
-        public void InitView(RankPresenter presenter, int totalCnt)
+        public event UnityAction OnRandomScore;
+
+        public void InitView(int totalCnt)
         {
-            _presenter = presenter;
-
-            _scrollView.OnItemUpdated += _presenter.OnItemViewUpdated;
             _scrollView.InitView(totalCnt);
         }
 
@@ -22,29 +21,29 @@ namespace UnityTools.UI
             _scrollView.UpdateView();
         }
 
-        public void OnRandomScore()
+        public void OnRandomScoreInspector()
         {
-            _presenter.OnRandomScore();
+            OnRandomScore?.Invoke();
         }
 
-        public void OnIncreaseTotalItemView()
+        public void OnIncreaseTotalItemViewInspector()
         {
-            _scrollView.SetTotalCount(_scrollView.TotalCount + 3);
+            _scrollView.IncreaseTotalItem();
         }
 
-        public void OnDecreaseTotalItemView()
+        public void OnDecreaseTotalItemViewInspector()
         {
-            _scrollView.SetTotalCount(_scrollView.TotalCount - 3);
+            _scrollView.DecreaseTotalItem();
         }
 
-        public void OnIncreaseVisibleItemView()
+        public void OnIncreaseVisibleItemViewInspector()
         {
-            _scrollView.SetVisibleCount(_scrollView.VisibleCount + 3);
+            _scrollView.IncreaseVisibleItem();
         }
 
-        public void OnDecreaseVisibleItemView()
+        public void OnDecreaseVisibleItemViewInspector()
         {
-            _scrollView.SetVisibleCount(_scrollView.VisibleCount - 3);
+            _scrollView.DecreaseVisibleItem();
         }
     }
 }

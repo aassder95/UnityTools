@@ -1,7 +1,6 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
+using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
@@ -23,7 +22,7 @@ namespace UnityTools.Util
 
         public void Clear() => _deque.Clear();
 
-        public void ForEach(Action<T> onAction)
+        public void ForEach(UnityAction<T> onAction)
         {
             foreach (var item in _deque)
             {

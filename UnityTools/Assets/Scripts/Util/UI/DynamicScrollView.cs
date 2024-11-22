@@ -1,5 +1,5 @@
-using System;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
@@ -12,21 +12,19 @@ namespace UnityTools.Util
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
         [SerializeField] TView _item;
-        [SerializeField] int _visibleCnt = 3;
+        [SerializeField] protected int _visibleCnt = 3;
         [SerializeField] float _spacing = 0.0f;
         [SerializeField] RectTransform _rtContent;
         [SerializeField] RectTransform _rtItem;
 
         ObjectPool<TView> _pool;
-        int _totalCnt;
+        protected int _totalCnt;
         readonly Deque<TView> _items = new();
 
-        public Action<TView> OnItemUpdated;
+        public event UnityAction<TView> OnItemUpdated;
 
         int FirstIndex => _items.Peek()?.Index ?? 0;
         int FirstVisibleIndex => Utils.ClampIndexFromPositionY(_rtContent.anchoredPosition.y, ItemHeight, _totalCnt - _visibleCnt);
-        public int TotalCount => _totalCnt;
-        public int VisibleCount => _visibleCnt;
         float ItemHeight => _rtItem.sizeDelta.y + _spacing;
 
         void OnDestroy()
@@ -54,7 +52,7 @@ namespace UnityTools.Util
             _items.ForEach(item => OnItemUpdated?.Invoke(item));
         }
 
-        public void SetTotalCount(int cnt)
+        protected void SetTotalCount(int cnt)
         {
             if (cnt == _totalCnt || cnt < _visibleCnt)
                 return;
@@ -63,7 +61,7 @@ namespace UnityTools.Util
             SetContentSize(_totalCnt);
         }
 
-        public void SetVisibleCount(int cnt)
+        protected void SetVisibleCount(int cnt)
         {
             if (cnt == _visibleCnt || cnt <= 0 || cnt > _totalCnt)
                 return;
@@ -103,11 +101,10 @@ namespace UnityTools.Util
 
         void AddItem(bool isBack)
         {
-            int idx = isBack ? FirstIndex + _items.Count : FirstIndex - 1;
             if (isBack)
-                _items.Enqueue(CreateItem(idx));
+                _items.Enqueue(CreateItem(FirstIndex + _items.Count));
             else
-                _items.EnqueueFront(CreateItem(idx));
+                _items.EnqueueFront(CreateItem(FirstIndex - 1));
         }
 
         void RemoveItem(bool isBack)
