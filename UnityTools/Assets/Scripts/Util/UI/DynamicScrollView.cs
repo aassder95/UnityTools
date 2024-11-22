@@ -9,54 +9,84 @@ namespace UnityTools.Util
         void SetPositionY(float y);
     }
 
-    public class DynamicScrollView<TView> : MonoBehaviour
-        where TView : Component, IDynamicScrollItem, IPoolable
+    public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
         [SerializeField] TView _item;
-        [SerializeField] int _visibleItemCnt = 3;
+        [SerializeField] int _originVisibleCnt = 3;
         [SerializeField] float _spacing = 0.0f;
         [SerializeField] RectTransform _rtContent;
         [SerializeField] RectTransform _rtItem;
 
-        ObjectPool<TView> _itemPool;
-        int _idx;
-        int _totalItemCnt;
-        readonly Deque<TView> _visibleItems = new();
+        ObjectPool<TView> _pool;
+        int _firstIdx;
+        int _totalCnt;
+        int _visibleCnt;
+        readonly Deque<TView> _items = new();
 
-        public Action<TView> OnItemIndexUpdated;
+        public Action<TView> OnItemUpdated;
 
-        public int TotalItemCount => _totalItemCnt;
-        public int VisibleItemCount => _visibleItemCnt;
+        public int TotalCount => _totalCnt;
+        public int VisibleCount => _visibleCnt;
         float ItemHeight => _rtItem.sizeDelta.y + _spacing;
 
+        void OnDestroy()
+        {
+            _pool?.Clear();
+        }
+
+        #region View
         public void InitView(int totalCnt)
         {
-            _itemPool = new ObjectPool<TView>(_rtContent, _item, _visibleItemCnt);
-            _idx = 0;
-            _totalItemCnt = totalCnt;
+            if (_visibleCnt > totalCnt)
+                _visibleCnt = totalCnt;
 
-            SetContentSize(_totalItemCnt);
-            AddVisibleItems(_idx, _visibleItemCnt);
+            _pool = new ObjectPool<TView>(_rtContent, _item, _visibleCnt);
+
+            SetTotalCount(totalCnt);
+            SetVisibleCount(_originVisibleCnt);
         }
 
-        int ClampIndex(int idx)
+        public void UpdateView()
         {
-            return Mathf.Clamp(idx, 0, Mathf.Max(0, _totalItemCnt - _visibleItemCnt));
+            _items.ForEach(item => OnItemUpdated?.Invoke(item));
         }
 
-        int GetIndex()
+        public void SetTotalCount(int cnt)
         {
-            return ClampIndex(Mathf.FloorToInt(_rtContent.anchoredPosition.y / ItemHeight + 0.0001f));
+            if (cnt == _totalCnt || cnt < _visibleCnt)
+                return;
+
+            _totalCnt = cnt;
+            SetContentSize(_totalCnt);
         }
 
+        public void SetVisibleCount(int cnt)
+        {
+            if (cnt == _visibleCnt || cnt <= 0 || cnt > _totalCnt)
+                return;
+
+            int diff = cnt - _visibleCnt;
+            _visibleCnt = cnt;
+
+            if (diff > 0)
+                AddItems(diff);
+            else
+                RemoveItems(-diff);
+        }
+        #endregion //View
+
+        #region Content
         void SetContentSize(int totalCnt)
         {
             _rtContent.SetSizeHeight(totalCnt * ItemHeight - _spacing);
+            _items.ForEach(item => item.SetPositionY(CalculateItemPositionY(item.Index)));
         }
+        #endregion //Content
 
+        #region Item
         TView CreateItem(int idx)
         {
-            TView item = _itemPool.Get();
+            TView item = _pool.Get();
             InitItem(item, idx);
             return item;
         }
@@ -66,95 +96,81 @@ namespace UnityTools.Util
             item.Index = idx;
             item.SetPositionY(CalculateItemPositionY(idx));
 
-            if (idx < _totalItemCnt)
-                OnItemIndexUpdated?.Invoke(item);
+            if (idx < _totalCnt)
+                OnItemUpdated?.Invoke(item);
         }
 
-        public void UpdateItems()
+        void AddItems(int cnt)
         {
-            _visibleItems.ForEach(item => OnItemIndexUpdated?.Invoke(item));
+            int startIdx = _firstIdx + _items.Count;
+            for (int i = 0; i < cnt; i++)
+            {
+                if (startIdx + i >= _totalCnt)
+                    _items.EnqueueFront(CreateItem(--_firstIdx));
+                else
+                    _items.Enqueue(CreateItem(startIdx + i));
+            }
+        }
+
+        void RemoveItems(int cnt)
+        {
+            int newFirstIdx = GetIndex();
+            for (int i = 0; i < cnt; i++)
+            {
+                if (_firstIdx < newFirstIdx)
+                {
+                    _pool.Return(_items.Dequeue());
+                    _firstIdx++;
+                }
+                else
+                {
+                    _pool.Return(_items.DequeueBack());
+                }
+            }
         }
 
         float CalculateItemPositionY(int idx)
         {
             return _rtContent.sizeDelta.y / 2.0f - _rtItem.sizeDelta.y / 2.0f - idx * ItemHeight;
         }
+        #endregion //Item
 
-        public void SetTotalItemCount(int cnt)
+        #region Index
+        int ClampIndex(int idx)
         {
-            if (cnt == _totalItemCnt || cnt <= 0 || cnt < _visibleItemCnt)
-                return;
-
-            _totalItemCnt = cnt;
-
-            SetContentSize(_totalItemCnt);
-            _visibleItems.ForEach(item => item.SetPositionY(CalculateItemPositionY(item.Index)));
+            return Mathf.Clamp(idx, 0, Mathf.Max(0, _totalCnt - _visibleCnt));
         }
 
-        public void SetVisibleItemCount(int cnt)
+        int GetIndex()
         {
-            if (cnt == _visibleItemCnt || cnt <= 0 || cnt > _totalItemCnt)
-                return;
-
-            int oldVisibleItemCnt = _visibleItemCnt;
-            _visibleItemCnt = cnt;
-
-            if (_visibleItemCnt < oldVisibleItemCnt)
-                RemoveVisibleItems(oldVisibleItemCnt - _visibleItemCnt);
-            else if (_visibleItemCnt > oldVisibleItemCnt)
-                AddVisibleItems(_idx + oldVisibleItemCnt, _visibleItemCnt - oldVisibleItemCnt);
+            return ClampIndex(Mathf.FloorToInt(_rtContent.anchoredPosition.y / ItemHeight + 0.0001f));
         }
+        #endregion //Index
 
-        void AddVisibleItems(int startIdx, int cnt)
-        {
-            for (int i = startIdx; i < startIdx + cnt; i++)
-            {
-                if (i >= _totalItemCnt)
-                {
-                    _idx = i - _visibleItemCnt;
-                    _visibleItems.EnqueueFront(CreateItem(_idx));
-                }
-                else
-                {
-                    _visibleItems.Enqueue(CreateItem(i));
-                }
-            }
-        }
-
-        void RemoveVisibleItems(int cnt)
-        {
-            for (int i = 0; i < cnt; i++)
-            {
-                _itemPool.Return(_visibleItems.DequeueBack());
-            }
-
-            _idx = GetIndex();
-            int idx = _idx;
-            _visibleItems.ForEach(item => { InitItem(item, idx++); });
-        }
-
+        #region Callback
         public void OnScrollValueChanged(Vector2 value)
         {
-            int newIdx = GetIndex();
-            if (_idx == newIdx)
+            int newFirstIdx = GetIndex();
+            if (_firstIdx == newFirstIdx)
                 return;
 
-            int idxDiff = Mathf.Abs(newIdx - _idx);
+            int idxDiff = Mathf.Abs(newFirstIdx - _firstIdx);
             for (int i = 0; i < idxDiff; i++)
             {
-                if (_idx < newIdx)
+                if (_firstIdx < newFirstIdx)
                 {
-                    _itemPool.Return(_visibleItems.Dequeue());
-                    _visibleItems.Enqueue(CreateItem(i + _idx + _visibleItemCnt));
+                    _pool.Return(_items.Dequeue());
+                    _items.Enqueue(CreateItem(i + _firstIdx + _visibleCnt));
                 }
                 else
                 {
-                    _itemPool.Return(_visibleItems.DequeueBack());
-                    _visibleItems.EnqueueFront(CreateItem(newIdx + idxDiff - i - 1));
+                    _pool.Return(_items.DequeueBack());
+                    _items.EnqueueFront(CreateItem(newFirstIdx + idxDiff - i - 1));
                 }
             }
 
-            _idx = newIdx;
+            _firstIdx = newFirstIdx;
         }
+        #endregion //Callback
     }
 }

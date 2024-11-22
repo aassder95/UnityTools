@@ -13,13 +13,13 @@ namespace UnityTools.UI
         {
             _presenter = presenter;
 
-            _scrollView.OnItemIndexUpdated += _presenter.OnItemViewUpdated;
+            _scrollView.OnItemUpdated += _presenter.OnItemViewUpdated;
             _scrollView.InitView(totalCnt);
         }
 
         public void UpdateView()
         {
-            _scrollView.UpdateItems();
+            _scrollView.UpdateView();
         }
 
         public void OnRandomScore()
@@ -29,22 +29,22 @@ namespace UnityTools.UI
 
         public void OnIncreaseTotalItemView()
         {
-            _scrollView.SetTotalItemCount(_scrollView.TotalItemCount + 1);
+            _scrollView.SetTotalCount(_scrollView.TotalCount + 3);
         }
 
         public void OnDecreaseTotalItemView()
         {
-            _scrollView.SetTotalItemCount(_scrollView.TotalItemCount - 1);
+            _scrollView.SetTotalCount(_scrollView.TotalCount - 3);
         }
 
         public void OnIncreaseVisibleItemView()
         {
-            _scrollView.SetVisibleItemCount(_scrollView.VisibleItemCount + 1);
+            _scrollView.SetVisibleCount(_scrollView.VisibleCount + 3);
         }
 
         public void OnDecreaseVisibleItemView()
         {
-            _scrollView.SetVisibleItemCount(_scrollView.VisibleItemCount - 1);
+            _scrollView.SetVisibleCount(_scrollView.VisibleCount - 3);
         }
     }
 }
