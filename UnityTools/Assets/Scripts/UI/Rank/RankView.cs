@@ -5,6 +5,8 @@ namespace UnityTools.UI
 {
     public class RankView : MonoBehaviour
     {
+        [SerializeField] RankItemView _itemTop;
+        [SerializeField] RankItemView _itemBottom;
         [SerializeField] RankScrollView _scrollView;
 
         public RankScrollView ScrollView => _scrollView;

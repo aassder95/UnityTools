@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityTools.Model;
 using UnityTools.Util;
 
@@ -7,9 +8,11 @@ namespace UnityTools.UI
 {
     public class RankItemView : MonoBehaviour, IDynamicScrollItem, IPoolable
     {
+        [SerializeField] Color[] _colorTmp;
         [SerializeField] TextMeshProUGUI _txtId;
         [SerializeField] TextMeshProUGUI _txtRank;
         [SerializeField] TextMeshProUGUI _txtScore;
+        [SerializeField] Image _imgTmp;
         [SerializeField] RectTransform _rtView;
 
         public int Index { get; set; }
