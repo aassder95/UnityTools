@@ -34,10 +34,7 @@ namespace UnityTools.Util
         T PeekNode(LinkedListNode<T> node)
         {
             if (IsEmpty)
-            {
-                Debug.LogWarning("[Deque:PeekNode] Is empty");
                 return default;
-            }
 
             return node.Value;
         }
@@ -45,10 +42,7 @@ namespace UnityTools.Util
         T RemoveNode(LinkedListNode<T> node)
         {
             if (IsEmpty)
-            {
-                Debug.LogWarning("[Deque:RemoveNode] Is empty");
                 return default;
-            }
 
             T value = node.Value;
             _deque.Remove(node);
