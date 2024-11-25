@@ -10,14 +10,9 @@ namespace UnityTools.Util
         void Awake()
         {
             if (_instance == null)
-            {
                 _instance = this;
-                DontDestroyOnLoad(this.gameObject);
-            }
             else if (_instance != this)
-            {
-                Destroy(this.gameObject);
-            }
+                Destroy(gameObject);
         }
 
         public static Coroutine Start(IEnumerator enumerator)
@@ -32,17 +27,13 @@ namespace UnityTools.Util
 
         public static void Replace(ref Coroutine coroutine, IEnumerator enumerator)
         {
-            if (coroutine != null)
-                Stop(coroutine);
-
+            Stop(coroutine);
             coroutine = enumerator == null ? null : Start(enumerator);
         }
 
         public static void Dispose(ref Coroutine coroutine)
         {
-            if (coroutine != null)
-                Stop(coroutine);
-
+            Stop(coroutine);
             coroutine = null;
         }
     }
