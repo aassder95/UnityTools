@@ -4,22 +4,44 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    public enum EPeriodTimerState
+    {
+        Open,
+        Closed,
+    }
+
+    public enum EPeriodTimerSubState
+    {
+        OpenStart,
+    }
+
     public class PeriodTimer
     {
         readonly string OPEN_KEY = "";
+        readonly string OPEN_START_KEY = "";
         readonly string CLOSED_KEY = "";
         readonly double OPEN_PERIOD_MINUTES;
         readonly double CLOSED_PERIOD_MINUTES;
 
+        EPeriodTimerState _state = EPeriodTimerState.Closed;
         DateTime _openPeriodEndTime = DateTime.MinValue;
         DateTime _closedPeriodEndTime = DateTime.MinValue;
 
-        Coroutine _coCoroutine;
-        public event Func<IEnumerator> OnWaitFunc;
+        Coroutine _coUpdate;
+
+        public event Action<EPeriodTimerState> OnStateUpdated;
+        public event Action<EPeriodTimerSubState> OnSubStateUpdated;
+        public event Action<int> OnLoopUpdate;
+        public event Func<IEnumerator> OnWait;
+
+        public EPeriodTimerState State => _state;
+        public DateTime OpenEndTime => _openPeriodEndTime;
+        public DateTime ClosedEndTime => _closedPeriodEndTime;
 
         public PeriodTimer(string openKey, string closedkey, double openPeriodMin, double closedPeriodMin)
         {
             OPEN_KEY = openKey;
+            OPEN_START_KEY = "START_" + openKey;
             CLOSED_KEY = closedkey;
             OPEN_PERIOD_MINUTES = openPeriodMin;
             CLOSED_PERIOD_MINUTES = closedPeriodMin;
@@ -36,68 +58,51 @@ namespace UnityTools.Util
         void UpdatePeriodState()
         {
             DateTime curTime = DateTime.UtcNow;
-
             bool isOpen = Utils.CompareWithoutMilliseconds(_openPeriodEndTime, curTime) > 0;
             bool isClosed = Utils.CompareWithoutMilliseconds(_closedPeriodEndTime, curTime) > 0;
-
-            Debug.Log($"[UpdatePeriodState] cur: {curTime}");
-            Debug.Log($"[UpdatePeriodState] open: {_openPeriodEndTime}, closed: {_closedPeriodEndTime}");
-            Debug.Log($"[UpdatePeriodState] open: {isOpen}, closed: {isClosed}");
-
             if (!isOpen && !isClosed)
             {
-                Debug.Log($"[UpdatePeriodState] expired");
-
+                OnSubStateUpdated?.Invoke(EPeriodTimerSubState.OpenStart);
                 isOpen = true;
 
                 _openPeriodEndTime = SavePeriodEndTime(OPEN_KEY, curTime.AddMinutes(OPEN_PERIOD_MINUTES));
                 _closedPeriodEndTime = SavePeriodEndTime(CLOSED_KEY, _openPeriodEndTime.AddMinutes(CLOSED_PERIOD_MINUTES));
 
-                Debug.Log($"[UpdatePeriodState] open: {_openPeriodEndTime}, closed: {_closedPeriodEndTime}");
-                Debug.Log($"[UpdatePeriodState] open: {isOpen}, closed: {isClosed}");
+                PlayerPrefs.SetString(OPEN_START_KEY, _openPeriodEndTime.ToString());
             }
 
             if (isOpen)
             {
-                Debug.Log($"[UpdatePeriodState] open");
-
-                CoroutineHelper.Replace(ref _coCoroutine, CoUpdate(curTime, _openPeriodEndTime));
+                _state = EPeriodTimerState.Open;
+                OnStateUpdated?.Invoke(EPeriodTimerState.Open);
+                CoroutineHelper.Replace(ref _coUpdate, CoUpdate(curTime, _openPeriodEndTime));
             }
             else if (isClosed)
             {
-                Debug.Log($"[UpdatePeriodState] closed");
-
+                _state = EPeriodTimerState.Closed;
+                OnStateUpdated?.Invoke(EPeriodTimerState.Closed);
                 _openPeriodEndTime = SavePeriodEndTime(OPEN_KEY, DateTime.MinValue);
-                CoroutineHelper.Replace(ref _coCoroutine, CoUpdate(curTime, _closedPeriodEndTime));
+                CoroutineHelper.Replace(ref _coUpdate, CoUpdate(curTime, _closedPeriodEndTime));
             }
         }
 
         IEnumerator CoInit()
         {
-            Debug.Log("[CoInit] wait");
-
-            yield return OnWaitFunc?.Invoke();
-
-            Debug.Log("[CoInit] start");
-
+            yield return OnWait?.Invoke();
             UpdatePeriodState();
         }
 
         IEnumerator CoUpdate(DateTime curTime, DateTime periodEndTime)
         {
-            int time = (int)Mathf.Ceil((float)(periodEndTime - curTime).TotalMinutes);
-
-            Debug.Log($"[CoUpdate] start: {time}");
-
+            int time = (int)Mathf.Ceil((float)(periodEndTime - curTime).TotalSeconds);
             while (time > 0)
             {
-                yield return new WaitForSecondsRealtime(60.0f);
+                OnLoopUpdate?.Invoke(time);
+                yield return new WaitForSecondsRealtime(1.0f);
 
                 if (--time <= 0)
                     break;
             }
-
-            Debug.Log($"[CoUpdate] end");
 
             UpdatePeriodState();
         }
@@ -112,13 +117,10 @@ namespace UnityTools.Util
         DateTime LoadPeriodEndTime(string key)
         {
             DateTime time = DateTime.MinValue;
-
             if (PlayerPrefs.HasKey(key))
                 time = DateTime.Parse(PlayerPrefs.GetString(key));
             else
                 PlayerPrefs.SetString(key, time.ToString());
-
-            Debug.Log($"[LoadPeriodEndTime] {key}: {time}");
 
             return time;
         }

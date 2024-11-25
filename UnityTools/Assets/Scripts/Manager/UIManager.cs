@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 using UnityTools.Model;
 using UnityTools.Presenter;
@@ -11,8 +10,11 @@ namespace UnityTools.Manager
     {
         [SerializeField] RankView _rankView;
         [SerializeField] int _rankModelCnt = 10;
-
         RankPresenter _rankPresenter;
+
+        [SerializeField] TimerView _timerView;
+        TimerPresenter _timerPresenter;
+
 
         void Start()
         {
@@ -22,14 +24,10 @@ namespace UnityTools.Manager
                 _rankPresenter = new RankPresenter(model, _rankView);
             }
 
-            PeriodTimer info = new PeriodTimer("OPEN_KEY", "CLOSED_KEY", 1.0, 1.0);
-            info.OnWaitFunc += Func;
-            info.Init();
-        }
-
-        IEnumerator Func()
-        {
-            yield return new WaitForSeconds(5.0f);
+            if (_timerView != null)
+            {
+                _timerPresenter = new TimerPresenter(_timerView);
+            }
         }
     }
 }
