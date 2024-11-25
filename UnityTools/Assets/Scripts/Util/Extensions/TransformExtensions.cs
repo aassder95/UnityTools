@@ -4,6 +4,17 @@ namespace UnityTools.Util
 {
     public static class TransformExtensions
     {
+        public static void SetSizeWidth(this RectTransform rt, float width)
+        {
+            if (rt == null)
+            {
+                Debug.LogWarning("[TransformExtensions:SetSizeWidth] RectTransform is null");
+                return;
+            }
+
+            rt.sizeDelta = new Vector2(width, rt.sizeDelta.y);
+        }
+
         public static void SetSizeHeight(this RectTransform rt, float height)
         {
             if (rt == null)

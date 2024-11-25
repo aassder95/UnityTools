@@ -16,9 +16,9 @@ namespace UnityTools.Util
             return Mathf.Clamp(idx, 0, Mathf.Max(0, lastIdx));
         }
 
-        public static int ClampIndexFromPositionY(float y, float itemHeight, int lastIdx)
+        public static int ClampIndexFromPosition(float pos, float itemSize, int lastIdx)
         {
-            return ClampIndex(Mathf.FloorToInt(y / itemHeight + 0.0001f), lastIdx);
+            return ClampIndex(Mathf.FloorToInt(pos / itemSize + 0.0001f), lastIdx);
         }
     }
 }

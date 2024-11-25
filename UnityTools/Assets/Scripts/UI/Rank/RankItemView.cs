@@ -24,9 +24,9 @@ namespace UnityTools.UI
             _txtScore.SetText("{0}", model?.Score ?? 0);
         }
 
-        void IDynamicScrollItem.SetPositionY(float y)
+        void IDynamicScrollItem.SetPosition(Vector2 pos)
         {
-            _rtView.SetAnchoredPositionY(y);
+            _rtView.anchoredPosition = pos;
         }
 
         void IPoolable.OnGet()
