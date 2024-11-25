@@ -119,7 +119,7 @@ namespace UnityTools.Util
 
         float CalculateItemPositionY(int idx)
         {
-            return _rtContent.sizeDelta.y / 2.0f - _rtItem.sizeDelta.y / 2.0f - idx * ItemHeight;
+            return (_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - idx * ItemHeight;
         }
         #endregion //Item
 

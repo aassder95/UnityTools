@@ -366,9 +366,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4edb344fa223ec84e9365b211a2b7e2a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rankView: {fileID: 1743875462}
+  _rankView: {fileID: 1548200387}
   _rankModelCnt: 20
---- !u!1001 &1743875461
+--- !u!1001 &1548200386
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -465,10 +465,10 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
---- !u!114 &1743875462 stripped
+--- !u!114 &1548200387 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 255715509558692628, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-  m_PrefabInstance: {fileID: 1743875461}
+  m_PrefabInstance: {fileID: 1548200386}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 0}
   m_Enabled: 1
@@ -483,4 +483,4 @@ SceneRoots:
   - {fileID: 810513349}
   - {fileID: 813070450}
   - {fileID: 99074261}
-  - {fileID: 1743875461}
+  - {fileID: 1548200386}
