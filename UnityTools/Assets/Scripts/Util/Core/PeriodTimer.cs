@@ -14,69 +14,140 @@ namespace UnityTools.Util
         Closed,
     }
 
-    public class PeriodTimerPersistence
-    {
-        readonly string ROOT_KEY;
-
-        public PeriodTimerPersistence(string key)
-        {
-            ROOT_KEY = key;
-        }
-
-        public DateTime Save(string suffix, DateTime time)
-        {
-            time = Utils.TrimMilliseconds(time);
-            PlayerPrefs.SetString(GetKey(suffix), time.ToString());
-            return time;
-        }
-
-        public DateTime Load(string suffix)
-        {
-            if (PlayerPrefs.HasKey(GetKey(suffix)))
-            {
-                if (DateTime.TryParse(PlayerPrefs.GetString(GetKey(suffix)), out DateTime time))
-                    return time;
-            }
-
-            return DateTime.MinValue;
-        }
-
-        string GetKey(string suffix)
-        {
-            return ROOT_KEY + "_" + suffix;
-        }
-    }
-
     public class PeriodTimer
     {
+        #region State Classes
+        class OpenStartState : IState
+        {
+            PeriodTimer _timer;
+
+            public OpenStartState(PeriodTimer timer)
+            {
+                _timer = timer;
+            }
+
+            public void Enter()
+            {
+                Debug.Log($"[OpenStart:Enter]");
+                DateTime now = DateTime.UtcNow;
+                _timer.SetPeriodTime(OPEN_START_KEY, now);
+                _timer.SetPeriodTime(OPEN_END_KEY, now.AddMinutes(_timer.OPEN_PERIOD_MINUTES));
+                _timer.SetPeriodTime(CLOSED_END_KEY, now.AddMinutes(_timer.OPEN_PERIOD_MINUTES + _timer.CLOSED_PERIOD_MINUTES));
+
+                Execute();
+            }
+
+            public void Execute()
+            {
+                Debug.Log($"[OpenStart:Execute]");
+                if (Utils.CompareWithoutMilliseconds(_timer.GetPeriodTime(OPEN_END_KEY), DateTime.UtcNow) > 0)
+                    _timer._stateMachine.Change(EPeriodTimerState.Open);
+            }
+
+            public void Exit()
+            {
+                Debug.Log($"[OpenStart:Exit]");
+            }
+        }
+
+        class OpenState : IState
+        {
+            PeriodTimer _timer;
+
+            public OpenState(PeriodTimer timer)
+            {
+                _timer = timer;
+            }
+
+            public void Enter()
+            {
+                Debug.Log($"[Open:Enter]");
+                _timer.StartPeriodUpdate(OPEN_END_KEY);
+            }
+
+            public void Execute()
+            {
+                Debug.Log($"[Open:Execute]");
+                DateTime now = DateTime.UtcNow;
+                if (Utils.CompareWithoutMilliseconds(_timer.GetPeriodTime(OPEN_UPDATED_KEY), now) > 0)
+                {
+                    Debug.LogError("Cheating detected");
+                    _timer._stateMachine.Change(EPeriodTimerState.Closed);
+                }
+                else if (Utils.CompareWithoutMilliseconds(_timer.GetPeriodTime(OPEN_END_KEY), now) <= 0)
+                {
+                    _timer._stateMachine.Change(EPeriodTimerState.Closed);
+                }
+            }
+
+            public void Exit()
+            {
+                Debug.Log($"[Open:Exit]");
+            }
+        }
+
+        class ClosedState : IState
+        {
+            PeriodTimer _timer;
+
+            public ClosedState(PeriodTimer timer)
+            {
+                _timer = timer;
+            }
+
+            public void Enter()
+            {
+                Debug.Log($"[Closed:Enter]");
+                _timer.SetPeriodTime(OPEN_START_KEY, DateTime.MinValue);
+                _timer.SetPeriodTime(OPEN_UPDATED_KEY, DateTime.MinValue);
+                _timer.SetPeriodTime(OPEN_END_KEY, DateTime.MinValue);
+                _timer.StartPeriodUpdate(CLOSED_END_KEY);
+            }
+
+            public void Execute()
+            {
+                Debug.Log($"[Closed:Execute]");
+                if (Utils.CompareWithoutMilliseconds(_timer.GetPeriodTime(CLOSED_END_KEY), DateTime.UtcNow) <= 0)
+                    _timer._stateMachine.Change(EPeriodTimerState.OpenStart);
+            }
+
+            public void Exit()
+            {
+                Debug.Log($"[Closed:Exit]");
+            }
+        }
+        #endregion //State Classes
+
         #region Constants
-        const string OPEN_KEY = "OPEN_KEY";
         const string OPEN_START_KEY = "OPEN_START_KEY";
         const string OPEN_UPDATED_KEY = "OPEN_UPDATED_KEY";
-        const string CLOSED_KEY = "CLOSED_KEY";
-        const float LOOP_INTERVAL_SECONDS = 60.0f;
-
+        const string OPEN_END_KEY = "OPEN_END_KEY";
+        const string CLOSED_END_KEY = "CLOSED_END_KEY";
         readonly double OPEN_PERIOD_MINUTES;
         readonly double CLOSED_PERIOD_MINUTES;
         #endregion //Constants
 
         #region Fields
-        EPeriodTimerState _state = EPeriodTimerState.None;
-        PeriodTimerPersistence _persistence;
+        readonly Persistence _persistence;
+        readonly StateMachine<EPeriodTimerState> _stateMachine;
         bool _init = false;
         Coroutine _coUpdate;
-        readonly Dictionary<string, DateTime> _periodEndTimes = new();
+        readonly Dictionary<string, DateTime> _periodTimes = new();
         #endregion //Fields
 
         #region Properties
-        public DateTime OpenEndTime => _periodEndTimes[OPEN_KEY];
-        public DateTime OpenStartime => _periodEndTimes[OPEN_START_KEY];
-        public DateTime OpenUpdatedTime => _periodEndTimes[OPEN_UPDATED_KEY];
-        public DateTime ClosedEndTime => _periodEndTimes[CLOSED_KEY];
+        public DateTime OpenStartTime => GetPeriodTime(OPEN_START_KEY);
+        public DateTime OpenUpdatedTime => GetPeriodTime(OPEN_UPDATED_KEY);
+        public DateTime OpenEndTime => GetPeriodTime(OPEN_END_KEY);
+        public DateTime ClosedEndTime => GetPeriodTime(CLOSED_END_KEY);
         #endregion //Properties
 
         #region Events
-        public event UnityAction<EPeriodTimerState> OnStateUpdated;
+        public event UnityAction<EPeriodTimerState> OnStateUpdated
+        {
+            add { _stateMachine.OnStateChanged += value; }
+            remove { _stateMachine.OnStateChanged -= value; }
+        }
         public event UnityAction<int> OnLoopUpdate;
         public event Func<IEnumerator> OnWait;
         #endregion //Events
@@ -88,117 +159,110 @@ namespace UnityTools.Util
             CLOSED_PERIOD_MINUTES = closedPeriodMin;
 
             _persistence = new(key);
+            _stateMachine = new();
+            _stateMachine.Add(EPeriodTimerState.OpenStart, new OpenStartState(this));
+            _stateMachine.Add(EPeriodTimerState.Open, new OpenState(this));
+            _stateMachine.Add(EPeriodTimerState.Closed, new ClosedState(this));
         }
         #endregion //Constructors
 
         #region Initialization
         public void Init()
         {
-            string[] suffixes = { OPEN_KEY, OPEN_START_KEY, OPEN_UPDATED_KEY, CLOSED_KEY };
+            string[] suffixes = { OPEN_END_KEY, OPEN_START_KEY, OPEN_UPDATED_KEY, CLOSED_END_KEY };
             foreach (string suffix in suffixes)
             {
-                _periodEndTimes[suffix] = _persistence.Load(suffix);
+                _periodTimes[suffix] = _persistence.Load(suffix);
             }
 
             CoroutineHelper.Start(CoInit());
         }
         #endregion //Initialization
 
-        #region State Management
-        void UpdatePeriodState()
-        {
-            DateTime curTime = Utils.TrimMilliseconds(DateTime.UtcNow);
-            bool isOpen = Utils.CompareWithoutMilliseconds(_periodEndTimes[OPEN_KEY], curTime) > 0;
-            bool isClosed = Utils.CompareWithoutMilliseconds(_periodEndTimes[CLOSED_KEY], curTime) > 0;
-            if (!isOpen && !isClosed)
-            {
-                isOpen = true;
-                SetState(EPeriodTimerState.OpenStart, curTime);
-            }
-
-            if (isOpen)
-                SetState(EPeriodTimerState.Open, curTime);
-            else if (isClosed)
-                SetState(EPeriodTimerState.Closed, curTime);
-        }
-
-        void SetState(EPeriodTimerState state, DateTime curTime)
-        {
-            _state = state;
-
-            switch (state)
-            {
-                case EPeriodTimerState.OpenStart:
-                    _periodEndTimes[OPEN_START_KEY] = _persistence.Save(OPEN_START_KEY, curTime);
-                    _periodEndTimes[OPEN_KEY] = _persistence.Save(OPEN_KEY, _periodEndTimes[OPEN_START_KEY].AddMinutes(OPEN_PERIOD_MINUTES));
-                    _periodEndTimes[CLOSED_KEY] = _persistence.Save(CLOSED_KEY, _periodEndTimes[OPEN_KEY].AddMinutes(CLOSED_PERIOD_MINUTES));
-                    break;
-                case EPeriodTimerState.Open:
-                    CoroutineHelper.Replace(ref _coUpdate, CoUpdate(curTime, _periodEndTimes[OPEN_KEY]));
-                    break;
-                case EPeriodTimerState.Closed:
-                    _periodEndTimes[OPEN_KEY] = _persistence.Save(OPEN_KEY, DateTime.MinValue);
-                    CoroutineHelper.Replace(ref _coUpdate, CoUpdate(curTime, _periodEndTimes[CLOSED_KEY]));
-                    break;
-            }
-
-            OnStateUpdated?.Invoke(state);
-        }
-        #endregion //State Management
-
-        #region State Control
+        #region State Logic
         public void ForceOpen()
         {
-            if (!_init || _state == EPeriodTimerState.Open)
+            if (!_init || _stateMachine.CurType == EPeriodTimerState.Open)
                 return;
 
-            DateTime curTime = Utils.TrimMilliseconds(DateTime.UtcNow);
-            SetState(EPeriodTimerState.OpenStart, curTime);
-            SetState(EPeriodTimerState.Open, curTime);
+            _stateMachine.Change(EPeriodTimerState.OpenStart);
         }
 
         public void ForceClosed()
         {
-            if (!_init || _state == EPeriodTimerState.Closed)
+            if (!_init || _stateMachine.CurType == EPeriodTimerState.Closed)
                 return;
 
-            DateTime curTime = Utils.TrimMilliseconds(DateTime.UtcNow);
-            _periodEndTimes[OPEN_START_KEY] = _persistence.Save(OPEN_START_KEY, DateTime.MinValue);
-            _periodEndTimes[OPEN_UPDATED_KEY] = _persistence.Save(OPEN_UPDATED_KEY, DateTime.MinValue);
-            _periodEndTimes[CLOSED_KEY] = _persistence.Save(CLOSED_KEY, curTime.AddMinutes(CLOSED_PERIOD_MINUTES));
-            SetState(EPeriodTimerState.Closed, curTime);
+            SetPeriodTime(CLOSED_END_KEY, DateTime.UtcNow.AddMinutes(CLOSED_PERIOD_MINUTES));
+            _stateMachine.Change(EPeriodTimerState.Closed);
         }
-        #endregion State Control
+        #endregion //State Logic
+
+        #region Timer Utilities
+        DateTime GetPeriodTime(string key)
+        {
+            return _periodTimes.TryGetValue(key, out DateTime time) ? time : DateTime.MinValue;
+        }
+
+        void SetPeriodTime(string key, DateTime time)
+        {
+            _periodTimes[key] = Utils.TrimMilliseconds(time);
+            _persistence.Save(key, _periodTimes[key]);
+        }
+        #endregion //Timer Utilities
 
         #region Coroutines
+        void StartPeriodUpdate(string key)
+        {
+            CoroutineHelper.Replace(ref _coUpdate, CoUpdate(_periodTimes[key]));
+        }
+
         IEnumerator CoInit()
         {
             yield return OnWait?.Invoke();
             _init = true;
 
-            if (Utils.CompareWithoutMilliseconds(_periodEndTimes[OPEN_UPDATED_KEY], DateTime.UtcNow) > 0)
-                ForceClosed();
+            Debug.Log($"[CoInit]");
+
+            DateTime now = DateTime.UtcNow;
+            if (Utils.CompareWithoutMilliseconds(_periodTimes[OPEN_UPDATED_KEY], now) > 0)
+            {
+                Debug.LogError("Cheating detected");
+                _stateMachine.Change(EPeriodTimerState.Closed);
+            }
+            else if (Utils.CompareWithoutMilliseconds(_periodTimes[OPEN_END_KEY], now) > 0)
+            {
+                _stateMachine.Change(EPeriodTimerState.Open);
+            }
+            else if (Utils.CompareWithoutMilliseconds(_periodTimes[CLOSED_END_KEY], now) > 0)
+            {
+                _stateMachine.Change(EPeriodTimerState.Closed);
+            }
             else
-                UpdatePeriodState();
+            {
+                _stateMachine.Change(EPeriodTimerState.OpenStart);
+            }
         }
 
-        IEnumerator CoUpdate(DateTime curTime, DateTime periodEndTime)
+        IEnumerator CoUpdate(DateTime periodEndTime)
         {
-            int time = (int)Mathf.Ceil((float)(periodEndTime - curTime).TotalMinutes);
-            while (time > 0)
+            Debug.Log($"[CoUpdate]");
+            while (true)
             {
-                if (_state == EPeriodTimerState.Open)
-                    _periodEndTimes[OPEN_UPDATED_KEY] = _persistence.Save(OPEN_UPDATED_KEY, DateTime.UtcNow);
+                DateTime now = DateTime.UtcNow;
+                int time = (int)Mathf.Ceil((float)(periodEndTime - now).TotalSeconds);
+
+                if (time <= 0)
+                    break;
+
+                if (_stateMachine.CurType == EPeriodTimerState.Open)
+                    SetPeriodTime(OPEN_UPDATED_KEY, now);
 
                 OnLoopUpdate?.Invoke(time);
-
-                yield return new WaitForSecondsRealtime(LOOP_INTERVAL_SECONDS);
-
-                if (--time <= 0)
-                    break;
+                yield return null;
             }
 
-            UpdatePeriodState();
+            _stateMachine.Update();
         }
         #endregion //Coroutines
     }

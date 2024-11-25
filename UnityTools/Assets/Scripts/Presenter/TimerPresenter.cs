@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityTools.UI;
@@ -42,7 +41,7 @@ namespace UnityTools.Presenter
 
         void OnStateUpdated(EPeriodTimerState state)
         {
-            _view.SetTimer(_periodTimer.OpenStartime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
+            _view.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
             switch (state)
             {

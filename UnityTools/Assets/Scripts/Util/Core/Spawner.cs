@@ -28,9 +28,7 @@ namespace UnityTools.Util
             {
                 T obj = _pool.Get();
                 if (obj != null)
-                {
                     obj.transform.position = Utils.GetRandomPos(transform.position, _range);
-                }
 
                 yield return new WaitForSeconds(_interval);
             }

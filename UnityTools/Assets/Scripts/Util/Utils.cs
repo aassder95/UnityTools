@@ -31,5 +31,10 @@ namespace UnityTools.Util
         {
             return TrimMilliseconds(dt1).CompareTo(TrimMilliseconds(dt2));
         }
+
+        public static int GetEnumLength<T>() where T : Enum
+        {
+            return Enum.GetNames(typeof(T)).Length;
+        }
     }
 }
