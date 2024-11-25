@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace UnityTools.Util
@@ -6,8 +7,8 @@ namespace UnityTools.Util
     {
         public static Vector2 GetRandomPos(Vector2 center, Vector2 range)
         {
-            float x = Random.Range(center.x - range.x * 0.5f, center.x + range.x * 0.5f);
-            float y = Random.Range(center.y - range.y * 0.5f, center.y + range.y * 0.5f);
+            float x = UnityEngine.Random.Range(center.x - range.x * 0.5f, center.x + range.x * 0.5f);
+            float y = UnityEngine.Random.Range(center.y - range.y * 0.5f, center.y + range.y * 0.5f);
             return new Vector2(x, y);
         }
 
@@ -19,6 +20,16 @@ namespace UnityTools.Util
         public static int ClampIndexFromPosition(float pos, float itemSize, int lastIdx)
         {
             return ClampIndex(Mathf.FloorToInt(pos / itemSize + 0.0001f), lastIdx);
+        }
+
+        public static DateTime TrimMilliseconds(DateTime time)
+        {
+            return new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, time.Second, time.Kind);
+        }
+
+        public static int CompareWithoutMilliseconds(DateTime dt1, DateTime dt2)
+        {
+            return TrimMilliseconds(dt1).CompareTo(TrimMilliseconds(dt2));
         }
     }
 }

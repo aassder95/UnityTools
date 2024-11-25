@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityTools.Model;
 using UnityTools.Presenter;
@@ -20,6 +21,15 @@ namespace UnityTools.Manager
                 RankModel model = new RankModel(_rankModelCnt);
                 _rankPresenter = new RankPresenter(model, _rankView);
             }
+
+            PeriodTimer info = new PeriodTimer("OPEN_KEY", "CLOSED_KEY", 1.0, 1.0);
+            info.OnWaitFunc += Func;
+            info.Init();
+        }
+
+        IEnumerator Func()
+        {
+            yield return new WaitForSeconds(5.0f);
         }
     }
 }
