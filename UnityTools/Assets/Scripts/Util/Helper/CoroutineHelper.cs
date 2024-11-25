@@ -22,7 +22,8 @@ namespace UnityTools.Util
 
         public static void Stop(Coroutine coroutine)
         {
-            _instance.StopCoroutine(coroutine);
+            if (coroutine != null)
+                _instance.StopCoroutine(coroutine);
         }
 
         public static void Replace(ref Coroutine coroutine, IEnumerator enumerator)
