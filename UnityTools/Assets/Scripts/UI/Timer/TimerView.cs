@@ -2,6 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityTools.Util;
 
 namespace UnityTools.UI
 {
@@ -19,6 +20,11 @@ namespace UnityTools.UI
         public event UnityAction OnForceOpen;
         public event UnityAction OnForceClosed;
 
+        void Update()
+        {
+            _txtCur.SetText($"cur: {Utils.TrimMilliseconds(DateTime.UtcNow)}");
+        }
+
         public void SetState(string state)
         {
             _txtState.SetText(state);
@@ -35,9 +41,8 @@ namespace UnityTools.UI
             _txtOpenUpdated.SetText($"updated: {updated}");
         }
 
-        public void SetTimer(DateTime cur, DateTime openStart, DateTime openEnd, DateTime closedEnd)
+        public void SetTimer(DateTime openStart, DateTime openEnd, DateTime closedEnd)
         {
-            _txtCur.SetText($"cur: {cur}");
             _txtOpen.SetText($"open: {openEnd}");
             _txtClosed.SetText($"closed: {closedEnd}");
             _txtOpenStart.SetText($"start: {openStart}");

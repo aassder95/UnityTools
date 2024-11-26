@@ -14,6 +14,39 @@ namespace UnityTools.Util
         Closed,
     }
 
+    public class PeriodTimerPersistence
+    {
+        readonly string ROOT_KEY;
+
+        public PeriodTimerPersistence(string key)
+        {
+            ROOT_KEY = key;
+        }
+
+        public DateTime Save(string suffix, DateTime time)
+        {
+            time = Utils.TrimMilliseconds(time);
+            PlayerPrefs.SetString(GetKey(suffix), time.ToString());
+            return time;
+        }
+
+        public DateTime Load(string suffix)
+        {
+            if (PlayerPrefs.HasKey(GetKey(suffix)))
+            {
+                if (DateTime.TryParse(PlayerPrefs.GetString(GetKey(suffix)), out DateTime time))
+                    return time;
+            }
+
+            return DateTime.MinValue;
+        }
+
+        string GetKey(string suffix)
+        {
+            return ROOT_KEY + "_" + suffix;
+        }
+    }
+
     public class PeriodTimer
     {
         #region Constants
@@ -23,13 +56,13 @@ namespace UnityTools.Util
         const string CLOSED_KEY = "CLOSED_KEY";
         const float LOOP_INTERVAL_SECONDS = 60.0f;
 
-        readonly string ROOT_KEY;
         readonly double OPEN_PERIOD_MINUTES;
         readonly double CLOSED_PERIOD_MINUTES;
         #endregion //Constants
 
         #region Fields
         EPeriodTimerState _state = EPeriodTimerState.None;
+        PeriodTimerPersistence _persistence;
         bool _init = false;
         Coroutine _coUpdate;
         readonly Dictionary<string, DateTime> _periodEndTimes = new();
@@ -51,28 +84,12 @@ namespace UnityTools.Util
         #region Constructors
         public PeriodTimer(string key, double openPeriodMin, double closedPeriodMin)
         {
-            ROOT_KEY = key;
             OPEN_PERIOD_MINUTES = openPeriodMin;
             CLOSED_PERIOD_MINUTES = closedPeriodMin;
+
+            _persistence = new(key);
         }
         #endregion //Constructors
-
-        #region Persistence
-        void SavePeriodEndTime(string suffix, DateTime time)
-        {
-            time = Utils.TrimMilliseconds(time);
-            _periodEndTimes[suffix] = time;
-            PlayerPrefs.SetString(GetKey(suffix), time.ToString());
-        }
-
-        void LoadPeriodEndTime(string suffix)
-        {
-            if (PlayerPrefs.HasKey(GetKey(suffix)))
-                _periodEndTimes[suffix] = DateTime.Parse(PlayerPrefs.GetString(GetKey(suffix)));
-            else
-                _periodEndTimes[suffix] = DateTime.MinValue;
-        }
-        #endregion //Persistence
 
         #region Initialization
         public void Init()
@@ -80,7 +97,7 @@ namespace UnityTools.Util
             string[] suffixes = { OPEN_KEY, OPEN_START_KEY, OPEN_UPDATED_KEY, CLOSED_KEY };
             foreach (string suffix in suffixes)
             {
-                LoadPeriodEndTime(suffix);
+                _periodEndTimes[suffix] = _persistence.Load(suffix);
             }
 
             CoroutineHelper.Start(CoInit());
@@ -112,15 +129,15 @@ namespace UnityTools.Util
             switch (state)
             {
                 case EPeriodTimerState.OpenStart:
-                    SavePeriodEndTime(OPEN_START_KEY, curTime);
-                    SavePeriodEndTime(OPEN_KEY, curTime.AddMinutes(OPEN_PERIOD_MINUTES));
-                    SavePeriodEndTime(CLOSED_KEY, _periodEndTimes[OPEN_KEY].AddMinutes(CLOSED_PERIOD_MINUTES));
+                    _periodEndTimes[OPEN_START_KEY] = _persistence.Save(OPEN_START_KEY, curTime);
+                    _periodEndTimes[OPEN_KEY] = _persistence.Save(OPEN_KEY, _periodEndTimes[OPEN_START_KEY].AddMinutes(OPEN_PERIOD_MINUTES));
+                    _periodEndTimes[CLOSED_KEY] = _persistence.Save(CLOSED_KEY, _periodEndTimes[OPEN_KEY].AddMinutes(CLOSED_PERIOD_MINUTES));
                     break;
                 case EPeriodTimerState.Open:
                     CoroutineHelper.Replace(ref _coUpdate, CoUpdate(curTime, _periodEndTimes[OPEN_KEY]));
                     break;
                 case EPeriodTimerState.Closed:
-                    SavePeriodEndTime(OPEN_KEY, DateTime.MinValue);
+                    _periodEndTimes[OPEN_KEY] = _persistence.Save(OPEN_KEY, DateTime.MinValue);
                     CoroutineHelper.Replace(ref _coUpdate, CoUpdate(curTime, _periodEndTimes[CLOSED_KEY]));
                     break;
             }
@@ -146,9 +163,9 @@ namespace UnityTools.Util
                 return;
 
             DateTime curTime = Utils.TrimMilliseconds(DateTime.UtcNow);
-            SavePeriodEndTime(OPEN_START_KEY, DateTime.MinValue);
-            SavePeriodEndTime(OPEN_UPDATED_KEY, DateTime.MinValue);
-            SavePeriodEndTime(CLOSED_KEY, curTime.AddMinutes(CLOSED_PERIOD_MINUTES));
+            _periodEndTimes[OPEN_START_KEY] = _persistence.Save(OPEN_START_KEY, DateTime.MinValue);
+            _periodEndTimes[OPEN_UPDATED_KEY] = _persistence.Save(OPEN_UPDATED_KEY, DateTime.MinValue);
+            _periodEndTimes[CLOSED_KEY] = _persistence.Save(CLOSED_KEY, curTime.AddMinutes(CLOSED_PERIOD_MINUTES));
             SetState(EPeriodTimerState.Closed, curTime);
         }
         #endregion State Control
@@ -159,10 +176,10 @@ namespace UnityTools.Util
             yield return OnWait?.Invoke();
             _init = true;
 
-            if (CheckValidTime())
-                UpdatePeriodState();
-            else
+            if (Utils.CompareWithoutMilliseconds(_periodEndTimes[OPEN_UPDATED_KEY], DateTime.UtcNow) > 0)
                 ForceClosed();
+            else
+                UpdatePeriodState();
         }
 
         IEnumerator CoUpdate(DateTime curTime, DateTime periodEndTime)
@@ -170,10 +187,10 @@ namespace UnityTools.Util
             int time = (int)Mathf.Ceil((float)(periodEndTime - curTime).TotalMinutes);
             while (time > 0)
             {
-                OnLoopUpdate?.Invoke(time);
-
                 if (_state == EPeriodTimerState.Open)
-                    SavePeriodEndTime(OPEN_UPDATED_KEY, Utils.TrimMilliseconds(DateTime.UtcNow));
+                    _periodEndTimes[OPEN_UPDATED_KEY] = _persistence.Save(OPEN_UPDATED_KEY, DateTime.UtcNow);
+
+                OnLoopUpdate?.Invoke(time);
 
                 yield return new WaitForSecondsRealtime(LOOP_INTERVAL_SECONDS);
 
@@ -184,17 +201,5 @@ namespace UnityTools.Util
             UpdatePeriodState();
         }
         #endregion //Coroutines
-
-        #region Helpers
-        bool CheckValidTime()
-        {
-            return Utils.CompareWithoutMilliseconds(_periodEndTimes[OPEN_UPDATED_KEY], DateTime.UtcNow) <= 0;
-        }
-
-        string GetKey(string suffix)
-        {
-            return ROOT_KEY + "_" + suffix;
-        }
-        #endregion //Helpers
     }
 }

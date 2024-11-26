@@ -18,7 +18,7 @@ namespace UnityTools.Presenter
             _view.OnForceOpen += OnForceOpen;
             _view.OnForceClosed += OnForceClosed;
 
-            _periodTimer = new("TIMER", 2.0, 2.0);
+            _periodTimer = new("TIMER", 1.0, 1.0);
             _periodTimer.OnWait += CoWait;
             _periodTimer.OnStateUpdated += OnStateUpdated;
             _periodTimer.OnLoopUpdate += OnLoopUpdate;
@@ -42,7 +42,7 @@ namespace UnityTools.Presenter
 
         void OnStateUpdated(EPeriodTimerState state)
         {
-            _view.SetTimer(Utils.TrimMilliseconds(DateTime.UtcNow), _periodTimer.OpenStartime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
+            _view.SetTimer(_periodTimer.OpenStartime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
             switch (state)
             {
