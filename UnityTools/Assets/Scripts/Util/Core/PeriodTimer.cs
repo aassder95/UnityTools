@@ -21,7 +21,7 @@ namespace UnityTools.Util
         const string OPEN_START_KEY = "OPEN_START_KEY";
         const string OPEN_UPDATED_KEY = "OPEN_UPDATED_KEY";
         const string CLOSED_KEY = "CLOSED_KEY";
-        const float LOOP_INTERVAL_SECONDS = 1.0f;
+        const float LOOP_INTERVAL_SECONDS = 60.0f;
 
         readonly string ROOT_KEY;
         readonly double OPEN_PERIOD_MINUTES;
@@ -167,7 +167,7 @@ namespace UnityTools.Util
 
         IEnumerator CoUpdate(DateTime curTime, DateTime periodEndTime)
         {
-            int time = (int)Mathf.Ceil((float)(periodEndTime - curTime).TotalSeconds);
+            int time = (int)Mathf.Ceil((float)(periodEndTime - curTime).TotalMinutes);
             while (time > 0)
             {
                 OnLoopUpdate?.Invoke(time);
