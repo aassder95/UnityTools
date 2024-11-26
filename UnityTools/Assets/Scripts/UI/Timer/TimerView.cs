@@ -13,6 +13,8 @@ namespace UnityTools.UI
         [SerializeField] TextMeshProUGUI _txtLoop;
         [SerializeField] TextMeshProUGUI _txtOpen;
         [SerializeField] TextMeshProUGUI _txtClosed;
+        [SerializeField] TextMeshProUGUI _txtOpenStart;
+        [SerializeField] TextMeshProUGUI _txtOpenUpdated;
 
         public event UnityAction OnForceOpen;
         public event UnityAction OnForceClosed;
@@ -27,16 +29,18 @@ namespace UnityTools.UI
             _txtSubState.SetText(state);
         }
 
-        public void SetLoop(int min)
+        public void SetLoop(int min, DateTime updated)
         {
             _txtLoop.SetText("({0})", min);
+            _txtOpenUpdated.SetText($"updated: {updated}");
         }
 
-        public void SetTimer(DateTime cur, DateTime open, DateTime closed)
+        public void SetTimer(DateTime cur, DateTime openStart, DateTime openEnd, DateTime closedEnd)
         {
             _txtCur.SetText($"cur: {cur}");
-            _txtOpen.SetText($"open: {open}");
-            _txtClosed.SetText($"closed: {closed}");
+            _txtOpen.SetText($"open: {openEnd}");
+            _txtClosed.SetText($"closed: {closedEnd}");
+            _txtOpenStart.SetText($"start: {openStart}");
         }
 
         public void OnForceOpenInspector()
