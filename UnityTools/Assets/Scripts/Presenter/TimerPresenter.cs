@@ -15,6 +15,8 @@ namespace UnityTools.Presenter
         public TimerPresenter(TimerView view)
         {
             _view = view;
+            _view.OnForceOpen += OnForceOpen;
+            _view.OnForceClosed += OnForceClosed;
 
             _periodTimer = new("TIMER", 1.0, 1.0);
             _periodTimer.OnWait += CoWait;
@@ -23,9 +25,19 @@ namespace UnityTools.Presenter
             _periodTimer.Init();
         }
 
+        void OnForceOpen()
+        {
+            _periodTimer.ForceOpen();
+        }
+
+        void OnForceClosed()
+        {
+            _periodTimer.ForceClosed();
+        }
+
         IEnumerator CoWait()
         {
-            yield return new WaitForSecondsRealtime(2.0f);
+            yield return new WaitForSecondsRealtime(10.0f);
         }
 
         void OnStateUpdated(EPeriodTimerState state)

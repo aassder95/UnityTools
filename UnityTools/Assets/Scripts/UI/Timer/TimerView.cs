@@ -1,6 +1,7 @@
 using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace UnityTools.UI
 {
@@ -12,6 +13,9 @@ namespace UnityTools.UI
         [SerializeField] TextMeshProUGUI _txtLoop;
         [SerializeField] TextMeshProUGUI _txtOpen;
         [SerializeField] TextMeshProUGUI _txtClosed;
+
+        public event UnityAction OnForceOpen;
+        public event UnityAction OnForceClosed;
 
         public void SetState(string state)
         {
@@ -33,6 +37,16 @@ namespace UnityTools.UI
             _txtCur.SetText($"cur: {cur}");
             _txtOpen.SetText($"open: {open}");
             _txtClosed.SetText($"closed: {closed}");
+        }
+
+        public void OnForceOpenInspector()
+        {
+            OnForceOpen?.Invoke();
+        }
+
+        public void OnForceClosedInspector()
+        {
+            OnForceClosed?.Invoke();
         }
     }
 }

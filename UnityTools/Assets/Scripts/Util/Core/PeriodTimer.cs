@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
@@ -27,6 +28,7 @@ namespace UnityTools.Util
 
         #region Variable
         EPeriodTimerState _state = EPeriodTimerState.Closed;
+        bool _init = false;
         Coroutine _coUpdate;
         readonly Dictionary<string, DateTime> _periodEndTimes = new();
         #endregion //Variable
@@ -37,8 +39,8 @@ namespace UnityTools.Util
         #endregion //Property
 
         #region Event
-        public event Action<EPeriodTimerState> OnStateUpdated;
-        public event Action<int> OnLoopUpdate;
+        public event UnityAction<EPeriodTimerState> OnStateUpdated;
+        public event UnityAction<int> OnLoopUpdate;
         public event Func<IEnumerator> OnWait;
         #endregion //Event
 
@@ -68,7 +70,6 @@ namespace UnityTools.Util
         }
         #endregion //File
 
-        #region Timer
         public void Init()
         {
             string[] suffixes = { OPEN_KEY, OPEN_START_KEY, OPEN_UPDATED_KEY, CLOSED_KEY };
@@ -78,12 +79,6 @@ namespace UnityTools.Util
             }
 
             CoroutineHelper.Start(CoInit());
-        }
-
-        IEnumerator CoInit()
-        {
-            yield return OnWait?.Invoke();
-            UpdatePeriodState();
         }
 
         void UpdatePeriodState()
@@ -101,6 +96,35 @@ namespace UnityTools.Util
                 SetState(EPeriodTimerState.Open, curTime);
             else if (isClosed)
                 SetState(EPeriodTimerState.Closed, curTime);
+        }
+
+        public void ForceOpen()
+        {
+            if (!_init || _state == EPeriodTimerState.Open)
+                return;
+
+            DateTime curTime = Utils.TrimMilliseconds(DateTime.UtcNow);
+            SetState(EPeriodTimerState.OpenStart, curTime);
+            SetState(EPeriodTimerState.Open, curTime);
+        }
+
+        public void ForceClosed()
+        {
+            if (!_init || _state == EPeriodTimerState.Closed)
+                return;
+
+            DateTime curTime = Utils.TrimMilliseconds(DateTime.UtcNow);
+            SavePeriodEndTime(CLOSED_KEY, curTime.AddMinutes(CLOSED_PERIOD_MINUTES));
+            SetState(EPeriodTimerState.Closed, curTime);
+        }
+
+        #region Coroutine
+        IEnumerator CoInit()
+        {
+            yield return OnWait?.Invoke();
+            _init = true;
+
+            UpdatePeriodState();
         }
 
         IEnumerator CoUpdate(DateTime curTime, DateTime periodEndTime)
@@ -121,7 +145,7 @@ namespace UnityTools.Util
 
             UpdatePeriodState();
         }
-        #endregion //Timer
+        #endregion //Coroutine
 
         #region Get & Set
         string GetKey(string suffix)
