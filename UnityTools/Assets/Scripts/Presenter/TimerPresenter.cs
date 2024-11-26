@@ -16,10 +16,9 @@ namespace UnityTools.Presenter
         {
             _view = view;
 
-            _periodTimer = new("OPEN_KEY", "CLOSED_KEY", 1.0, 1.0);
+            _periodTimer = new("TIMER", 1.0, 1.0);
             _periodTimer.OnWait += CoWait;
             _periodTimer.OnStateUpdated += OnStateUpdated;
-            _periodTimer.OnSubStateUpdated += OnSubStateUpdated;
             _periodTimer.OnLoopUpdate += OnLoopUpdate;
             _periodTimer.Init();
         }
@@ -35,24 +34,15 @@ namespace UnityTools.Presenter
 
             switch (state)
             {
+                case EPeriodTimerState.OpenStart:
+                    _view.SetSubState("OpenStart");
+                    break;
                 case EPeriodTimerState.Open:
                     _view.SetState("Open");
                     break;
                 case EPeriodTimerState.Closed:
                     _view.SetState("Closed");
                     _view.SetSubState("Closed");
-                    break;
-            }
-        }
-
-        void OnSubStateUpdated(EPeriodTimerSubState state)
-        {
-            _view.SetTimer(Utils.TrimMilliseconds(DateTime.UtcNow), _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
-
-            switch (state)
-            {
-                case EPeriodTimerSubState.OpenStart:
-                    _view.SetSubState("OpenStart");
                     break;
             }
         }

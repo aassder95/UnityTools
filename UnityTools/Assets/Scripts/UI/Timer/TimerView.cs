@@ -8,8 +8,8 @@ namespace UnityTools.UI
     {
         [SerializeField] TextMeshProUGUI _txtState;
         [SerializeField] TextMeshProUGUI _txtSubState;
-        [SerializeField] TextMeshProUGUI _txtLoop;
         [SerializeField] TextMeshProUGUI _txtCur;
+        [SerializeField] TextMeshProUGUI _txtLoop;
         [SerializeField] TextMeshProUGUI _txtOpen;
         [SerializeField] TextMeshProUGUI _txtClosed;
 
@@ -25,7 +25,7 @@ namespace UnityTools.UI
 
         public void SetLoop(int min)
         {
-            _txtLoop.SetText("{0}", min);
+            _txtLoop.SetText("({0})", min);
         }
 
         public void SetTimer(DateTime cur, DateTime open, DateTime closed)
