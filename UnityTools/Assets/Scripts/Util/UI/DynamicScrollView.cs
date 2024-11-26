@@ -24,7 +24,7 @@ namespace UnityTools.Util
         [SerializeField] float _spacing = 0.0f;
         #endregion //Inspector
 
-        #region Variable
+        #region Fields
         EScrollDirection _scrollDir;
         ObjectPool<TView> _pool;
         int _totalCnt;
@@ -32,13 +32,9 @@ namespace UnityTools.Util
         RectTransform _rtItem;
         ScrollRect _scrollRect;
         readonly Deque<TView> _items = new();
-        #endregion //Variable
+        #endregion //Fields
 
-        #region Event
-        public event UnityAction<TView> OnItemUpdated;
-        #endregion //Event
-
-        #region Property
+        #region Properties
         int FirstIndex => _items.Peek()?.Index ?? 0;
         int FirstVisibleIndex => Utils.ClampIndexFromPosition(ContentPos, ItemSize, _totalCnt - _visibleCnt);
         public int TotalCount => _totalCnt;
@@ -48,7 +44,11 @@ namespace UnityTools.Util
         float ItemOriginSize => _scrollDir == EScrollDirection.Vertical ? _rtItem.sizeDelta.y : _rtItem.sizeDelta.x;
         float ItemSize => ItemOriginSize + _spacing;
         float ItemPivot => _scrollDir == EScrollDirection.Vertical ? _rtItem.pivot.y : _rtItem.pivot.x;
-        #endregion //Property
+        #endregion //Properties
+
+        #region Events
+        public event UnityAction<TView> OnItemUpdated;
+        #endregion //Events
 
         #region Unity Lifecycle
         void Awake()
