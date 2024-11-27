@@ -98,7 +98,7 @@ namespace UnityTools.Util
         }
         #endregion //Initialization
 
-        #region State Control
+        #region State Management
         public void ForceOpen()
         {
             if (!_init || _fsm.CurType == EPeriodTimerState.Open)
@@ -126,7 +126,7 @@ namespace UnityTools.Util
             _isTimeTamperedFlag = false;
             SetPeriodTime(CLOSED_END_KEY, DateTime.UtcNow.AddMinutes(CLOSED_PERIOD_MINUTES));
         }
-        #endregion //State Control
+        #endregion //State Management
 
         #region Timer Utilities
         public void InvokeLoopUpdated(string key) => OnLoopUpdated?.Invoke(Utils.GetRemainingMinutes(_periodTimes[key]));

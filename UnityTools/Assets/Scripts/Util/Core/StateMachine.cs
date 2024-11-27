@@ -27,7 +27,7 @@ namespace UnityTools.Util
         public event UnityAction<TType> OnStateChanged;
         #endregion //Events
 
-        #region State Control
+        #region State Management
         public void Add(TType type, IState state)
         {
             if (!_states.ContainsKey(type))
@@ -54,6 +54,6 @@ namespace UnityTools.Util
             if (_curState != null)
                 _curState.Execute();
         }
-        #endregion //State Control
+        #endregion //State Management
     }
 }
