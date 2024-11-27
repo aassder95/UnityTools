@@ -13,12 +13,21 @@ namespace UnityTools.Util
 
     public class StateMachine<TType> where TType : Enum
     {
+        #region Fields
         TType _curType;
         IState _curState;
         readonly Dictionary<TType, IState> _states = new();
-        public TType CurType => _curType;
-        public event UnityAction<TType> OnStateChanged;
+        #endregion //Fields
 
+        #region Properties
+        public TType CurType => _curType;
+        #endregion //Properties
+
+        #region Events
+        public event UnityAction<TType> OnStateChanged;
+        #endregion //Events
+
+        #region State Control
         public void Add(TType type, IState state)
         {
             if (!_states.ContainsKey(type))
@@ -45,5 +54,6 @@ namespace UnityTools.Util
             if (_curState != null)
                 _curState.Execute();
         }
+        #endregion //State Control
     }
 }
