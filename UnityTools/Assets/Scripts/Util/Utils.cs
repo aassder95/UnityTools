@@ -36,5 +36,20 @@ namespace UnityTools.Util
         {
             return Enum.GetNames(typeof(T)).Length;
         }
+
+        public static int GetRemainingMinutes(DateTime time)
+        {
+            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeSpan(time).TotalMinutes));
+        }
+
+        public static int GetRemainingSeconds(DateTime time)
+        {
+            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeSpan(time).TotalSeconds));
+        }
+
+        public static TimeSpan CalculateTimeSpan(DateTime time)
+        {
+            return time - TrimMilliseconds(DateTime.UtcNow);
+        }
     }
 }
