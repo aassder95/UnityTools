@@ -19,8 +19,8 @@ namespace UnityTools.Presenter
 
             _periodTimer = new("TIMER", 1.0, 1.0);
             _periodTimer.OnWait += CoWait;
-            _periodTimer.OnStateUpdated += OnStateUpdated;
-            _periodTimer.OnLoopUpdate += OnLoopUpdate;
+            _periodTimer.OnLoopUpdated += OnLoopUpdated;
+            _periodTimer.OnStateChanged += OnStateChanged;
             _periodTimer.Init();
         }
 
@@ -39,14 +39,14 @@ namespace UnityTools.Presenter
             yield return new WaitForSecondsRealtime(2.0f);
         }
 
-        void OnStateUpdated(EPeriodTimerState state)
+        void OnStateChanged(EPeriodTimerState state)
         {
-            _view.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
+            _view.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
             switch (state)
             {
-                case EPeriodTimerState.OpenStart:
-                    _view.SetSubState("OpenStart");
+                case EPeriodTimerState.Reset:
+                    _view.SetSubState("Reset");
                     break;
                 case EPeriodTimerState.Open:
                     _view.SetState("Open");
@@ -58,7 +58,7 @@ namespace UnityTools.Presenter
             }
         }
 
-        void OnLoopUpdate(int min)
+        void OnLoopUpdated(int min)
         {
             _view.SetLoop(min, _periodTimer.OpenUpdatedTime);
         }

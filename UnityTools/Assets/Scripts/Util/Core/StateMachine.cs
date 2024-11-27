@@ -25,7 +25,7 @@ namespace UnityTools.Util
                 _states.Add(type, state);
         }
 
-        public void Change(TType type)
+        public void Change(TType type, bool isUpdate = false)
         {
             if (!_states.TryGetValue(type, out IState newState))
                 return;
@@ -35,6 +35,9 @@ namespace UnityTools.Util
             _curState = newState;
             _curState.Enter();
             OnStateChanged?.Invoke(_curType);
+
+            if (isUpdate)
+                Update();
         }
 
         public void Update()

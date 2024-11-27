@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -20,6 +21,14 @@ namespace UnityTools.Util
             }
 
             return true;
+        }
+
+        public static void AddRange<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IEnumerable<TKey> keys, Func<TKey, TValue> valueSelector)
+        {
+            foreach (var key in keys)
+            {
+                dictionary[key] = valueSelector(key);
+            }
         }
     }
 }
