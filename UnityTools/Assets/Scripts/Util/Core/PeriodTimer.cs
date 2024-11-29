@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
@@ -46,14 +45,14 @@ namespace UnityTools.Util
         #endregion //Properties
 
         #region Events
-        public event UnityAction<int> OnLoopUpdated;
-        public event UnityAction<EPeriodTimerState> OnStateChanged { add { _fsm.OnStateChanged += value; } remove { _fsm.OnStateChanged -= value; } }
         public event Func<IEnumerator> OnWait;
         #endregion //Events
 
         #region Constructors
         public PeriodTimer(string key, double openPeriodMin, double closedPeriodMin)
         {
+            EventDispatcher.Instance.Subscribe<EPeriodTimerState>(EEventDispatcherType.StateMachineStateChanged, OnStateChanged);
+
             OPEN_PERIOD_MINUTES = openPeriodMin;
             CLOSED_PERIOD_MINUTES = closedPeriodMin;
 
@@ -129,8 +128,16 @@ namespace UnityTools.Util
         #endregion //State Management
 
         #region Timer Utilities
-        public void InvokeLoopUpdated(string key) => OnLoopUpdated?.Invoke(Utils.GetRemainingMinutes(_periodTimes[key]));
+        public void InvokeLoopUpdated(string key) => EventDispatcher.Instance.Dispatch(EEventDispatcherType.PeriodTimerLoopUpdated, this, Utils.GetRemainingMinutes(_periodTimes[key]));
         public void SetPeriodTime(string key, DateTime time) => _ps.Save(key, _periodTimes[key] = Utils.TrimMilliseconds(time));
         #endregion //Timer Utilities
+
+        void OnStateChanged(object sender, EPeriodTimerState state)
+        {
+            if (sender != _fsm)
+                return;
+
+            EventDispatcher.Instance.Dispatch(EEventDispatcherType.PeriodTimerStateChanged, this, state);
+        }
     }
 }

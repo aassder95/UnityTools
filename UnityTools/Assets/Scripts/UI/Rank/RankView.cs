@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityEngine.Events;
+using UnityTools.Util;
 
 namespace UnityTools.UI
 {
@@ -8,8 +8,6 @@ namespace UnityTools.UI
         [SerializeField] RankScrollView _scrollView;
 
         public RankScrollView ScrollView => _scrollView;
-
-        public event UnityAction OnRandomScore;
 
         public void InitView(int totalCnt)
         {
@@ -23,7 +21,7 @@ namespace UnityTools.UI
 
         public void OnRandomScoreInspector()
         {
-            OnRandomScore?.Invoke();
+            EventDispatcher.Instance.Dispatch(EEventDispatcherType.RankRandomScore, this);
         }
 
         public void OnIncreaseTotalItemViewInspector()

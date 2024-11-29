@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.Events;
 using UnityEngine.UI;
 
 namespace UnityTools.Util
@@ -46,10 +45,6 @@ namespace UnityTools.Util
         float ItemPivot => _scrollDir == EScrollDirection.Vertical ? _rtItem.pivot.y : _rtItem.pivot.x;
         #endregion //Properties
 
-        #region Events
-        public event UnityAction<TView> OnItemUpdated;
-        #endregion //Events
-
         #region Unity Lifecycle
         void Awake()
         {
@@ -94,7 +89,7 @@ namespace UnityTools.Util
 
         public void UpdateView()
         {
-            _items.ForEach(item => OnItemUpdated?.Invoke(item));
+            _items.ForEach(item => EventDispatcher.Instance.Dispatch(EEventDispatcherType.DynamicScrollViewItemUpdated, this, item));
         }
 
         protected void SetTotalCount(int cnt)
@@ -146,7 +141,7 @@ namespace UnityTools.Util
             TView item = _pool.Get();
             item.Index = idx;
             item.SetPosition(CalculateItemPosition(idx));
-            OnItemUpdated?.Invoke(item);
+            EventDispatcher.Instance.Dispatch(EEventDispatcherType.DynamicScrollViewItemUpdated, this, item);
             return item;
         }
 

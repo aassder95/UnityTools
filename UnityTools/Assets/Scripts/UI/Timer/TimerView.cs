@@ -1,7 +1,6 @@
 using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Events;
 using UnityTools.Util;
 
 namespace UnityTools.UI
@@ -16,9 +15,6 @@ namespace UnityTools.UI
         [SerializeField] TextMeshProUGUI _txtOpenUpdated;
         [SerializeField] TextMeshProUGUI _txtOpenEnd;
         [SerializeField] TextMeshProUGUI _txtClosedEnd;
-
-        public event UnityAction OnForceOpen;
-        public event UnityAction OnForceClosed;
 
         void Update()
         {
@@ -51,12 +47,12 @@ namespace UnityTools.UI
 
         public void OnForceOpenInspector()
         {
-            OnForceOpen?.Invoke();
+            EventDispatcher.Instance.Dispatch(EEventDispatcherType.PeriodTimerForceOpen, this);
         }
 
         public void OnForceClosedInspector()
         {
-            OnForceClosed?.Invoke();
+            EventDispatcher.Instance.Dispatch(EEventDispatcherType.PeriodTimerForceClose, this);
         }
     }
 }
