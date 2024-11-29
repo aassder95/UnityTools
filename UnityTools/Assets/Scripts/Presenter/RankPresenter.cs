@@ -1,6 +1,5 @@
 using UnityTools.Model;
 using UnityTools.UI;
-using UnityTools.Util;
 
 namespace UnityTools.Presenter
 {
@@ -11,26 +10,27 @@ namespace UnityTools.Presenter
 
         public RankPresenter(RankModel model, RankView view)
         {
-            BindEvents();
-
             _model = model;
             _view = view;
+
+            BindEvents();
+
             _view.InitView(_model.ItemModels.Count);
         }
 
         void BindEvents()
         {
-            EventDispatcher.Instance.Subscribe(EEventDispatcherType.RankRandomScore, OnRandomScore);
-            EventDispatcher.Instance.Subscribe<RankItemView>(EEventDispatcherType.DynamicScrollViewItemUpdated, OnItemViewUpdated);
+            _view.OnRandomScore += OnRandomScore;
+            _view.ScrollView.OnItemUpdated += OnItemViewUpdated;
         }
 
-        public void OnRandomScore(object sender)
+        public void OnRandomScore()
         {
             _model.SetRandomScore();
             _view.UpdateView();
         }
 
-        public void OnItemViewUpdated(object sender, RankItemView itemView)
+        public void OnItemViewUpdated(RankItemView itemView)
         {
             itemView.UpdateView(_model.GetItemModel(itemView.Index));
         }

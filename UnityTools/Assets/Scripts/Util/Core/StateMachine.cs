@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
@@ -22,6 +23,10 @@ namespace UnityTools.Util
         public TType CurType => _curType;
         #endregion //Properties
 
+        #region Events
+        public event UnityAction<TType> OnStateChanged;
+        #endregion //Events
+
         #region State Management
         public void Add(TType type, IState state)
         {
@@ -38,7 +43,7 @@ namespace UnityTools.Util
             _curType = type;
             _curState = newState;
             _curState.Enter();
-            EventDispatcher.Instance.Dispatch(EEventDispatcherType.StateMachineStateChanged, this, _curType);
+            OnStateChanged?.Invoke(_curType);
 
             if (isUpdate)
                 Update();
