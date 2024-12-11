@@ -31,7 +31,7 @@ class ViewModel:
             )
             return None
         except Exception as e:
-            return f"CSV 로드 중 오류 발생: {e}"
+            return f"로드 중 오류 발생: {e}"
 
     def save_json(self):
         """Model에 JSON 데이터 저장을 요청합니다."""
@@ -40,9 +40,9 @@ class ViewModel:
                 json_path=self.json_path,
                 pretty_print=self.pretty_print
             )
-            return "CSV를 JSON으로 변환했습니다."
+            return "Completed"
         except Exception as e:
-            return f"JSON 저장 중 오류 발생: {e}"
+            return f"저장 중 오류 발생: {e}"
 
     def is_valid_paths(self):
         """경로 유효성 검사를 수행합니다."""
