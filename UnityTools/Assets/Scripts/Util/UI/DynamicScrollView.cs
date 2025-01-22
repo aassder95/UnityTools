@@ -31,7 +31,6 @@ namespace UnityTools.Util
         EScrollDirection _scrollDir;
         ObjectPool<TView> _pool;
         int _totalCnt;
-        RectTransform _rt;
         RectTransform _rtContent;
         RectTransform _rtItem;
         ScrollRect _scrollRect;
@@ -57,7 +56,6 @@ namespace UnityTools.Util
         #region Unity Lifecycle
         void Awake()
         {
-            _rt = GetComponent<RectTransform>();
             _rtItem = _item.GetComponent<RectTransform>();
             _scrollRect = GetComponent<ScrollRect>();
 
@@ -144,17 +142,17 @@ namespace UnityTools.Util
             _items.ForEach(item => item.SetPosition(CalculateItemPosition(item.Index)));
         }
 
+        protected float GetContentPos(int idx, float offset = 0.0f)
+        {
+            return (idx * (_rtItem.sizeDelta.y + _spacing)) + offset;
+        }
+
         protected void SetContentPos(float value)
         {
             if (_scrollDir == EScrollDirection.Vertical)
                 _scrollRect.verticalNormalizedPosition = value;
             else
                 _scrollRect.horizontalNormalizedPosition = value;
-        }
-
-        protected float GetContentPos(int idx, float offset = 0.0f)
-        {
-            return (idx * (_rtItem.sizeDelta.y + _spacing)) + offset;
         }
 
         protected void SetContentPos(int idx, float offset = 0.0f)
