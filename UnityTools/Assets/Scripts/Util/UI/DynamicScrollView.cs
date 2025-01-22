@@ -10,6 +10,7 @@ namespace UnityTools.Util
         void SetPosition(Vector2 pos);
     }
 
+    [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
         enum EScrollDirection
@@ -22,12 +23,15 @@ namespace UnityTools.Util
         [SerializeField] TView _item;
         [SerializeField] int _visibleCnt = 3;
         [SerializeField] float _spacing = 0.0f;
+        [SerializeField] float _paddingStart = 0.0f;
+        [SerializeField] float _paddingEnd = 0.0f;
         #endregion //Inspector
 
         #region Fields
         EScrollDirection _scrollDir;
         ObjectPool<TView> _pool;
         int _totalCnt;
+        RectTransform _rt;
         RectTransform _rtContent;
         RectTransform _rtItem;
         ScrollRect _scrollRect;
@@ -36,7 +40,7 @@ namespace UnityTools.Util
 
         #region Properties
         int FirstIndex => _items.Peek()?.Index ?? 0;
-        int FirstVisibleIndex => Utils.ClampIndexFromPosition(ContentPos, ItemSize, _totalCnt - _visibleCnt);
+        int FirstVisibleIndex => Utils.ClampIndexFromPosition(ContentPos - _paddingStart, ItemSize, _totalCnt - _visibleCnt);
         public int TotalCount => _totalCnt;
         public int VisibleCount => _visibleCnt;
         float ContentPos => _scrollDir == EScrollDirection.Vertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
@@ -53,8 +57,9 @@ namespace UnityTools.Util
         #region Unity Lifecycle
         void Awake()
         {
-            _scrollRect = GetComponent<ScrollRect>();
+            _rt = GetComponent<RectTransform>();
             _rtItem = _item.GetComponent<RectTransform>();
+            _scrollRect = GetComponent<ScrollRect>();
 
             _rtContent = _scrollRect.content;
             _scrollDir = _scrollRect.vertical ? EScrollDirection.Vertical : EScrollDirection.Horizontal;
@@ -129,7 +134,7 @@ namespace UnityTools.Util
         #region Content
         void SetContentSize(int totalCnt)
         {
-            float size = totalCnt * ItemSize - _spacing;
+            float size = _paddingStart + (totalCnt * ItemSize - _spacing) + _paddingEnd;
 
             if (_scrollDir == EScrollDirection.Vertical)
                 _rtContent.SetSizeHeight(size);
@@ -137,6 +142,30 @@ namespace UnityTools.Util
                 _rtContent.SetSizeWidth(size);
 
             _items.ForEach(item => item.SetPosition(CalculateItemPosition(item.Index)));
+        }
+
+        protected void SetContentPos(float value)
+        {
+            if (_scrollDir == EScrollDirection.Vertical)
+                _scrollRect.verticalNormalizedPosition = value;
+            else
+                _scrollRect.horizontalNormalizedPosition = value;
+        }
+
+        protected float GetContentPos(int idx, float offset = 0.0f)
+        {
+            return (idx * (_rtItem.sizeDelta.y + _spacing)) + offset;
+        }
+
+        protected void SetContentPos(int idx, float offset = 0.0f)
+        {
+            float pos = GetContentPos(idx, offset);
+            if (_scrollDir == EScrollDirection.Vertical)
+                _rtContent.anchoredPosition = new Vector2(_rtContent.anchoredPosition.x, pos);
+            else
+                _rtContent.anchoredPosition = new Vector2(pos, _rtContent.anchoredPosition.y);
+
+            OnScrollValueChanged(Vector2.zero);
         }
         #endregion //Content
 
@@ -166,31 +195,56 @@ namespace UnityTools.Util
                 _pool.Return(_items.Dequeue());
         }
 
+        int CalculateItemIndex(float pos)
+        {
+            return (int)((((ContentSize - ItemOriginSize) * (1 - ItemPivot)) - (pos + _paddingStart)) / ItemSize);
+        }
+
         Vector2 CalculateItemPosition(int idx)
         {
-            float pos = (ContentSize - ItemOriginSize) * (1 - ItemPivot) - idx * ItemSize;
+            float pos = (ContentSize - ItemOriginSize) * (1 - ItemPivot) - (idx * ItemSize) - _paddingStart;
 
             if (_scrollDir == EScrollDirection.Vertical)
                 return new Vector2(_rtItem.anchoredPosition.x, pos);
             else
                 return new Vector2(-pos, _rtItem.anchoredPosition.y);
         }
+
+        protected TView GetItem(int idx)
+        {
+            foreach (var item in _items)
+            {
+                if (item.Index == idx)
+                    return item;
+            }
+
+            return null;
+        }
         #endregion //Item
 
         #region Callback
         public void OnScrollValueChanged(Vector2 value)
         {
-            if (FirstIndex == FirstVisibleIndex)
-                return;
+            Debug.LogWarning(CalculateItemIndex(-1045.0f));
 
-            int idxDiff = Mathf.Abs(FirstVisibleIndex - FirstIndex);
-            bool isDown = FirstVisibleIndex > FirstIndex;
-
-            for (int i = 0; i < idxDiff; i++)
+            if (FirstIndex != FirstVisibleIndex)
             {
-                AddItem(isDown);
-                RemoveItem(!isDown);
+                int idxDiff = Mathf.Abs(FirstVisibleIndex - FirstIndex);
+                bool isDown = FirstVisibleIndex > FirstIndex;
+
+                for (int i = 0; i < idxDiff; i++)
+                {
+                    AddItem(isDown);
+                    RemoveItem(!isDown);
+                }
             }
+
+            HandleScrollValueChanged(value);
+        }
+
+        protected virtual void HandleScrollValueChanged(Vector2 value)
+        {
+
         }
         #endregion //Callback
     }
