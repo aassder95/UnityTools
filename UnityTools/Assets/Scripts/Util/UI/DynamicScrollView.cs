@@ -195,6 +195,7 @@ namespace UnityTools.Util
 
         int CalculateItemIndex(float pos)
         {
+            pos = _scrollDir == EScrollDirection.Vertical ? pos : -pos;
             return (int)((((ContentSize - ItemOriginSize) * (1 - ItemPivot)) - (pos + _paddingStart)) / ItemSize);
         }
 
@@ -223,8 +224,6 @@ namespace UnityTools.Util
         #region Callback
         public void OnScrollValueChanged(Vector2 value)
         {
-            Debug.LogWarning(CalculateItemIndex(-1045.0f));
-
             if (FirstIndex != FirstVisibleIndex)
             {
                 int idxDiff = Mathf.Abs(FirstVisibleIndex - FirstIndex);
