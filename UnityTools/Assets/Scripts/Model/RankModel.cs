@@ -5,38 +5,67 @@ namespace UnityTools.Model
 {
     public class RankModel
     {
-        List<RankItemModel> _itemModels = new();
+        List<RankItemModel> _models = new();
 
-        public List<RankItemModel> ItemModels => _itemModels;
+        public int Count => _models.Count;
 
         public RankModel(int cnt)
         {
             for (int i = 0; i < cnt; i++)
             {
-                _itemModels.Add(new RankItemModel(i));
+                _models.Add(new RankItemModel(i));
             }
         }
 
-        public RankItemModel GetItemModel(int idx)
+        public void Update(int cnt)
         {
-            if (!_itemModels.IsValidIndex(idx))
+            int diff = cnt - _models.Count;
+            if (diff == 0)
+                return;
+
+            if (diff > 0)
+                Add(diff);
+            else
+                Remove(-diff);
+        }
+
+        void Add(int cnt = 1)
+        {
+            for (int i = 0; i < cnt; i++)
+            {
+                _models.Add(new RankItemModel(_models.Count + i));
+            }
+        }
+
+        void Remove(int cnt = 1)
+        {
+            int lastIdx = _models.Count - 1;
+            for (int i = lastIdx; i >= lastIdx - cnt; i--)
+            {
+                _models.RemoveAt(i);
+            }
+        }
+
+        public RankItemModel Get(int idx)
+        {
+            if (!_models.IsValidIndex(idx))
                 return null;
 
-            return _itemModels[idx];
+            return _models[idx];
         }
 
         public void SetRandomScore()
         {
-            foreach (RankItemModel model in _itemModels)
+            foreach (RankItemModel model in _models)
             {
                 model.SetRandomScore();
             }
 
-            _itemModels.Sort((a, b) => b.Score.CompareTo(a.Score));
+            _models.Sort((a, b) => b.Score.CompareTo(a.Score));
 
-            for (int i = 0; i < _itemModels.Count; i++)
+            for (int i = 0; i < _models.Count; i++)
             {
-                _itemModels[i].SetRank(i + 1);
+                _models[i].SetRank(i + 1);
             }
         }
     }

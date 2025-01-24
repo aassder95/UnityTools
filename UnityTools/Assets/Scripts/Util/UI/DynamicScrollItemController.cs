@@ -1,7 +1,5 @@
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.UI;
 
 namespace UnityTools.Util
 {
@@ -14,21 +12,20 @@ namespace UnityTools.Util
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {
         readonly DynamicScrollContext _context;
-        readonly ObjectPool<TView> _pool;
-        readonly Deque<TView> _items;
+        ObjectPool<TView> _pool;
+        Deque<TView> _items = new();
 
         public int FirstIndex => _items.Peek()?.Index ?? 0;
 
         public event UnityAction<TView> OnItemUpdated;
 
-        public DynamicScrollItemController(DynamicScrollContext context, ObjectPool<TView> pool, Deque<TView> items)
+        public DynamicScrollItemController(DynamicScrollContext context, RectTransform rtContent, TView item, int visibleCnt)
         {
             _context = context;
-            _pool = pool;
-            _items = items;
+            _pool = new ObjectPool<TView>(rtContent, item, visibleCnt);
         }
 
-        public TView CreateItem(int idx)
+        public TView Create(int idx)
         {
             TView item = _pool.Get();
             item.Index = idx;
@@ -37,25 +34,32 @@ namespace UnityTools.Util
             return item;
         }
 
-        public void UpdateAllItems()
+        public void Clear()
+        {
+            _pool?.Clear();
+        }
+
+        public void Update()
         {
             _items.ForEach(item => OnItemUpdated?.Invoke(item));
         }
 
-        public void UpdateAllItemsPosition()
+        public void UpdatePosition()
         {
             _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
         }
 
-        public void AddItem(bool isBack)
+        public void Add(int totalCnt) => Add(FirstIndex + _items.Count < totalCnt);
+        public void Add(bool isBack)
         {
             if (isBack)
-                _items.Enqueue(CreateItem(FirstIndex + _items.Count));
+                _items.Enqueue(Create(FirstIndex + _items.Count));
             else
-                _items.EnqueueFront(CreateItem(FirstIndex - 1));
+                _items.EnqueueFront(Create(FirstIndex - 1));
         }
 
-        public void RemoveItem(bool isBack)
+        public void Remove(int firstVisibleIdx) => Remove(FirstIndex >= firstVisibleIdx);
+        public void Remove(bool isBack)
         {
             if (_items.Count <= 0)
                 return;
@@ -66,15 +70,9 @@ namespace UnityTools.Util
                 _pool.Return(_items.Dequeue());
         }
 
-        public TView GetItem(int idx)
+        public TView Get(int idx)
         {
-            foreach (var item in _items)
-            {
-                if (item.Index == idx)
-                    return item;
-            }
-
-            return null;
+            return _items.FirstOrDefault(item => item.Index == idx);
         }
     }
 }

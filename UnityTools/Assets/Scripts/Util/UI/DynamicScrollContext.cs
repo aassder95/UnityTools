@@ -27,7 +27,7 @@ namespace UnityTools.Util
             _paddingEnd = paddingEnd;
         }
 
-        public float GetContentPos(int idx, float offset = 0.0f)
+        public float CalculateContentPosition(int idx, float offset = 0.0f)
         {
             return (idx * (_rtItem.sizeDelta.y + _spacing)) + offset;
         }
@@ -41,6 +41,11 @@ namespace UnityTools.Util
         {
             pos = _scrollDir == EScrollDirection.Vertical ? pos : -pos;
             return (int)((((ContentSize - ItemOriginSize) * (1 - ItemPivot)) - (pos + _paddingStart)) / ItemSize);
+        }
+
+        public int CalculateFirstVisibleItemIndex(int totalCnt, int visibleCnt)
+        {
+            return Utils.ClampIndexFromPosition(ContentPos - _paddingStart, ItemSize, totalCnt - visibleCnt);
         }
 
         public Vector2 CalculateItemPosition(int idx)

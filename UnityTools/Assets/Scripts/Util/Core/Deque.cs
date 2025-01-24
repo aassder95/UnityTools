@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
@@ -28,6 +29,17 @@ namespace UnityTools.Util
             {
                 onAction(item);
             }
+        }
+
+        public T FirstOrDefault(Func<T, bool> cond)
+        {
+            foreach (var item in _deque)
+            {
+                if (cond(item))
+                    return item;
+            }
+
+            return default;
         }
 
         T PeekNode(LinkedListNode<T> node)

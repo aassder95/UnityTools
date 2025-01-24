@@ -1653,6 +1653,11 @@ MonoBehaviour:
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
   _visibleCnt: 6
   _spacing: 10
+  _paddingStart: 0
+  _paddingEnd: 0
+  OnItemUpdated:
+    m_PersistentCalls:
+      m_Calls: []
 --- !u!1 &8883215428189257535
 GameObject:
   m_ObjectHideFlags: 0
