@@ -13,12 +13,6 @@ namespace UnityTools.Util
     [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
-        enum EScrollDirection
-        {
-            Vertical,
-            Horizontal,
-        }
-
         #region Inspector
         [SerializeField] TView _item;
         [SerializeField] int _visibleCnt = 3;
@@ -29,24 +23,20 @@ namespace UnityTools.Util
 
         #region Fields
         EScrollDirection _scrollDir;
-        ObjectPool<TView> _pool;
+        DynamicScrollContext _context;
         int _totalCnt;
         RectTransform _rtContent;
         RectTransform _rtItem;
         ScrollRect _scrollRect;
+        ObjectPool<TView> _pool;
         readonly Deque<TView> _items = new();
         #endregion //Fields
 
         #region Properties
         int FirstIndex => _items.Peek()?.Index ?? 0;
-        int FirstVisibleIndex => Utils.ClampIndexFromPosition(ContentPos - _paddingStart, ItemSize, _totalCnt - _visibleCnt);
+        int FirstVisibleIndex => Utils.ClampIndexFromPosition(_context.ContentPos - _paddingStart, _context.ItemSize, _totalCnt - _visibleCnt);
         public int TotalCount => _totalCnt;
         public int VisibleCount => _visibleCnt;
-        float ContentPos => _scrollDir == EScrollDirection.Vertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
-        float ContentSize => _scrollDir == EScrollDirection.Vertical ? _rtContent.sizeDelta.y : _rtContent.sizeDelta.x;
-        float ItemOriginSize => _scrollDir == EScrollDirection.Vertical ? _rtItem.sizeDelta.y : _rtItem.sizeDelta.x;
-        float ItemSize => ItemOriginSize + _spacing;
-        float ItemPivot => _scrollDir == EScrollDirection.Vertical ? _rtItem.pivot.y : _rtItem.pivot.x;
         #endregion //Properties
 
         #region Events
@@ -72,6 +62,8 @@ namespace UnityTools.Util
                 _rtContent.anchorMin = new Vector2(0.0f, 0.0f);
                 _rtContent.anchorMax = new Vector2(0.0f, 1.0f);
             }
+
+            _context = new DynamicScrollContext(_scrollDir, _rtContent, _rtItem, _spacing, _paddingStart, _paddingEnd);
         }
 
         void OnDestroy()
@@ -132,19 +124,13 @@ namespace UnityTools.Util
         #region Content
         void SetContentSize(int totalCnt)
         {
-            float size = _paddingStart + (totalCnt * ItemSize - _spacing) + _paddingEnd;
-
+            float size = _context.CalculateContentSize(totalCnt);
             if (_scrollDir == EScrollDirection.Vertical)
                 _rtContent.SetSizeHeight(size);
             else
                 _rtContent.SetSizeWidth(size);
 
-            _items.ForEach(item => item.SetPosition(CalculateItemPosition(item.Index)));
-        }
-
-        protected float GetContentPos(int idx, float offset = 0.0f)
-        {
-            return (idx * (_rtItem.sizeDelta.y + _spacing)) + offset;
+            _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
         }
 
         protected void SetContentPos(float value)
@@ -157,7 +143,7 @@ namespace UnityTools.Util
 
         protected void SetContentPos(int idx, float offset = 0.0f)
         {
-            float pos = GetContentPos(idx, offset);
+            float pos = _context.GetContentPos(idx, offset);
             if (_scrollDir == EScrollDirection.Vertical)
                 _rtContent.anchoredPosition = new Vector2(_rtContent.anchoredPosition.x, pos);
             else
@@ -172,7 +158,7 @@ namespace UnityTools.Util
         {
             TView item = _pool.Get();
             item.Index = idx;
-            item.SetPosition(CalculateItemPosition(idx));
+            item.SetPosition(_context.CalculateItemPosition(idx));
             OnItemUpdated?.Invoke(item);
             return item;
         }
@@ -191,22 +177,6 @@ namespace UnityTools.Util
                 _pool.Return(_items.DequeueBack());
             else
                 _pool.Return(_items.Dequeue());
-        }
-
-        int CalculateItemIndex(float pos)
-        {
-            pos = _scrollDir == EScrollDirection.Vertical ? pos : -pos;
-            return (int)((((ContentSize - ItemOriginSize) * (1 - ItemPivot)) - (pos + _paddingStart)) / ItemSize);
-        }
-
-        Vector2 CalculateItemPosition(int idx)
-        {
-            float pos = (ContentSize - ItemOriginSize) * (1 - ItemPivot) - (idx * ItemSize) - _paddingStart;
-
-            if (_scrollDir == EScrollDirection.Vertical)
-                return new Vector2(_rtItem.anchoredPosition.x, pos);
-            else
-                return new Vector2(-pos, _rtItem.anchoredPosition.y);
         }
 
         protected TView GetItem(int idx)
