@@ -4,12 +4,6 @@ using UnityEngine.UI;
 
 namespace UnityTools.Util
 {
-    public interface IDynamicScrollItem
-    {
-        int Index { get; set; }
-        void SetPosition(Vector2 pos);
-    }
-
     [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
@@ -24,6 +18,7 @@ namespace UnityTools.Util
         #region Fields
         EScrollDirection _scrollDir;
         DynamicScrollContext _context;
+        DynamicScrollItemController<TView> _itemCtrl;
         int _totalCnt;
         RectTransform _rtContent;
         RectTransform _rtItem;
@@ -33,14 +28,13 @@ namespace UnityTools.Util
         #endregion //Fields
 
         #region Properties
-        int FirstIndex => _items.Peek()?.Index ?? 0;
         int FirstVisibleIndex => Utils.ClampIndexFromPosition(_context.ContentPos - _paddingStart, _context.ItemSize, _totalCnt - _visibleCnt);
         public int TotalCount => _totalCnt;
         public int VisibleCount => _visibleCnt;
         #endregion //Properties
 
         #region Events
-        public event UnityAction<TView> OnItemUpdated;
+        public UnityEvent<TView> OnItemUpdated = new();
         #endregion //Events
 
         #region Unity Lifecycle
@@ -63,7 +57,11 @@ namespace UnityTools.Util
                 _rtContent.anchorMax = new Vector2(0.0f, 1.0f);
             }
 
+            _pool = new ObjectPool<TView>(_rtContent, _item, _visibleCnt);
             _context = new DynamicScrollContext(_scrollDir, _rtContent, _rtItem, _spacing, _paddingStart, _paddingEnd);
+            _itemCtrl = new DynamicScrollItemController<TView>(_context, _pool, _items);
+
+            _itemCtrl.OnItemUpdated += HandleItemUpdated;
         }
 
         void OnDestroy()
@@ -77,19 +75,18 @@ namespace UnityTools.Util
         {
             _totalCnt = totalCnt;
             _visibleCnt = Mathf.Min(_visibleCnt, _totalCnt);
-            _pool = new ObjectPool<TView>(_rtContent, _item, _visibleCnt);
 
             SetContentSize(_totalCnt);
 
             for (int i = 0; i < _visibleCnt; i++)
             {
-                AddItem(true);
+                _itemCtrl.AddItem(true);
             }
         }
 
         public void UpdateView()
         {
-            _items.ForEach(item => OnItemUpdated?.Invoke(item));
+            _itemCtrl.UpdateAllItems();
         }
 
         protected void SetTotalCount(int cnt)
@@ -114,9 +111,9 @@ namespace UnityTools.Util
             for (int i = 0; i < cntDiff; i++)
             {
                 if (isAdd)
-                    AddItem(FirstIndex + _items.Count < _totalCnt);
+                    _itemCtrl.AddItem(_itemCtrl.FirstIndex + _items.Count < _totalCnt);
                 else
-                    RemoveItem(FirstIndex >= FirstVisibleIndex);
+                    _itemCtrl.RemoveItem(_itemCtrl.FirstIndex >= FirstVisibleIndex);
             }
         }
         #endregion //View
@@ -130,10 +127,10 @@ namespace UnityTools.Util
             else
                 _rtContent.SetSizeWidth(size);
 
-            _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
+            _itemCtrl.UpdateAllItemsPosition();
         }
 
-        protected void SetContentPos(float value)
+        protected void SetContentPosition(float value)
         {
             if (_scrollDir == EScrollDirection.Vertical)
                 _scrollRect.verticalNormalizedPosition = value;
@@ -141,7 +138,7 @@ namespace UnityTools.Util
                 _scrollRect.horizontalNormalizedPosition = value;
         }
 
-        protected void SetContentPos(int idx, float offset = 0.0f)
+        protected void SetContentPosition(int idx, float offset = 0.0f)
         {
             float pos = _context.GetContentPos(idx, offset);
             if (_scrollDir == EScrollDirection.Vertical)
@@ -153,56 +150,18 @@ namespace UnityTools.Util
         }
         #endregion //Content
 
-        #region Item
-        TView CreateItem(int idx)
-        {
-            TView item = _pool.Get();
-            item.Index = idx;
-            item.SetPosition(_context.CalculateItemPosition(idx));
-            OnItemUpdated?.Invoke(item);
-            return item;
-        }
-
-        void AddItem(bool isBack)
-        {
-            if (isBack)
-                _items.Enqueue(CreateItem(FirstIndex + _items.Count));
-            else
-                _items.EnqueueFront(CreateItem(FirstIndex - 1));
-        }
-
-        void RemoveItem(bool isBack)
-        {
-            if (isBack)
-                _pool.Return(_items.DequeueBack());
-            else
-                _pool.Return(_items.Dequeue());
-        }
-
-        protected TView GetItem(int idx)
-        {
-            foreach (var item in _items)
-            {
-                if (item.Index == idx)
-                    return item;
-            }
-
-            return null;
-        }
-        #endregion //Item
-
         #region Callback
         public void OnScrollValueChanged(Vector2 value)
         {
-            if (FirstIndex != FirstVisibleIndex)
+            if (_itemCtrl.FirstIndex != FirstVisibleIndex)
             {
-                int idxDiff = Mathf.Abs(FirstVisibleIndex - FirstIndex);
-                bool isDown = FirstVisibleIndex > FirstIndex;
+                int idxDiff = Mathf.Abs(FirstVisibleIndex - _itemCtrl.FirstIndex);
+                bool isDown = FirstVisibleIndex > _itemCtrl.FirstIndex;
 
                 for (int i = 0; i < idxDiff; i++)
                 {
-                    AddItem(isDown);
-                    RemoveItem(!isDown);
+                    _itemCtrl.AddItem(isDown);
+                    _itemCtrl.RemoveItem(!isDown);
                 }
             }
 
@@ -212,6 +171,11 @@ namespace UnityTools.Util
         protected virtual void HandleScrollValueChanged(Vector2 value)
         {
 
+        }
+
+        void HandleItemUpdated(TView itemView)
+        {
+            OnItemUpdated?.Invoke(itemView);
         }
         #endregion //Callback
     }

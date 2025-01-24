@@ -21,7 +21,7 @@ namespace UnityTools.Presenter
         void BindEvents()
         {
             _view.OnRandomScore += OnRandomScore;
-            _view.ScrollView.OnItemUpdated += OnItemViewUpdated;
+            _view.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
         }
 
         public void OnRandomScore()
