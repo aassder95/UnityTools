@@ -10,12 +10,8 @@ namespace UnityTools.Util
         readonly RectOffset _padding;
         readonly Vector2 _spacing;
 
-        float ContentPos => _scrollDir == EScrollDirection.Vertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
-        float ContentSize => _scrollDir == EScrollDirection.Vertical ? _rtContent.sizeDelta.y : _rtContent.sizeDelta.x;
-        float ItemPivot => _scrollDir == EScrollDirection.Vertical ? _rtItem.pivot.y : _rtItem.pivot.x;
-        float ItemOriginSize => _scrollDir == EScrollDirection.Vertical ? _rtItem.sizeDelta.y : _rtItem.sizeDelta.x;
-        float ItemSize => ItemOriginSize + Spacing;
-        float Spacing => _scrollDir == EScrollDirection.Vertical ? _spacing.y : _spacing.x;
+        float ItemWidth => _rtItem.sizeDelta.x + _spacing.x;
+        float ItemHeight => _rtItem.sizeDelta.y + _spacing.y;
 
         public DynamicScrollContext(EScrollDirection scrollDir, RectTransform rtContent, RectTransform rtItem, RectOffset padding, Vector2 spacing)
         {
@@ -28,36 +24,48 @@ namespace UnityTools.Util
 
         public float CalculateContentPosition(int idx, float offset = 0.0f)
         {
-            return (idx * ItemSize) + offset;
+            if (_scrollDir == EScrollDirection.Vertical)
+                return (idx * ItemHeight) + offset;
+            else
+                return (idx * ItemWidth) + offset;
         }
 
         public Vector2 CalculateContentSize(int totalCnt)
         {
             if (_scrollDir == EScrollDirection.Vertical)
-                return new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalCnt * ItemSize - Spacing) + _padding.bottom);
+                return new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalCnt * ItemHeight - _spacing.y) + _padding.bottom);
             else
-                return new Vector2(_padding.left + (totalCnt * ItemSize - Spacing) + _padding.right, _rtContent.sizeDelta.y);
+                return new Vector2(_padding.left + (totalCnt * ItemWidth - _spacing.x) + _padding.right, _rtContent.sizeDelta.y);
         }
 
         public int CalculateItemIndex(float pos)
         {
-            pos = _scrollDir == EScrollDirection.Vertical ? pos + _padding.top : -pos + _padding.left;
-            return (int)((((ContentSize - ItemOriginSize) * (1 - ItemPivot)) - pos) / ItemSize);
+            if (_scrollDir == EScrollDirection.Vertical)
+                return (int)((((_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y)) - (pos + _padding.top)) / ItemHeight);
+            else
+                return (int)((((_rtContent.sizeDelta.x - _rtItem.sizeDelta.x) * (1 - _rtItem.pivot.x)) - (-pos + _padding.left)) / ItemWidth);
         }
 
         public int CalculateFirstVisibleItemIndex(int lastIdx)
         {
-            int padding = _scrollDir == EScrollDirection.Vertical ? _padding.top : _padding.left;
-            return Utils.ClampIndexFromPosition(ContentPos - padding, ItemSize, lastIdx);
+            if (_scrollDir == EScrollDirection.Vertical)
+                return Utils.ClampIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemHeight, lastIdx);
+            else
+                return Utils.ClampIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemWidth, lastIdx);
         }
 
         public Vector2 CalculateItemPosition(int idx)
         {
-            float pos = (ContentSize - ItemOriginSize) * (1 - ItemPivot) - (idx * ItemSize);
             if (_scrollDir == EScrollDirection.Vertical)
+            {
+                float pos = (_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (idx * ItemHeight);
                 return new Vector2(_padding.left + _rtItem.anchoredPosition.x, pos - _padding.top);
+            }
             else
-                return new Vector2(-(pos - _padding.left), _padding.top + _rtItem.anchoredPosition.y);
+            {
+                float pos = (_rtContent.sizeDelta.x - _rtItem.sizeDelta.x) * (1 - _rtItem.pivot.x) - (idx * ItemWidth);
+                return new Vector2(-(pos - _padding.left), -_padding.top + _rtItem.anchoredPosition.y);
+            }
         }
     }
 }
