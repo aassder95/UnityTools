@@ -4,9 +4,9 @@ namespace UnityTools.UI
 {
     public class RankScrollView : DynamicScrollView<RankItemView>
     {
-        public void IncreaseTotalItem() => SetTotalItemCount(TotalItemCount + 1);
-        public void DecreaseTotalItem() => SetTotalItemCount(TotalItemCount - 1);
-        public void IncreaseVisibleLine() => SetVisibleLineCount(VisibleLineCount + 1);
-        public void DecreaseVisibleLine() => SetVisibleLineCount(VisibleLineCount - 1);
+        public void IncreaseTotalItem() => SetTotalCount(TotalCount + 1);
+        public void DecreaseTotalItem() => SetTotalCount(TotalCount - 1);
+        public void IncreaseVisibleItem() => SetVisibleCount(VisibleCount + 1);
+        public void DecreaseVisibleItem() => SetVisibleCount(VisibleCount - 1);
     }
 }

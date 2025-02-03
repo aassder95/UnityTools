@@ -12,8 +12,8 @@ namespace UnityTools.UI
         public event UnityAction OnRandomScore;
         public event UnityAction OnIncreaseTotalItemView;
         public event UnityAction OnDecreaseTotalItemView;
-        public event UnityAction OnIncreaseVisibleLine;
-        public event UnityAction OnDecreaseVisibleLine;
+        public event UnityAction OnIncreaseVisibleItemView;
+        public event UnityAction OnDecreaseVisibleItemView;
 
         public void InitView(int totalCnt)
         {
@@ -40,14 +40,14 @@ namespace UnityTools.UI
             OnDecreaseTotalItemView?.Invoke();
         }
 
-        public void OnIncreaseVisibleLineInspector()
+        public void OnIncreaseVisibleItemViewInspector()
         {
-            OnIncreaseVisibleLine?.Invoke();
+            OnIncreaseVisibleItemView?.Invoke();
         }
 
-        public void OnDecreaseVisibleLineInspector()
+        public void OnDecreaseVisibleItemViewInspector()
         {
-            OnDecreaseVisibleLine?.Invoke();
+            OnDecreaseVisibleItemView?.Invoke();
         }
     }
 }
