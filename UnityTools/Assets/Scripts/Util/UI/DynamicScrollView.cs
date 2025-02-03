@@ -10,7 +10,7 @@ namespace UnityTools.Util
         [SerializeField] TView _item;
         [SerializeField] int _visibleCnt = 3;
         [SerializeField] RectOffset _padding;
-        [SerializeField] float _spacing = 0.0f;
+        [SerializeField] Vector2 _spacing;
 
         EScrollDirection _scrollDir;
         DynamicScrollContext _context;

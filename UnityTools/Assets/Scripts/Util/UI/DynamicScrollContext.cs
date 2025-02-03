@@ -8,15 +8,16 @@ namespace UnityTools.Util
         readonly RectTransform _rtContent;
         readonly RectTransform _rtItem;
         readonly RectOffset _padding;
-        readonly float _spacing;
+        readonly Vector2 _spacing;
 
-        public float ContentPos => _scrollDir == EScrollDirection.Vertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
+        float ContentPos => _scrollDir == EScrollDirection.Vertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
         float ContentSize => _scrollDir == EScrollDirection.Vertical ? _rtContent.sizeDelta.y : _rtContent.sizeDelta.x;
         float ItemPivot => _scrollDir == EScrollDirection.Vertical ? _rtItem.pivot.y : _rtItem.pivot.x;
         float ItemOriginSize => _scrollDir == EScrollDirection.Vertical ? _rtItem.sizeDelta.y : _rtItem.sizeDelta.x;
-        public float ItemSize => ItemOriginSize + _spacing;
+        float ItemSize => ItemOriginSize + Spacing;
+        float Spacing => _scrollDir == EScrollDirection.Vertical ? _spacing.y : _spacing.x;
 
-        public DynamicScrollContext(EScrollDirection scrollDir, RectTransform rtContent, RectTransform rtItem, RectOffset padding, float spacing)
+        public DynamicScrollContext(EScrollDirection scrollDir, RectTransform rtContent, RectTransform rtItem, RectOffset padding, Vector2 spacing)
         {
             _scrollDir = scrollDir;
             _rtContent = rtContent;
@@ -27,15 +28,15 @@ namespace UnityTools.Util
 
         public float CalculateContentPosition(int idx, float offset = 0.0f)
         {
-            return (idx * (_rtItem.sizeDelta.y + _spacing)) + offset;
+            return (idx * ItemSize) + offset;
         }
 
         public Vector2 CalculateContentSize(int totalCnt)
         {
             if (_scrollDir == EScrollDirection.Vertical)
-                return new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalCnt * ItemSize - _spacing) + _padding.bottom);
+                return new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalCnt * ItemSize - Spacing) + _padding.bottom);
             else
-                return new Vector2(_padding.left + (totalCnt * ItemSize - _spacing) + _padding.right, _rtContent.sizeDelta.y);
+                return new Vector2(_padding.left + (totalCnt * ItemSize - Spacing) + _padding.right, _rtContent.sizeDelta.y);
         }
 
         public int CalculateItemIndex(float pos)
