@@ -9,6 +9,7 @@ namespace UnityTools.Util
     {
         [SerializeField] TView _item;
         [SerializeField] int _visibleCnt = 3;
+        [SerializeField] RectOffset _padding;
         [SerializeField] float _spacing = 0.0f;
         [SerializeField] float _paddingStart = 0.0f;
         [SerializeField] float _paddingEnd = 0.0f;
@@ -31,8 +32,8 @@ namespace UnityTools.Util
             _scrollRect = GetComponent<ScrollRect>();
             _rtContent = _scrollRect.content;
             _rtItem = _item.GetComponent<RectTransform>();
-
             _scrollDir = _scrollRect.vertical ? EScrollDirection.Vertical : EScrollDirection.Horizontal;
+
             switch (_scrollDir)
             {
                 case EScrollDirection.Vertical:
@@ -45,7 +46,7 @@ namespace UnityTools.Util
                     break;
             }
 
-            _context = new DynamicScrollContext(_scrollDir, _rtContent, _rtItem, _spacing, _paddingStart, _paddingEnd);
+            _context = new DynamicScrollContext(_scrollDir, _rtContent, _rtItem, _padding, _spacing);
             _itemCtrl = new DynamicScrollItemController<TView>(_context, _rtContent, _item, _visibleCnt);
 
             _itemCtrl.OnItemUpdated += HandleItemUpdated;
@@ -98,7 +99,7 @@ namespace UnityTools.Util
                 if (isAdd)
                     _itemCtrl.Add(_totalCnt);
                 else
-                    _itemCtrl.Remove(_context.CalculateFirstVisibleItemIndex(_totalCnt, _visibleCnt));
+                    _itemCtrl.Remove(_context.CalculateFirstVisibleItemIndex(_totalCnt - _visibleCnt));
             }
         }
 
@@ -115,19 +116,14 @@ namespace UnityTools.Util
 
         void SetContentSize(int totalCnt)
         {
-            float size = _context.CalculateContentSize(totalCnt);
-            if (_scrollDir == EScrollDirection.Vertical)
-                _rtContent.SetSizeHeight(size);
-            else
-                _rtContent.SetSizeWidth(size);
-
+            _rtContent.sizeDelta = _context.CalculateContentSize(totalCnt);
             _itemCtrl.UpdatePosition();
         }
 
         public void OnScrollValueChanged(Vector2 value)
         {
             int firstIdx = _itemCtrl.FirstIndex;
-            int firstVisibleIdx = _context.CalculateFirstVisibleItemIndex(_totalCnt, _visibleCnt);
+            int firstVisibleIdx = _context.CalculateFirstVisibleItemIndex(_totalCnt - _visibleCnt);
             if (firstIdx != firstVisibleIdx)
             {
                 bool isDown = firstVisibleIdx > firstIdx;

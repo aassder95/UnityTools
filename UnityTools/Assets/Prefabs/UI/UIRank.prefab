@@ -1597,9 +1597,9 @@ MonoBehaviour:
   m_Content: {fileID: 5172910845234880920}
   m_Horizontal: 0
   m_Vertical: 1
-  m_MovementType: 2
+  m_MovementType: 1
   m_Elasticity: 0.1
-  m_Inertia: 0
+  m_Inertia: 1
   m_DecelerationRate: 0.135
   m_ScrollSensitivity: 1
   m_Viewport: {fileID: 5075166118151559136}
@@ -1652,6 +1652,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
   _visibleCnt: 6
+  _padding:
+    m_Left: 0
+    m_Right: 0
+    m_Top: 0
+    m_Bottom: 0
   _spacing: 10
   _paddingStart: 0
   _paddingEnd: 0
