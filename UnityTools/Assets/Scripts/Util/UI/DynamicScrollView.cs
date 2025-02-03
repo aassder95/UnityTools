@@ -11,8 +11,6 @@ namespace UnityTools.Util
         [SerializeField] int _visibleCnt = 3;
         [SerializeField] RectOffset _padding;
         [SerializeField] float _spacing = 0.0f;
-        [SerializeField] float _paddingStart = 0.0f;
-        [SerializeField] float _paddingEnd = 0.0f;
 
         EScrollDirection _scrollDir;
         DynamicScrollContext _context;
