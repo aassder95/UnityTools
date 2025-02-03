@@ -666,7 +666,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
         m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
-        m_MethodName: OnIncreaseVisibleItemViewInspector
+        m_MethodName: OnIncreaseVisibleLineInspector
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1071,7 +1071,7 @@ MonoBehaviour:
       m_Calls:
       - m_Target: {fileID: 255715509558692628}
         m_TargetAssemblyTypeName: UnityTools.UI.RankView, Assembly-CSharp
-        m_MethodName: OnDecreaseVisibleItemViewInspector
+        m_MethodName: OnDecreaseVisibleLineInspector
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -1651,15 +1651,14 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
-  _visibleCnt: 6
+  _visibleLineCnt: 3
+  _lineItemCnt: 2
   _padding:
     m_Left: 0
     m_Right: 0
     m_Top: 0
     m_Bottom: 0
-  _spacing: 10
-  _paddingStart: 0
-  _paddingEnd: 0
+  _spacing: {x: 0, y: 0}
   OnItemUpdated:
     m_PersistentCalls:
       m_Calls: []

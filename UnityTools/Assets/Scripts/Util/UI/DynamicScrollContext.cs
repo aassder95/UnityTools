@@ -5,6 +5,7 @@ namespace UnityTools.Util
     public class DynamicScrollContext
     {
         readonly EScrollDirection _scrollDir;
+        readonly int _lineItemCnt;
         readonly RectTransform _rtContent;
         readonly RectTransform _rtItem;
         readonly RectOffset _padding;
@@ -13,9 +14,10 @@ namespace UnityTools.Util
         float ItemWidth => _rtItem.sizeDelta.x + _spacing.x;
         float ItemHeight => _rtItem.sizeDelta.y + _spacing.y;
 
-        public DynamicScrollContext(EScrollDirection scrollDir, RectTransform rtContent, RectTransform rtItem, RectOffset padding, Vector2 spacing)
+        public DynamicScrollContext(EScrollDirection scrollDir, int lineItemCnt, RectTransform rtContent, RectTransform rtItem, RectOffset padding, Vector2 spacing)
         {
             _scrollDir = scrollDir;
+            _lineItemCnt = lineItemCnt;
             _rtContent = rtContent;
             _rtItem = rtItem;
             _padding = padding;

@@ -172,41 +172,9 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 2642601110903686304, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: _spacing.x
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 2642601110903686304, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: _spacing.y
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 2642601110903686304, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: _itemsPerLine
-      value: 3
-      objectReference: {fileID: 0}
-    - target: {fileID: 2642601110903686304, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: _padding.m_Top
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 2642601110903686304, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: _padding.m_Left
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 2642601110903686304, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: _padding.m_Right
-      value: 100
-      objectReference: {fileID: 0}
-    - target: {fileID: 2642601110903686304, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: _padding.m_Bottom
-      value: 100
-      objectReference: {fileID: 0}
     - target: {fileID: 5838824614990744451, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
       propertyPath: m_Name
       value: UIRank
-      objectReference: {fileID: 0}
-    - target: {fileID: 5838824614990744451, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
-      propertyPath: m_IsActive
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8829450160743157049, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}
       propertyPath: m_Pivot.x

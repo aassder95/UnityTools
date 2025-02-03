@@ -8,20 +8,22 @@ namespace UnityTools.Util
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
         [SerializeField] TView _item;
-        [SerializeField] int _visibleCnt = 3;
+        [SerializeField] int _visibleLineCnt = 3;
+        [SerializeField] int _lineItemCnt = 1;
         [SerializeField] RectOffset _padding;
         [SerializeField] Vector2 _spacing;
 
         EScrollDirection _scrollDir;
         DynamicScrollContext _context;
         DynamicScrollItemController<TView> _itemCtrl;
-        int _totalCnt;
+        int _totalItemCnt;
         RectTransform _rtContent;
         RectTransform _rtItem;
         ScrollRect _scrollRect;
 
-        public int TotalCount => _totalCnt;
-        public int VisibleCount => _visibleCnt;
+        public int TotalItemCount => _totalItemCnt;
+        public int VisibleLineCount => _visibleLineCnt;
+        public int LineItemCount => _lineItemCnt;
 
         public UnityEvent<TView> OnItemUpdated = new();
 
@@ -44,8 +46,8 @@ namespace UnityTools.Util
                     break;
             }
 
-            _context = new DynamicScrollContext(_scrollDir, _rtContent, _rtItem, _padding, _spacing);
-            _itemCtrl = new DynamicScrollItemController<TView>(_context, _rtContent, _item, _visibleCnt);
+            _context = new DynamicScrollContext(_scrollDir, _lineItemCnt, _rtContent, _rtItem, _padding, _spacing);
+            _itemCtrl = new DynamicScrollItemController<TView>(_context, _rtContent, _item, _visibleLineCnt);
 
             _itemCtrl.OnItemUpdated += HandleItemUpdated;
         }
@@ -57,12 +59,12 @@ namespace UnityTools.Util
 
         public void InitView(int totalCnt)
         {
-            _totalCnt = totalCnt;
-            _visibleCnt = Mathf.Min(_visibleCnt, _totalCnt);
+            _totalItemCnt = totalCnt;
+            _visibleLineCnt = Mathf.Min(_visibleLineCnt, _totalItemCnt);
 
-            SetContentSize(_totalCnt);
+            SetContentSize(_totalItemCnt);
 
-            for (int i = 0; i < _visibleCnt; i++)
+            for (int i = 0; i < _visibleLineCnt; i++)
             {
                 _itemCtrl.Add(true);
             }
@@ -73,31 +75,31 @@ namespace UnityTools.Util
             _itemCtrl.Update();
         }
 
-        protected void SetTotalCount(int cnt)
+        protected void SetTotalItemCount(int cnt)
         {
-            if (cnt == _totalCnt || cnt < _visibleCnt)
+            if (cnt == _totalItemCnt || cnt < _visibleLineCnt)
                 return;
 
-            _totalCnt = cnt;
-            SetContentSize(_totalCnt);
+            _totalItemCnt = cnt;
+            SetContentSize(_totalItemCnt);
         }
 
-        protected void SetVisibleCount(int cnt)
+        protected void SetVisibleLineCount(int cnt)
         {
-            if (cnt == _visibleCnt || cnt <= 0 || cnt > _totalCnt)
+            if (cnt == _visibleLineCnt || cnt <= 0 || cnt > _totalItemCnt)
                 return;
 
-            int cntDiff = Mathf.Abs(cnt - _visibleCnt);
-            bool isAdd = cnt > _visibleCnt;
+            int cntDiff = Mathf.Abs(cnt - _visibleLineCnt);
+            bool isAdd = cnt > _visibleLineCnt;
 
-            _visibleCnt = cnt;
+            _visibleLineCnt = cnt;
 
             for (int i = 0; i < cntDiff; i++)
             {
                 if (isAdd)
-                    _itemCtrl.Add(_totalCnt);
+                    _itemCtrl.Add(_totalItemCnt);
                 else
-                    _itemCtrl.Remove(_context.CalculateFirstVisibleItemIndex(_totalCnt - _visibleCnt));
+                    _itemCtrl.Remove(_context.CalculateFirstVisibleItemIndex(_totalItemCnt - _visibleLineCnt));
             }
         }
 
@@ -121,7 +123,7 @@ namespace UnityTools.Util
         public void OnScrollValueChanged(Vector2 value)
         {
             int firstIdx = _itemCtrl.FirstIndex;
-            int firstVisibleIdx = _context.CalculateFirstVisibleItemIndex(_totalCnt - _visibleCnt);
+            int firstVisibleIdx = _context.CalculateFirstVisibleItemIndex(_totalItemCnt - _visibleLineCnt);
             if (firstIdx != firstVisibleIdx)
             {
                 bool isDown = firstVisibleIdx > firstIdx;
