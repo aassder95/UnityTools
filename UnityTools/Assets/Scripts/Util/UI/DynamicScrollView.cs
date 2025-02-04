@@ -47,6 +47,7 @@ namespace UnityTools.Util
             _context = new DynamicScrollContext(_scrollDir, _rtContent, _rtItem, _padding, _spacing);
             _itemCtrl = new DynamicScrollItemController<TView>(_context, _rtContent, _item, _visibleCnt);
 
+            _scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated += HandleItemUpdated;
         }
 
@@ -118,7 +119,7 @@ namespace UnityTools.Util
             _itemCtrl.UpdatePosition();
         }
 
-        public void OnScrollValueChanged(Vector2 value)
+        void OnScrollValueChanged(Vector2 value)
         {
             int firstIdx = _itemCtrl.FirstIndex;
             int firstVisibleIdx = _context.CalculateFirstVisibleItemIndex(_totalCnt - _visibleCnt);

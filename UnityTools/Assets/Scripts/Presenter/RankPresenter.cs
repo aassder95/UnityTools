@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using UnityTools.Model;
 using UnityTools.UI;
 
