@@ -15,6 +15,7 @@ namespace UnityTools.Util
 
         DynamicScrollContext _context;
         DynamicScrollItemController<TView> _itemCtrl;
+        ObjectPool<TView> _pool;
         int _totalItemCnt;
         int _totalLineCnt;
         RectTransform _rtContent;
@@ -38,7 +39,8 @@ namespace UnityTools.Util
             _rtItem = _item.GetComponent<RectTransform>();
 
             _context = new DynamicScrollContext(_itemCntPerLine, _spacing, _padding, _rtItem, _scrollRect);
-            _itemCtrl = new DynamicScrollItemController<TView>(_context, _item, MaxVisibleItemCount, _rtContent);
+            _pool = new ObjectPool<TView>(MaxVisibleItemCount, _item, _rtContent);
+            _itemCtrl = new DynamicScrollItemController<TView>(_context, _pool);
 
             _scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated += HandleItemUpdated;

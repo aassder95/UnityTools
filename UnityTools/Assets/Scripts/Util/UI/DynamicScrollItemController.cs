@@ -12,7 +12,7 @@ namespace UnityTools.Util
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {
         readonly DynamicScrollContext _context;
-        ObjectPool<TView> _pool;
+        readonly ObjectPool<TView> _pool;
         Deque<TView> _items = new();
 
         public int FirstIndex => _items.Peek()?.Index ?? 0;
@@ -20,10 +20,10 @@ namespace UnityTools.Util
 
         public event UnityAction<TView> OnItemUpdated;
 
-        public DynamicScrollItemController(DynamicScrollContext context, TView item, int visibleCnt, RectTransform rtContent)
+        public DynamicScrollItemController(DynamicScrollContext context, ObjectPool<TView> pool)
         {
             _context = context;
-            _pool = new ObjectPool<TView>(visibleCnt, item, rtContent);
+            _pool = pool;
         }
 
         public TView Create(int idx)

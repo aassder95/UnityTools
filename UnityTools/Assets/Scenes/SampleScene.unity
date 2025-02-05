@@ -594,6 +594,14 @@ PrefabInstance:
       propertyPath: m_Name
       value: UIInven
       objectReference: {fileID: 0}
+    - target: {fileID: 8857586575014097190, guid: 52e5c89616c5a7a42b32407814c35626, type: 3}
+      propertyPath: m_Vertical
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 8857586575014097190, guid: 52e5c89616c5a7a42b32407814c35626, type: 3}
+      propertyPath: m_Horizontal
+      value: 0
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
