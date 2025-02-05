@@ -10,10 +10,10 @@ namespace UnityTools.UI
         public RankScrollView ScrollView => _scrollView;
 
         public event UnityAction OnRandomScore;
-        public event UnityAction OnIncreaseTotalItemView;
-        public event UnityAction OnDecreaseTotalItemView;
-        public event UnityAction OnIncreaseVisibleItemView;
-        public event UnityAction OnDecreaseVisibleItemView;
+        public event UnityAction OnIncreaseTotalItem;
+        public event UnityAction OnDecreaseTotalItem;
+        public event UnityAction OnIncreaseVisibleLine;
+        public event UnityAction OnDecreaseVisibleLine;
 
         public void InitView(int totalCnt)
         {
@@ -30,24 +30,24 @@ namespace UnityTools.UI
             OnRandomScore?.Invoke();
         }
 
-        public void OnIncreaseTotalItemViewInspector()
+        public void OnIncreaseTotalItemInspector()
         {
-            OnIncreaseTotalItemView?.Invoke();
+            OnIncreaseTotalItem?.Invoke();
         }
 
-        public void OnDecreaseTotalItemViewInspector()
+        public void OnDecreaseTotalItemInspector()
         {
-            OnDecreaseTotalItemView?.Invoke();
+            OnDecreaseTotalItem?.Invoke();
         }
 
-        public void OnIncreaseVisibleItemViewInspector()
+        public void OnIncreaseVisibleLineInspector()
         {
-            OnIncreaseVisibleItemView?.Invoke();
+            OnIncreaseVisibleLine?.Invoke();
         }
 
-        public void OnDecreaseVisibleItemViewInspector()
+        public void OnDecreaseVisibleLineInspector()
         {
-            OnDecreaseVisibleItemView?.Invoke();
+            OnDecreaseVisibleLine?.Invoke();
         }
     }
 }

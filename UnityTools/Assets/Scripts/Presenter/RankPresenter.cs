@@ -21,10 +21,10 @@ namespace UnityTools.Presenter
         void BindEvents()
         {
             _view.OnRandomScore += OnRandomScore;
-            _view.OnIncreaseTotalItemView += OnIncreaseTotalItemView;
-            _view.OnDecreaseTotalItemView += OnDecreaseTotalItemView;
-            _view.OnIncreaseVisibleItemView += OnIncreaseVisibleItemView;
-            _view.OnDecreaseVisibleItemView += OnDecreaseVisibleItemView;
+            _view.OnIncreaseTotalItem += OnIncreaseTotalItem;
+            _view.OnDecreaseTotalItem += OnDecreaseTotalItem;
+            _view.OnIncreaseVisibleLine += OnIncreaseVisibleLine;
+            _view.OnDecreaseVisibleLine += OnDecreaseVisibleLine;
             _view.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
         }
 
@@ -34,24 +34,24 @@ namespace UnityTools.Presenter
             _view.UpdateView();
         }
 
-        void OnIncreaseTotalItemView()
+        void OnIncreaseTotalItem()
         {
-            // _view.ScrollView.IncreaseTotalItem();
+            _view.ScrollView.IncreaseTotalItem();
         }
 
-        void OnDecreaseTotalItemView()
+        void OnDecreaseTotalItem()
         {
-            // _view.ScrollView.DecreaseTotalItem();
+            _view.ScrollView.DecreaseTotalItem();
         }
 
-        void OnIncreaseVisibleItemView()
+        void OnIncreaseVisibleLine()
         {
-            // _view.ScrollView.IncreaseVisibleItem();
+            _view.ScrollView.IncreaseVisibleLine();
         }
 
-        void OnDecreaseVisibleItemView()
+        void OnDecreaseVisibleLine()
         {
-            // _view.ScrollView.DecreaseVisibleItem();
+            _view.ScrollView.DecreaseVisibleLine();
         }
 
         public void OnItemViewUpdated(RankItemView itemView)

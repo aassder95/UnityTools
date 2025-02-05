@@ -22,6 +22,8 @@ namespace UnityTools.Util
         RectTransform _rtItem;
         ScrollRect _scrollRect;
 
+        protected int VisibleLineCount => _visibleLineCnt;
+        protected int TotalItemCount => _totalItemCnt;
         int MaxVisibleItemCount => _visibleLineCnt * _itemCntPerLine;
         int VisibleItemCount => _itemCtrl.Count;
 
@@ -70,7 +72,7 @@ namespace UnityTools.Util
             return idx == _totalLineCnt - 1 ? _totalItemCnt - idx * _itemCntPerLine : _itemCntPerLine;
         }
 
-        void SetTotalItemCount(int cnt)
+        protected void SetTotalItemCount(int cnt)
         {
             if (cnt == _totalItemCnt || cnt < VisibleItemCount)
                 return;
@@ -80,7 +82,7 @@ namespace UnityTools.Util
             SetContentSize(_totalLineCnt);
         }
 
-        void SetVisibleLineCount(int cnt)
+        protected void SetVisibleLineCount(int cnt)
         {
             if (cnt == _visibleLineCnt || cnt <= 0 || cnt > _totalLineCnt)
                 return;
