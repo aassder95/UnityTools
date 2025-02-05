@@ -13,7 +13,6 @@ namespace UnityTools.Util
         [SerializeField] RectOffset _padding;
         [SerializeField] Vector2 _spacing;
 
-        EScrollDirection _scrollDir;
         DynamicScrollContext _context;
         DynamicScrollItemController<TView> _itemCtrl;
         int _totalItemCnt;
@@ -25,14 +24,12 @@ namespace UnityTools.Util
         protected int VisibleLineCount => _visibleLineCnt;
         protected int TotalItemCount => _totalItemCnt;
         int MaxVisibleItemCount => _visibleLineCnt * _itemCntPerLine;
-        int VisibleItemCount => _itemCtrl.Count;
 
         public UnityEvent<TView> OnItemUpdated = new();
 
         void Awake()
         {
             _scrollRect = GetComponent<ScrollRect>();
-            _scrollDir = _scrollRect.vertical ? EScrollDirection.Vertical : EScrollDirection.Horizontal;
 
             _rtContent = _scrollRect.content;
             _rtContent.anchorMin = new Vector2(0.0f, 1.0f);
@@ -49,17 +46,15 @@ namespace UnityTools.Util
 
         void OnDestroy()
         {
+            _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
+            _itemCtrl.OnItemUpdated -= HandleItemUpdated;
             _itemCtrl.Clear();
         }
 
-        public void InitView(int cnt)
+        public void InitView(int totalItemCnt)
         {
-            SetTotalItemCount(cnt);
-
-            for (int i = 0, itemCnt = Mathf.Min(MaxVisibleItemCount, _totalItemCnt); i < itemCnt; i++)
-            {
-                _itemCtrl.Add(true);
-            }
+            SetTotalItemCount(totalItemCnt);
+            _itemCtrl.AddRange(Mathf.Min(MaxVisibleItemCount, _totalItemCnt), 0, true);
         }
 
         public void UpdateView()
@@ -67,84 +62,68 @@ namespace UnityTools.Util
             _itemCtrl.Update();
         }
 
-        int GetLineItemCount(int idx)
+        int GetLineItemCount(int line)
         {
-            return idx == _totalLineCnt - 1 ? _totalItemCnt - idx * _itemCntPerLine : _itemCntPerLine;
+            return line == _totalLineCnt - 1 ? _totalItemCnt - line * _itemCntPerLine : _itemCntPerLine;
         }
 
-        protected void SetTotalItemCount(int cnt)
+        protected void SetTotalItemCount(int totalItemCnt)
         {
-            if (cnt == _totalItemCnt || cnt < VisibleItemCount)
+            if (totalItemCnt == _totalItemCnt || totalItemCnt < _itemCtrl.Count)
                 return;
 
-            _totalItemCnt = cnt;
+            _totalItemCnt = totalItemCnt;
             _totalLineCnt = Mathf.CeilToInt((float)_totalItemCnt / _itemCntPerLine);
             SetContentSize(_totalLineCnt);
         }
 
-        protected void SetVisibleLineCount(int cnt)
+        protected void SetVisibleLineCount(int visibleLineCnt)
         {
-            if (cnt == _visibleLineCnt || cnt <= 0 || cnt > _totalLineCnt)
+            if (visibleLineCnt == _visibleLineCnt || visibleLineCnt <= 0 || visibleLineCnt > _totalLineCnt)
                 return;
 
-            bool isAdd = cnt > _visibleLineCnt;
+            bool isAdd = visibleLineCnt > _visibleLineCnt;
             int itemCnt = 0;
-
-            for (int i = 0, lineCnt = Mathf.Abs(cnt - _visibleLineCnt); i < lineCnt; i++)
+            for (int i = 0, lineCnt = Mathf.Abs(visibleLineCnt - _visibleLineCnt); i < lineCnt; i++)
             {
-                itemCnt += GetLineItemCount((isAdd ? _visibleLineCnt : cnt) + _itemCtrl.FirstIndex / _itemCntPerLine + i);
+                itemCnt += GetLineItemCount((isAdd ? _visibleLineCnt : visibleLineCnt) + _itemCtrl.FirstIndex / _itemCntPerLine + i);
             }
 
-            _visibleLineCnt = cnt;
+            _visibleLineCnt = visibleLineCnt;
 
-            for (int i = 0; i < itemCnt; i++)
-            {
-                if (isAdd)
-                    _itemCtrl.Add(_itemCtrl.FirstIndex + _itemCtrl.Count < _totalItemCnt);
-                else
-                    _itemCtrl.Remove(_itemCtrl.FirstIndex >= _context.CalculateFirstVisibleLine(_totalLineCnt - _visibleLineCnt) * _itemCntPerLine);
-            }
+            if (isAdd)
+                _itemCtrl.AddRange(itemCnt, _totalItemCnt);
+            else
+                _itemCtrl.RemoveRange(itemCnt, _totalLineCnt - _visibleLineCnt);
         }
 
-        void SetContentPosition(int idx, float offset = 0.0f)
+        void SetContentPosition(int itemIdx, float offset = 0.0f)
         {
-            float pos = _context.CalculateContentPosition(idx, offset);
-            if (_scrollDir == EScrollDirection.Vertical)
-                _rtContent.anchoredPosition = new Vector2(_rtContent.anchoredPosition.x, pos);
-            else
-                _rtContent.anchoredPosition = new Vector2(pos, _rtContent.anchoredPosition.y);
-
+            _rtContent.anchoredPosition = _context.CalculateContentPosition(itemIdx, offset);
             OnScrollValueChanged(Vector2.zero);
         }
 
-        void SetContentSize(int cnt)
+        void SetContentSize(int totalLineCnt)
         {
-            _rtContent.sizeDelta = _context.CalculateContentSize(cnt);
+            _rtContent.sizeDelta = _context.CalculateContentSize(totalLineCnt);
             _itemCtrl.UpdatePosition();
         }
 
         void OnScrollValueChanged(Vector2 value)
         {
-            int lineIdx = _itemCtrl.FirstIndex / _itemCntPerLine;
-            int visibleLineIdx = _context.CalculateFirstVisibleLine(_totalLineCnt - _visibleLineCnt);
-            if (lineIdx != visibleLineIdx)
+            int line = _itemCtrl.FirstIndex / _itemCntPerLine;
+            int visibleLine = _context.CalculateFirstVisibleLine(_totalLineCnt - _visibleLineCnt);
+            if (line != visibleLine)
             {
-                bool isDown = visibleLineIdx > lineIdx;
+                bool isDown = visibleLine > line;
 
-                for (int i = 0, lineCnt = Mathf.Min(Mathf.Abs(lineIdx - visibleLineIdx), _visibleLineCnt); i < lineCnt; i++)
+                for (int i = 0, lineCnt = Mathf.Min(Mathf.Abs(line - visibleLine), _visibleLineCnt); i < lineCnt; i++)
                 {
-                    int addLine = isDown ? visibleLineIdx + _visibleLineCnt - lineCnt + i : visibleLineIdx + i;
-                    int removeLine = isDown ? lineIdx + i : lineIdx + _visibleLineCnt - lineCnt + i;
+                    int addLine = isDown ? visibleLine + _visibleLineCnt - lineCnt + i : visibleLine + i;
+                    int removeLine = isDown ? line + i : line + _visibleLineCnt - lineCnt + i;
 
-                    for (int j = 0, cnt = GetLineItemCount(addLine); j < cnt; j++)
-                    {
-                        _itemCtrl.Add(addLine * _itemCntPerLine + j, isDown);
-                    }
-
-                    for (int j = 0, cnt = GetLineItemCount(removeLine); j < cnt; j++)
-                    {
-                        _itemCtrl.Remove(!isDown);
-                    }
+                    _itemCtrl.AddRange(GetLineItemCount(addLine), addLine * _itemCntPerLine, isDown);
+                    _itemCtrl.RemoveRange(GetLineItemCount(removeLine), !isDown);
                 }
             }
 

@@ -50,8 +50,7 @@ namespace UnityTools.Util
             _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
         }
 
-        public void Add(bool isBack) => Add(isBack ? FirstIndex + _items.Count : FirstIndex - 1, isBack);
-        public void Add(int idx, bool isBack)
+        void Add(int idx, bool isBack)
         {
             if (isBack)
                 _items.Enqueue(Create(idx));
@@ -59,7 +58,22 @@ namespace UnityTools.Util
                 _items.EnqueueFront(Create(idx));
         }
 
-        public void Remove(bool isBack)
+        public void AddRange(int cnt, int totalCnt)
+        {
+            bool isBack = FirstIndex + _items.Count < totalCnt;
+            int idx = isBack ? FirstIndex + _items.Count : FirstIndex - 1;
+            AddRange(cnt, idx, isBack);
+        }
+
+        public void AddRange(int cnt, int idx, bool isBack)
+        {
+            for (int j = 0; j < cnt; j++)
+            {
+                Add(idx + j, isBack);
+            }
+        }
+
+        void Remove(bool isBack)
         {
             if (_items.Count <= 0)
                 return;
@@ -70,10 +84,18 @@ namespace UnityTools.Util
                 _pool.Return(_items.Dequeue());
         }
 
+        public void RemoveRange(int cnt, int lastLine) => RemoveRange(cnt, FirstIndex >= _context.CalculateFirstVisibleItemIndex(lastLine));
+        public void RemoveRange(int cnt, bool isBack)
+        {
+            for (int j = 0; j < cnt; j++)
+            {
+                Remove(isBack);
+            }
+        }
+
         public TView Get(int idx)
         {
             return _items.FirstOrDefault(item => item.Index == idx);
         }
     }
 }
-

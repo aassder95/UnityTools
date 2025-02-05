@@ -24,18 +24,18 @@ namespace UnityTools.Manager
 
         void Start()
         {
-            if (_rankView != null)
+            if (_rankView != null && _rankView.gameObject.activeInHierarchy)
             {
                 RankModel model = new RankModel(_rankModelCnt);
                 _rankPresenter = new RankPresenter(model, _rankView);
             }
 
-            if (_timerView != null)
+            if (_timerView != null && _timerView.gameObject.activeInHierarchy)
             {
                 _timerPresenter = new TimerPresenter(_timerView);
             }
 
-            if (_invenView != null)
+            if (_invenView != null && _invenView.gameObject.activeInHierarchy)
             {
                 _invenPresenter = new InvenPresenter(_invenModelCnt, _invenView);
             }
