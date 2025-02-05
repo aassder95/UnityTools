@@ -50,7 +50,7 @@ namespace UnityTools.Util
         {
             _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated -= HandleItemUpdated;
-            _itemCtrl.Clear();
+            _pool?.Clear();
         }
 
         public void InitView(int totalItemCnt)

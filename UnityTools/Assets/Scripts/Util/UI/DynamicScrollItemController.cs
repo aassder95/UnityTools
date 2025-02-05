@@ -35,11 +35,6 @@ namespace UnityTools.Util
             return item;
         }
 
-        public void Clear()
-        {
-            _pool?.Clear();
-        }
-
         public void Update()
         {
             _items.ForEach(item => OnItemUpdated?.Invoke(item));
