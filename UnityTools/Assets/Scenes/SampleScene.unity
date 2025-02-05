@@ -535,7 +535,7 @@ MonoBehaviour:
   _rankModelCnt: 20
   _timerView: {fileID: 0}
   _invenView: {fileID: 1027248678}
-  _invenModelCnt: 50
+  _invenModelCnt: 100
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -36,22 +36,22 @@ namespace UnityTools.Presenter
 
         void OnIncreaseTotalItemView()
         {
-            _view.ScrollView.IncreaseTotalItem();
+            // _view.ScrollView.IncreaseTotalItem();
         }
 
         void OnDecreaseTotalItemView()
         {
-            _view.ScrollView.DecreaseTotalItem();
+            // _view.ScrollView.DecreaseTotalItem();
         }
 
         void OnIncreaseVisibleItemView()
         {
-            _view.ScrollView.IncreaseVisibleItem();
+            // _view.ScrollView.IncreaseVisibleItem();
         }
 
         void OnDecreaseVisibleItemView()
         {
-            _view.ScrollView.DecreaseVisibleItem();
+            // _view.ScrollView.DecreaseVisibleItem();
         }
 
         public void OnItemViewUpdated(RankItemView itemView)

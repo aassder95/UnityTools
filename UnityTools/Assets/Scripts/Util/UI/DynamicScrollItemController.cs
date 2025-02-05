@@ -16,10 +16,11 @@ namespace UnityTools.Util
         Deque<TView> _items = new();
 
         public int FirstIndex => _items.Peek()?.Index ?? 0;
+        public int Count => _items.Count;
 
         public event UnityAction<TView> OnItemUpdated;
 
-        public DynamicScrollItemController(DynamicScrollContext context, RectTransform rtContent, TView item, int visibleCnt)
+        public DynamicScrollItemController(DynamicScrollContext context, int visibleCnt, RectTransform rtContent, TView item)
         {
             _context = context;
             _pool = new ObjectPool<TView>(rtContent, item, visibleCnt);
@@ -49,16 +50,15 @@ namespace UnityTools.Util
             _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
         }
 
-        public void Add(int totalCnt) => Add(FirstIndex + _items.Count < totalCnt);
-        public void Add(bool isBack)
+        public void Add(bool isBack) => Add(isBack ? FirstIndex + _items.Count : FirstIndex - 1, isBack);
+        public void Add(int idx, bool isBack)
         {
             if (isBack)
-                _items.Enqueue(Create(FirstIndex + _items.Count));
+                _items.Enqueue(Create(idx));
             else
-                _items.EnqueueFront(Create(FirstIndex - 1));
+                _items.EnqueueFront(Create(idx));
         }
 
-        public void Remove(int firstVisibleIdx) => Remove(FirstIndex >= firstVisibleIdx);
         public void Remove(bool isBack)
         {
             if (_items.Count <= 0)
