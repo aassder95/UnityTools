@@ -16,7 +16,7 @@ namespace UnityTools.Util
         readonly Queue<T> _pool = new Queue<T>();
         readonly Func<T, T> _generator;
 
-        public ObjectPool(Transform parent, T prefab, int initialSize)
+        public ObjectPool(int initialSize, T prefab, Transform parent)
         {
             if (prefab == null)
             {

@@ -20,10 +20,10 @@ namespace UnityTools.Util
 
         public event UnityAction<TView> OnItemUpdated;
 
-        public DynamicScrollItemController(DynamicScrollContext context, int visibleCnt, RectTransform rtContent, TView item)
+        public DynamicScrollItemController(DynamicScrollContext context, TView item, int visibleCnt, RectTransform rtContent)
         {
             _context = context;
-            _pool = new ObjectPool<TView>(rtContent, item, visibleCnt);
+            _pool = new ObjectPool<TView>(visibleCnt, item, rtContent);
         }
 
         public TView Create(int idx)

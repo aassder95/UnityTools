@@ -12,12 +12,10 @@ namespace UnityTools.Util
         readonly RectTransform _rtContent;
         readonly RectTransform _rtItem;
 
-        float ContentWidth => _padding.left + LineWidth + _padding.right;
-        float ContentHeight => _padding.top + LineHeight + _padding.bottom;
-        float LineWidth => ItemWidth * _itemCntPerLine - _spacing.x;
-        float LineHeight => ItemHeight * _itemCntPerLine - _spacing.y;
-        float ItemWidth => _rtItem.sizeDelta.x + _spacing.x;
-        float ItemHeight => _rtItem.sizeDelta.y + _spacing.y;
+        Vector2 ContentSize => new Vector2(_padding.left + LineSize.x + _padding.right, _padding.top + LineSize.y + _padding.bottom);
+        Vector2 LineSize => new Vector2(ItemSize.x * _itemCntPerLine - _spacing.x, ItemSize.y * _itemCntPerLine - _spacing.y);
+        Vector2 ItemSize => new Vector2(_rtItem.sizeDelta.x + _spacing.x, _rtItem.sizeDelta.y + _spacing.y);
+        Vector2 CenterOffset => new Vector2((ContentSize.x - LineSize.x) / 2.0f, (ContentSize.y - LineSize.y) / 2.0f);
 
         public DynamicScrollContext(int itemCntPerLine, Vector2 spacing, RectOffset padding, RectTransform rtItem, ScrollRect scrollRect)
         {
@@ -33,39 +31,39 @@ namespace UnityTools.Util
         {
             int line = idx / _itemCntPerLine;
             if (_scrollDir == EScrollDirection.Vertical)
-                return _padding.top + (line * ItemHeight) + offset;
+                return _padding.top + (line * ItemSize.y) + offset;
             else
-                return -(_padding.left + (line * ItemWidth) + offset);
+                return -(_padding.left + (line * ItemSize.x) + offset);
         }
 
         public Vector2 CalculateContentSize(int cnt)
         {
             if (_scrollDir == EScrollDirection.Vertical)
-                return new Vector2(ContentWidth, _padding.top + (cnt * ItemHeight - _spacing.y) + _padding.bottom);
+                return new Vector2(ContentSize.x, _padding.top + (cnt * ItemSize.y - _spacing.y) + _padding.bottom);
             else
-                return new Vector2(_padding.left + (cnt * ItemWidth - _spacing.x) + _padding.right, ContentHeight);
+                return new Vector2(_padding.left + (cnt * ItemSize.x - _spacing.x) + _padding.right, ContentSize.y);
         }
 
         public int CalculateFirstVisibleLine(int lastLine)
         {
             if (_scrollDir == EScrollDirection.Vertical)
-                return Utils.ClampIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemHeight, lastLine);
+                return Utils.ClampIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine);
             else
-                return Utils.ClampIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemWidth, lastLine);
+                return Utils.ClampIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
         }
 
         public int CalculateItemIndex(Vector2 pos)
         {
             if (_scrollDir == EScrollDirection.Vertical)
             {
-                int x = Mathf.RoundToInt((((pos.x - _padding.left) + (ContentWidth - LineWidth) / 2.0f) / ItemWidth) + ((_itemCntPerLine - 1) / 2.0f));
-                int y = Mathf.RoundToInt(((_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (pos.y + _padding.top)) / ItemHeight);
+                int x = Mathf.RoundToInt((((pos.x - _padding.left) + CenterOffset.x) / ItemSize.x) + ((_itemCntPerLine - 1) / 2.0f));
+                int y = Mathf.RoundToInt(((_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (pos.y + _padding.top)) / ItemSize.y);
                 return y * _itemCntPerLine + x;
             }
             else
             {
-                int x = Mathf.RoundToInt((pos.x - (_padding.left + (1 - _rtItem.pivot.x) * (_rtItem.sizeDelta.x - _rtContent.sizeDelta.x))) / ItemWidth);
-                int y = Mathf.RoundToInt(((_itemCntPerLine - 1) / 2.0f) + (((ContentHeight - LineHeight) / 2.0f - (_padding.top + pos.y)) / ItemHeight));
+                int x = Mathf.RoundToInt((pos.x - (_padding.left + (1 - _rtItem.pivot.x) * (_rtItem.sizeDelta.x - _rtContent.sizeDelta.x))) / ItemSize.x);
+                int y = Mathf.RoundToInt(((_itemCntPerLine - 1) / 2.0f) + ((CenterOffset.y - (_padding.top + pos.y)) / ItemSize.y));
                 return x * _itemCntPerLine + y;
             }
         }
@@ -76,16 +74,16 @@ namespace UnityTools.Util
             {
                 int x = idx % _itemCntPerLine;
                 int y = idx / _itemCntPerLine;
-                float posX = (x - ((_itemCntPerLine - 1) / 2.0f)) * ItemWidth - (ContentWidth - LineWidth) / 2.0f;
-                float posY = (_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (y * ItemHeight);
+                float posX = (x - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.x - CenterOffset.x;
+                float posY = (_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (y * ItemSize.y);
                 return new Vector2(_padding.left + posX, posY - _padding.top);
             }
             else
             {
                 int y = idx % _itemCntPerLine;
                 int x = idx / _itemCntPerLine;
-                float posX = (_rtContent.sizeDelta.x - _rtItem.sizeDelta.x) * _rtItem.pivot.x + (x * ItemWidth);
-                float posY = (y - ((_itemCntPerLine - 1) / 2.0f)) * ItemHeight - (ContentHeight - LineHeight) / 2.0f;
+                float posX = (_rtContent.sizeDelta.x - _rtItem.sizeDelta.x) * _rtItem.pivot.x + (x * ItemSize.x);
+                float posY = (y - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.y - CenterOffset.y;
                 return new Vector2(_padding.left + posX - _rtContent.sizeDelta.x + _rtItem.sizeDelta.x, -posY - _padding.top);
             }
         }

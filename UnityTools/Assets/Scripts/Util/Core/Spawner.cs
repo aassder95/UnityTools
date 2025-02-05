@@ -14,7 +14,7 @@ namespace UnityTools.Util
 
         void Awake()
         {
-            _pool = new ObjectPool<T>(transform, _prefab, _cnt);
+            _pool = new ObjectPool<T>(_cnt, _prefab, transform);
         }
 
         void Start()

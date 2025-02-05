@@ -39,7 +39,7 @@ namespace UnityTools.Util
             _rtItem = _item.GetComponent<RectTransform>();
 
             _context = new DynamicScrollContext(_itemCntPerLine, _spacing, _padding, _rtItem, _scrollRect);
-            _itemCtrl = new DynamicScrollItemController<TView>(_context, MaxVisibleItemCount, _rtContent, _item);
+            _itemCtrl = new DynamicScrollItemController<TView>(_context, _item, MaxVisibleItemCount, _rtContent);
 
             _scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated += HandleItemUpdated;
