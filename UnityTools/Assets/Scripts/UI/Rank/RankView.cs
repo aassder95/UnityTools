@@ -22,7 +22,7 @@ namespace UnityTools.UI
 
         public void UpdateView()
         {
-            _scrollView.UpdateView();
+            _scrollView.UpdateItemView();
         }
 
         public void OnRandomScoreInspector()

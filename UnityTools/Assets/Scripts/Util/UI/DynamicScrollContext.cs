@@ -5,18 +5,12 @@ namespace UnityTools.Util
 {
     public class DynamicScrollContext
     {
-        enum EScrollDirection
-        {
-            Vertical,
-            Horizontal,
-        }
-
-        readonly EScrollDirection _scrollDir;
         readonly int _itemCntPerLine;
         readonly Vector2 _spacing;
         readonly RectOffset _padding;
         readonly RectTransform _rtContent;
         readonly RectTransform _rtItem;
+        readonly ScrollRect _scrollRect;
 
         Vector2 ContentSize => new Vector2(_padding.left + LineSize.x + _padding.right, _padding.top + LineSize.y + _padding.bottom);
         Vector2 LineSize => new Vector2(ItemSize.x * _itemCntPerLine - _spacing.x, ItemSize.y * _itemCntPerLine - _spacing.y);
@@ -25,42 +19,40 @@ namespace UnityTools.Util
 
         public DynamicScrollContext(int itemCntPerLine, Vector2 spacing, RectOffset padding, RectTransform rtItem, ScrollRect scrollRect)
         {
-            _scrollDir = scrollRect.vertical ? EScrollDirection.Vertical : EScrollDirection.Horizontal;
             _itemCntPerLine = itemCntPerLine;
             _spacing = spacing;
             _padding = padding;
             _rtContent = scrollRect.content;
             _rtItem = rtItem;
+            _scrollRect = scrollRect;
         }
 
         public Vector2 CalculateContentPosition(int itemIdx, float offset = 0.0f)
         {
             int line = itemIdx / _itemCntPerLine;
-            if (_scrollDir == EScrollDirection.Vertical)
-                return new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) + offset);
-            else
-                return new Vector2(-(_padding.left + (line * ItemSize.x) + offset), _rtContent.anchoredPosition.y);
+            return _scrollRect.vertical ?
+                new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) + offset) :
+                new Vector2(-(_padding.left + (line * ItemSize.x) + offset), _rtContent.anchoredPosition.y);
         }
 
         public Vector2 CalculateContentSize(int totalLineCnt)
         {
-            if (_scrollDir == EScrollDirection.Vertical)
-                return new Vector2(ContentSize.x, _padding.top + (totalLineCnt * ItemSize.y - _spacing.y) + _padding.bottom);
-            else
-                return new Vector2(_padding.left + (totalLineCnt * ItemSize.x - _spacing.x) + _padding.right, ContentSize.y);
+            return _scrollRect.vertical ?
+                new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalLineCnt * ItemSize.y - _spacing.y) + _padding.bottom) :
+                new Vector2(_padding.left + (totalLineCnt * ItemSize.x - _spacing.x) + _padding.right, _rtContent.sizeDelta.y);
         }
 
+        public int CalculateFirstVisibleItemIndex(int lastLine) => CalculateFirstVisibleLine(lastLine) * _itemCntPerLine;
         public int CalculateFirstVisibleLine(int lastLine)
         {
-            if (_scrollDir == EScrollDirection.Vertical)
-                return Utils.ClampIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine);
-            else
-                return Utils.ClampIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
+            return _scrollRect.vertical ?
+                Utils.ClampIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine) :
+                Utils.ClampIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
         }
 
         public int CalculateItemIndex(Vector2 itemPos)
         {
-            if (_scrollDir == EScrollDirection.Vertical)
+            if (_scrollRect.vertical)
             {
                 int x = Mathf.RoundToInt((((itemPos.x - _padding.left) + CenterOffset.x) / ItemSize.x) + ((_itemCntPerLine - 1) / 2.0f));
                 int y = Mathf.RoundToInt(((_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (itemPos.y + _padding.top)) / ItemSize.y);
@@ -74,14 +66,9 @@ namespace UnityTools.Util
             }
         }
 
-        public int CalculateFirstVisibleItemIndex(int lastLine)
-        {
-            return CalculateFirstVisibleLine(lastLine) * _itemCntPerLine;
-        }
-
         public Vector2 CalculateItemPosition(int itemIdx)
         {
-            if (_scrollDir == EScrollDirection.Vertical)
+            if (_scrollRect.vertical)
             {
                 int x = itemIdx % _itemCntPerLine;
                 int y = itemIdx / _itemCntPerLine;
@@ -97,6 +84,24 @@ namespace UnityTools.Util
                 float posY = (y - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.y - CenterOffset.y;
                 return new Vector2(_padding.left + posX - _rtContent.sizeDelta.x + _rtItem.sizeDelta.x, -posY - _padding.top);
             }
+        }
+
+        public int GetItemCountForLine(int line, int totalItemCnt)
+        {
+            int lastLineItemCnt = totalItemCnt % _itemCntPerLine;
+            return (lastLineItemCnt > 0 && line == totalItemCnt / _itemCntPerLine) ? lastLineItemCnt : _itemCntPerLine;
+        }
+
+        public int GetItemCountForLineRange(int newLineCnt, int prevLineCnt, int totalItemCnt, int firstIdx)
+        {
+            bool isAdd = newLineCnt > prevLineCnt;
+            int itemCnt = 0;
+            for (int i = 0, lineCnt = Mathf.Abs(newLineCnt - prevLineCnt); i < lineCnt; i++)
+            {
+                itemCnt += GetItemCountForLine((isAdd ? prevLineCnt : newLineCnt) + firstIdx / _itemCntPerLine + i, totalItemCnt);
+            }
+
+            return itemCnt;
         }
     }
 }

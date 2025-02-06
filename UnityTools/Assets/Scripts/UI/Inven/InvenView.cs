@@ -15,7 +15,7 @@ namespace UnityTools.UI
 
         public void UpdateView()
         {
-            _scrollView.UpdateView();
+            _scrollView.UpdateItemView();
         }
     }
 }

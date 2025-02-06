@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -35,15 +36,8 @@ namespace UnityTools.Util
             return item;
         }
 
-        public void Update()
-        {
-            _items.ForEach(item => OnItemUpdated?.Invoke(item));
-        }
-
-        public void UpdatePosition()
-        {
-            _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
-        }
+        public void Update() => _items.ForEach(item => OnItemUpdated?.Invoke(item));
+        public void UpdatePosition() => _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
 
         void Add(int idx, bool isBack)
         {
@@ -88,9 +82,7 @@ namespace UnityTools.Util
             }
         }
 
-        public TView Get(int idx)
-        {
-            return _items.FirstOrDefault(item => item.Index == idx);
-        }
+        public TView Get(int idx) => Get(item => item.Index == idx);
+        public TView Get(Func<TView, bool> cond) => _items.FirstOrDefault(cond);
     }
 }
