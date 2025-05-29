@@ -13,6 +13,11 @@ namespace UnityTools.Manager
         [SerializeField] int _rankModelCnt = 10;
         RankPresenter _rankPresenter;
 
+        [Header("RankOSA")]
+        [SerializeField] RankOSAView _rankOSAView;
+        [SerializeField] int _rankOSAModelCnt = 10;
+        RankOSAPresenter _rankOSAPresenter;
+
         [Header("Timer")]
         [SerializeField] TimerView _timerView;
         TimerPresenter _timerPresenter;
@@ -26,18 +31,24 @@ namespace UnityTools.Manager
         {
             if (_rankView != null && _rankView.gameObject.activeInHierarchy)
             {
-                RankModel model = new RankModel(_rankModelCnt);
-                _rankPresenter = new RankPresenter(model, _rankView);
+                RankModel model = new(_rankModelCnt);
+                _rankPresenter = new(model, _rankView);
+            }
+
+            if (_rankOSAView != null && _rankOSAView.gameObject.activeInHierarchy)
+            {
+                RankModel model = new(_rankOSAModelCnt);
+                _rankOSAPresenter = new(model, _rankOSAView);
             }
 
             if (_timerView != null && _timerView.gameObject.activeInHierarchy)
             {
-                _timerPresenter = new TimerPresenter(_timerView);
+                _timerPresenter = new(_timerView);
             }
 
             if (_invenView != null && _invenView.gameObject.activeInHierarchy)
             {
-                _invenPresenter = new InvenPresenter(_invenModelCnt, _invenView);
+                _invenPresenter = new(_invenModelCnt, _invenView);
             }
         }
     }
