@@ -15,7 +15,7 @@ namespace UnityTools.Presenter
 
             BindEvents();
 
-            _view.InitView(_model.Count);
+            _view.InitView(_model.ItemModels.Count);
         }
 
         void BindEvents()

@@ -7,7 +7,6 @@ namespace UnityTools.Model
     {
         List<RankItemModel> _itemModels = new();
 
-        public int Count => _itemModels.Count;
         public List<RankItemModel> ItemModels => _itemModels;
 
         public RankModel(int cnt)
@@ -18,35 +17,6 @@ namespace UnityTools.Model
             }
 
             SetRandomScore();
-        }
-
-        public void Update(int cnt)
-        {
-            int diff = cnt - _itemModels.Count;
-            if (diff == 0)
-                return;
-
-            if (diff > 0)
-                Add(diff);
-            else
-                Remove(-diff);
-        }
-
-        void Add(int cnt = 1)
-        {
-            for (int i = 0; i < cnt; i++)
-            {
-                _itemModels.Add(new(_itemModels.Count + i));
-            }
-        }
-
-        void Remove(int cnt = 1)
-        {
-            int lastIdx = _itemModels.Count - 1;
-            for (int i = lastIdx; i >= lastIdx - cnt; i--)
-            {
-                _itemModels.RemoveAt(i);
-            }
         }
 
         public RankItemModel Get(int idx)
