@@ -2,9 +2,7 @@ using UnityEngine;
 
 namespace UnityTools.Model
 {
-    public interface IRankElementModel { }
-
-    public class RankItemModel : IRankElementModel
+    public class RankItemModel
     {
         int _id;
         int _rank;
@@ -37,6 +35,4 @@ namespace UnityTools.Model
             SetScore(Random.Range(1, 101));
         }
     }
-
-    public class RankDividerModel : IRankElementModel { }
 }
