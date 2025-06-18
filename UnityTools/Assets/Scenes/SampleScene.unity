@@ -119,6 +119,17 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!114 &5019281 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 7261264818563714434, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
+  m_PrefabInstance: {fileID: 6017250062422835797}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea5f64e963f778d40b4d9c61811ef624, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &99074260
 GameObject:
   m_ObjectHideFlags: 0
@@ -425,7 +436,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rankView: {fileID: 0}
   _rankModelCnt: 10
-  _rankOSAView: {fileID: 0}
+  _rankOSAView: {fileID: 5019281}
   _rankOSAModelCnt: 10
   _timerView: {fileID: 0}
   _invenView: {fileID: 0}
@@ -441,6 +452,14 @@ PrefabInstance:
     - target: {fileID: 928572894153044434, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
       propertyPath: m_Name
       value: UIRankOSA
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885705415307945850, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
+      propertyPath: _Params._PrefabControlsDefaultItemSize
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8885705415307945850, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
+      propertyPath: _Params._AlsoControlItemTransversalSize
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9176811188550785843, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
       propertyPath: m_Pivot.x
@@ -523,9 +542,7 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
-    m_RemovedGameObjects:
-    - {fileID: 4191715062546022712, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
-    - {fileID: 4905000042310992982, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
+    m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: facbcfb4f70059f4a8b6f088a2f9ed4b, type: 3}
