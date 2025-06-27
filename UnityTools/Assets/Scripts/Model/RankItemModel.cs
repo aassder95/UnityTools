@@ -29,10 +29,5 @@ namespace UnityTools.Model
         {
             _score = score;
         }
-
-        public void SetRandomScore()
-        {
-            SetScore(Random.Range(1, 101));
-        }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityEngine;
 using UnityTools.Util;
 
 namespace UnityTools.Model
@@ -31,7 +32,7 @@ namespace UnityTools.Model
         {
             foreach (RankItemModel model in _itemModels)
             {
-                model.SetRandomScore();
+                model.SetScore(Random.Range(1, 101));
             }
 
             _itemModels.Sort((a, b) => b.Score.CompareTo(a.Score));

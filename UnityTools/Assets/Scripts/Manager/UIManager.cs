@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityTools.Model;
 using UnityTools.Presenter;
 using UnityTools.UI;
 using UnityTools.Util;
@@ -30,26 +29,29 @@ namespace UnityTools.Manager
         void Start()
         {
             if (_rankView != null && _rankView.gameObject.activeInHierarchy)
-            {
-                RankModel model = new(_rankModelCnt);
-                _rankPresenter = new(model, _rankView);
-            }
+                _rankPresenter = new(new(_rankModelCnt), _rankView);
 
             if (_rankOSAView != null && _rankOSAView.gameObject.activeInHierarchy)
             {
-                RankModel model = new(_rankOSAModelCnt);
-                _rankOSAPresenter = new(model, _rankOSAView);
+                RankOSAManager manager = Singletons.RankOSAManager;
+                manager.Init(_rankOSAModelCnt);
+
+                _rankOSAPresenter = new(manager.Models, _rankOSAView);
             }
 
             if (_timerView != null && _timerView.gameObject.activeInHierarchy)
-            {
                 _timerPresenter = new(_timerView);
-            }
 
             if (_invenView != null && _invenView.gameObject.activeInHierarchy)
-            {
                 _invenPresenter = new(_invenModelCnt, _invenView);
-            }
+        }
+
+        void OnDestroy()
+        {
+            _rankPresenter?.Release();
+            _rankOSAPresenter?.Release();
+            _timerPresenter?.Release();
+            _invenPresenter?.Release();
         }
     }
 }

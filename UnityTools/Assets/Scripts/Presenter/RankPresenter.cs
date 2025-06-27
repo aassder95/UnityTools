@@ -3,22 +3,11 @@ using UnityTools.UI;
 
 namespace UnityTools.Presenter
 {
-    public class RankPresenter
+    public class RankPresenter : BasePresenter<RankModel, RankView>
     {
-        readonly RankModel _model;
-        readonly RankView _view;
+        public RankPresenter(RankModel model, RankView view) : base(model, view) { }
 
-        public RankPresenter(RankModel model, RankView view)
-        {
-            _model = model;
-            _view = view;
-
-            BindEvents();
-
-            _view.InitView(_model.ItemModels.Count);
-        }
-
-        void BindEvents()
+        protected override void BindEvents()
         {
             _view.OnRandomScore += OnRandomScore;
             _view.OnIncreaseTotalItem += OnIncreaseTotalItem;
@@ -28,10 +17,20 @@ namespace UnityTools.Presenter
             _view.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
         }
 
+        protected override void UnbindEvents()
+        {
+            _view.OnRandomScore -= OnRandomScore;
+            _view.OnIncreaseTotalItem -= OnIncreaseTotalItem;
+            _view.OnDecreaseTotalItem -= OnDecreaseTotalItem;
+            _view.OnIncreaseVisibleLine -= OnIncreaseVisibleLine;
+            _view.OnDecreaseVisibleLine -= OnDecreaseVisibleLine;
+            _view.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
+        }
+
         void OnRandomScore()
         {
             _model.SetRandomScore();
-            _view.UpdateView();
+            _view.UpdateView(_model);
         }
 
         void OnIncreaseTotalItem()

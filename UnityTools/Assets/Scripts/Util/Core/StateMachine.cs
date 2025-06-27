@@ -13,6 +13,10 @@ namespace UnityTools.Util
 
     public class StateMachine<TType> where TType : Enum
     {
+        #region Constants
+        const bool IS_DEBUG_LOG = true;
+        #endregion //Constants
+
         #region Fields
         TType _curType;
         IState _curState;
@@ -38,6 +42,9 @@ namespace UnityTools.Util
         {
             if (!_states.TryGetValue(type, out IState newState))
                 return;
+
+            if (IS_DEBUG_LOG)
+                UnityEngine.Debug.Log($"[StateMachine:Change] {_curType} → {type}");
 
             _curState?.Exit();
             _curType = type;

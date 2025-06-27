@@ -4,15 +4,22 @@ using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class InvenItemView : MonoBehaviour, IDynamicScrollItem, IPoolable
+    public class InvenItemView : MonoBehaviour, IDynamicScrollItem, IPoolable, IView<int>
     {
         [SerializeField] RectTransform _rtView;
         [SerializeField] TextMeshProUGUI _txtIndex;
 
+        int _idx;
         public int Index { get; set; }
 
-        public void UpdateView()
+        public void InitView(int model)
         {
+            _idx = model;
+        }
+
+        public void UpdateView(int model)
+        {
+            _idx = model;
             _txtIndex.SetText("{0}", Index);
         }
 
@@ -21,12 +28,7 @@ namespace UnityTools.UI
             _rtView.anchoredPosition = pos;
         }
 
-        void IPoolable.OnGet()
-        {
-        }
-
-        void IPoolable.OnReturn()
-        {
-        }
+        void IPoolable.OnGet() { }
+        void IPoolable.OnReturn() { }
     }
 }

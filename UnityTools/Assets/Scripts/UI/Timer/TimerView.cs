@@ -2,11 +2,12 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityTools.Model;
 using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class TimerView : MonoBehaviour
+    public class TimerView : MonoBehaviour, IView<TimerModel>
     {
         [SerializeField] TextMeshProUGUI _txtState;
         [SerializeField] TextMeshProUGUI _txtSubState;
@@ -20,28 +21,36 @@ namespace UnityTools.UI
         public event UnityAction OnForceOpen;
         public event UnityAction OnForceClosed;
 
+        public void InitView(TimerModel model)
+        {
+            UpdateView(model);
+        }
+
+        public void UpdateView(TimerModel model)
+        {
+            SetState(model.State, model.SubState);
+            SetLoop(model.LoopMinutes, model.OpenUpdated);
+            SetTimer(model.OpenStart, model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
+        }
+
         void Update()
         {
             _txtCur.SetText($"cur: {Utils.TrimMilliseconds(DateTime.UtcNow)}");
         }
 
-        public void SetState(string state)
+        void SetState(string state, string subState)
         {
             _txtState.SetText(state);
+            _txtSubState.SetText(subState);
         }
 
-        public void SetSubState(string state)
-        {
-            _txtSubState.SetText(state);
-        }
-
-        public void SetLoop(int min, DateTime updated)
+        void SetLoop(int min, DateTime openUpdated)
         {
             _txtLoop.SetText("({0})", min);
-            _txtOpenUpdated.SetText($"updated: {updated}");
+            _txtOpenUpdated.SetText($"updated: {openUpdated}");
         }
 
-        public void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
+        void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
             _txtOpenStart.SetText($"start: {openStart}");
             _txtOpenUpdated.SetText($"updated: {openUpdated}");

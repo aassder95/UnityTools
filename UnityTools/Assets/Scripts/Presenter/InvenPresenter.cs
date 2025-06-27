@@ -2,20 +2,23 @@ using UnityTools.UI;
 
 namespace UnityTools.Presenter
 {
-    public class InvenPresenter
+    public class InvenPresenter : BasePresenter<int, InvenView>
     {
-        readonly InvenView _view;
+        public InvenPresenter(int modelCnt, InvenView view) : base(modelCnt, view) { }
 
-        public InvenPresenter(int modelCnt, InvenView view)
+        protected override void BindEvents()
         {
-            _view = view;
             _view.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
-            _view.InitView(modelCnt);
+        }
+
+        protected override void UnbindEvents()
+        {
+            _view.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
         }
 
         void OnItemViewUpdated(InvenItemView itemView)
         {
-            itemView.UpdateView();
+            itemView.UpdateView(itemView.Index);
         }
     }
 }

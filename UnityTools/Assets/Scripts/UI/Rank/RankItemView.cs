@@ -6,7 +6,7 @@ using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class RankItemView : MonoBehaviour, IDynamicScrollItem, IPoolable
+    public class RankItemView : MonoBehaviour, IDynamicScrollItem, IPoolable, IView<RankItemModel>
     {
         [SerializeField] Color[] _colorTmp;
         [SerializeField] TextMeshProUGUI _txtId;
@@ -17,11 +17,14 @@ namespace UnityTools.UI
 
         public int Index { get; set; }
 
+        public void InitView(RankItemModel model) { }
+
         public void UpdateView(RankItemModel model)
         {
             _txtId.SetText("{0}", model?.Id ?? Index);
             _txtRank.SetText("{0}", model?.Rank ?? 0);
             _txtScore.SetText("{0}", model?.Score ?? 0);
+            _imgTmp.color = model.BgColor;
         }
 
         void IDynamicScrollItem.SetPosition(Vector2 pos)
@@ -29,12 +32,7 @@ namespace UnityTools.UI
             _rtView.anchoredPosition = pos;
         }
 
-        void IPoolable.OnGet()
-        {
-        }
-
-        void IPoolable.OnReturn()
-        {
-        }
+        void IPoolable.OnGet() { }
+        void IPoolable.OnReturn() { }
     }
 }

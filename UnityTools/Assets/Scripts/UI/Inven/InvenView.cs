@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace UnityTools.UI
 {
-    public class InvenView : MonoBehaviour
+    public class InvenView : MonoBehaviour, IView<int>
     {
         [SerializeField] InvenScrollView _scrollView;
 
@@ -13,7 +13,7 @@ namespace UnityTools.UI
             _scrollView.InitView(totalCnt);
         }
 
-        public void UpdateView()
+        public void UpdateView(int totalCnt)
         {
             _scrollView.UpdateItemView();
         }
