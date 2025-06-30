@@ -7,6 +7,16 @@ namespace UnityTools.Presenter
     {
         public RankPresenter(RankModel model, RankView view) : base(model, view) { }
 
+        public override void ShowView()
+        {
+            base.ShowView();
+        }
+
+        public override void HideView()
+        {
+            base.HideView();
+        }
+
         protected override void BindEvents()
         {
             _view.OnRandomScore += OnRandomScore;

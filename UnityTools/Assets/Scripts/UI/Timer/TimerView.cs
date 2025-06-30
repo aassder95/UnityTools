@@ -26,6 +26,10 @@ namespace UnityTools.UI
             UpdateView(model);
         }
 
+        public void ShowView(TimerModel model) { }
+
+        public void HideView() { }
+
         public void UpdateView(TimerModel model)
         {
             SetState(model.State, model.SubState);

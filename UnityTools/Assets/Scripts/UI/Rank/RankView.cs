@@ -21,6 +21,10 @@ namespace UnityTools.UI
             _scrollView.InitView(model.ItemModels.Count);
         }
 
+        public void ShowView(RankModel model) { }
+
+        public void HideView() { }
+
         public void UpdateView(RankModel model)
         {
             _scrollView.UpdateItemView();

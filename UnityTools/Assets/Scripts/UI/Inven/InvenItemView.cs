@@ -17,6 +17,10 @@ namespace UnityTools.UI
             _idx = model;
         }
 
+        public void ShowView(int model) { }
+
+        public void HideView() { }
+
         public void UpdateView(int model)
         {
             _idx = model;

@@ -18,6 +18,16 @@ namespace UnityTools.Presenter
             _periodTimer.Init();
         }
 
+        public override void ShowView()
+        {
+            base.ShowView();
+        }
+
+        public override void HideView()
+        {
+            base.HideView();
+        }
+
         protected override void BindEvents()
         {
             _view.OnForceOpen += _periodTimer.ForceOpen;

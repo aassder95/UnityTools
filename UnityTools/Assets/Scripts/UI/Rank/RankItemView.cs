@@ -19,6 +19,10 @@ namespace UnityTools.UI
 
         public void InitView(RankItemModel model) { }
 
+        public void ShowView(RankItemModel model) { }
+
+        public void HideView() { }
+
         public void UpdateView(RankItemModel model)
         {
             _txtId.SetText("{0}", model?.Id ?? Index);

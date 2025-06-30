@@ -13,6 +13,10 @@ namespace UnityTools.UI
             _scrollView.InitView(totalCnt);
         }
 
+        public void ShowView(int totalCnt) { }
+
+        public void HideView() { }
+
         public void UpdateView(int totalCnt)
         {
             _scrollView.UpdateItemView();
