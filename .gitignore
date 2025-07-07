@@ -47,6 +47,15 @@ UserSettings/*
 .vscode/settings.json
 
 # ------------------------------------------
+# JetBrains Rider / IntelliJ IDEs
+# ------------------------------------------
+.idea/
+.idea/*
+.idea/workspace.xml
+.idea/tasks.xml
+.idea/dictionaries/
+
+# ------------------------------------------
 # OS-specific Files
 # ------------------------------------------
 .DS_Store
