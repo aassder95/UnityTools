@@ -7,54 +7,45 @@ using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class TimerView : MonoBehaviour, IView<TimerModel>
+    public class TimerView : BaseView<TimerModel>
     {
-        [SerializeField] TextMeshProUGUI _txtState;
-        [SerializeField] TextMeshProUGUI _txtSubState;
-        [SerializeField] TextMeshProUGUI _txtCur;
-        [SerializeField] TextMeshProUGUI _txtLoop;
-        [SerializeField] TextMeshProUGUI _txtOpenStart;
-        [SerializeField] TextMeshProUGUI _txtOpenUpdated;
-        [SerializeField] TextMeshProUGUI _txtOpenEnd;
-        [SerializeField] TextMeshProUGUI _txtClosedEnd;
+        [SerializeField] private TextMeshProUGUI _txtState;
+        [SerializeField] private TextMeshProUGUI _txtSubState;
+        [SerializeField] private TextMeshProUGUI _txtCur;
+        [SerializeField] private TextMeshProUGUI _txtLoop;
+        [SerializeField] private TextMeshProUGUI _txtOpenStart;
+        [SerializeField] private TextMeshProUGUI _txtOpenUpdated;
+        [SerializeField] private TextMeshProUGUI _txtOpenEnd;
+        [SerializeField] private TextMeshProUGUI _txtClosedEnd;
 
         public event UnityAction OnForceOpen;
         public event UnityAction OnForceClosed;
-
-        public void InitView(TimerModel model)
-        {
-            UpdateView(model);
-        }
-
-        public void ShowView(TimerModel model) { }
-
-        public void HideView() { }
-
-        public void UpdateView(TimerModel model)
+        
+        public override void Refresh(TimerModel model)
         {
             SetState(model.State, model.SubState);
             SetLoop(model.LoopMinutes, model.OpenUpdated);
             SetTimer(model.OpenStart, model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
         }
 
-        void Update()
+        private void Update()
         {
-            _txtCur.SetText($"cur: {Utils.TrimMilliseconds(DateTime.UtcNow)}");
+            _txtCur.SetText($"cur: {DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow)}");
         }
 
-        void SetState(string state, string subState)
+        private void SetState(string state, string subState)
         {
             _txtState.SetText(state);
             _txtSubState.SetText(subState);
         }
 
-        void SetLoop(int min, DateTime openUpdated)
+        private void SetLoop(int min, DateTime openUpdated)
         {
             _txtLoop.SetText("({0})", min);
             _txtOpenUpdated.SetText($"updated: {openUpdated}");
         }
 
-        void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
+        private void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
             _txtOpenStart.SetText($"start: {openStart}");
             _txtOpenUpdated.SetText($"updated: {openUpdated}");

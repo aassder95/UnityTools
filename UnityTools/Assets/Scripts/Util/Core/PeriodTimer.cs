@@ -26,19 +26,19 @@ namespace UnityTools.Util
         #endregion //Constants
 
         #region Fields
-        readonly Persistence _ps;
-        readonly StateMachine<EPeriodTimerState> _fsm;
-        bool _init = false;
-        bool _isTimeTamperedFlag = false;
-        readonly Dictionary<string, DateTime> _periodTimes = new();
+        private readonly Persistence _ps;
+        private readonly StateMachine<EPeriodTimerState> _fsm;
+        private bool _init = false;
+        private bool _isTimeTamperedFlag = false;
+        private readonly Dictionary<string, DateTime> _periodTimes = new();
         #endregion //Fields
 
         #region Properties
         public StateMachine<EPeriodTimerState> FSM => _fsm;
         public bool IsTimeTamperedFlag => _isTimeTamperedFlag;
-        public bool IsOpenPeriod => Utils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_END_KEY]) < 0;
-        public bool IsClosedPeriod => Utils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[CLOSED_END_KEY]) < 0;
-        public bool IsTimeTampered => Utils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_UPDATED_KEY]) < 0;
+        public bool IsOpenPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_END_KEY]) < 0;
+        public bool IsClosedPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[CLOSED_END_KEY]) < 0;
+        public bool IsTimeTampered => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_UPDATED_KEY]) < 0;
         public DateTime OpenStartTime => _periodTimes[OPEN_START_KEY];
         public DateTime OpenUpdatedTime => _periodTimes[OPEN_UPDATED_KEY];
         public DateTime OpenEndTime => _periodTimes[OPEN_END_KEY];
@@ -72,8 +72,22 @@ namespace UnityTools.Util
         {
             CoroutineHelper.Start(CoInit());
         }
+        
+        public void Release()
+        {
+            if (!_init)
+                return;
+    
+            _init = false;
+            _isTimeTamperedFlag = false;
+            _periodTimes.Clear();
+    
+            OnLoopUpdated = null;
+            OnWait = null;
+            _fsm.Change(EPeriodTimerState.None);
+        }
 
-        IEnumerator CoInit()
+        private IEnumerator CoInit()
         {
             yield return OnWait?.Invoke();
             _init = true;
@@ -88,7 +102,7 @@ namespace UnityTools.Util
             CoroutineHelper.Start(CoUpdate());
         }
 
-        IEnumerator CoUpdate()
+        private IEnumerator CoUpdate()
         {
             while (true)
             {
@@ -129,8 +143,8 @@ namespace UnityTools.Util
         #endregion //State Management
 
         #region Timer Utilities
-        public void InvokeLoopUpdated(string key) => OnLoopUpdated?.Invoke(Utils.GetRemainingMinutes(_periodTimes[key]));
-        public void SetPeriodTime(string key, DateTime time) => _ps.Save(key, _periodTimes[key] = Utils.TrimMilliseconds(time));
+        public void InvokeLoopUpdated(string key) => OnLoopUpdated?.Invoke(DateTimeUtils.GetRemainingMinutes(_periodTimes[key]));
+        public void SetPeriodTime(string key, DateTime time) => _ps.Save(key, _periodTimes[key] = DateTimeUtils.RemoveMilliseconds(time));
         #endregion //Timer Utilities
     }
 }

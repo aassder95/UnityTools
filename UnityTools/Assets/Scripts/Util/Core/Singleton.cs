@@ -4,7 +4,7 @@ namespace UnityTools.Util
 {
     public class Singleton<T> : MonoBehaviour where T : Component
     {
-        static T _instance;
+        private static T _instance;
         public static T Instance
         {
             get

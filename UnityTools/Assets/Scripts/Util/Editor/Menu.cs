@@ -6,27 +6,27 @@ namespace UnityTools.Util
 {
     public class Menu
     {
-        [MenuItem("Util/Data/Clear AllData")]
-        static void ClearAllData()
+        [MenuItem("Util/Data/Clear AllData")] 
+        private static void ClearAllData()
         {
             PlayerPrefs.DeleteAll();
             Directory.Delete(Application.persistentDataPath, true);
         }
 
         [MenuItem("Util/Data/Clear PlayerPrefs")]
-        static void ClearPlayerPrefs()
+        private static void ClearPlayerPrefs()
         {
             PlayerPrefs.DeleteAll();
         }
 
         [MenuItem("Util/Data/Clear PersistentData")]
-        static void ClearPersistentData()
+        private static void ClearPersistentData()
         {
             Directory.Delete(Application.persistentDataPath, true);
         }
 
-        [MenuItem("Util/Convert/CSV to JSON")]
-        static void ConvertCsvToJson()
+        [MenuItem("Util/Convert/CSV to JSON")] 
+        private static void ConvertCsvToJson()
         {
             string csvPath = EditorUtility.OpenFilePanel("Select CSV file", "", "csv");
             if (string.IsNullOrEmpty(csvPath))

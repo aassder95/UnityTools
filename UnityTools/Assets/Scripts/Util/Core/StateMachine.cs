@@ -14,13 +14,13 @@ namespace UnityTools.Util
     public class StateMachine<TType> where TType : Enum
     {
         #region Constants
-        const bool IS_DEBUG_LOG = true;
+        private const bool IS_DEBUG_LOG = true;
         #endregion //Constants
 
         #region Fields
-        TType _curType;
-        IState _curState;
-        readonly Dictionary<TType, IState> _states = new();
+        private TType _curType;
+        private IState _curState;
+        private readonly Dictionary<TType, IState> _states = new();
         #endregion //Fields
 
         #region Properties

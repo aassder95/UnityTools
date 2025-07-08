@@ -1,34 +1,37 @@
+using UnityTools.Model;
 using UnityTools.UI;
+using UnityTools.Util;
 
 namespace UnityTools.Presenter
 {
-    public class InvenPresenter : BasePresenter<int, InvenView>
+    public class InvenPresenter : BasePresenter<InvenModel, InvenView>
     {
-        public InvenPresenter(int modelCnt, InvenView view) : base(modelCnt, view) { }
-
-        public override void ShowView()
+        public InvenPresenter(InvenModel model, InvenView view) : base(model, view)
         {
-            base.ShowView();
+            
         }
 
-        public override void HideView()
+        public override void Init()
         {
-            base.HideView();
+            base.Init();
+            _view.ScrollView.InitView(_model.ItemCount);
         }
 
         protected override void BindEvents()
         {
+            base.BindEvents();
             _view.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
         }
 
         protected override void UnbindEvents()
         {
             _view.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
+            base.UnbindEvents();
         }
 
-        void OnItemViewUpdated(InvenItemView itemView)
+        private void OnItemViewUpdated(InvenItemView itemView)
         {
-            itemView.UpdateView(itemView.Index);
+            itemView.Refresh(_model.Get(itemView.Index));
         }
     }
 }

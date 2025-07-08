@@ -7,7 +7,7 @@ namespace UnityTools.Util
 {
     public class Deque<T> : IEnumerable<T>
     {
-        LinkedList<T> _deque = new LinkedList<T>();
+        private LinkedList<T> _deque = new LinkedList<T>();
 
         public bool IsEmpty => Count == 0;
         public int Count => _deque.Count;
@@ -42,7 +42,7 @@ namespace UnityTools.Util
             return default;
         }
 
-        T PeekNode(LinkedListNode<T> node)
+        private T PeekNode(LinkedListNode<T> node)
         {
             if (IsEmpty)
                 return default;
@@ -50,7 +50,7 @@ namespace UnityTools.Util
             return node.Value;
         }
 
-        T RemoveNode(LinkedListNode<T> node)
+        private T RemoveNode(LinkedListNode<T> node)
         {
             if (IsEmpty)
                 return default;

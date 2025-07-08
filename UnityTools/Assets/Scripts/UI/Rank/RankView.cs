@@ -1,12 +1,13 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Model;
+using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class RankView : MonoBehaviour, IView<RankModel>
+    public class RankView : BaseView<RankModel>
     {
-        [SerializeField] RankScrollView _scrollView;
+        [SerializeField] private RankScrollView _scrollView;
 
         public RankScrollView ScrollView => _scrollView;
 
@@ -16,16 +17,7 @@ namespace UnityTools.UI
         public event UnityAction OnIncreaseVisibleLine;
         public event UnityAction OnDecreaseVisibleLine;
 
-        public void InitView(RankModel model)
-        {
-            _scrollView.InitView(model.ItemModels.Count);
-        }
-
-        public void ShowView(RankModel model) { }
-
-        public void HideView() { }
-
-        public void UpdateView(RankModel model)
+        public override void Refresh(RankModel model)
         {
             _scrollView.UpdateItemView();
         }

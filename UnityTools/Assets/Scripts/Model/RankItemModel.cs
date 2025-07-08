@@ -1,33 +1,32 @@
 using UnityEngine;
+using UnityTools.Util;
 
 namespace UnityTools.Model
 {
-    public class RankItemModel
+    public class RankItemModel : BaseModel
     {
-        int _id;
-        int _rank;
-        int _score;
-        Color _bgColor;
-
-        public int Id => _id;
-        public int Rank => _rank;
-        public int Score => _score;
-        public Color BgColor => _bgColor;
+        public int Id { get; private set; }
+        public int Rank { get; private set; }
+        public int Score { get; private set; }
+        public Color BgColor { get; private set; }
 
         public RankItemModel(int id)
         {
-            _id = id;
-            _bgColor = new(Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f), Random.Range(0f, 1f));
+            Id = id;
+            BgColor = RandomUtils.GetRandomColor();
+            NotifyUpdated();
         }
 
         public void SetRank(int rank)
         {
-            _rank = rank;
+            Rank = rank;
+            NotifyUpdated();
         }
 
         public void SetScore(int score)
         {
-            _score = score;
+            Score = score;
+            NotifyUpdated();
         }
     }
 }

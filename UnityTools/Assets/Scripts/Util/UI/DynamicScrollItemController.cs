@@ -12,9 +12,9 @@ namespace UnityTools.Util
 
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {
-        readonly DynamicScrollContext _context;
-        readonly ObjectPool<TView> _pool;
-        Deque<TView> _items = new();
+        private readonly DynamicScrollContext _context;
+        private readonly ObjectPool<TView> _pool;
+        private Deque<TView> _items = new();
 
         public int FirstIndex => _items.Peek()?.Index ?? 0;
         public int Count => _items.Count;
@@ -39,7 +39,7 @@ namespace UnityTools.Util
         public void Update() => _items.ForEach(item => OnItemUpdated?.Invoke(item));
         public void UpdatePosition() => _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
 
-        void Add(int idx, bool isBack)
+        private void Add(int idx, bool isBack)
         {
             if (isBack)
                 _items.Enqueue(Create(idx));
@@ -62,7 +62,7 @@ namespace UnityTools.Util
             }
         }
 
-        void Remove(bool isBack)
+        private void Remove(bool isBack)
         {
             if (_items.Count <= 0)
                 return;

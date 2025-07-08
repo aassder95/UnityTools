@@ -1,30 +1,20 @@
 using TMPro;
 using UnityEngine;
+using UnityTools.Model;
 using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class InvenItemView : MonoBehaviour, IDynamicScrollItem, IPoolable, IView<int>
+    public class InvenItemView : BaseView<InvenItemModel>, IDynamicScrollItem, IPoolable
     {
-        [SerializeField] RectTransform _rtView;
-        [SerializeField] TextMeshProUGUI _txtIndex;
+        [SerializeField] private RectTransform _rtView;
+        [SerializeField] private TextMeshProUGUI _txtIndex;
 
-        int _idx;
         public int Index { get; set; }
 
-        public void InitView(int model)
+        public override void Refresh(InvenItemModel model)
         {
-            _idx = model;
-        }
-
-        public void ShowView(int model) { }
-
-        public void HideView() { }
-
-        public void UpdateView(int model)
-        {
-            _idx = model;
-            _txtIndex.SetText("{0}", Index);
+            _txtIndex.SetText("{0}", model.Id);
         }
 
         void IDynamicScrollItem.SetPosition(Vector2 pos)

@@ -12,9 +12,9 @@ namespace UnityTools.Util
 
     public class ObjectPool<T> where T : Component, IPoolable
     {
-        readonly T _originObj;
-        readonly Queue<T> _pool = new Queue<T>();
-        readonly Func<T, T> _generator;
+        private readonly T _originObj;
+        private readonly Queue<T> _pool = new Queue<T>();
+        private readonly Func<T, T> _generator;
 
         public ObjectPool(int initialSize, T prefab, Transform parent)
         {

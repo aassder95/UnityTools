@@ -5,30 +5,30 @@ namespace UnityTools.Util
 {
     public class Spawner<T> : MonoBehaviour where T : Component, IPoolable
     {
-        [SerializeField] T _prefab;
-        [SerializeField] int _cnt;
-        [SerializeField] float _interval;
-        [SerializeField] Vector2 _range;
+        [SerializeField] private T _prefab;
+        [SerializeField] private int _cnt;
+        [SerializeField] private float _interval;
+        [SerializeField] private Vector2 _range;
 
-        ObjectPool<T> _pool;
+        private ObjectPool<T> _pool;
 
-        void Awake()
+        private void Awake()
         {
             _pool = new ObjectPool<T>(_cnt, _prefab, transform);
         }
 
-        void Start()
+        private void Start()
         {
             StartCoroutine(CoSpawn());
         }
 
-        IEnumerator CoSpawn()
+        private IEnumerator CoSpawn()
         {
             while (true)
             {
                 T obj = _pool.Get();
                 if (obj != null)
-                    obj.transform.position = Utils.GetRandomPos(transform.position, _range);
+                    obj.transform.position = RandomUtils.GetRandomPositionInRange(transform.position, _range);
 
                 yield return new WaitForSeconds(_interval);
             }

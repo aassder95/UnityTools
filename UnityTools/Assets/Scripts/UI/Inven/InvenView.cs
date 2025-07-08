@@ -1,23 +1,16 @@
 using UnityEngine;
+using UnityTools.Model;
+using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class InvenView : MonoBehaviour, IView<int>
+    public class InvenView : BaseView<InvenModel>
     {
-        [SerializeField] InvenScrollView _scrollView;
+        [SerializeField] private InvenScrollView _scrollView;
 
         public InvenScrollView ScrollView => _scrollView;
-
-        public void InitView(int totalCnt)
-        {
-            _scrollView.InitView(totalCnt);
-        }
-
-        public void ShowView(int totalCnt) { }
-
-        public void HideView() { }
-
-        public void UpdateView(int totalCnt)
+        
+        public override void Refresh(InvenModel model)
         {
             _scrollView.UpdateItemView();
         }

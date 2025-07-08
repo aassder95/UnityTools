@@ -37,7 +37,7 @@ namespace UnityTools.Util
             Debug.Log("[CsvJsonConverter:Convert] completed: " + jsonPath);
         }
 
-        static string ConvertLineToJson(string[] headers, string line)
+        private static string ConvertLineToJson(string[] headers, string line)
         {
             if (string.IsNullOrWhiteSpace(line))
                 return null;

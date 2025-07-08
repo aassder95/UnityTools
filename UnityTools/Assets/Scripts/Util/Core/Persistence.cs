@@ -5,7 +5,7 @@ namespace UnityTools.Util
 {
     public class Persistence
     {
-        readonly string ROOT_KEY;
+        private readonly string ROOT_KEY;
 
         public Persistence(string key)
         {
@@ -28,7 +28,7 @@ namespace UnityTools.Util
             return DateTime.MinValue;
         }
 
-        string GetKey(string suffix)
+        private string GetKey(string suffix)
         {
             return ROOT_KEY + "_" + suffix;
         }

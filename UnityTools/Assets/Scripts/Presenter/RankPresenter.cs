@@ -1,24 +1,25 @@
 using UnityTools.Model;
 using UnityTools.UI;
+using UnityTools.Util;
 
 namespace UnityTools.Presenter
 {
     public class RankPresenter : BasePresenter<RankModel, RankView>
     {
-        public RankPresenter(RankModel model, RankView view) : base(model, view) { }
-
-        public override void ShowView()
+        public RankPresenter(RankModel model, RankView view) : base(model, view)
         {
-            base.ShowView();
+            
         }
 
-        public override void HideView()
+        public override void Init()
         {
-            base.HideView();
+            base.Init();
+            _view.ScrollView.InitView(_model.ItemCount);
         }
 
         protected override void BindEvents()
         {
+            base.BindEvents();
             _view.OnRandomScore += OnRandomScore;
             _view.OnIncreaseTotalItem += OnIncreaseTotalItem;
             _view.OnDecreaseTotalItem += OnDecreaseTotalItem;
@@ -35,37 +36,37 @@ namespace UnityTools.Presenter
             _view.OnIncreaseVisibleLine -= OnIncreaseVisibleLine;
             _view.OnDecreaseVisibleLine -= OnDecreaseVisibleLine;
             _view.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
+            base.UnbindEvents();       
         }
 
-        void OnRandomScore()
+        private void OnRandomScore()
         {
             _model.SetRandomScore();
-            _view.UpdateView(_model);
         }
 
-        void OnIncreaseTotalItem()
+        private void OnIncreaseTotalItem()
         {
             _view.ScrollView.IncreaseTotalItem();
         }
 
-        void OnDecreaseTotalItem()
+        private void OnDecreaseTotalItem()
         {
             _view.ScrollView.DecreaseTotalItem();
         }
 
-        void OnIncreaseVisibleLine()
+        private void OnIncreaseVisibleLine()
         {
             _view.ScrollView.IncreaseVisibleLine();
         }
 
-        void OnDecreaseVisibleLine()
+        private void OnDecreaseVisibleLine()
         {
             _view.ScrollView.DecreaseVisibleLine();
         }
 
-        public void OnItemViewUpdated(RankItemView itemView)
+        private void OnItemViewUpdated(RankItemView itemView)
         {
-            itemView.UpdateView(_model.Get(itemView.Index));
+            itemView.Refresh(_model.Get(itemView.Index));
         }
     }
 }

@@ -4,16 +4,15 @@ namespace UnityTools.Manager
 {
     public class GameManager : Singleton<GameManager>
     {
-        void Awake()
+        private void Awake()
         {
             InitSingletons();
         }
 
-        void InitSingletons()
+        private void InitSingletons()
         {
             Singletons.GameManager = Instance;
             Singletons.UIManager = UIManager.Instance;
-            Singletons.RankOSAManager = RankOSAManager.Instance;
         }
     }
 }

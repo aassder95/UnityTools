@@ -5,9 +5,9 @@ namespace UnityTools.Util
 {
     public class CoroutineHelper : MonoBehaviour
     {
-        static CoroutineHelper _instance;
+        private static CoroutineHelper _instance;
 
-        void Awake()
+        private void Awake()
         {
             if (_instance == null)
                 _instance = this;

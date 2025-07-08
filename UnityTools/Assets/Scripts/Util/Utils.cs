@@ -3,53 +3,72 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
-    public static class Utils
+    public static class RandomUtils
     {
-        public static Vector2 GetRandomPos(Vector2 center, Vector2 range)
+        private const float HALF = 0.5f;
+        
+        public static Vector2 GetRandomPositionInRange(Vector2 center, Vector2 range)
         {
-            float x = UnityEngine.Random.Range(center.x - range.x * 0.5f, center.x + range.x * 0.5f);
-            float y = UnityEngine.Random.Range(center.y - range.y * 0.5f, center.y + range.y * 0.5f);
+            float x = UnityEngine.Random.Range(center.x - range.x * HALF, center.x + range.x * HALF);
+            float y = UnityEngine.Random.Range(center.y - range.y * HALF, center.y + range.y * HALF);
             return new Vector2(x, y);
         }
-
-        public static int ClampIndex(int idx, int lastIdx)
+        
+        public static Color GetRandomColor()
         {
-            return Mathf.Clamp(idx, 0, Mathf.Max(0, lastIdx));
+            return new Color(UnityEngine.Random.Range(0.0f, 1.0f), UnityEngine.Random.Range(0.0f, 1.0f), UnityEngine.Random.Range(0.0f, 1.0f),UnityEngine.Random.Range(0.0f, 1.0f));
+        }
+    }
+
+    public static class IndexUtils
+    {
+        private const float POSITION_EPSILON = 0.0001f;
+        
+        public static int ClampIndex(int index, int lastIndex)
+        {
+            return Mathf.Clamp(index, 0, Mathf.Max(0, lastIndex));
         }
 
-        public static int ClampIndexFromPosition(float pos, float itemSize, int lastIdx)
+        public static int CalculateClampedIndexFromPosition(float position, float itemSize, int lastIndex)
         {
-            return ClampIndex(Mathf.FloorToInt(pos / itemSize + 0.0001f), lastIdx);
+            return ClampIndex(Mathf.FloorToInt(position / itemSize + POSITION_EPSILON), lastIndex);
+        }
+    }
+
+    public static class DateTimeUtils
+    {
+        public static DateTime RemoveMilliseconds(DateTime time)
+        {
+            return new DateTime(time.Year, time.Month, time.Day, 
+                              time.Hour, time.Minute, time.Second, time.Kind);
         }
 
-        public static DateTime TrimMilliseconds(DateTime time)
+        public static int CompareWithoutMilliseconds(DateTime first, DateTime second)
         {
-            return new DateTime(time.Year, time.Month, time.Day, time.Hour, time.Minute, time.Second, time.Kind);
+            return RemoveMilliseconds(first).CompareTo(RemoveMilliseconds(second));
         }
 
-        public static int CompareWithoutMilliseconds(DateTime dt1, DateTime dt2)
+        public static int GetRemainingMinutes(DateTime targetTime)
         {
-            return TrimMilliseconds(dt1).CompareTo(TrimMilliseconds(dt2));
+            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeUntil(targetTime).TotalMinutes));
         }
 
-        public static int GetEnumLength<T>() where T : Enum
+        public static int GetRemainingSeconds(DateTime targetTime)
+        {
+            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeUntil(targetTime).TotalSeconds));
+        }
+
+        private static TimeSpan CalculateTimeUntil(DateTime targetTime)
+        {
+            return targetTime - RemoveMilliseconds(DateTime.UtcNow);
+        }
+    }
+
+    public static class EnumUtils
+    {
+        public static int GetCount<T>() where T : Enum
         {
             return Enum.GetNames(typeof(T)).Length;
-        }
-
-        public static int GetRemainingMinutes(DateTime time)
-        {
-            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeSpan(time).TotalMinutes));
-        }
-
-        public static int GetRemainingSeconds(DateTime time)
-        {
-            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeSpan(time).TotalSeconds));
-        }
-
-        public static TimeSpan CalculateTimeSpan(DateTime time)
-        {
-            return time - TrimMilliseconds(DateTime.UtcNow);
         }
     }
 }

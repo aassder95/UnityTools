@@ -6,24 +6,18 @@ using UnityTools.Util;
 
 namespace UnityTools.UI
 {
-    public class RankItemView : MonoBehaviour, IDynamicScrollItem, IPoolable, IView<RankItemModel>
+    public class RankItemView : BaseView<RankItemModel>, IDynamicScrollItem, IPoolable 
     {
-        [SerializeField] Color[] _colorTmp;
-        [SerializeField] TextMeshProUGUI _txtId;
-        [SerializeField] TextMeshProUGUI _txtRank;
-        [SerializeField] TextMeshProUGUI _txtScore;
-        [SerializeField] Image _imgTmp;
-        [SerializeField] RectTransform _rtView;
+        [SerializeField] private Color[] _colorTmp;
+        [SerializeField] private TextMeshProUGUI _txtId;
+        [SerializeField] private TextMeshProUGUI _txtRank;
+        [SerializeField] private TextMeshProUGUI _txtScore;
+        [SerializeField] private Image _imgTmp;
+        [SerializeField] private RectTransform _rtView;
 
         public int Index { get; set; }
 
-        public void InitView(RankItemModel model) { }
-
-        public void ShowView(RankItemModel model) { }
-
-        public void HideView() { }
-
-        public void UpdateView(RankItemModel model)
+        public override void Refresh(RankItemModel model)
         {
             _txtId.SetText("{0}", model?.Id ?? Index);
             _txtRank.SetText("{0}", model?.Rank ?? 0);

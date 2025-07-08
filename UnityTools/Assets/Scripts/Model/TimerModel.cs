@@ -1,47 +1,44 @@
 using System;
+using UnityTools.Util;
 
 namespace UnityTools.Model
 {
-    public class TimerModel
+    public class TimerModel : BaseModel
     {
-        string _state;
-        string _subState;
-        int _loopMinutes;
-        DateTime _openStart;
-        DateTime _openUpdated;
-        DateTime _openEnd;
-        DateTime _closedEnd;
-
-        public string State => _state;
-        public string SubState => _subState;
-        public int LoopMinutes => _loopMinutes;
-        public DateTime OpenStart => _openStart;
-        public DateTime OpenUpdated => _openUpdated;
-        public DateTime OpenEnd => _openEnd;
-        public DateTime ClosedEnd => _closedEnd;
+        public string State { get; private set; }
+        public string SubState { get; private set; }
+        public int LoopMinutes { get; private set; }
+        public DateTime OpenStart { get; private set; }
+        public DateTime OpenUpdated { get; private set; }
+        public DateTime OpenEnd { get; private set; }
+        public DateTime ClosedEnd { get; private set; }
 
         public void SetState(string state)
         {
-            _state = state;
+            State = state;
+            NotifyUpdated();
         }
 
         public void SetSubState(string state)
         {
-            _subState = state;
+            SubState = state;
+            NotifyUpdated();
         }
 
         public void SetLoop(int min, DateTime openUpdated)
         {
-            _loopMinutes = min;
-            _openUpdated = openUpdated;
+            LoopMinutes = min;
+            OpenUpdated = openUpdated;
+            NotifyUpdated();
         }
 
         public void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
-            _openStart = openStart;
-            _openUpdated = openUpdated;
-            _openEnd = openEnd;
-            _closedEnd = closedEnd;
+            OpenStart = openStart;
+            OpenUpdated = openUpdated;
+            OpenEnd = openEnd;
+            ClosedEnd = closedEnd;
+            NotifyUpdated();
         }
     }
 }

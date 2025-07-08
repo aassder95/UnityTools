@@ -5,17 +5,17 @@ namespace UnityTools.Util
 {
     public class DynamicScrollContext
     {
-        readonly int _itemCntPerLine;
-        readonly Vector2 _spacing;
-        readonly RectOffset _padding;
-        readonly RectTransform _rtContent;
-        readonly RectTransform _rtItem;
-        readonly ScrollRect _scrollRect;
+        private readonly int _itemCntPerLine;
+        private readonly Vector2 _spacing;
+        private readonly RectOffset _padding;
+        private readonly RectTransform _rtContent;
+        private readonly RectTransform _rtItem;
+        private readonly ScrollRect _scrollRect;
 
-        Vector2 ContentSize => new Vector2(_padding.left + LineSize.x + _padding.right, _padding.top + LineSize.y + _padding.bottom);
-        Vector2 LineSize => new Vector2(ItemSize.x * _itemCntPerLine - _spacing.x, ItemSize.y * _itemCntPerLine - _spacing.y);
-        Vector2 ItemSize => new Vector2(_rtItem.sizeDelta.x + _spacing.x, _rtItem.sizeDelta.y + _spacing.y);
-        Vector2 CenterOffset => new Vector2((ContentSize.x - LineSize.x) / 2.0f, (ContentSize.y - LineSize.y) / 2.0f);
+        private Vector2 ContentSize => new Vector2(_padding.left + LineSize.x + _padding.right, _padding.top + LineSize.y + _padding.bottom);
+        private Vector2 LineSize => new Vector2(ItemSize.x * _itemCntPerLine - _spacing.x, ItemSize.y * _itemCntPerLine - _spacing.y);
+        private Vector2 ItemSize => new Vector2(_rtItem.sizeDelta.x + _spacing.x, _rtItem.sizeDelta.y + _spacing.y);
+        private Vector2 CenterOffset => new Vector2((ContentSize.x - LineSize.x) / 2.0f, (ContentSize.y - LineSize.y) / 2.0f);
 
         public DynamicScrollContext(int itemCntPerLine, Vector2 spacing, RectOffset padding, RectTransform rtItem, ScrollRect scrollRect)
         {
@@ -46,8 +46,8 @@ namespace UnityTools.Util
         public int CalculateFirstVisibleLine(int lastLine)
         {
             return _scrollRect.vertical ?
-                Utils.ClampIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine) :
-                Utils.ClampIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
+                IndexUtils.CalculateClampedIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine) :
+                IndexUtils.CalculateClampedIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
         }
 
         public int CalculateItemIndex(Vector2 itemPos)

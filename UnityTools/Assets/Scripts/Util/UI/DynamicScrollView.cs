@@ -7,21 +7,21 @@ namespace UnityTools.Util
     [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
-        [SerializeField] TView _item;
-        [SerializeField] int _visibleLineCnt = 10;
-        [SerializeField] int _itemCntPerLine = 1;
-        [SerializeField] Vector2 _spacing;
-        [SerializeField] RectOffset _padding;
+        [SerializeField] private TView _item;
+        [SerializeField] private int _visibleLineCnt = 10;
+        [SerializeField] private int _itemCntPerLine = 1;
+        [SerializeField] private Vector2 _spacing;
+        [SerializeField] private RectOffset _padding;
 
-        DynamicScrollContext _context;
-        DynamicScrollItemController<TView> _itemCtrl;
-        ObjectPool<TView> _pool;
-        int _totalItemCnt;
-        int _totalLineCnt;
-        RectTransform _rt;
-        RectTransform _rtContent;
-        RectTransform _rtItem;
-        ScrollRect _scrollRect;
+        private DynamicScrollContext _context;
+        private DynamicScrollItemController<TView> _itemCtrl;
+        private ObjectPool<TView> _pool;
+        private int _totalItemCnt;
+        private int _totalLineCnt;
+        private RectTransform _rt;
+        private RectTransform _rtContent;
+        private RectTransform _rtItem;
+        private ScrollRect _scrollRect;
 
         protected DynamicScrollContext Context => _context;
         protected DynamicScrollItemController<TView> ItemController => _itemCtrl;
@@ -34,7 +34,7 @@ namespace UnityTools.Util
 
         public UnityEvent<TView> OnItemUpdated = new();
 
-        void Awake()
+        private void Awake()
         {
             _rt = GetComponent<RectTransform>();
             _scrollRect = GetComponent<ScrollRect>();
@@ -60,7 +60,7 @@ namespace UnityTools.Util
             _itemCtrl.OnItemUpdated += HandleItemUpdated;
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated -= HandleItemUpdated;
@@ -104,7 +104,7 @@ namespace UnityTools.Util
             OnScrollValueChanged(Vector2.zero);
         }
 
-        void OnScrollValueChanged(Vector2 value)
+        private void OnScrollValueChanged(Vector2 value)
         {
             int line = _itemCtrl.FirstIndex / _itemCntPerLine;
             int visibleLine = _context.CalculateFirstVisibleLine(_totalLineCnt - _visibleLineCnt);
@@ -126,6 +126,6 @@ namespace UnityTools.Util
         }
 
         protected virtual void HandleScrollValueChanged(Vector2 value) { }
-        void HandleItemUpdated(TView itemView) => OnItemUpdated?.Invoke(itemView);
+        private void HandleItemUpdated(TView itemView) => OnItemUpdated?.Invoke(itemView);
     }
 }

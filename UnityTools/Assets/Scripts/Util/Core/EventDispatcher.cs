@@ -11,8 +11,8 @@ namespace UnityTools.Util
 
     public class EventDispatcher : Singleton<EventDispatcher>
     {
-        const int DEFAULT_PRIORITY = 0;
-        readonly Dictionary<EEventDispatcherType, SortedList<int, List<Delegate>>> _events = new();
+        private const int DEFAULT_PRIORITY = 0;
+        private readonly Dictionary<EEventDispatcherType, SortedList<int, List<Delegate>>> _events = new();
 
         public delegate void EventDelegate(object sender);
         public delegate void EventDelegate<T>(object sender, T param);
@@ -24,7 +24,7 @@ namespace UnityTools.Util
         public void Dispatch(EEventDispatcherType key, object sender) => Invoke(key, del => ((EventDelegate)del)?.Invoke(sender));
         public void Dispatch<T>(EEventDispatcherType key, object sender, T param) => Invoke(key, del => ((EventDelegate<T>)del)?.Invoke(sender, param));
 
-        void Add(EEventDispatcherType key, Delegate listener, int priority)
+        private void Add(EEventDispatcherType key, Delegate listener, int priority)
         {
             var priorityList = GetPriorityList(key);
             var listeners = GetListeners(priorityList, priority);
@@ -33,7 +33,7 @@ namespace UnityTools.Util
                 listeners.Add(listener);
         }
 
-        void Remove(EEventDispatcherType key, Delegate listener)
+        private void Remove(EEventDispatcherType key, Delegate listener)
         {
             if (!_events.TryGetValue(key, out var priorityList))
                 return;
@@ -44,7 +44,7 @@ namespace UnityTools.Util
             }
         }
 
-        void Invoke(EEventDispatcherType key, Action<Delegate> onAction)
+        private void Invoke(EEventDispatcherType key, Action<Delegate> onAction)
         {
             if (!_events.TryGetValue(key, out var priorityList))
                 return;
@@ -65,7 +65,7 @@ namespace UnityTools.Util
             }
         }
 
-        SortedList<int, List<Delegate>> GetPriorityList(EEventDispatcherType key)
+        private SortedList<int, List<Delegate>> GetPriorityList(EEventDispatcherType key)
         {
             if (!_events.TryGetValue(key, out var priorityList))
             {
@@ -76,7 +76,7 @@ namespace UnityTools.Util
             return priorityList;
         }
 
-        List<Delegate> GetListeners(SortedList<int, List<Delegate>> priorityList, int priority)
+        private List<Delegate> GetListeners(SortedList<int, List<Delegate>> priorityList, int priority)
         {
             if (!priorityList.TryGetValue(priority, out var listeners))
             {

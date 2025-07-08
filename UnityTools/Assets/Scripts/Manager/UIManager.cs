@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityTools.Model;
 using UnityTools.Presenter;
 using UnityTools.UI;
 using UnityTools.Util;
@@ -8,45 +9,64 @@ namespace UnityTools.Manager
     public class UIManager : Singleton<UIManager>
     {
         [Header("Rank")]
-        [SerializeField] RankView _rankView;
-        [SerializeField] int _rankModelCnt = 10;
-        RankPresenter _rankPresenter;
+        [SerializeField]
+        private RankView _rankView;
+        [SerializeField] private int _rankModelCnt = 10;
+        private RankPresenter _rankPresenter;
 
         [Header("RankOSA")]
-        [SerializeField] RankOSAView _rankOSAView;
-        [SerializeField] int _rankOSAModelCnt = 10;
-        RankOSAPresenter _rankOSAPresenter;
+        [SerializeField]
+        private RankOSAView _rankOSAView;
+        [SerializeField] private int _rankOSAModelCnt = 10;
+        private RankOSAPresenter _rankOSAPresenter;
 
         [Header("Timer")]
-        [SerializeField] TimerView _timerView;
-        TimerPresenter _timerPresenter;
+        [SerializeField]
+        private TimerView _timerView;
+        private TimerPresenter _timerPresenter;
 
         [Header("Inven")]
-        [SerializeField] InvenView _invenView;
-        [SerializeField] int _invenModelCnt = 50;
-        InvenPresenter _invenPresenter;
+        [SerializeField]
+        private InvenView _invenView;
+        [SerializeField] private int _invenModelCnt = 50;
+        private InvenPresenter _invenPresenter;
 
-        void Start()
+        private void Start()
         {
             if (_rankView != null && _rankView.gameObject.activeInHierarchy)
-                _rankPresenter = new(new(_rankModelCnt), _rankView);
+            {
+                RankModel model = new(_rankModelCnt);
+                _rankPresenter = new(model, _rankView);
+                _rankPresenter.Init();
+                _rankPresenter.Show();
+            }
 
             if (_rankOSAView != null && _rankOSAView.gameObject.activeInHierarchy)
             {
-                RankOSAManager manager = Singletons.RankOSAManager;
-                manager.Init(_rankOSAModelCnt);
-
-                _rankOSAPresenter = new(manager.Models, _rankOSAView);
+                RankOSAModel model = new(_rankOSAModelCnt, new() { 3, 10 });
+                _rankOSAPresenter = new(model, _rankOSAView);
+                _rankOSAPresenter.Init();
+                _rankOSAPresenter.Show();
             }
 
             if (_timerView != null && _timerView.gameObject.activeInHierarchy)
-                _timerPresenter = new(_timerView);
+            {
+                TimerModel model = new();
+                _timerPresenter = new(model, _timerView);
+                _timerPresenter.Init();
+                _timerPresenter.Show();
+            }
 
             if (_invenView != null && _invenView.gameObject.activeInHierarchy)
-                _invenPresenter = new(_invenModelCnt, _invenView);
+            {
+                InvenModel model = new(_invenModelCnt);
+                _invenPresenter = new(model, _invenView);
+                _invenPresenter.Init();
+                _invenPresenter.Show();
+            }
         }
 
-        void OnDestroy()
+        private void OnDestroy()
         {
             _rankPresenter?.Release();
             _rankOSAPresenter?.Release();
