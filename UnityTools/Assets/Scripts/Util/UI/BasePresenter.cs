@@ -11,6 +11,10 @@ namespace UnityTools.Util
         protected readonly TModel _model;
         protected readonly TView _view;
 
+        private bool _isInit = false;
+        
+        public bool IsVisible => _view.IsVisible;
+
         protected BasePresenter(TModel model, TView view)
         {
             _model = model;
@@ -19,12 +23,21 @@ namespace UnityTools.Util
 
         public virtual void Init()
         {
-            BindEvents();
+            if (_isInit)
+                return;
+
             _view.Init();
+            BindEvents();
+            _isInit = true;
         }
 
         public virtual void Release()
         {
+            if (!_isInit)
+                return;
+            
+            _isInit = false;
+            _view.Release();
             UnbindEvents();
         }
 
@@ -40,6 +53,9 @@ namespace UnityTools.Util
         
         public virtual void Show()
         {
+            if (!_isInit)
+                return;
+            
             _view.Show();
             _view.Refresh(_model);
         }
@@ -51,6 +67,9 @@ namespace UnityTools.Util
 
         protected virtual void OnModelUpdated()
         {
+            if (!_isInit)
+                return;
+
             _view.Refresh(_model);
         }
     }
