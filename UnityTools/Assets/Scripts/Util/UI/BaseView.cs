@@ -37,7 +37,8 @@ namespace UnityTools.Util
 
         public virtual void Refresh(TModel model)
         {
-            
+            if (model == null)
+                return;
         }
     }
 }

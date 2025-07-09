@@ -19,6 +19,8 @@ namespace UnityTools.Util
         {
             _model = model;
             _view = view;
+
+            Init();
         }
 
         public virtual void Init()
