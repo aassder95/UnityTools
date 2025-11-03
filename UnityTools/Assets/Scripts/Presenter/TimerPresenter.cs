@@ -31,8 +31,8 @@ namespace UnityTools.Presenter
         protected override void BindEvents()
         {
             base.BindEvents();
-            _view.OnForceOpen += _periodTimer.ForceOpen;
-            _view.OnForceClosed += _periodTimer.ForceClosed;
+            VIEW.OnForceOpen += _periodTimer.ForceOpen;
+            VIEW.OnForceClosed += _periodTimer.ForceClosed;
             _periodTimer.OnWait += CoWait;
             _periodTimer.OnLoopUpdated += OnLoopUpdated;
             _periodTimer.OnStateChanged += OnStateChanged;
@@ -40,8 +40,8 @@ namespace UnityTools.Presenter
 
         protected override void UnbindEvents()
         {
-            _view.OnForceOpen -= _periodTimer.ForceOpen;
-            _view.OnForceClosed -= _periodTimer.ForceClosed;
+            VIEW.OnForceOpen -= _periodTimer.ForceOpen;
+            VIEW.OnForceClosed -= _periodTimer.ForceClosed;
             _periodTimer.OnWait -= CoWait;
             _periodTimer.OnLoopUpdated -= OnLoopUpdated;
             _periodTimer.OnStateChanged -= OnStateChanged;
@@ -52,26 +52,26 @@ namespace UnityTools.Presenter
 
         private void OnStateChanged(EPeriodTimerState state)
         {
-            _model.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
+            MODEL.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
             switch (state)
             {
                 case EPeriodTimerState.Reset:
-                    _model.SetSubState("Reset");
+                    MODEL.SetSubState("Reset");
                     break;
                 case EPeriodTimerState.Open:
-                    _model.SetState("Open");
+                    MODEL.SetState("Open");
                     break;
                 case EPeriodTimerState.Closed:
-                    _model.SetState("Closed");
-                    _model.SetSubState("Closed");
+                    MODEL.SetState("Closed");
+                    MODEL.SetSubState("Closed");
                     break;
             }
         }
 
         private void OnLoopUpdated(int min)
         {
-            _model.SetLoop(min, _periodTimer.OpenUpdatedTime);
+            MODEL.SetLoop(min, _periodTimer.OpenUpdatedTime);
         }
     }
 }

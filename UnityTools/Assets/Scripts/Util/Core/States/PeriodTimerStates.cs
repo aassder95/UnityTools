@@ -20,8 +20,8 @@ namespace UnityTools.Util
             {
                 DateTime now = DateTime.UtcNow;
                 _timer.SetPeriodTime(PeriodTimer.OPEN_START_KEY, now);
-                _timer.SetPeriodTime(PeriodTimer.OPEN_END_KEY, now.AddMinutes(_timer.OPEN_PERIOD_MINUTES));
-                _timer.SetPeriodTime(PeriodTimer.CLOSED_END_KEY, now.AddMinutes(_timer.OPEN_PERIOD_MINUTES + _timer.CLOSED_PERIOD_MINUTES));
+                _timer.SetPeriodTime(PeriodTimer.OPEN_END_KEY, now.AddMinutes(_timer.OpenPeriodMin));
+                _timer.SetPeriodTime(PeriodTimer.CLOSED_END_KEY, now.AddMinutes(_timer.OpenPeriodMin + _timer.ClosedPeriodMin));
             }
 
             public override void Execute()

@@ -8,17 +8,17 @@ namespace UnityTools.Util
 
     public abstract class BasePresenter<TModel, TView> : IPresenter where TModel : BaseModel where TView : BaseView<TModel>
     {
-        protected readonly TModel _model;
-        protected readonly TView _view;
+        protected readonly TModel MODEL;
+        protected readonly TView VIEW;
 
         private bool _isInit = false;
         
-        public bool IsVisible => _view.IsVisible;
+        public bool IsVisible => VIEW.IsVisible;
 
         protected BasePresenter(TModel model, TView view)
         {
-            _model = model;
-            _view = view;
+            MODEL = model;
+            VIEW = view;
 
             Init();
         }
@@ -28,7 +28,7 @@ namespace UnityTools.Util
             if (_isInit)
                 return;
 
-            _view.Init();
+            VIEW.Init();
             BindEvents();
             _isInit = true;
         }
@@ -39,18 +39,18 @@ namespace UnityTools.Util
                 return;
             
             _isInit = false;
-            _view.Release();
+            VIEW.Release();
             UnbindEvents();
         }
 
         protected virtual void BindEvents()
         {
-            _model.OnUpdated += OnModelUpdated;
+            MODEL.OnUpdated += OnModelUpdated;
         }
 
         protected virtual void UnbindEvents()
         {
-            _model.OnUpdated -= OnModelUpdated;
+            MODEL.OnUpdated -= OnModelUpdated;
         }
         
         public virtual void Show()
@@ -58,13 +58,13 @@ namespace UnityTools.Util
             if (!_isInit)
                 return;
             
-            _view.Show();
-            _view.Refresh(_model);
+            VIEW.Show();
+            VIEW.Refresh(MODEL);
         }
         
         public virtual void Hide()
         {
-            _view.Hide();
+            VIEW.Hide();
         }
 
         protected virtual void OnModelUpdated()
@@ -72,7 +72,7 @@ namespace UnityTools.Util
             if (!_isInit)
                 return;
 
-            _view.Refresh(_model);
+            VIEW.Refresh(MODEL);
         }
     }
 }

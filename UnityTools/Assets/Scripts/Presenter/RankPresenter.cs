@@ -14,59 +14,59 @@ namespace UnityTools.Presenter
         public override void Init()
         {
             base.Init();
-            _view.ScrollView.InitView(_model.ItemCount);
+            VIEW.ScrollView.InitView(MODEL.ItemCount);
         }
 
         protected override void BindEvents()
         {
             base.BindEvents();
-            _view.OnRandomScore += OnRandomScore;
-            _view.OnIncreaseTotalItem += OnIncreaseTotalItem;
-            _view.OnDecreaseTotalItem += OnDecreaseTotalItem;
-            _view.OnIncreaseVisibleLine += OnIncreaseVisibleLine;
-            _view.OnDecreaseVisibleLine += OnDecreaseVisibleLine;
-            _view.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
+            VIEW.OnRandomScore += OnRandomScore;
+            VIEW.OnIncreaseTotalItem += OnIncreaseTotalItem;
+            VIEW.OnDecreaseTotalItem += OnDecreaseTotalItem;
+            VIEW.OnIncreaseVisibleLine += OnIncreaseVisibleLine;
+            VIEW.OnDecreaseVisibleLine += OnDecreaseVisibleLine;
+            VIEW.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
         }
 
         protected override void UnbindEvents()
         {
-            _view.OnRandomScore -= OnRandomScore;
-            _view.OnIncreaseTotalItem -= OnIncreaseTotalItem;
-            _view.OnDecreaseTotalItem -= OnDecreaseTotalItem;
-            _view.OnIncreaseVisibleLine -= OnIncreaseVisibleLine;
-            _view.OnDecreaseVisibleLine -= OnDecreaseVisibleLine;
-            _view.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
+            VIEW.OnRandomScore -= OnRandomScore;
+            VIEW.OnIncreaseTotalItem -= OnIncreaseTotalItem;
+            VIEW.OnDecreaseTotalItem -= OnDecreaseTotalItem;
+            VIEW.OnIncreaseVisibleLine -= OnIncreaseVisibleLine;
+            VIEW.OnDecreaseVisibleLine -= OnDecreaseVisibleLine;
+            VIEW.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
             base.UnbindEvents();       
         }
 
         private void OnRandomScore()
         {
-            _model.SetRandomScore();
+            MODEL.SetRandomScore();
         }
 
         private void OnIncreaseTotalItem()
         {
-            _view.ScrollView.IncreaseTotalItem();
+            VIEW.ScrollView.IncreaseTotalItem();
         }
 
         private void OnDecreaseTotalItem()
         {
-            _view.ScrollView.DecreaseTotalItem();
+            VIEW.ScrollView.DecreaseTotalItem();
         }
 
         private void OnIncreaseVisibleLine()
         {
-            _view.ScrollView.IncreaseVisibleLine();
+            VIEW.ScrollView.IncreaseVisibleLine();
         }
 
         private void OnDecreaseVisibleLine()
         {
-            _view.ScrollView.DecreaseVisibleLine();
+            VIEW.ScrollView.DecreaseVisibleLine();
         }
 
         private void OnItemViewUpdated(RankItemView itemView)
         {
-            itemView.Refresh(_model.Get(itemView.Index));
+            itemView.Refresh(MODEL.Get(itemView.Index));
         }
     }
 }

@@ -1,0 +1,47 @@
+namespace UnityTools.Util
+{
+    public class TaskTimerStates
+    {
+        public class BaseState : IState
+        {
+            protected readonly TaskTimer _timer;
+            protected BaseState(TaskTimer timer) { _timer = timer; }
+            public virtual void Enter() { }
+            public virtual void Execute() { }
+            public virtual void Exit() { }
+        }
+
+        public class NoneState : BaseState
+        {
+            public NoneState(TaskTimer timer) : base(timer) { }
+        }
+
+        public class ProcessingState : BaseState
+        {
+            public ProcessingState(TaskTimer timer) : base(timer) { }
+
+            public override void Execute()
+            {
+                if(_timer.IsPeriodExpired)
+                {
+                    _timer.UpdateCompletionTime();
+                    _timer.FSM.Change(ETaskTimerState.Completed);
+                    return;
+                }
+
+                _timer.NotifyUpdate();
+            }
+        }
+
+        public class CompletedState : BaseState
+        {
+            public CompletedState(TaskTimer timer) : base(timer) { }
+
+            public override void Enter()
+            {
+                _timer.NotifyCompleted();
+                _timer.SaveStateOnly();
+            }
+        }
+    }
+}

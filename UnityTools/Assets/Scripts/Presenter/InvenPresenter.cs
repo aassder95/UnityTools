@@ -14,24 +14,24 @@ namespace UnityTools.Presenter
         public override void Init()
         {
             base.Init();
-            _view.ScrollView.InitView(_model.ItemCount);
+            VIEW.ScrollView.InitView(MODEL.ItemCount);
         }
 
         protected override void BindEvents()
         {
             base.BindEvents();
-            _view.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
+            VIEW.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
         }
 
         protected override void UnbindEvents()
         {
-            _view.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
+            VIEW.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
             base.UnbindEvents();
         }
 
         private void OnItemViewUpdated(InvenItemView itemView)
         {
-            itemView.Refresh(_model.Get(itemView.Index));
+            itemView.Refresh(MODEL.Get(itemView.Index));
         }
     }
 }

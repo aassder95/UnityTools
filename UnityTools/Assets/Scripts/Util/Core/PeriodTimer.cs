@@ -16,68 +16,64 @@ namespace UnityTools.Util
 
     public class PeriodTimer
     {
-        #region Constants
         public const string OPEN_START_KEY = "OPEN_START_KEY";
         public const string OPEN_UPDATED_KEY = "OPEN_UPDATED_KEY";
         public const string OPEN_END_KEY = "OPEN_END_KEY";
         public const string CLOSED_END_KEY = "CLOSED_END_KEY";
-        public readonly double OPEN_PERIOD_MINUTES;
-        public readonly double CLOSED_PERIOD_MINUTES;
-        #endregion //Constants
 
-        #region Fields
         private readonly Persistence _ps;
         private readonly StateMachine<EPeriodTimerState> _fsm;
-        private bool _init = false;
-        private bool _isTimeTamperedFlag = false;
         private readonly Dictionary<string, DateTime> _periodTimes = new();
-        #endregion //Fields
 
-        #region Properties
+        private bool _init;
+        private bool _isTimeTamperedFlag;
+        private double _openPeriodMin;
+        private double _closedPeriodMin;
+        private Coroutine _coInit;
+        private Coroutine _coUpdate;
+
         public StateMachine<EPeriodTimerState> FSM => _fsm;
         public bool IsTimeTamperedFlag => _isTimeTamperedFlag;
         public bool IsOpenPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_END_KEY]) < 0;
         public bool IsClosedPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[CLOSED_END_KEY]) < 0;
         public bool IsTimeTampered => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_UPDATED_KEY]) < 0;
+        public double OpenPeriodMin => _openPeriodMin;
+        public double ClosedPeriodMin => _closedPeriodMin;
         public DateTime OpenStartTime => _periodTimes[OPEN_START_KEY];
         public DateTime OpenUpdatedTime => _periodTimes[OPEN_UPDATED_KEY];
         public DateTime OpenEndTime => _periodTimes[OPEN_END_KEY];
         public DateTime ClosedEndTime => _periodTimes[CLOSED_END_KEY];
-        #endregion //Properties
 
-        #region Events
         public event UnityAction<int> OnLoopUpdated;
         public event UnityAction<EPeriodTimerState> OnStateChanged { add { _fsm.OnStateChanged += value; } remove { _fsm.OnStateChanged -= value; } }
         public event Func<IEnumerator> OnWait;
-        #endregion //Events
 
-        #region Constructors
         public PeriodTimer(string key, double openPeriodMin, double closedPeriodMin)
         {
-            OPEN_PERIOD_MINUTES = openPeriodMin;
-            CLOSED_PERIOD_MINUTES = closedPeriodMin;
-
             _ps = new(key);
-            _periodTimes.AddRange(new[] { OPEN_START_KEY, OPEN_UPDATED_KEY, OPEN_END_KEY, CLOSED_END_KEY }, suffix => _ps.Load(suffix));
-
             _fsm = new();
             _fsm.Add(EPeriodTimerState.Reset, new PeriodTimerStates.ResetState(this));
             _fsm.Add(EPeriodTimerState.Open, new PeriodTimerStates.OpenState(this));
             _fsm.Add(EPeriodTimerState.Closed, new PeriodTimerStates.ClosedState(this));
-        }
-        #endregion //Constructors
+            _periodTimes.AddRange(new[] { OPEN_START_KEY, OPEN_UPDATED_KEY, OPEN_END_KEY, CLOSED_END_KEY }, suffix => _ps.Load<DateTime>(suffix));
 
-        #region Initialization
+            _openPeriodMin = openPeriodMin;
+            _closedPeriodMin = closedPeriodMin;
+        }
+
         public void Init()
         {
-            CoroutineHelper.Start(CoInit());
+            CoroutineHelper.Replace(ref _coInit, CoInit());
         }
         
         public void Release()
         {
             if (!_init)
                 return;
-    
+
+            CoroutineHelper.Dispose(ref _coInit);
+            CoroutineHelper.Dispose(ref _coUpdate);
+
             _init = false;
             _isTimeTamperedFlag = false;
             _periodTimes.Clear();
@@ -99,7 +95,7 @@ namespace UnityTools.Util
             else
                 _fsm.Change(EPeriodTimerState.Reset, true);
 
-            CoroutineHelper.Start(CoUpdate());
+            CoroutineHelper.Replace(ref _coUpdate, CoUpdate());
         }
 
         private IEnumerator CoUpdate()
@@ -110,9 +106,7 @@ namespace UnityTools.Util
                 yield return new WaitForSecondsRealtime(60.0f);
             }
         }
-        #endregion //Initialization
 
-        #region State Management
         public void ForceOpen()
         {
             if (!_init || _fsm.CurType == EPeriodTimerState.Open)
@@ -138,13 +132,57 @@ namespace UnityTools.Util
         public void ClearTimeTampered()
         {
             _isTimeTamperedFlag = false;
-            SetPeriodTime(CLOSED_END_KEY, DateTime.UtcNow.AddMinutes(CLOSED_PERIOD_MINUTES));
+            SetPeriodTime(CLOSED_END_KEY, DateTime.UtcNow.AddMinutes(_closedPeriodMin));
         }
-        #endregion //State Management
 
-        #region Timer Utilities
         public void InvokeLoopUpdated(string key) => OnLoopUpdated?.Invoke(DateTimeUtils.GetRemainingMinutes(_periodTimes[key]));
         public void SetPeriodTime(string key, DateTime time) => _ps.Save(key, _periodTimes[key] = DateTimeUtils.RemoveMilliseconds(time));
-        #endregion //Timer Utilities
+
+        /// <summary>
+        /// Open 기간의 시간을 동적으로 변경합니다.
+        /// </summary>
+        /// <param name="minutes">새로운 Open 기간 (분 단위)</param>
+        /// <param name="applyImmediately">즉시 적용 여부 (현재 타이머를 리셋)</param>
+        public void SetOpenPeriod(double minutes, bool applyImmediately = false)
+        {
+            _openPeriodMin = minutes;
+
+            if (applyImmediately && _init)
+            {
+                _fsm.Change(EPeriodTimerState.Reset, true);
+            }
+        }
+
+        /// <summary>
+        /// Closed 기간의 시간을 동적으로 변경합니다.
+        /// </summary>
+        /// <param name="minutes">새로운 Closed 기간 (분 단위)</param>
+        /// <param name="applyImmediately">즉시 적용 여부 (현재 타이머를 리셋)</param>
+        public void SetClosedPeriod(double minutes, bool applyImmediately = false)
+        {
+            _closedPeriodMin = minutes;
+
+            if (applyImmediately && _init && _fsm.CurType == EPeriodTimerState.Closed)
+            {
+                SetPeriodTime(CLOSED_END_KEY, DateTime.UtcNow.AddMinutes(_closedPeriodMin));
+            }
+        }
+
+        /// <summary>
+        /// Open과 Closed 기간을 모두 변경합니다.
+        /// </summary>
+        /// <param name="openMinutes">새로운 Open 기간 (분 단위)</param>
+        /// <param name="closedMinutes">새로운 Closed 기간 (분 단위)</param>
+        /// <param name="applyImmediately">즉시 적용 여부 (현재 타이머를 리셋)</param>
+        public void SetPeriods(double openMinutes, double closedMinutes, bool applyImmediately = false)
+        {
+            _openPeriodMin = openMinutes;
+            _closedPeriodMin = closedMinutes;
+
+            if (applyImmediately && _init)
+            {
+                _fsm.Change(EPeriodTimerState.Reset, true);
+            }
+        }
     }
 }
