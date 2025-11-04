@@ -5,7 +5,7 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    public enum ETaskTimerState
+    public enum ETaskTimerType
     {
         None,
         Processing,
@@ -21,7 +21,8 @@ namespace UnityTools.Util
 
         private readonly string _id;
         private readonly Persistence _ps;
-        private readonly StateMachine<ETaskTimerState> _fsm;
+        private readonly StateMachine<ETaskTimerType> _fsm;
+        private readonly MonoBehaviour _runner;
 
         private bool _init;
         private double _durationMin;
@@ -29,8 +30,8 @@ namespace UnityTools.Util
         private DateTime _updatedTime;
         private Coroutine _coUpdate;
 
-        public StateMachine<ETaskTimerState> FSM => _fsm;
-        public ETaskTimerState CurrentState => _fsm.CurType;
+        public StateMachine<ETaskTimerType> FSM => _fsm;
+        public ETaskTimerType CurType => _fsm.CurType;
         public int RemainingSec => DateTimeUtils.GetRemainingSeconds(EndTime);
         private DateTime EndTime => _startTime.AddMinutes(_durationMin);
 
@@ -40,21 +41,22 @@ namespace UnityTools.Util
         public event UnityAction<int> OnUpdated;
         public event UnityAction OnCompleted;
         public event UnityAction OnClaimed;
-        public event UnityAction<ETaskTimerState> OnStateChanged
+        public event UnityAction<ETaskTimerType> OnStateChanged
         {
             add => _fsm.OnStateChanged += value;
             remove => _fsm.OnStateChanged -= value;
         }
 
-        public TaskTimer(string rootKey, string id)
+        public TaskTimer(string rootKey, string id, MonoBehaviour runner)
         {
             _id = id;
             _ps = new Persistence($"{rootKey}_{id}");
-            _fsm = new StateMachine<ETaskTimerState>();
+            _fsm = new StateMachine<ETaskTimerType>();
+            _runner = runner;
 
-            _fsm.Add(ETaskTimerState.None, new TaskTimerStates.NoneState(this));
-            _fsm.Add(ETaskTimerState.Processing, new TaskTimerStates.ProcessingState(this));
-            _fsm.Add(ETaskTimerState.Completed, new TaskTimerStates.CompletedState(this));
+            _fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this));
+            _fsm.Add(ETaskTimerType.Processing, new TaskTimerStates.ProcessingState(this));
+            _fsm.Add(ETaskTimerType.Completed, new TaskTimerStates.CompletedState(this));
         }
 
         private void Save()
@@ -63,11 +65,6 @@ namespace UnityTools.Util
             _ps.Save(DURATION_SUFFIX, _durationMin.ToString());
             _ps.Save(STATE_SUFFIX, ((int)_fsm.CurType).ToString());
             _ps.Save(UPDATED_TIME_SUFFIX, DateTime.UtcNow.Ticks.ToString());
-        }
-
-        public void SaveStateOnly()
-        {
-            _ps.Save(STATE_SUFFIX, ((int)_fsm.CurType).ToString());
         }
 
         private void Load()
@@ -99,40 +96,37 @@ namespace UnityTools.Util
             Load();
             _init = true;
 
-            if(!int.TryParse(_ps.Load(STATE_SUFFIX, "0"), out int savedState))
-                savedState = 0;
+            if(!int.TryParse(_ps.Load(STATE_SUFFIX, "0"), out int savedType))
+                savedType = 0;
 
-            ETaskTimerState state = (ETaskTimerState)savedState;
-            if(_startTime == DateTime.MinValue || state == ETaskTimerState.None)
+            ETaskTimerType type = (ETaskTimerType)savedType;
+            if(_startTime == DateTime.MinValue || type == ETaskTimerType.None)
             {
-                _fsm.Change(ETaskTimerState.None);
+                _fsm.Change(ETaskTimerType.None);
                 return;
             }
 
-            if(state == ETaskTimerState.Processing)
+            if(type == ETaskTimerType.Processing)
             {
                 if(IsTimeTampered)
-                {
-                    double penaltyMin = (_updatedTime - DateTime.UtcNow).TotalMinutes;
-                    _durationMin += penaltyMin;
-                }
+                    _durationMin += (_updatedTime - DateTime.UtcNow).TotalMinutes;
 
                 if(IsPeriodExpired)
                 {
                     _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
                     _ps.Save(UPDATED_TIME_SUFFIX, _updatedTime.Ticks.ToString());
-                    _fsm.Change(ETaskTimerState.Completed);
-                    _ps.Save(STATE_SUFFIX, ((int)ETaskTimerState.Completed).ToString());
+                    _fsm.Change(ETaskTimerType.Completed);
+                    _ps.Save(STATE_SUFFIX, ((int)ETaskTimerType.Completed).ToString());
                 }
                 else
                 {
-                    _fsm.Change(ETaskTimerState.Processing);
+                    _fsm.Change(ETaskTimerType.Processing);
                     StartUpdate();
                 }
             }
-            else if(state == ETaskTimerState.Completed)
+            else if(type == ETaskTimerType.Completed)
             {
-                _fsm.Change(ETaskTimerState.Completed);
+                _fsm.Change(ETaskTimerType.Completed);
             }
         }
 
@@ -151,7 +145,7 @@ namespace UnityTools.Util
 
         private IEnumerator CoUpdate()
         {
-            while (_fsm.CurType == ETaskTimerState.Processing)
+            while (_fsm.CurType == ETaskTimerType.Processing)
             {
                 _fsm.Update();
                 yield return new WaitForSecondsRealtime(1.0f);
@@ -160,17 +154,24 @@ namespace UnityTools.Util
 
         private void StartUpdate()
         {
-            CoroutineHelper.Replace(ref _coUpdate, CoUpdate());
+            StopUpdate();
+
+            if (_runner != null)
+                _coUpdate = _runner.StartCoroutine(CoUpdate());
         }
 
         private void StopUpdate()
         {
-            CoroutineHelper.Dispose(ref _coUpdate);
+            if (_coUpdate != null && _runner != null)
+            {
+                _runner.StopCoroutine(_coUpdate);
+                _coUpdate = null;
+            }
         }
 
         public void Start(double durationMin)
         {
-            if(!_init || _fsm.CurType == ETaskTimerState.Processing)
+            if(!_init || _fsm.CurType == ETaskTimerType.Processing)
                 return;
 
             _startTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
@@ -180,14 +181,14 @@ namespace UnityTools.Util
             else
                 _durationMin = durationMin;
 
-            _fsm.Change(ETaskTimerState.Processing);
+            _fsm.Change(ETaskTimerType.Processing);
             Save();
             StartUpdate();
         }
 
         public void Reduce(double reduceMin)
         {
-            if(!_init || _fsm.CurType != ETaskTimerState.Processing)
+            if(!_init || _fsm.CurType != ETaskTimerType.Processing)
                 return;
 
             double remainingMin = (EndTime - DateTime.UtcNow).TotalMinutes;
@@ -199,31 +200,33 @@ namespace UnityTools.Util
             _startTime = _startTime.AddMinutes(-actualReduction);
             Save();
 
+            OnUpdated?.Invoke(RemainingSec);
+
             if(IsPeriodExpired)
-                _fsm.Change(ETaskTimerState.Completed);
+                _fsm.Change(ETaskTimerType.Completed);
         }
 
         public void CompleteImmediately()
         {
-            if(!_init || _fsm.CurType != ETaskTimerState.Processing)
+            if(!_init || _fsm.CurType != ETaskTimerType.Processing)
                 return;
 
             StopUpdate();
 
             _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
             _ps.Save(UPDATED_TIME_SUFFIX, _updatedTime.Ticks.ToString());
-            _ps.Save(STATE_SUFFIX, ((int)ETaskTimerState.Completed).ToString());
+            _ps.Save(STATE_SUFFIX, ((int)ETaskTimerType.Completed).ToString());
 
-            _fsm.Change(ETaskTimerState.Completed);
+            _fsm.Change(ETaskTimerType.Completed);
         }
 
         public void Claim()
         {
-            if(!_init || _fsm.CurType != ETaskTimerState.Completed)
+            if(!_init || _fsm.CurType != ETaskTimerType.Completed)
                 return;
 
             Clear();
-            _fsm.Change(ETaskTimerState.None);
+            _fsm.Change(ETaskTimerType.None);
             OnClaimed?.Invoke();
         }
 
@@ -231,6 +234,7 @@ namespace UnityTools.Util
         {
             _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
             _ps.Save(UPDATED_TIME_SUFFIX, _updatedTime.Ticks.ToString());
+            _fsm.Change(ETaskTimerType.Completed);
         }
 
         public void NotifyUpdate()

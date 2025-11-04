@@ -33,7 +33,7 @@ namespace UnityTools.Manager
         {
             foreach (string id in _ids)
             {
-                TaskTimer timer = new(_rootKey, id);
+                TaskTimer timer = new(_rootKey, id, this);
                 timer.OnUpdated += seconds => OnTimerUpdated(id, seconds);
                 timer.OnCompleted += () => OnTimerCompleted(id);
                 timer.OnClaimed += () => OnTimerClaimed(id);
@@ -58,19 +58,19 @@ namespace UnityTools.Manager
             if(!_timers.TryGetValue(id, out TaskTimer timer) || !_views.TryGetValue(id, out TaskTimerView view))
                 return;
 
-            view.SetState(timer.CurrentState.ToString());
+            view.SetState(timer.CurType.ToString());
 
-            switch (timer.CurrentState)
+            switch (timer.CurType)
             {
-                case ETaskTimerState.None:
+                case ETaskTimerType.None:
                     view.SetTimer("대기 중");
                     view.SetBtnActive(true, false, false, false);
                     break;
-                case ETaskTimerState.Processing:
+                case ETaskTimerType.Processing:
                     OnTimerUpdated(id, timer.RemainingSec);
                     view.SetBtnActive(false, true, false, true);
                     break;
-                case ETaskTimerState.Completed:
+                case ETaskTimerType.Completed:
                     view.SetTimer("완료!");
                     view.SetBtnActive(false, false, true, false);
                     break;

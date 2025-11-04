@@ -25,7 +25,6 @@ namespace UnityTools.Util
                 if(_timer.IsPeriodExpired)
                 {
                     _timer.UpdateCompletionTime();
-                    _timer.FSM.Change(ETaskTimerState.Completed);
                     return;
                 }
 
@@ -40,7 +39,6 @@ namespace UnityTools.Util
             public override void Enter()
             {
                 _timer.NotifyCompleted();
-                _timer.SaveStateOnly();
             }
         }
     }

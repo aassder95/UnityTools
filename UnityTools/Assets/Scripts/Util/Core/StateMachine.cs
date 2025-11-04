@@ -13,29 +13,19 @@ namespace UnityTools.Util
 
     public class StateMachine<TType> where TType : Enum
     {
-        #region Constants
         private const bool IS_DEBUG_LOG = true;
-        #endregion //Constants
 
-        #region Fields
         private TType _curType;
         private IState _curState;
         private readonly Dictionary<TType, IState> _states = new();
-        #endregion //Fields
 
-        #region Properties
         public TType CurType => _curType;
-        #endregion //Properties
 
-        #region Events
         public event UnityAction<TType> OnStateChanged;
-        #endregion //Events
 
-        #region State Management
         public void Add(TType type, IState state)
         {
-            if (!_states.ContainsKey(type))
-                _states.Add(type, state);
+            _states.TryAdd(type, state);
         }
 
         public void Change(TType type, bool isUpdate = false)
@@ -58,9 +48,7 @@ namespace UnityTools.Util
 
         public void Update()
         {
-            if (_curState != null)
-                _curState.Execute();
+            _curState?.Execute();
         }
-        #endregion //State Management
     }
 }
