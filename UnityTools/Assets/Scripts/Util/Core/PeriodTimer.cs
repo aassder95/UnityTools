@@ -1,188 +1,451 @@
-using System;
+﻿using System;
 using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    public enum EPeriodTimerState
+    public enum EPeriodTimerType
     {
         None,
         Reset,
         Open,
-        Closed,
+        Closed
     }
 
     public class PeriodTimer
     {
-        public const string OPEN_START_KEY = "OPEN_START_KEY";
-        public const string OPEN_UPDATED_KEY = "OPEN_UPDATED_KEY";
-        public const string OPEN_END_KEY = "OPEN_END_KEY";
-        public const string CLOSED_END_KEY = "CLOSED_END_KEY";
+        //============================================================
+        // Constants
+        //============================================================
+        private const double DEFAULT_PERIOD_MIN = 1d;
 
-        private readonly Persistence _ps;
-        private readonly StateMachine<EPeriodTimerState> _fsm;
-        private readonly Dictionary<string, DateTime> _periodTimes = new();
+        //============================================================
+        // Readonly
+        //============================================================
+        private readonly string _id;
+        private readonly EnumStateMachine<EPeriodTimerType> _fsm;
+        private readonly MonoBehaviour _runner;
+        private readonly IStorage _storage;
+        private readonly bool _isEnableLog;
 
-        private bool _init;
-        private bool _isTimeTamperedFlag;
+        //============================================================
+        // Fields
+        //============================================================
+        private bool _isInit;
+        private bool _isTamperedFlag;
+        private bool _hasPendingPeriodChange;
         private double _openPeriodMin;
         private double _closedPeriodMin;
-        private Coroutine _coInit;
+        private double _nextOpenPeriodMin;
+        private double _nextClosedPeriodMin;
+        private DateTime _openStartTime;
+        private DateTime _openUpdatedTime;
+        private DateTime _openEndTime;
+        private DateTime _closedEndTime;
         private Coroutine _coUpdate;
 
-        public StateMachine<EPeriodTimerState> FSM => _fsm;
-        public bool IsTimeTamperedFlag => _isTimeTamperedFlag;
-        public bool IsOpenPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_END_KEY]) < 0;
-        public bool IsClosedPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[CLOSED_END_KEY]) < 0;
-        public bool IsTimeTampered => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _periodTimes[OPEN_UPDATED_KEY]) < 0;
-        public double OpenPeriodMin => _openPeriodMin;
-        public double ClosedPeriodMin => _closedPeriodMin;
-        public DateTime OpenStartTime => _periodTimes[OPEN_START_KEY];
-        public DateTime OpenUpdatedTime => _periodTimes[OPEN_UPDATED_KEY];
-        public DateTime OpenEndTime => _periodTimes[OPEN_END_KEY];
-        public DateTime ClosedEndTime => _periodTimes[CLOSED_END_KEY];
+        //============================================================
+        // Events
+        //============================================================
+        public event UnityAction OnOpenStarted { add => _onOpenStarted += value; remove => _onOpenStarted -= value; }
+        public event UnityAction<int> OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
+        public event UnityAction OnClosedStarted { add => _onClosedStarted += value; remove => _onClosedStarted -= value; }
+        public event UnityAction<EPeriodTimerType> OnStateChanged { add => _fsm.OnStateChanged += value; remove => _fsm.OnStateChanged -= value; }
+        private event UnityAction _onOpenStarted;
+        private event UnityAction<int> _onUpdated;
+        private event UnityAction _onClosedStarted;
 
-        public event UnityAction<int> OnLoopUpdated;
-        public event UnityAction<EPeriodTimerState> OnStateChanged { add { _fsm.OnStateChanged += value; } remove { _fsm.OnStateChanged -= value; } }
-        public event Func<IEnumerator> OnWait;
+        //============================================================
+        // Properties
+        //============================================================
+        public string Id => _id;
+        public EnumStateMachine<EPeriodTimerType> FSM => _fsm;
+        public bool IsTamperedFlag => _isTamperedFlag;
+        public bool IsOpenPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _openEndTime) < 0;
+        public bool IsClosedPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _closedEndTime) < 0;
+        public bool IsTampered => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _openUpdatedTime) < 0;
+        public DateTime OpenStartTime => _openStartTime;
+        public DateTime OpenUpdatedTime => _openUpdatedTime;
+        public DateTime OpenEndTime => _openEndTime;
+        public DateTime ClosedEndTime => _closedEndTime;
 
-        public PeriodTimer(string key, double openPeriodMin, double closedPeriodMin)
+        //============================================================
+        // Constructors
+        //============================================================
+        public PeriodTimer(string id, MonoBehaviour runner, bool isEnableLog = false)
         {
-            _ps = new(key);
-            _fsm = new();
-            _fsm.Add(EPeriodTimerState.Reset, new PeriodTimerStates.ResetState(this));
-            _fsm.Add(EPeriodTimerState.Open, new PeriodTimerStates.OpenState(this));
-            _fsm.Add(EPeriodTimerState.Closed, new PeriodTimerStates.ClosedState(this));
-            _periodTimes.AddRange(new[] { OPEN_START_KEY, OPEN_UPDATED_KEY, OPEN_END_KEY, CLOSED_END_KEY }, suffix => _ps.Load<DateTime>(suffix));
+            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out _id))
+                _id = string.Empty;
 
-            _openPeriodMin = openPeriodMin;
-            _closedPeriodMin = closedPeriodMin;
+            _runner = runner;
+            _storage = new PlayerPrefsStorage();
+            _isEnableLog = isEnableLog;
+            _fsm = new EnumStateMachine<EPeriodTimerType>(false)
+            {
+                SameStateTransitionPolicy = ESameStateTransitionPolicy.ReEnter
+            };
+
+            if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))
+                LogTest("Ctor", $"상태 등록 실패: {EPeriodTimerType.Reset}");
+            if(!_fsm.Add(EPeriodTimerType.Open, new PeriodTimerStates.OpenState(this)))
+                LogTest("Ctor", $"상태 등록 실패: {EPeriodTimerType.Open}");
+            if(!_fsm.Add(EPeriodTimerType.Closed, new PeriodTimerStates.ClosedState(this)))
+                LogTest("Ctor", $"상태 등록 실패: {EPeriodTimerType.Closed}");
         }
 
-        public void Init()
+        //============================================================
+        // Init/Register
+        //============================================================
+        public void Init(double openMin, double closedMin)
         {
-            CoroutineHelper.Replace(ref _coInit, CoInit());
-        }
-        
-        public void Release()
-        {
-            if (!_init)
+            if(string.IsNullOrEmpty(_id))
+            {
+                LogTest("Init", "유효하지 않은 ID라 초기화를 무시합니다.");
+                return;
+            }
+
+            if(_runner == null)
+            {
+                LogTest("Init", "러너가 null이라 초기화를 무시합니다.");
+                return;
+            }
+
+            if(_isInit)
                 return;
 
-            CoroutineHelper.Dispose(ref _coInit);
-            CoroutineHelper.Dispose(ref _coUpdate);
+            _openPeriodMin = SanitizePeriod(openMin, nameof(openMin));
+            _closedPeriodMin = SanitizePeriod(closedMin, nameof(closedMin));
 
-            _init = false;
-            _isTimeTamperedFlag = false;
-            _periodTimes.Clear();
-    
-            OnLoopUpdated = null;
-            OnWait = null;
-            _fsm.Change(EPeriodTimerState.None);
+            Load();
+            _isInit = true;
+            Refresh();
+            StartUpdate();
         }
 
-        private IEnumerator CoInit()
+        public void Release()
         {
-            yield return OnWait?.Invoke();
-            _init = true;
+            if(!_isInit)
+                return;
 
-            if (IsOpenPeriod)
-                _fsm.Change(EPeriodTimerState.Open);
-            else if (IsClosedPeriod)
-                _fsm.Change(EPeriodTimerState.Closed);
-            else
-                _fsm.Change(EPeriodTimerState.Reset, true);
-
-            CoroutineHelper.Replace(ref _coUpdate, CoUpdate());
+            StopUpdate();
+            _isInit = false;
+            _onOpenStarted = null;
+            _onUpdated = null;
+            _onClosedStarted = null;
         }
 
-        private IEnumerator CoUpdate()
+        //============================================================
+        // Persistence
+        //============================================================
+        private void Save()
         {
-            while (true)
+            SaveData(PeriodTimerStorageKeys.OpenStart(_id), _openStartTime.Ticks.ToString());
+            SaveData(PeriodTimerStorageKeys.OpenEnd(_id), _openEndTime.Ticks.ToString());
+            SaveData(PeriodTimerStorageKeys.ClosedEnd(_id), _closedEndTime.Ticks.ToString());
+            SaveData(PeriodTimerStorageKeys.OpenUpdated(_id), _openUpdatedTime.Ticks.ToString());
+            SaveData(PeriodTimerStorageKeys.Tampered(_id), _isTamperedFlag ? "1" : "0");
+        }
+
+        private void Load()
+        {
+            _openStartTime = TryLoadDate(PeriodTimerStorageKeys.OpenStart(_id));
+            _openEndTime = TryLoadDate(PeriodTimerStorageKeys.OpenEnd(_id));
+            _closedEndTime = TryLoadDate(PeriodTimerStorageKeys.ClosedEnd(_id));
+            _openUpdatedTime = TryLoadDate(PeriodTimerStorageKeys.OpenUpdated(_id));
+            _isTamperedFlag = LoadData(PeriodTimerStorageKeys.Tampered(_id)) == "1";
+        }
+
+        private void SaveData(string key, string value)
+        {
+            _storage.Save(key, value);
+        }
+
+        private string LoadData(string key)
+        {
+            return _storage.HasKey(key) ? _storage.Load(key) : "0";
+        }
+
+        private DateTime TryLoadDate(string key)
+        {
+            string raw = LoadData(key);
+            if(!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long ticks))
             {
-                _fsm.Update();
-                yield return new WaitForSecondsRealtime(60.0f);
+                if(ticks == DateTime.MinValue.Ticks)
+                    return DateTime.MinValue;
+
+                if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                {
+                    LogTest("TryLoadDate", $"유효하지 않은 ticks={ticks}, key={key}");
+                    return DateTime.MinValue;
+                }
+
+                return new DateTime(ticks, DateTimeKind.Utc);
             }
+
+            return DateTime.MinValue;
+        }
+
+        //============================================================
+        // Logic
+        //============================================================
+        public void Refresh()
+        {
+            DateTime now = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            if(_openEndTime == DateTime.MinValue)
+            {
+                TryChangeState(EPeriodTimerType.Reset, true, "Refresh");
+                return;
+            }
+
+            if(now < _openEndTime)
+            {
+                if(IsTampered)
+                {
+                    HandleTampered();
+                    return;
+                }
+
+                TryChangeState(EPeriodTimerType.Open, false, "Refresh");
+                return;
+            }
+
+            if(now < _closedEndTime)
+            {
+                TryChangeState(EPeriodTimerType.Closed, false, "Refresh");
+                return;
+            }
+
+            TryChangeState(EPeriodTimerType.Reset, true, "Refresh");
+        }
+
+        public void ApplyPeriodTime()
+        {
+            ApplyPendingPeriodsIfNeeded();
+
+            DateTime now = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            _openStartTime = now;
+            _openUpdatedTime = now;
+            _openEndTime = DateTimeUtils.RemoveMilliseconds(now.AddMinutes(_openPeriodMin));
+            _closedEndTime = DateTimeUtils.RemoveMilliseconds(now.AddMinutes(_openPeriodMin + _closedPeriodMin));
+            Save();
+        }
+
+        public void HandleTampered()
+        {
+            _isTamperedFlag = true;
+            TryChangeState(EPeriodTimerType.Closed, false, "HandleTampered");
+            Save();
+        }
+
+        public void ClearTampered()
+        {
+            _isTamperedFlag = false;
+            SetClosedPeriodFromNow();
+            Save();
+        }
+
+        public void SetPeriods(double openMin, double closedMin)
+        {
+            if(!_isInit)
+                return;
+
+            _nextOpenPeriodMin = SanitizePeriod(openMin, nameof(openMin));
+            _nextClosedPeriodMin = SanitizePeriod(closedMin, nameof(closedMin));
+            _hasPendingPeriodChange = true;
         }
 
         public void ForceOpen()
         {
-            if (!_init || _fsm.CurType == EPeriodTimerState.Open)
+            if(!_isInit)
                 return;
 
-            _fsm.Change(EPeriodTimerState.Reset, true);
+            _isTamperedFlag = false;
+            StopUpdate();
+            TryChangeState(EPeriodTimerType.Reset, true, "ForceOpen");
+            StartUpdate();
         }
 
         public void ForceClosed()
         {
-            if (!_init || _fsm.CurType == EPeriodTimerState.Closed)
+            if(!_isInit)
                 return;
 
-            _isTimeTamperedFlag = true;
-            _fsm.Change(EPeriodTimerState.Closed);
+            _isTamperedFlag = false;
+            SetClosedPeriodFromNow();
+            TryChangeState(EPeriodTimerType.Closed, false, "ForceClosed");
+            Save();
         }
 
-        public void MarkTimeTampered()
+        public bool TryChangeState(EPeriodTimerType type, bool isUpdate = false, string method = "TryChangeState")
         {
-            _isTimeTamperedFlag = true;
-        }
-
-        public void ClearTimeTampered()
-        {
-            _isTimeTamperedFlag = false;
-            SetPeriodTime(CLOSED_END_KEY, DateTime.UtcNow.AddMinutes(_closedPeriodMin));
-        }
-
-        public void InvokeLoopUpdated(string key) => OnLoopUpdated?.Invoke(DateTimeUtils.GetRemainingMinutes(_periodTimes[key]));
-        public void SetPeriodTime(string key, DateTime time) => _ps.Save(key, _periodTimes[key] = DateTimeUtils.RemoveMilliseconds(time));
-
-        /// <summary>
-        /// Open 기간의 시간을 동적으로 변경합니다.
-        /// </summary>
-        /// <param name="minutes">새로운 Open 기간 (분 단위)</param>
-        /// <param name="applyImmediately">즉시 적용 여부 (현재 타이머를 리셋)</param>
-        public void SetOpenPeriod(double minutes, bool applyImmediately = false)
-        {
-            _openPeriodMin = minutes;
-
-            if (applyImmediately && _init)
+            if(!_fsm.HasState(type))
             {
-                _fsm.Change(EPeriodTimerState.Reset, true);
+                LogTest(method, $"등록되지 않은 상태 전이 요청: {type}");
+                return false;
+            }
+
+            if(!_fsm.HasCurrentState)
+            {
+                if(_fsm.SetInitialState(type, isUpdate))
+                    return true;
+
+                LogTest(method, $"초기 상태 설정 실패: {type}");
+                return false;
+            }
+
+            if(_fsm.Change(type, out EStateTransitionFailReason reason, isUpdate))
+                return true;
+
+            LogTest(method, $"상태 전이 실패: {_fsm.CurType} -> {type}, reason={reason}");
+            return false;
+        }
+
+        private void ApplyPendingPeriodsIfNeeded()
+        {
+            if(!_hasPendingPeriodChange)
+                return;
+
+            _openPeriodMin = _nextOpenPeriodMin;
+            _closedPeriodMin = _nextClosedPeriodMin;
+            _hasPendingPeriodChange = false;
+        }
+
+        private void SetClosedPeriodFromNow()
+        {
+            DateTime now = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            _openStartTime = now;
+            _openUpdatedTime = now;
+            _openEndTime = now;
+            _closedEndTime = DateTimeUtils.RemoveMilliseconds(now.AddMinutes(_closedPeriodMin));
+        }
+
+        //============================================================
+        // Coroutines
+        //============================================================
+        private IEnumerator CoUpdate()
+        {
+            while (_isInit && _fsm.CurType != EPeriodTimerType.None)
+            {
+                _fsm.Update();
+                if(!_isInit || _fsm.CurType == EPeriodTimerType.None)
+                    yield break;
+
+                int waitSec = GetWaitSec();
+                yield return new WaitForSecondsRealtime(waitSec);
             }
         }
 
-        /// <summary>
-        /// Closed 기간의 시간을 동적으로 변경합니다.
-        /// </summary>
-        /// <param name="minutes">새로운 Closed 기간 (분 단위)</param>
-        /// <param name="applyImmediately">즉시 적용 여부 (현재 타이머를 리셋)</param>
-        public void SetClosedPeriod(double minutes, bool applyImmediately = false)
+        private void StartUpdate()
         {
-            _closedPeriodMin = minutes;
+            StopUpdate();
+            _coUpdate = _runner.StartCoroutine(CoUpdate());
+        }
 
-            if (applyImmediately && _init && _fsm.CurType == EPeriodTimerState.Closed)
+        private void StopUpdate()
+        {
+            if(_coUpdate == null)
+                return;
+
+            _runner.StopCoroutine(_coUpdate);
+            _coUpdate = null;
+        }
+
+        private int GetWaitSec()
+        {
+            switch (_fsm.CurType)
             {
-                SetPeriodTime(CLOSED_END_KEY, DateTime.UtcNow.AddMinutes(_closedPeriodMin));
+                case EPeriodTimerType.Open:
+                    return Mathf.Clamp(GetRemainingSec(_openEndTime), 1, 60);
+                case EPeriodTimerType.Closed:
+                    return Mathf.Clamp(GetRemainingSec(_closedEndTime), 1, 60);
+                default:
+                    return 1;
             }
         }
 
-        /// <summary>
-        /// Open과 Closed 기간을 모두 변경합니다.
-        /// </summary>
-        /// <param name="openMinutes">새로운 Open 기간 (분 단위)</param>
-        /// <param name="closedMinutes">새로운 Closed 기간 (분 단위)</param>
-        /// <param name="applyImmediately">즉시 적용 여부 (현재 타이머를 리셋)</param>
-        public void SetPeriods(double openMinutes, double closedMinutes, bool applyImmediately = false)
+        //============================================================
+        // Callbacks
+        //============================================================
+        public void NotifyOpenStarted()
         {
-            _openPeriodMin = openMinutes;
-            _closedPeriodMin = closedMinutes;
+            _onOpenStarted?.Invoke();
+        }
 
-            if (applyImmediately && _init)
+        public void NotifyUpdateOpen()
+        {
+            _openUpdatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            Save();
+
+            int remainMin = GetRemainingMin(_openEndTime);
+            _onUpdated?.Invoke(remainMin);
+        }
+
+        public void NotifyUpdateClosed()
+        {
+            Save();
+
+            int remainMin = GetRemainingMin(_closedEndTime);
+            _onUpdated?.Invoke(remainMin);
+        }
+
+        public void NotifyClosedStarted()
+        {
+            _onClosedStarted?.Invoke();
+        }
+
+        //============================================================
+        // Utilities
+        //============================================================
+        public int GetRemainingMin()
+        {
+            switch (_fsm.CurType)
             {
-                _fsm.Change(EPeriodTimerState.Reset, true);
+                case EPeriodTimerType.Open:
+                    return GetRemainingMin(_openEndTime);
+                case EPeriodTimerType.Closed:
+                    return GetRemainingMin(_closedEndTime);
+                default:
+                    return 0;
             }
+        }
+
+        public int GetRemainingSec()
+        {
+            switch (_fsm.CurType)
+            {
+                case EPeriodTimerType.Open:
+                    return GetRemainingSec(_openEndTime);
+                case EPeriodTimerType.Closed:
+                    return GetRemainingSec(_closedEndTime);
+                default:
+                    return 0;
+            }
+        }
+
+        private void LogTest(string method, string msg)
+        {
+            if(_isEnableLog)
+                Debug.LogWarning($"[PeriodTimer:{method}] {msg}");
+        }
+
+        private double SanitizePeriod(double min, string name)
+        {
+            if(min > 0d && !double.IsNaN(min) && !double.IsInfinity(min))
+                return min;
+
+            LogTest("SanitizePeriod", $"유효하지 않은 {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분을 사용합니다.");
+            return DEFAULT_PERIOD_MIN;
+        }
+
+        private static int GetRemainingMin(DateTime targetTime)
+        {
+            return DateTimeUtils.GetRemainingMinutes(targetTime);
+        }
+
+        private static int GetRemainingSec(DateTime targetTime)
+        {
+            return DateTimeUtils.GetRemainingSeconds(targetTime);
         }
     }
 }

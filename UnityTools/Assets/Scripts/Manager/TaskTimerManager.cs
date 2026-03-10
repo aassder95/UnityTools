@@ -1,102 +1,307 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityTools.UI;
+using UnityEngine.Events;
 using UnityTools.Util;
 
 namespace UnityTools.Manager
 {
-    public class TaskTimerManager : MonoBehaviour
+    public class TaskTimerManager : MonoSingleton<TaskTimerManager>
     {
-        [SerializeField] private string _rootKey = "TASK_TIMER_TEST";
-        [SerializeField] private List<string> _ids = new() { "A", "B", "C" };
-        [SerializeField] private Transform _trParentCanvas;
-        [SerializeField] private TaskTimerView _view;
+        //============================================================
+        // Constants
+        //============================================================
+        private const double SEC_PER_MIN = 60d;
 
-        private Dictionary<string, TaskTimer> _timers = new();
-        private Dictionary<string, TaskTimerView> _views = new();
+        //============================================================
+        // Readonly
+        //============================================================
+        private readonly Dictionary<string, TaskTimerHandle> _handles = new();
+        private readonly Dictionary<string, TaskTimerEventBinder> _eventBinders = new();
 
-        private void Start()
+        //============================================================
+        // Inspector Fields
+        //============================================================
+        [SerializeField] private bool _isEnableLog;
+
+        //============================================================
+        // Events
+        //============================================================
+        public event UnityAction<TaskTimerData> OnAnyTimerUpdated { add => _onAnyTimerUpdated += value; remove => _onAnyTimerUpdated -= value; }
+        public event UnityAction<TaskTimerData> OnAnyTimerCompleted { add => _onAnyTimerCompleted += value; remove => _onAnyTimerCompleted -= value; }
+        public event UnityAction<TaskTimerData> OnAnyTimerClaimed { add => _onAnyTimerClaimed += value; remove => _onAnyTimerClaimed -= value; }
+        private event UnityAction<TaskTimerData> _onAnyTimerUpdated;
+        private event UnityAction<TaskTimerData> _onAnyTimerCompleted;
+        private event UnityAction<TaskTimerData> _onAnyTimerClaimed;
+
+        //============================================================
+        // Unity Methods
+        //============================================================
+        private void Awake()
         {
-            InitViews();
+            Singletons.TaskTimerManager ??= Instance;
         }
 
         private void OnDestroy()
         {
-            foreach (TaskTimer timer in _timers.Values)
-                timer.Release();
-
-            _timers.Clear();
-            _views.Clear();
-        }
-
-        private void InitViews()
-        {
-            foreach (string id in _ids)
+            foreach (KeyValuePair<string, TaskTimerHandle> pair in _handles)
             {
-                TaskTimer timer = new(_rootKey, id, this);
-                timer.OnUpdated += seconds => OnTimerUpdated(id, seconds);
-                timer.OnCompleted += () => OnTimerCompleted(id);
-                timer.OnClaimed += () => OnTimerClaimed(id);
-                timer.OnStateChanged += _ => RefreshView(id);
-                timer.Init();
-                _timers[id] = timer;
-
-                TaskTimerView view = Instantiate(_view, _trParentCanvas);
-                view.SetId(id);
-                view.OnStartClicked += () => timer.Start(view.Duration);
-                view.OnCompleteClicked += () => timer.CompleteImmediately();
-                view.OnClaimClicked += () => timer.Claim();
-                view.OnReduce1MinClicked += () => timer.Reduce(1.0);
-                _views[id] = view;
-
-                RefreshView(id);
+                UnbindEvents(pair.Key, pair.Value);
+                pair.Value.Release();
             }
+
+            _eventBinders.Clear();
+            _handles.Clear();
         }
 
-        private void RefreshView(string id)
+        //============================================================
+        // Init/Register
+        //============================================================
+        public void InitTimer(TaskTimerHandle handle)
         {
-            if(!_timers.TryGetValue(id, out TaskTimer timer) || !_views.TryGetValue(id, out TaskTimerView view))
+            if(handle == null)
                 return;
 
-            view.SetState(timer.CurType.ToString());
-
-            switch (timer.CurType)
+            if(!TaskTimerStorageKeys.TryNormalizeId(handle.Id, out string id))
             {
-                case ETaskTimerType.None:
-                    view.SetTimer("ëŒ€ê¸° ì¤‘");
-                    view.SetBtnActive(true, false, false, false);
-                    break;
-                case ETaskTimerType.Processing:
-                    OnTimerUpdated(id, timer.RemainingSec);
-                    view.SetBtnActive(false, true, false, true);
-                    break;
-                case ETaskTimerType.Completed:
-                    view.SetTimer("ì™„ë£Œ!");
-                    view.SetBtnActive(false, false, true, false);
-                    break;
+                LogInvalidId(nameof(InitTimer), handle.Id);
+                return;
             }
-        }
 
-        private void OnTimerUpdated(string id, int remainingSec)
-        {
-            if(_views.TryGetValue(id, out TaskTimerView view))
-                view.SetTimer($"{remainingSec / 60:D2}:{remainingSec % 60:D2}");
-        }
-
-        private void OnTimerCompleted(string id)
-        {
-            if(_views.TryGetValue(id, out TaskTimerView view))
-                view.SetTimer("ì™„ë£Œ!");
-        }
-
-        private void OnTimerClaimed(string id)
-        {
-            if(_views.TryGetValue(id, out TaskTimerView view))
+            if(_handles.TryGetValue(id, out TaskTimerHandle oldHandle))
             {
-                view.SetState("None");
-                view.SetTimer("ëŒ€ê¸° ì¤‘");
-                view.SetBtnActive(true, false, false, false);
+                UnbindEvents(id, oldHandle);
+                oldHandle.Release();
+            }
+
+            _handles[id] = handle;
+            BindEvents(id, handle);
+            handle.Init();
+        }
+
+        private void BindEvents(string id, TaskTimerHandle handle)
+        {
+            TaskTimerEventBinder eventBinder = new(this, id);
+            _eventBinders[id] = eventBinder;
+
+            handle.OnUpdated += eventBinder.onUpdatedCallback;
+            handle.OnCompleted += eventBinder.onCompletedCallback;
+            handle.OnClaimed += eventBinder.onClaimedCallback;
+            handle.OnStateChanged += eventBinder.onStateChangedCallback;
+        }
+
+        private void UnbindEvents(string id, TaskTimerHandle handle)
+        {
+            if(!_eventBinders.TryGetValue(id, out TaskTimerEventBinder eventBinder))
+                return;
+
+            handle.OnUpdated -= eventBinder.onUpdatedCallback;
+            handle.OnCompleted -= eventBinder.onCompletedCallback;
+            handle.OnClaimed -= eventBinder.onClaimedCallback;
+            handle.OnStateChanged -= eventBinder.onStateChangedCallback;
+            _eventBinders.Remove(id);
+        }
+
+        //============================================================
+        // Logic
+        //============================================================
+        public void StartTimer(string id, double durationSec)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            {
+                LogInvalidId(nameof(StartTimer), id);
+                return;
+            }
+
+            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+                return;
+
+            handle.Start(durationSec);
+        }
+
+        public void StartTimerMinutes(string id, double durationMin)
+        {
+            if(double.IsNaN(durationMin) || double.IsInfinity(durationMin))
+                return;
+
+            StartTimer(id, durationMin * SEC_PER_MIN);
+        }
+
+        public void Reduce(string id, double reduceSec)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            {
+                LogInvalidId(nameof(Reduce), id);
+                return;
+            }
+
+            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+                return;
+
+            handle.Reduce(reduceSec);
+        }
+
+        public void ReduceMinutes(string id, double reduceMin)
+        {
+            if(double.IsNaN(reduceMin) || double.IsInfinity(reduceMin))
+                return;
+
+            Reduce(id, reduceMin * SEC_PER_MIN);
+        }
+
+        public void CompleteImmediately(string id)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            {
+                LogInvalidId(nameof(CompleteImmediately), id);
+                return;
+            }
+
+            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+                return;
+
+            handle.CompleteImmediately();
+        }
+
+        public void Claim(string id)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            {
+                LogInvalidId(nameof(Claim), id);
+                return;
+            }
+
+            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+                return;
+
+            handle.Claim();
+        }
+
+        private void NotifyAnyTimer(UnityAction<TaskTimerData> onAction, string id)
+        {
+            if(!_handles.TryGetValue(id, out TaskTimerHandle handle))
+                return;
+
+            onAction?.Invoke(handle.ToData());
+        }
+
+        //============================================================
+        // Callbacks
+        //============================================================
+        private void onTimerUpdatedCallback(string id, int remainSec)
+        {
+            NotifyAnyTimer(_onAnyTimerUpdated, id);
+        }
+
+        private void onTimerCompletedCallback(string id)
+        {
+            NotifyAnyTimer(_onAnyTimerCompleted, id);
+        }
+
+        private void onTimerClaimedCallback(string id)
+        {
+            NotifyAnyTimer(_onAnyTimerClaimed, id);
+        }
+
+        private void onStateChangedCallback(string id, ETaskTimerType type)
+        {
+            if(type == ETaskTimerType.Processing)
+                NotifyAnyTimer(_onAnyTimerUpdated, id);
+        }
+
+        //============================================================
+        // Utilities
+        //============================================================
+        public bool IsClaimed(string id)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+                return false;
+
+            if(_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+                return handle.IsClaimed;
+
+            return TaskTimer.IsClaimedStatic(normalizedId);
+        }
+
+        public TaskTimerHandle GetHandle(string id)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+                return null;
+
+            return _handles.GetValueOrDefault(normalizedId);
+        }
+
+        public TaskTimerHandle CreateTaskTimerHandle(string id)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            {
+                LogInvalidId(nameof(CreateTaskTimerHandle), id);
+                return null;
+            }
+
+            return new TaskTimerHandle(new TaskTimer(normalizedId, this, _isEnableLog));
+        }
+
+        public TimeManagementTaskTimerHandle CreateTimeManagementTaskTimerHandle(string id, bool isWorldMapTarget, CoffeeMachine machine, Transform trTarget, Func<Sprite> getThumbnail)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            {
+                LogInvalidId(nameof(CreateTimeManagementTaskTimerHandle), id);
+                return null;
+            }
+
+            return new TimeManagementTaskTimerHandle(new TaskTimer(normalizedId, this, _isEnableLog), isWorldMapTarget, machine, trTarget, getThumbnail);
+        }
+
+        private void LogInvalidId(string method, string id)
+        {
+            if(!_isEnableLog)
+                return;
+
+            string safeId = id == null ? "null" : id.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
+            Debug.LogWarning($"[TaskTimerManager:{method}] À¯È¿ÇÏÁö ¾ÊÀº ID ¿äÃ»À» ¹«½ÃÇÕ´Ï´Ù: '{safeId}'");
+        }
+
+        private sealed class TaskTimerEventBinder
+        {
+            //============================================================
+            // Readonly
+            //============================================================
+            private readonly string _id;
+            private readonly TaskTimerManager _manager;
+
+            //============================================================
+            // Constructors
+            //============================================================
+            public TaskTimerEventBinder(TaskTimerManager manager, string id)
+            {
+                _manager = manager;
+                _id = id;
+            }
+
+            //============================================================
+            // Callbacks
+            //============================================================
+            public void onUpdatedCallback(int remainSec)
+            {
+                _manager.onTimerUpdatedCallback(_id, remainSec);
+            }
+
+            public void onCompletedCallback()
+            {
+                _manager.onTimerCompletedCallback(_id);
+            }
+
+            public void onClaimedCallback()
+            {
+                _manager.onTimerClaimedCallback(_id);
+            }
+
+            public void onStateChangedCallback(ETaskTimerType type)
+            {
+                _manager.onStateChangedCallback(_id, type);
             }
         }
     }
 }
+

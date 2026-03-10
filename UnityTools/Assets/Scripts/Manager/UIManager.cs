@@ -5,7 +5,7 @@ using UnityTools.Util;
 
 namespace UnityTools.Manager
 {
-    public class UIManager : Singleton<UIManager>
+    public class UIManager : MonoSingleton<UIManager>
     {
         [Header("Rank")]
         [SerializeField] private RankView _rankView;

@@ -1,5 +1,6 @@
-using System;
+﻿using System;
 using System.Collections;
+using System.Globalization;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -14,238 +15,506 @@ namespace UnityTools.Util
 
     public class TaskTimer
     {
-        private const string START_TIME_SUFFIX = "_START";
-        private const string UPDATED_TIME_SUFFIX = "_UPDATED";
-        private const string DURATION_SUFFIX = "_DURATION";
-        private const string STATE_SUFFIX = "_STATE";
+        //============================================================
+        // Constants
+        //============================================================
+        private const double DEFAULT_DURATION_SEC = 1d;
+        private const double SEC_PER_MIN = 60d;
 
+        //============================================================
+        // Readonly
+        //============================================================
         private readonly string _id;
-        private readonly Persistence _ps;
-        private readonly StateMachine<ETaskTimerType> _fsm;
+        private readonly EnumStateMachine<ETaskTimerType> _fsm;
         private readonly MonoBehaviour _runner;
+        private readonly IStorage _storage;
+        private readonly bool _isEnableLog;
 
-        private bool _init;
-        private double _durationMin;
+        //============================================================
+        // Fields
+        //============================================================
+        private bool _isInit;
+        private double _durationSec;
         private DateTime _startTime;
         private DateTime _updatedTime;
         private Coroutine _coUpdate;
 
-        public StateMachine<ETaskTimerType> FSM => _fsm;
-        public ETaskTimerType CurType => _fsm.CurType;
+        //============================================================
+        // Events
+        //============================================================
+        public event UnityAction OnProgressStarted { add => _onProgressStarted += value; remove => _onProgressStarted -= value; }
+        public event UnityAction<int> OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
+        public event UnityAction OnCompleted { add => _onCompleted += value; remove => _onCompleted -= value; }
+        public event UnityAction OnClaimed { add => _onClaimed += value; remove => _onClaimed -= value; }
+        public event UnityAction<ETaskTimerType> OnStateChanged { add => _fsm.OnStateChanged += value; remove => _fsm.OnStateChanged -= value; }
+        private event UnityAction _onProgressStarted;
+        private event UnityAction<int> _onUpdated;
+        private event UnityAction _onCompleted;
+        private event UnityAction _onClaimed;
+
+        //============================================================
+        // Properties
+        //============================================================
+        public string Id => _id;
+        public EnumStateMachine<ETaskTimerType> FSM => _fsm;
         public int RemainingSec => DateTimeUtils.GetRemainingSeconds(EndTime);
-        private DateTime EndTime => _startTime.AddMinutes(_durationMin);
-
-        private bool IsTimeTampered => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _updatedTime) < 0;
+        public int DurationSec => (int)_durationSec;
+        public bool IsClaimed => !HasData(TaskTimerStorageKeys.Start(_id)) &&
+                                 !HasData(TaskTimerStorageKeys.Duration(_id)) &&
+                                 !HasData(TaskTimerStorageKeys.State(_id)) &&
+                                 HasData(TaskTimerStorageKeys.Updated(_id));
         public bool IsPeriodExpired => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, EndTime) >= 0;
+        public DateTime EndTime => _startTime.AddSeconds(_durationSec);
+        private bool IsTampered => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _updatedTime) < 0;
 
-        public event UnityAction<int> OnUpdated;
-        public event UnityAction OnCompleted;
-        public event UnityAction OnClaimed;
-        public event UnityAction<ETaskTimerType> OnStateChanged
+        //============================================================
+        // Constructors
+        //============================================================
+        public TaskTimer(string id, MonoBehaviour runner, bool isEnableLog = false)
         {
-            add => _fsm.OnStateChanged += value;
-            remove => _fsm.OnStateChanged -= value;
-        }
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+                normalizedId = string.Empty;
 
-        public TaskTimer(string rootKey, string id, MonoBehaviour runner)
-        {
-            _id = id;
-            _ps = new Persistence($"{rootKey}_{id}");
-            _fsm = new StateMachine<ETaskTimerType>();
+            _id = normalizedId;
             _runner = runner;
+            _storage = new PlayerPrefsStorage();
+            _isEnableLog = isEnableLog;
+            _fsm = new EnumStateMachine<ETaskTimerType>(false)
+            {
+                SameStateTransitionPolicy = ESameStateTransitionPolicy.Ignore
+            };
 
-            _fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this));
-            _fsm.Add(ETaskTimerType.Processing, new TaskTimerStates.ProcessingState(this));
-            _fsm.Add(ETaskTimerType.Completed, new TaskTimerStates.CompletedState(this));
+            if(!_fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this)))
+                LogTest("Ctor", $"상태 등록 실패: {ETaskTimerType.None}");
+            if(!_fsm.Add(ETaskTimerType.Processing, new TaskTimerStates.ProcessingState(this)))
+                LogTest("Ctor", $"상태 등록 실패: {ETaskTimerType.Processing}");
+            if(!_fsm.Add(ETaskTimerType.Completed, new TaskTimerStates.CompletedState(this)))
+                LogTest("Ctor", $"상태 등록 실패: {ETaskTimerType.Completed}");
         }
 
-        private void Save()
-        {
-            _ps.Save(START_TIME_SUFFIX, _startTime.Ticks.ToString());
-            _ps.Save(DURATION_SUFFIX, _durationMin.ToString());
-            _ps.Save(STATE_SUFFIX, ((int)_fsm.CurType).ToString());
-            _ps.Save(UPDATED_TIME_SUFFIX, DateTime.UtcNow.Ticks.ToString());
-        }
-
-        private void Load()
-        {
-            string startStr = _ps.Load(START_TIME_SUFFIX, "0");
-            string durationStr = _ps.Load(DURATION_SUFFIX, "0");
-            string updatedStr = _ps.Load(UPDATED_TIME_SUFFIX, "0");
-
-            _startTime = !string.IsNullOrEmpty(startStr) && long.TryParse(startStr, out long startTicks) ? new DateTime(startTicks, DateTimeKind.Utc) : DateTime.MinValue;
-            _durationMin = !string.IsNullOrEmpty(durationStr) && double.TryParse(durationStr, out double duration) ? duration : 0;
-            _updatedTime = !string.IsNullOrEmpty(updatedStr) && long.TryParse(updatedStr, out long updatedTicks) ? new DateTime(updatedTicks, DateTimeKind.Utc) : DateTime.MinValue;
-        }
-
-        private void Clear()
-        {
-            _ps.Delete(START_TIME_SUFFIX);
-            _ps.Delete(DURATION_SUFFIX);
-            _ps.Delete(STATE_SUFFIX);
-
-            _startTime = DateTime.MinValue;
-            _durationMin = 0;
-        }
-
+        //============================================================
+        // Init/Register
+        //============================================================
         public void Init()
         {
-            if(_init)
+            if(string.IsNullOrEmpty(_id))
+            {
+                LogTest("Init", "유효하지 않은 ID라 초기화를 무시합니다.");
+                return;
+            }
+
+            if(_runner == null)
+            {
+                LogTest("Init", "러너가 null이라 초기화를 무시합니다.");
+                return;
+            }
+
+            if(_isInit)
                 return;
 
             Load();
-            _init = true;
-
-            if(!int.TryParse(_ps.Load(STATE_SUFFIX, "0"), out int savedType))
-                savedType = 0;
-
-            ETaskTimerType type = (ETaskTimerType)savedType;
-            if(_startTime == DateTime.MinValue || type == ETaskTimerType.None)
-            {
-                _fsm.Change(ETaskTimerType.None);
-                return;
-            }
-
-            if(type == ETaskTimerType.Processing)
-            {
-                if(IsTimeTampered)
-                    _durationMin += (_updatedTime - DateTime.UtcNow).TotalMinutes;
-
-                if(IsPeriodExpired)
-                {
-                    _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
-                    _ps.Save(UPDATED_TIME_SUFFIX, _updatedTime.Ticks.ToString());
-                    _fsm.Change(ETaskTimerType.Completed);
-                    _ps.Save(STATE_SUFFIX, ((int)ETaskTimerType.Completed).ToString());
-                }
-                else
-                {
-                    _fsm.Change(ETaskTimerType.Processing);
-                    StartUpdate();
-                }
-            }
-            else if(type == ETaskTimerType.Completed)
-            {
-                _fsm.Change(ETaskTimerType.Completed);
-            }
+            _isInit = true;
+            Refresh();
         }
 
         public void Release()
         {
-            if(!_init)
+            if(!_isInit)
                 return;
 
             StopUpdate();
-            _init = false;
-
-            OnUpdated = null;
-            OnCompleted = null;
-            OnClaimed = null;
+            _isInit = false;
+            _onProgressStarted = null;
+            _onUpdated = null;
+            _onCompleted = null;
+            _onClaimed = null;
         }
 
+        //============================================================
+        // Persistence
+        //============================================================
+        private void Save()
+        {
+            SaveData(TaskTimerStorageKeys.Start(_id), _startTime.Ticks.ToString());
+            SaveData(TaskTimerStorageKeys.Duration(_id), _durationSec.ToString(CultureInfo.InvariantCulture));
+            SaveData(TaskTimerStorageKeys.State(_id), ((int)_fsm.CurType).ToString());
+
+            _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            SaveData(TaskTimerStorageKeys.Updated(_id), _updatedTime.Ticks.ToString());
+        }
+
+        private void Load()
+        {
+            _startTime = TryLoadDate(TaskTimerStorageKeys.Start(_id));
+            _durationSec = TryLoadDouble(TaskTimerStorageKeys.Duration(_id));
+            _updatedTime = TryLoadDate(TaskTimerStorageKeys.Updated(_id));
+        }
+
+        private void Clear()
+        {
+            _storage.Delete(TaskTimerStorageKeys.Start(_id));
+            _storage.Delete(TaskTimerStorageKeys.Duration(_id));
+            _storage.Delete(TaskTimerStorageKeys.State(_id));
+
+            _startTime = DateTime.MinValue;
+            _durationSec = 0d;
+        }
+
+        private void SaveData(string key, string value)
+        {
+            _storage.Save(key, value);
+        }
+
+        private string LoadData(string key)
+        {
+            return _storage.HasKey(key) ? _storage.Load(key) : "0";
+        }
+
+        private bool HasData(string key)
+        {
+            return _storage.HasKey(key);
+        }
+
+        private DateTime TryLoadDate(string key)
+        {
+            if(!HasData(key))
+                return DateTime.MinValue;
+
+            string raw = LoadData(key);
+            if(!long.TryParse(raw, out long ticks))
+                return DateTime.MinValue;
+
+            if(ticks == DateTime.MinValue.Ticks)
+                return DateTime.MinValue;
+
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return DateTime.MinValue;
+
+            return new DateTime(ticks, DateTimeKind.Utc);
+        }
+
+        private double TryLoadDouble(string key)
+        {
+            if(!HasData(key))
+                return 0d;
+
+            string raw = LoadData(key);
+            bool isSuccess = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
+                             double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            if(!isSuccess)
+                return 0d;
+
+            if(double.IsNaN(value) || double.IsInfinity(value))
+                return 0d;
+
+            return Math.Max(0d, value);
+        }
+
+        //============================================================
+        // Logic
+        //============================================================
+        public void Refresh()
+        {
+            ETaskTimerType type = LoadStateType();
+            if(_startTime == DateTime.MinValue || type == ETaskTimerType.None)
+            {
+                StopUpdate();
+                if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.None)
+                    TryChangeState(ETaskTimerType.None, false, "Refresh");
+
+                return;
+            }
+
+            switch (type)
+            {
+                case ETaskTimerType.Processing:
+                    if(IsTampered)
+                    {
+                        double adjustSec = (_updatedTime - DateTime.UtcNow).TotalSeconds;
+                        _durationSec += adjustSec;
+                        SaveData(TaskTimerStorageKeys.Duration(_id), _durationSec.ToString(CultureInfo.InvariantCulture));
+                    }
+
+                    if(IsPeriodExpired)
+                    {
+                        UpdateCompletionTime();
+                        return;
+                    }
+
+                    if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.Processing)
+                        TryChangeState(ETaskTimerType.Processing, false, "Refresh");
+
+                    StartUpdate();
+                    break;
+
+                case ETaskTimerType.Completed:
+                    StopUpdate();
+                    if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.Completed)
+                        TryChangeState(ETaskTimerType.Completed, false, "Refresh");
+                    break;
+
+                default:
+                    StopUpdate();
+                    if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.None)
+                        TryChangeState(ETaskTimerType.None, false, "Refresh");
+                    break;
+            }
+        }
+
+        public bool Start(double durationSec)
+        {
+            if(!_isInit || _fsm.CurType == ETaskTimerType.Processing)
+                return false;
+
+            _startTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            double safeDurationSec = SanitizeDuration(durationSec);
+            if(_updatedTime != DateTime.MinValue && IsTampered)
+            {
+                double adjustSec = (_updatedTime - DateTime.UtcNow).TotalSeconds;
+                _durationSec = safeDurationSec + adjustSec;
+            }
+            else
+            {
+                _durationSec = safeDurationSec;
+            }
+
+            if(!TryChangeState(ETaskTimerType.Processing, false, "Start"))
+                return false;
+
+            Save();
+            StartUpdate();
+            return true;
+        }
+
+        public bool StartMinutes(double durationMin)
+        {
+            if(double.IsNaN(durationMin) || double.IsInfinity(durationMin))
+                return false;
+
+            return Start(durationMin * SEC_PER_MIN);
+        }
+
+        public bool Reduce(double reduceSec)
+        {
+            if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
+                return false;
+
+            if(reduceSec <= 0d || double.IsNaN(reduceSec) || double.IsInfinity(reduceSec))
+                return false;
+
+            double remainSec = (EndTime - DateTime.UtcNow).TotalSeconds;
+            double actualReduceSec = Math.Min(reduceSec, remainSec);
+            if(actualReduceSec <= 0d)
+                return false;
+
+            _startTime = _startTime.AddSeconds(-actualReduceSec);
+            Save();
+
+            _onUpdated?.Invoke(RemainingSec);
+
+            if(IsPeriodExpired)
+                UpdateCompletionTime();
+
+            return true;
+        }
+
+        public bool ReduceMinutes(double reduceMin)
+        {
+            if(double.IsNaN(reduceMin) || double.IsInfinity(reduceMin))
+                return false;
+
+            return Reduce(reduceMin * SEC_PER_MIN);
+        }
+
+        public bool CompleteImmediately()
+        {
+            if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
+                return false;
+
+            UpdateCompletionTime();
+            return true;
+        }
+
+        public bool Claim()
+        {
+            if(!_isInit || _fsm.CurType != ETaskTimerType.Completed)
+                return false;
+
+            Clear();
+            if(!TryChangeState(ETaskTimerType.None, false, "Claim"))
+                return false;
+
+            _onClaimed?.Invoke();
+            return true;
+        }
+
+        public void UpdateCompletionTime()
+        {
+            _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            SaveData(TaskTimerStorageKeys.Updated(_id), _updatedTime.Ticks.ToString());
+
+            if(_fsm.CurType != ETaskTimerType.Completed)
+            {
+                if(!TryChangeState(ETaskTimerType.Completed, false, "UpdateCompletion"))
+                    return;
+            }
+
+            SaveData(TaskTimerStorageKeys.State(_id), ((int)ETaskTimerType.Completed).ToString());
+        }
+
+        //============================================================
+        // Coroutines
+        //============================================================
         private IEnumerator CoUpdate()
         {
-            while (_fsm.CurType == ETaskTimerType.Processing)
+            while (_isInit && _fsm.CurType == ETaskTimerType.Processing)
             {
                 _fsm.Update();
-                yield return new WaitForSecondsRealtime(1.0f);
+                if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
+                    yield break;
+
+                yield return new WaitForSecondsRealtime(1f);
             }
         }
 
         private void StartUpdate()
         {
             StopUpdate();
-
-            if (_runner != null)
-                _coUpdate = _runner.StartCoroutine(CoUpdate());
+            _coUpdate = _runner.StartCoroutine(CoUpdate());
         }
 
         private void StopUpdate()
         {
-            if (_coUpdate != null && _runner != null)
-            {
-                _runner.StopCoroutine(_coUpdate);
-                _coUpdate = null;
-            }
-        }
-
-        public void Start(double durationMin)
-        {
-            if(!_init || _fsm.CurType == ETaskTimerType.Processing)
+            if(_coUpdate == null)
                 return;
 
-            _startTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
-
-            if(_updatedTime != DateTime.MinValue && IsTimeTampered)
-                _durationMin = durationMin + (_updatedTime - DateTime.UtcNow).TotalMinutes;
-            else
-                _durationMin = durationMin;
-
-            _fsm.Change(ETaskTimerType.Processing);
-            Save();
-            StartUpdate();
+            _runner.StopCoroutine(_coUpdate);
+            _coUpdate = null;
         }
 
-        public void Reduce(double reduceMin)
-        {
-            if(!_init || _fsm.CurType != ETaskTimerType.Processing)
-                return;
-
-            double remainingMin = (EndTime - DateTime.UtcNow).TotalMinutes;
-            double actualReduction = Math.Min(reduceMin, remainingMin);
-
-            if(actualReduction <= 0)
-                return;
-
-            _startTime = _startTime.AddMinutes(-actualReduction);
-            Save();
-
-            OnUpdated?.Invoke(RemainingSec);
-
-            if(IsPeriodExpired)
-                _fsm.Change(ETaskTimerType.Completed);
-        }
-
-        public void CompleteImmediately()
-        {
-            if(!_init || _fsm.CurType != ETaskTimerType.Processing)
-                return;
-
-            StopUpdate();
-
-            _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
-            _ps.Save(UPDATED_TIME_SUFFIX, _updatedTime.Ticks.ToString());
-            _ps.Save(STATE_SUFFIX, ((int)ETaskTimerType.Completed).ToString());
-
-            _fsm.Change(ETaskTimerType.Completed);
-        }
-
-        public void Claim()
-        {
-            if(!_init || _fsm.CurType != ETaskTimerType.Completed)
-                return;
-
-            Clear();
-            _fsm.Change(ETaskTimerType.None);
-            OnClaimed?.Invoke();
-        }
-
-        public void UpdateCompletionTime()
-        {
-            _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
-            _ps.Save(UPDATED_TIME_SUFFIX, _updatedTime.Ticks.ToString());
-            _fsm.Change(ETaskTimerType.Completed);
-        }
-
+        //============================================================
+        // Callbacks
+        //============================================================
         public void NotifyUpdate()
         {
-            OnUpdated?.Invoke(RemainingSec);
+            if(_fsm.CurType == ETaskTimerType.Processing)
+                _onUpdated?.Invoke(RemainingSec);
+        }
+
+        public void NotifyProcessingStarted()
+        {
+            if(_fsm.CurType == ETaskTimerType.Processing)
+                _onProgressStarted?.Invoke();
         }
 
         public void NotifyCompleted()
         {
+            if(_fsm.CurType != ETaskTimerType.Completed)
+                return;
+
             StopUpdate();
-            OnCompleted?.Invoke();
+            _onCompleted?.Invoke();
+        }
+
+        public void NotifyCurType()
+        {
+            switch (_fsm.CurType)
+            {
+                case ETaskTimerType.Processing:
+                    NotifyProcessingStarted();
+                    NotifyUpdate();
+                    break;
+                case ETaskTimerType.Completed:
+                    NotifyCompleted();
+                    break;
+            }
+        }
+
+        //============================================================
+        // Utilities
+        //============================================================
+        public float GetProgress()
+        {
+            if(_startTime == DateTime.MinValue)
+                return 0f;
+
+            if(_fsm.CurType == ETaskTimerType.Completed || IsPeriodExpired)
+                return 1f;
+
+            int totalSec = (int)Math.Round(_durationSec);
+            int elapsedSec = (int)Math.Round((DateTime.UtcNow - _startTime).TotalSeconds);
+            return totalSec <= 0 ? 0f : Mathf.Clamp01((float)elapsedSec / totalSec);
+        }
+
+        public static bool IsClaimedStatic(string id)
+        {
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+                return false;
+
+            bool hasStart = HasDataStatic(TaskTimerStorageKeys.Start(normalizedId));
+            bool hasDuration = HasDataStatic(TaskTimerStorageKeys.Duration(normalizedId));
+            bool hasState = HasDataStatic(TaskTimerStorageKeys.State(normalizedId));
+            bool hasUpdated = HasDataStatic(TaskTimerStorageKeys.Updated(normalizedId));
+            return !hasStart && !hasDuration && !hasState && hasUpdated;
+        }
+
+        private ETaskTimerType LoadStateType()
+        {
+            string rawType = LoadData(TaskTimerStorageKeys.State(_id));
+            if(!int.TryParse(rawType, out int savedType))
+                return ETaskTimerType.None;
+
+            ETaskTimerType type = (ETaskTimerType)savedType;
+            if(_fsm.HasState(type))
+                return type;
+
+            LogTest("LoadStateType", $"유효하지 않은 저장 상태값: {savedType}");
+            return ETaskTimerType.None;
+        }
+
+        private double SanitizeDuration(double durationSec)
+        {
+            if(durationSec > 0d && !double.IsNaN(durationSec) && !double.IsInfinity(durationSec))
+                return durationSec;
+
+            LogTest("SanitizeDuration", $"유효하지 않은 duration={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초를 사용합니다.");
+            return DEFAULT_DURATION_SEC;
+        }
+
+        private bool TryChangeState(ETaskTimerType type, bool isUpdate = false, string method = "TryChangeState")
+        {
+            if(!_fsm.HasState(type))
+            {
+                LogTest(method, $"등록되지 않은 상태 전이 요청: {type}");
+                return false;
+            }
+
+            if(!_fsm.HasCurrentState)
+            {
+                if(_fsm.SetInitialState(type, isUpdate))
+                    return true;
+
+                LogTest(method, $"초기 상태 설정 실패: {type}");
+                return false;
+            }
+
+            if(_fsm.Change(type, out EStateTransitionFailReason reason, isUpdate))
+                return true;
+
+            LogTest(method, $"상태 전이 실패: {_fsm.CurType} -> {type}, reason={reason}");
+            return false;
+        }
+
+        private static bool HasDataStatic(string key)
+        {
+            IStorage storage = new PlayerPrefsStorage();
+            return storage.HasKey(key);
+        }
+
+        private void LogTest(string method, string msg)
+        {
+            if(_isEnableLog)
+                Debug.LogWarning($"[TaskTimer:{method}] {msg}");
         }
     }
 }

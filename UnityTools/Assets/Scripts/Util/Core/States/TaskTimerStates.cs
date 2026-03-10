@@ -1,11 +1,19 @@
-namespace UnityTools.Util
+﻿namespace UnityTools.Util
 {
     public class TaskTimerStates
     {
+        //============================================================
+        // Logic
+        //============================================================
         public class BaseState : IState
         {
             protected readonly TaskTimer _timer;
-            protected BaseState(TaskTimer timer) { _timer = timer; }
+
+            protected BaseState(TaskTimer timer)
+            {
+                _timer = timer;
+            }
+
             public virtual void Enter() { }
             public virtual void Execute() { }
             public virtual void Exit() { }
@@ -19,6 +27,11 @@ namespace UnityTools.Util
         public class ProcessingState : BaseState
         {
             public ProcessingState(TaskTimer timer) : base(timer) { }
+
+            public override void Enter()
+            {
+                _timer.NotifyProcessingStarted();
+            }
 
             public override void Execute()
             {

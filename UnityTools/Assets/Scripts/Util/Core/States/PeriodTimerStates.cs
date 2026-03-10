@@ -1,13 +1,19 @@
-using System;
-
-namespace UnityTools.Util
+﻿namespace UnityTools.Util
 {
     public class PeriodTimerStates
     {
+        //============================================================
+        // Logic
+        //============================================================
         public class BaseState : IState
         {
-            protected PeriodTimer _timer;
-            public BaseState(PeriodTimer timer) { _timer = timer; }
+            protected readonly PeriodTimer _timer;
+
+            protected BaseState(PeriodTimer timer)
+            {
+                _timer = timer;
+            }
+
             public virtual void Enter() { }
             public virtual void Execute() { }
             public virtual void Exit() { }
@@ -16,64 +22,68 @@ namespace UnityTools.Util
         public class ResetState : BaseState
         {
             public ResetState(PeriodTimer timer) : base(timer) { }
+
             public override void Enter()
             {
-                DateTime now = DateTime.UtcNow;
-                _timer.SetPeriodTime(PeriodTimer.OPEN_START_KEY, now);
-                _timer.SetPeriodTime(PeriodTimer.OPEN_END_KEY, now.AddMinutes(_timer.OpenPeriodMin));
-                _timer.SetPeriodTime(PeriodTimer.CLOSED_END_KEY, now.AddMinutes(_timer.OpenPeriodMin + _timer.ClosedPeriodMin));
+                _timer.ApplyPeriodTime();
+                _timer.NotifyOpenStarted();
             }
 
             public override void Execute()
             {
-                _timer.FSM.Change(EPeriodTimerState.Open);
+                _timer.TryChangeState(EPeriodTimerType.Open, false, "ResetState.Execute");
             }
         }
 
         public class OpenState : BaseState
         {
             public OpenState(PeriodTimer timer) : base(timer) { }
+
+            public override void Enter()
+            {
+                _timer.NotifyUpdateOpen();
+            }
+
             public override void Execute()
             {
-                if (_timer.IsTimeTampered)
+                if(_timer.IsTampered)
                 {
-                    _timer.MarkTimeTampered();
-                    _timer.FSM.Change(EPeriodTimerState.Closed);
-                    return;
-                }
-                else if (!_timer.IsOpenPeriod)
-                {
-                    _timer.FSM.Change(EPeriodTimerState.Closed);
+                    _timer.HandleTampered();
                     return;
                 }
 
-                _timer.SetPeriodTime(PeriodTimer.OPEN_UPDATED_KEY, DateTime.UtcNow);
-                _timer.InvokeLoopUpdated(PeriodTimer.OPEN_END_KEY);
+                if(!_timer.IsOpenPeriod)
+                {
+                    _timer.TryChangeState(EPeriodTimerType.Closed, false, "OpenState.Execute");
+                    return;
+                }
+
+                _timer.NotifyUpdateOpen();
             }
         }
 
         public class ClosedState : BaseState
         {
             public ClosedState(PeriodTimer timer) : base(timer) { }
+
             public override void Enter()
             {
-                if (_timer.IsTimeTamperedFlag)
-                    _timer.ClearTimeTampered();
+                if(_timer.IsTamperedFlag)
+                    _timer.ClearTampered();
 
-                _timer.SetPeriodTime(PeriodTimer.OPEN_START_KEY, DateTime.MinValue);
-                _timer.SetPeriodTime(PeriodTimer.OPEN_UPDATED_KEY, DateTime.MinValue);
-                _timer.SetPeriodTime(PeriodTimer.OPEN_END_KEY, DateTime.MinValue);
+                _timer.NotifyClosedStarted();
+                _timer.NotifyUpdateClosed();
             }
 
             public override void Execute()
             {
-                if (!_timer.IsClosedPeriod)
+                if(!_timer.IsClosedPeriod)
                 {
-                    _timer.FSM.Change(EPeriodTimerState.Reset, true);
+                    _timer.TryChangeState(EPeriodTimerType.Reset, true, "ClosedState.Execute");
                     return;
                 }
 
-                _timer.InvokeLoopUpdated(PeriodTimer.CLOSED_END_KEY);
+                _timer.NotifyUpdateClosed();
             }
         }
     }

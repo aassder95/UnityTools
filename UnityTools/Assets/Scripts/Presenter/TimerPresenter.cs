@@ -1,6 +1,4 @@
-using System.Collections;
-using UnityEngine;
-using UnityTools.Model;
+﻿using UnityTools.Model;
 using UnityTools.UI;
 using UnityTools.Util;
 
@@ -8,70 +6,87 @@ namespace UnityTools.Presenter
 {
     public class TimerPresenter : BasePresenter<TimerModel, TimerView>
     {
+        //============================================================
+        // Fields
+        //============================================================
         private PeriodTimer _periodTimer;
 
+        //============================================================
+        // Constructors
+        //============================================================
         public TimerPresenter(TimerModel model, TimerView view) : base(model, view)
         {
-            
         }
 
+        //============================================================
+        // Init/Register
+        //============================================================
         public override void Init()
         {
-            _periodTimer = new("TIMER", 1.0, 1.0);
-            _periodTimer.Init();
+            _periodTimer = new PeriodTimer("TIMER", VIEW);
+            _periodTimer.Init(1.0, 1.0);
             base.Init();
         }
 
         public override void Release()
         {
             base.Release();
-            _periodTimer.Release();
+            _periodTimer?.Release();
+            _periodTimer = null;
         }
 
         protected override void BindEvents()
         {
             base.BindEvents();
+
+            if(_periodTimer == null)
+                return;
+
             VIEW.OnForceOpen += _periodTimer.ForceOpen;
             VIEW.OnForceClosed += _periodTimer.ForceClosed;
-            _periodTimer.OnWait += CoWait;
-            _periodTimer.OnLoopUpdated += OnLoopUpdated;
-            _periodTimer.OnStateChanged += OnStateChanged;
+            _periodTimer.OnUpdated += onTimerUpdatedCallback;
+            _periodTimer.OnStateChanged += onStateChangedCallback;
         }
 
         protected override void UnbindEvents()
         {
-            VIEW.OnForceOpen -= _periodTimer.ForceOpen;
-            VIEW.OnForceClosed -= _periodTimer.ForceClosed;
-            _periodTimer.OnWait -= CoWait;
-            _periodTimer.OnLoopUpdated -= OnLoopUpdated;
-            _periodTimer.OnStateChanged -= OnStateChanged;
+            if(_periodTimer != null)
+            {
+                VIEW.OnForceOpen -= _periodTimer.ForceOpen;
+                VIEW.OnForceClosed -= _periodTimer.ForceClosed;
+                _periodTimer.OnUpdated -= onTimerUpdatedCallback;
+                _periodTimer.OnStateChanged -= onStateChangedCallback;
+            }
+
             base.UnbindEvents();
         }
 
-        private IEnumerator CoWait() => new WaitForSecondsRealtime(2.0f);
-
-        private void OnStateChanged(EPeriodTimerState state)
+        //============================================================
+        // Callbacks
+        //============================================================
+        private void onStateChangedCallback(EPeriodTimerType type)
         {
             MODEL.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
-            switch (state)
+            switch (type)
             {
-                case EPeriodTimerState.Reset:
+                case EPeriodTimerType.Reset:
+                    MODEL.SetState("Reset");
                     MODEL.SetSubState("Reset");
                     break;
-                case EPeriodTimerState.Open:
+                case EPeriodTimerType.Open:
                     MODEL.SetState("Open");
                     break;
-                case EPeriodTimerState.Closed:
+                case EPeriodTimerType.Closed:
                     MODEL.SetState("Closed");
                     MODEL.SetSubState("Closed");
                     break;
             }
         }
 
-        private void OnLoopUpdated(int min)
+        private void onTimerUpdatedCallback(int remainMin)
         {
-            MODEL.SetLoop(min, _periodTimer.OpenUpdatedTime);
+            MODEL.SetLoop(remainMin, _periodTimer.OpenUpdatedTime);
         }
     }
 }

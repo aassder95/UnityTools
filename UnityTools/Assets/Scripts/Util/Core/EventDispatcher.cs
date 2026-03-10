@@ -9,7 +9,7 @@ namespace UnityTools.Util
 
     }
 
-    public class EventDispatcher : Singleton<EventDispatcher>
+    public class EventDispatcher : MonoSingleton<EventDispatcher>
     {
         private const int DEFAULT_PRIORITY = 0;
         private readonly Dictionary<EEventDispatcherType, SortedList<int, List<Delegate>>> _events = new();
@@ -88,3 +88,4 @@ namespace UnityTools.Util
         }
     }
 }
+
