@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -16,21 +16,21 @@ namespace UnityTools.Util
     public class PeriodTimer
     {
         //============================================================
-        // Constants
+        //Constants
         //============================================================
         private const double DEFAULT_PERIOD_MIN = 1d;
 
         //============================================================
-        // Readonly
+        //Readonly
         //============================================================
         private readonly string _id;
         private readonly EnumStateMachine<EPeriodTimerType> _fsm;
         private readonly MonoBehaviour _runner;
-        private readonly IStorage _storage;
+        private readonly PeriodTimerPersistence _persistence;
         private readonly bool _isEnableLog;
 
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private bool _isInit;
         private bool _isTamperedFlag;
@@ -46,7 +46,7 @@ namespace UnityTools.Util
         private Coroutine _coUpdate;
 
         //============================================================
-        // Events
+        //Events
         //============================================================
         public event UnityAction OnOpenStarted { add => _onOpenStarted += value; remove => _onOpenStarted -= value; }
         public event UnityAction<int> OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
@@ -57,7 +57,7 @@ namespace UnityTools.Util
         private event UnityAction _onClosedStarted;
 
         //============================================================
-        // Properties
+        //Properties
         //============================================================
         public string Id => _id;
         public EnumStateMachine<EPeriodTimerType> FSM => _fsm;
@@ -71,7 +71,7 @@ namespace UnityTools.Util
         public DateTime ClosedEndTime => _closedEndTime;
 
         //============================================================
-        // Constructors
+        //Constructors
         //============================================================
         public PeriodTimer(string id, MonoBehaviour runner, bool isEnableLog = false)
         {
@@ -79,7 +79,7 @@ namespace UnityTools.Util
                 _id = string.Empty;
 
             _runner = runner;
-            _storage = new PlayerPrefsStorage();
+            _persistence = new PeriodTimerPersistence(_id);
             _isEnableLog = isEnableLog;
             _fsm = new EnumStateMachine<EPeriodTimerType>(false, ESameStateTransitionPolicy.ReEnter);
 
@@ -92,7 +92,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Init/Register
+        //Init/Register
         //============================================================
         public void Init(double openMin, double closedMin)
         {
@@ -133,64 +133,20 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Persistence
+        //Persistence
         //============================================================
-        private void Save()
-        {
-            SaveData(PeriodTimerStorageKeys.OpenStart(_id), _openStartTime.Ticks.ToString());
-            SaveData(PeriodTimerStorageKeys.OpenEnd(_id), _openEndTime.Ticks.ToString());
-            SaveData(PeriodTimerStorageKeys.ClosedEnd(_id), _closedEndTime.Ticks.ToString());
-            SaveData(PeriodTimerStorageKeys.OpenUpdated(_id), _openUpdatedTime.Ticks.ToString());
-            SaveData(PeriodTimerStorageKeys.Tampered(_id), _isTamperedFlag ? "1" : "0");
-        }
-
         private void Load()
         {
-            _openStartTime = TryLoadDate(PeriodTimerStorageKeys.OpenStart(_id));
-            _openEndTime = TryLoadDate(PeriodTimerStorageKeys.OpenEnd(_id));
-            _closedEndTime = TryLoadDate(PeriodTimerStorageKeys.ClosedEnd(_id));
-            _openUpdatedTime = TryLoadDate(PeriodTimerStorageKeys.OpenUpdated(_id));
-            _isTamperedFlag = LoadData(PeriodTimerStorageKeys.Tampered(_id)) == "1";
-        }
-
-        private void SaveData(string key, string value)
-        {
-            if(string.IsNullOrEmpty(key))
-            {
-                LogTest("SaveData", "저장 키가 비어 있어 저장을 건너뜁니다.");
-                return;
-            }
-
-            _storage.Save(key, value ?? "0");
-        }
-
-        private string LoadData(string key)
-        {
-            return _storage.HasKey(key) ? _storage.Load(key) : "0";
-        }
-
-        private DateTime TryLoadDate(string key)
-        {
-            string raw = LoadData(key);
-            if(!string.IsNullOrEmpty(raw) && long.TryParse(raw, out long ticks))
-            {
-                if(ticks == DateTime.MinValue.Ticks)
-                    return DateTime.MinValue;
-
-                if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                {
-                    LogTest("TryLoadDate", $"유효하지 않은 ticks={ticks}, key={key}");
-                    return DateTime.MinValue;
-                }
-
-                return new DateTime(ticks, DateTimeKind.Utc);
-            }
-
-            return DateTime.MinValue;
+            PeriodTimerStorageSnapshot snapshot = _persistence.Load();
+            _openStartTime = snapshot.OpenStartTime;
+            _openEndTime = snapshot.OpenEndTime;
+            _closedEndTime = snapshot.ClosedEndTime;
+            _openUpdatedTime = snapshot.OpenUpdatedTime;
+            _isTamperedFlag = snapshot.IsTamperedFlag;
         }
 
         //============================================================
-        // Logic
+        //Logic
         //============================================================
         public void Refresh()
         {
@@ -231,21 +187,21 @@ namespace UnityTools.Util
             _openUpdatedTime = now;
             _openEndTime = DateTimeUtils.RemoveMilliseconds(now.AddMinutes(_openPeriodMin));
             _closedEndTime = DateTimeUtils.RemoveMilliseconds(now.AddMinutes(_openPeriodMin + _closedPeriodMin));
-            Save();
+            _persistence.Save(_openStartTime, _openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
         }
 
         public void HandleTampered()
         {
             _isTamperedFlag = true;
             TryChangeState(EPeriodTimerType.Closed, false, "HandleTampered");
-            Save();
+            _persistence.Save(_openStartTime, _openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
         }
 
         public void ClearTampered()
         {
             _isTamperedFlag = false;
             SetClosedPeriodFromNow();
-            Save();
+            _persistence.Save(_openStartTime, _openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
         }
 
         public void SetPeriods(double openMin, double closedMin)
@@ -277,7 +233,7 @@ namespace UnityTools.Util
             _isTamperedFlag = false;
             SetClosedPeriodFromNow();
             TryChangeState(EPeriodTimerType.Closed, false, "ForceClosed");
-            Save();
+            _persistence.Save(_openStartTime, _openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
         }
 
         public bool TryChangeState(EPeriodTimerType type, bool isUpdate = false, string method = "TryChangeState")
@@ -324,7 +280,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Coroutines
+        //Coroutines
         //============================================================
         private IEnumerator CoUpdate()
         {
@@ -368,7 +324,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Callbacks
+        //Callbacks
         //============================================================
         public void NotifyOpenStarted()
         {
@@ -378,7 +334,7 @@ namespace UnityTools.Util
         public void NotifyUpdateOpen()
         {
             _openUpdatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
-            Save();
+            _persistence.Save(_openStartTime, _openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
 
             int remainMin = DateTimeUtils.GetRemainingMinutes(_openEndTime);
             _onUpdated?.Invoke(remainMin);
@@ -386,7 +342,7 @@ namespace UnityTools.Util
 
         public void NotifyUpdateClosed()
         {
-            Save();
+            _persistence.Save(_openStartTime, _openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
 
             int remainMin = DateTimeUtils.GetRemainingMinutes(_closedEndTime);
             _onUpdated?.Invoke(remainMin);
@@ -398,7 +354,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Utilities
+        //Utilities
         //============================================================
         public int GetRemainingMin()
         {
@@ -440,6 +396,127 @@ namespace UnityTools.Util
             LogTest("SanitizePeriod", $"유효하지 않은 {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분을 사용합니다.");
             return DEFAULT_PERIOD_MIN;
         }
+    }
 
+    //============================================================
+    //Types
+    //============================================================
+    public class PeriodTimerStorageSnapshot
+    {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly DateTime _openStartTime;
+        private readonly DateTime _openEndTime;
+        private readonly DateTime _closedEndTime;
+        private readonly DateTime _openUpdatedTime;
+        private readonly bool _isTamperedFlag;
+
+        //============================================================
+        //Properties
+        //============================================================
+        public DateTime OpenStartTime => _openStartTime;
+        public DateTime OpenEndTime => _openEndTime;
+        public DateTime ClosedEndTime => _closedEndTime;
+        public DateTime OpenUpdatedTime => _openUpdatedTime;
+        public bool IsTamperedFlag => _isTamperedFlag;
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public PeriodTimerStorageSnapshot(
+            DateTime openStartTime,
+            DateTime openEndTime,
+            DateTime closedEndTime,
+            DateTime openUpdatedTime,
+            bool isTamperedFlag)
+        {
+            _openStartTime = openStartTime;
+            _openEndTime = openEndTime;
+            _closedEndTime = closedEndTime;
+            _openUpdatedTime = openUpdatedTime;
+            _isTamperedFlag = isTamperedFlag;
+        }
+    }
+
+    public class PeriodTimerPersistence
+    {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly string _id;
+        private readonly IStorage _storage;
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public PeriodTimerPersistence(string id)
+        {
+            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+                normalizedId = string.Empty;
+
+            _id = normalizedId;
+            _storage = new PlayerPrefsStorage();
+        }
+
+        //============================================================
+        //Persistence
+        //============================================================
+        public void Save(
+            DateTime openStartTime,
+            DateTime openEndTime,
+            DateTime closedEndTime,
+            DateTime openUpdatedTime,
+            bool isTamperedFlag)
+        {
+            SaveString(PeriodTimerStorageKeys.OpenStart(_id), openStartTime.Ticks.ToString());
+            SaveString(PeriodTimerStorageKeys.OpenEnd(_id), openEndTime.Ticks.ToString());
+            SaveString(PeriodTimerStorageKeys.ClosedEnd(_id), closedEndTime.Ticks.ToString());
+            SaveString(PeriodTimerStorageKeys.OpenUpdated(_id), openUpdatedTime.Ticks.ToString());
+            SaveString(PeriodTimerStorageKeys.Tampered(_id), isTamperedFlag ? "1" : "0");
+        }
+
+        public PeriodTimerStorageSnapshot Load()
+        {
+            DateTime openStartTime = TryLoadDate(PeriodTimerStorageKeys.OpenStart(_id));
+            DateTime openEndTime = TryLoadDate(PeriodTimerStorageKeys.OpenEnd(_id));
+            DateTime closedEndTime = TryLoadDate(PeriodTimerStorageKeys.ClosedEnd(_id));
+            DateTime openUpdatedTime = TryLoadDate(PeriodTimerStorageKeys.OpenUpdated(_id));
+            bool isTamperedFlag = LoadString(PeriodTimerStorageKeys.Tampered(_id)) == "1";
+            return new PeriodTimerStorageSnapshot(openStartTime, openEndTime, closedEndTime, openUpdatedTime, isTamperedFlag);
+        }
+
+        //============================================================
+        //Utilities
+        //============================================================
+        private void SaveString(string key, string value)
+        {
+            if(string.IsNullOrEmpty(key))
+                return;
+
+            _storage.Save(key, value ?? string.Empty);
+        }
+
+        private string LoadString(string key)
+        {
+            if(string.IsNullOrEmpty(key) || !_storage.HasKey(key))
+                return string.Empty;
+
+            return _storage.Load(key);
+        }
+
+        private DateTime TryLoadDate(string key)
+        {
+            string raw = LoadString(key);
+            if(!long.TryParse(raw, out long ticks))
+                return DateTime.MinValue;
+
+            if(ticks == DateTime.MinValue.Ticks)
+                return DateTime.MinValue;
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return DateTime.MinValue;
+
+            return new DateTime(ticks, DateTimeKind.Utc);
+        }
     }
 }

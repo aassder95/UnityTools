@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -5,6 +6,58 @@ using UnityTools.Util;
 
 namespace UnityTools.Manager
 {
+    public class TaskTimerEventBinder
+    {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly string _id;
+        private readonly Action<string, int> _onUpdated;
+        private readonly Action<string> _onCompleted;
+        private readonly Action<string> _onClaimed;
+        private readonly Action<string, ETaskTimerType> _onStateChanged;
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public TaskTimerEventBinder(
+            string id,
+            Action<string, int> onUpdated,
+            Action<string> onCompleted,
+            Action<string> onClaimed,
+            Action<string, ETaskTimerType> onStateChanged)
+        {
+            _id = id;
+            _onUpdated = onUpdated;
+            _onCompleted = onCompleted;
+            _onClaimed = onClaimed;
+            _onStateChanged = onStateChanged;
+        }
+
+        //============================================================
+        //Callbacks
+        //============================================================
+        public void OnUpdatedCallback(int remainSec)
+        {
+            _onUpdated?.Invoke(_id, remainSec);
+        }
+
+        public void OnCompletedCallback()
+        {
+            _onCompleted?.Invoke(_id);
+        }
+
+        public void OnClaimedCallback()
+        {
+            _onClaimed?.Invoke(_id);
+        }
+
+        public void OnStateChangedCallback(ETaskTimerType type)
+        {
+            _onStateChanged?.Invoke(_id, type);
+        }
+    }
+
     public class TaskTimerManager : MonoSingleton<TaskTimerManager>
     {
         //============================================================
@@ -81,7 +134,12 @@ namespace UnityTools.Manager
 
         private void BindEvents(string id, TaskTimerHandle handle)
         {
-            TaskTimerEventBinder eventBinder = new(this, id);
+            TaskTimerEventBinder eventBinder = new(
+                id,
+                OnTimerUpdatedCallback,
+                OnTimerCompletedCallback,
+                OnTimerClaimedCallback,
+                OnStateChangedCallback);
             _eventBinders[id] = eventBinder;
 
             handle.OnUpdated += eventBinder.OnUpdatedCallback;
@@ -272,60 +330,7 @@ namespace UnityTools.Manager
                 return;
 
             string safeId = id == null ? "null" : id.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
-            Debug.LogWarning($"[TaskTimerManager:{method}] ?좏슚?섏? ?딆? ID ?붿껌??臾댁떆?⑸땲?? '{safeId}'");
-        }
-
-        private class TaskTimerEventBinder
-        {
-            //============================================================
-            //Readonly
-            //============================================================
-            private readonly string _id;
-            private readonly TaskTimerManager _manager;
-
-            //============================================================
-            //Constructors
-            //============================================================
-            public TaskTimerEventBinder(TaskTimerManager manager, string id)
-            {
-                _manager = manager;
-                _id = id;
-            }
-
-            //============================================================
-            //Callbacks
-            //============================================================
-            public void OnUpdatedCallback(int remainSec)
-            {
-                if(_manager == null)
-                    return;
-
-                _manager.OnTimerUpdatedCallback(_id, remainSec);
-            }
-
-            public void OnCompletedCallback()
-            {
-                if(_manager == null)
-                    return;
-
-                _manager.OnTimerCompletedCallback(_id);
-            }
-
-            public void OnClaimedCallback()
-            {
-                if(_manager == null)
-                    return;
-
-                _manager.OnTimerClaimedCallback(_id);
-            }
-
-            public void OnStateChangedCallback(ETaskTimerType type)
-            {
-                if(_manager == null)
-                    return;
-
-                _manager.OnStateChangedCallback(_id, type);
-            }
+            Debug.LogWarning($"[TaskTimerManager:{method}] 유효하지 않은 ID 입력: '{safeId}'");
         }
     }
 }
