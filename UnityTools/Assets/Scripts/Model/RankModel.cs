@@ -4,15 +4,21 @@ using UnityTools.Util;
 
 namespace UnityTools.Model
 {
-    //============================================================
-    //Logic
-    //============================================================
     public class RankModel : BaseModel
     {
-        private List<RankItemModel> _itemModels = new();
-        
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly List<RankItemModel> _itemModels = new();
+
+        //============================================================
+        //Properties
+        //============================================================
         public int ItemCount => _itemModels.Count;
 
+        //============================================================
+        //Constructors
+        //============================================================
         public RankModel(int cnt)
         {
             for (int i = 0; i < cnt; i++)
@@ -23,6 +29,9 @@ namespace UnityTools.Model
             SetRandomScore();
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public RankItemModel Get(int idx)
         {
             return _itemModels.IsValidIndex(idx) ? _itemModels[idx] : null;

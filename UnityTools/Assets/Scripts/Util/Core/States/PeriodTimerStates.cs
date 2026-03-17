@@ -3,7 +3,7 @@
     public class PeriodTimerStates
     {
         //============================================================
-        // Logic
+        //Logic
         //============================================================
         public class BaseState : IState
         {

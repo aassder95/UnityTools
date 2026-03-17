@@ -3,11 +3,11 @@ using UnityEngine.UI;
 
 namespace UnityTools.Util
 {
-    //============================================================
-    //Logic
-    //============================================================
     public class DynamicScrollContext
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly int _itemCntPerLine;
         private readonly Vector2 _spacing;
         private readonly RectOffset _padding;
@@ -15,11 +15,17 @@ namespace UnityTools.Util
         private readonly RectTransform _rtItem;
         private readonly ScrollRect _scrollRect;
 
+        //============================================================
+        //Properties
+        //============================================================
         private Vector2 ContentSize => new Vector2(_padding.left + LineSize.x + _padding.right, _padding.top + LineSize.y + _padding.bottom);
         private Vector2 LineSize => new Vector2(ItemSize.x * _itemCntPerLine - _spacing.x, ItemSize.y * _itemCntPerLine - _spacing.y);
         private Vector2 ItemSize => new Vector2(_rtItem.sizeDelta.x + _spacing.x, _rtItem.sizeDelta.y + _spacing.y);
         private Vector2 CenterOffset => new Vector2((ContentSize.x - LineSize.x) / 2.0f, (ContentSize.y - LineSize.y) / 2.0f);
 
+        //============================================================
+        //Constructors
+        //============================================================
         public DynamicScrollContext(int itemCntPerLine, Vector2 spacing, RectOffset padding, RectTransform rtItem, ScrollRect scrollRect)
         {
             _itemCntPerLine = itemCntPerLine;
@@ -30,6 +36,9 @@ namespace UnityTools.Util
             _scrollRect = scrollRect;
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public Vector2 CalculateContentPosition(int itemIdx, float offset = 0.0f)
         {
             int line = itemIdx / _itemCntPerLine;

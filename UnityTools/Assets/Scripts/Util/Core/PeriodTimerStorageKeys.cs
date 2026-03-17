@@ -3,7 +3,7 @@
     public static class PeriodTimerStorageKeys
     {
         //============================================================
-        // Constants
+        //Constants
         //============================================================
         private const string PREFIX = "PeriodTimer_";
         private const string OPEN_START_TIME_SUFFIX = "_OPEN_START";
@@ -13,7 +13,7 @@
         private const string TAMPERED_SUFFIX = "_TAMPERED";
 
         //============================================================
-        // Logic
+        //Logic
         //============================================================
         public static bool TryNormalizeId(string rawId, out string normalizedId)
         {

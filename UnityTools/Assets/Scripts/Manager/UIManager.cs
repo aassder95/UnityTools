@@ -5,30 +5,37 @@ using UnityTools.Util;
 
 namespace UnityTools.Manager
 {
-    //============================================================
-    //Logic
-    //============================================================
     public class UIManager : MonoSingleton<UIManager>
     {
+        //============================================================
+        //Inspector Fields
+        //============================================================
         [Header("Rank")]
         [SerializeField] private RankView _rankView;
         [SerializeField] private int _rankModelCnt = 10;
-        private RankPresenter _rankPresenter;
 
         [Header("RankOSA")]
         [SerializeField] private RankOSAView _rankOSAView;
         [SerializeField] private int _rankOSAModelCnt = 10;
-        private RankOSAPresenter _rankOSAPresenter;
 
         [Header("Timer")]
         [SerializeField] private TimerView _timerView;
-        private TimerPresenter _timerPresenter;
 
         [Header("Inven")]
         [SerializeField] private InvenView _invenView;
         [SerializeField] private int _invenModelCnt = 50;
+
+        //============================================================
+        //Fields
+        //============================================================
+        private RankPresenter _rankPresenter;
+        private RankOSAPresenter _rankOSAPresenter;
+        private TimerPresenter _timerPresenter;
         private InvenPresenter _invenPresenter;
 
+        //============================================================
+        //Unity Methods
+        //============================================================
         private void Awake()
         {
             if (_rankView != null && _rankView.gameObject.activeInHierarchy)

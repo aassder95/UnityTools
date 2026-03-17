@@ -4,18 +4,21 @@ using UnityEngine.UI;
 
 namespace UnityTools.Util
 {
-    //============================================================
-    //Logic
-    //============================================================
     [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {
+        //============================================================
+        //Inspector Fields
+        //============================================================
         [SerializeField] private TView _item;
         [SerializeField] private int _visibleLineCnt = 10;
         [SerializeField] private int _itemCntPerLine = 1;
         [SerializeField] private Vector2 _spacing;
         [SerializeField] private RectOffset _padding;
 
+        //============================================================
+        //Fields
+        //============================================================
         private DynamicScrollContext _context;
         private DynamicScrollItemController<TView> _itemCtrl;
         private ObjectPool<TView> _pool;
@@ -27,6 +30,9 @@ namespace UnityTools.Util
         private ScrollRect _scrollRect;
         private UnityAction<TView> _onControllerItemUpdated;
 
+        //============================================================
+        //Properties
+        //============================================================
         protected DynamicScrollContext Context => _context;
         protected DynamicScrollItemController<TView> ItemController => _itemCtrl;
         protected int TotalLineCount => _totalLineCnt;
@@ -36,9 +42,15 @@ namespace UnityTools.Util
         protected RectTransform RtContent => _rtContent;
         protected ScrollRect ScrollRect => _scrollRect;
 
+        //============================================================
+        //Events
+        //============================================================
         public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated.AddListener(value); remove => _onItemUpdated.RemoveListener(value); }
         private readonly UnityEvent<TView> _onItemUpdated = new();
 
+        //============================================================
+        //Unity Methods
+        //============================================================
         private void Awake()
         {
             _rt = GetComponent<RectTransform>();
@@ -46,7 +58,7 @@ namespace UnityTools.Util
             _rtContent = _scrollRect.content;
             _rtItem = _item.GetComponent<RectTransform>();
 
-            if (_scrollRect.vertical)
+            if(_scrollRect.vertical)
             {
                 _rtContent.anchorMin = new Vector2(0.0f, 1.0f);
                 _rtContent.anchorMax = new Vector2(1.0f, 1.0f);
@@ -73,6 +85,9 @@ namespace UnityTools.Util
             _pool?.Clear();
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public void InitView(int totalItemCnt)
         {
             SetTotalItemCount(totalItemCnt);
@@ -81,7 +96,7 @@ namespace UnityTools.Util
 
         protected void SetTotalItemCount(int totalItemCnt)
         {
-            if (totalItemCnt == _totalItemCnt || totalItemCnt < _itemCtrl.Count)
+            if(totalItemCnt == _totalItemCnt || totalItemCnt < _itemCtrl.Count)
                 return;
 
             _totalItemCnt = totalItemCnt;
@@ -92,11 +107,11 @@ namespace UnityTools.Util
 
         protected void SetVisibleLineCount(int visibleLineCnt)
         {
-            if (visibleLineCnt == _visibleLineCnt || visibleLineCnt <= 0 || visibleLineCnt > _totalLineCnt)
+            if(visibleLineCnt == _visibleLineCnt || visibleLineCnt <= 0 || visibleLineCnt > _totalLineCnt)
                 return;
 
             int itemCnt = _context.GetItemCountForLineRange(visibleLineCnt, _visibleLineCnt, _totalItemCnt, _itemCtrl.FirstIndex);
-            if (visibleLineCnt > _visibleLineCnt)
+            if(visibleLineCnt > _visibleLineCnt)
                 _itemCtrl.AddRange(itemCnt, _totalItemCnt);
             else
                 _itemCtrl.RemoveRange(itemCnt, _totalLineCnt - visibleLineCnt);
@@ -114,7 +129,7 @@ namespace UnityTools.Util
         {
             int line = _itemCtrl.FirstIndex / _itemCntPerLine;
             int visibleLine = _context.CalculateFirstVisibleLine(_totalLineCnt - _visibleLineCnt);
-            if (line != visibleLine)
+            if(line != visibleLine)
             {
                 bool isDown = visibleLine > line;
 
@@ -131,6 +146,9 @@ namespace UnityTools.Util
             HandleScrollValueChanged(value);
         }
 
+        //============================================================
+        //Callbacks
+        //============================================================
         protected virtual void HandleScrollValueChanged(Vector2 value) { }
     }
 }

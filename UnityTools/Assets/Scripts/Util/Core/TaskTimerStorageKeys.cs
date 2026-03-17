@@ -3,7 +3,7 @@
     public static class TaskTimerStorageKeys
     {
         //============================================================
-        // Constants
+        //Constants
         //============================================================
         private const string PREFIX = "TaskTimer_";
         private const string START_TIME_SUFFIX = "_START";
@@ -12,7 +12,7 @@
         private const string STATE_SUFFIX = "_STATE";
 
         //============================================================
-        // Logic
+        //Logic
         //============================================================
         public static bool TryNormalizeId(string rawId, out string normalizedId)
         {

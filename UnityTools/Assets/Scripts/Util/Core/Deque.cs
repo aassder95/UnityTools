@@ -5,16 +5,22 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    //============================================================
-    //Logic
-    //============================================================
     public class Deque<T> : IEnumerable<T>
     {
+        //============================================================
+        //Fields
+        //============================================================
         private LinkedList<T> _deque = new LinkedList<T>();
 
+        //============================================================
+        //Properties
+        //============================================================
         public bool IsEmpty => Count == 0;
         public int Count => _deque.Count;
 
+        //============================================================
+        //Logic
+        //============================================================
         public void Enqueue(T item)
         {
             if(_deque == null)
@@ -100,6 +106,9 @@ namespace UnityTools.Util
             return default;
         }
 
+        //============================================================
+        //Utilities
+        //============================================================
         public IEnumerator<T> GetEnumerator()
         {
             foreach (var item in _deque)

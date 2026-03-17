@@ -3,18 +3,24 @@ using System.Collections;
 
 namespace UnityTools.Util
 {
-    //============================================================
-    //Logic
-    //============================================================
     public class Spawner<T> : MonoBehaviour where T : Component, IPoolable
     {
+        //============================================================
+        //Inspector Fields
+        //============================================================
         [SerializeField] private T _prefab;
         [SerializeField] private int _cnt;
         [SerializeField] private float _interval;
         [SerializeField] private Vector2 _range;
 
+        //============================================================
+        //Fields
+        //============================================================
         private ObjectPool<T> _pool;
 
+        //============================================================
+        //Unity Methods
+        //============================================================
         private void Awake()
         {
             _pool = new ObjectPool<T>(_cnt, _prefab, transform);
@@ -28,6 +34,9 @@ namespace UnityTools.Util
             StartCoroutine(CoSpawn());
         }
 
+        //============================================================
+        //Coroutines
+        //============================================================
         private IEnumerator CoSpawn()
         {
             while (true)

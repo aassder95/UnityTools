@@ -93,11 +93,4 @@ namespace UnityTools.Util
         }
     }
 
-    public static class EnumUtils
-    {
-        public static int GetCount<T>() where T : Enum
-        {
-            return Enum.GetNames(typeof(T)).Length;
-        }
-    }
 }

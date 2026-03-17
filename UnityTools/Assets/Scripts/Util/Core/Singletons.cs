@@ -5,7 +5,7 @@ namespace UnityTools.Util
     public class Singletons
     {
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private static GameManager _gameManager;
         private static UIManager _uiManager;
@@ -13,7 +13,7 @@ namespace UnityTools.Util
         private static PeriodTimerManager _periodTimerManager;
 
         //============================================================
-        // Properties
+        //Properties
         //============================================================
         public static GameManager GameManager => _gameManager;
         public static UIManager UIManager => _uiManager;
@@ -21,7 +21,7 @@ namespace UnityTools.Util
         public static PeriodTimerManager PeriodTimerManager => _periodTimerManager;
 
         //============================================================
-        // Logic
+        //Logic
         //============================================================
         public static void RegisterGameManager(GameManager gameManager)
         {

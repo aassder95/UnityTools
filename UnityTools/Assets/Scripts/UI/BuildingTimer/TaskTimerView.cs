@@ -13,7 +13,6 @@ namespace UnityTools.UI
         [SerializeField] private double _duration;
 
         [Header("Info")]
-        [SerializeField] private TextMeshProUGUI _txtId;
         [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtTimer;
 
@@ -45,10 +44,18 @@ namespace UnityTools.UI
         //============================================================
         private void Awake()
         {
-            _btnStart.onClick.AddListener(() => _onStartClicked?.Invoke());
-            _btnComplete.onClick.AddListener(() => _onCompleteClicked?.Invoke());
-            _btnClaim.onClick.AddListener(() => _onClaimClicked?.Invoke());
-            _btnReduce1min.onClick.AddListener(() => _onReduce1MinClicked?.Invoke());
+            _btnStart.onClick.AddListener(OnStartButtonClicked);
+            _btnComplete.onClick.AddListener(OnCompleteButtonClicked);
+            _btnClaim.onClick.AddListener(OnClaimButtonClicked);
+            _btnReduce1min.onClick.AddListener(OnReduceButtonClicked);
+        }
+
+        private void OnDestroy()
+        {
+            _btnStart.onClick.RemoveListener(OnStartButtonClicked);
+            _btnComplete.onClick.RemoveListener(OnCompleteButtonClicked);
+            _btnClaim.onClick.RemoveListener(OnClaimButtonClicked);
+            _btnReduce1min.onClick.RemoveListener(OnReduceButtonClicked);
         }
 
         //============================================================
@@ -65,22 +72,32 @@ namespace UnityTools.UI
             };
         }
 
-        public void SetBtnActive(bool start, bool complete, bool claim, bool reduce)
-        {
-            _btnStart.gameObject.SetActive(start);
-            _btnComplete.gameObject.SetActive(complete);
-            _btnClaim.gameObject.SetActive(claim);
-            _btnReduce1min.gameObject.SetActive(reduce);
-        }
-
-        public void SetId(string id)
-        {
-            _txtId.text = $"Task: {id}";
-        }
-
         public void SetTimer(string time)
         {
             _txtTimer.text = time;
+        }
+
+        //============================================================
+        //Callbacks
+        //============================================================
+        private void OnStartButtonClicked()
+        {
+            _onStartClicked?.Invoke();
+        }
+
+        private void OnCompleteButtonClicked()
+        {
+            _onCompleteClicked?.Invoke();
+        }
+
+        private void OnClaimButtonClicked()
+        {
+            _onClaimClicked?.Invoke();
+        }
+
+        private void OnReduceButtonClicked()
+        {
+            _onReduce1MinClicked?.Invoke();
         }
     }
 }

@@ -9,18 +9,18 @@ namespace UnityTools.Util
     public class TaskTimerTestWindow : EditorWindow
     {
         //============================================================
-        // Constants
+        //Constants
         //============================================================
         private const float BUTTON_HEIGHT = 28f;
         private const float BUTTON_SPACING = 4f;
 
         //============================================================
-        // Readonly
+        //Readonly
         //============================================================
         private readonly IStorage _storage = new PlayerPrefsStorage();
 
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private string _timerId = "test";
         private string _durationSec = "5";
@@ -32,7 +32,7 @@ namespace UnityTools.Util
         private string _savedState = "-";
 
         //============================================================
-        // Init/Register
+        //Init/Register
         //============================================================
         [MenuItem("Util/Tests/Task Timer")]
         public static void Open()
@@ -41,7 +41,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Unity Methods
+        //Unity Methods
         //============================================================
         private void OnGUI()
         {
@@ -70,7 +70,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Persistence
+        //Persistence
         //============================================================
         private void ClearSavedData()
         {
@@ -102,7 +102,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Logic
+        //Logic
         //============================================================
         private void InitTimer()
         {
@@ -257,7 +257,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Utilities
+        //Utilities
         //============================================================
         private void DrawCurrentState()
         {

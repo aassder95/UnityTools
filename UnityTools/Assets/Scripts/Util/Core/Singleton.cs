@@ -5,17 +5,17 @@ namespace UnityTools.Util
     public class Singleton<T> where T : Singleton<T>, new()
     {
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private static T _instance;
 
         //============================================================
-        // Properties
+        //Properties
         //============================================================
         public static T Instance => _instance ??= new T();
 
         //============================================================
-        // Constructors
+        //Constructors
         //============================================================
         protected Singleton()
         {
@@ -25,12 +25,12 @@ namespace UnityTools.Util
     public class MonoSingleton<T> : MonoBehaviour where T : Component
     {
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private static T _instance;
 
         //============================================================
-        // Properties
+        //Properties
         //============================================================
         public static T Instance
         {
