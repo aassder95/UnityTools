@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public static class RandomUtils
     {
         private const float HALF = 0.5f;

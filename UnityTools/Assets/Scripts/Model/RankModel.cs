@@ -4,6 +4,9 @@ using UnityTools.Util;
 
 namespace UnityTools.Model
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class RankModel : BaseModel
     {
         private List<RankItemModel> _itemModels = new();

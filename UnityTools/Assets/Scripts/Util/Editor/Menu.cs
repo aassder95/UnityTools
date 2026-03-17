@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class Menu
     {
         [MenuItem("Util/Data/Clear AllData")] 

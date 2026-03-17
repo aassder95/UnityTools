@@ -1,20 +1,26 @@
-﻿namespace UnityTools.Util
+namespace UnityTools.Util
 {
     public class PeriodTimerData
     {
         //============================================================
-        // Properties
+        //Readonly
         //============================================================
-        public string Id { get; }
-        public EPeriodTimerType CurType { get; }
+        private readonly string _id;
+        private readonly EPeriodTimerType _curType;
 
         //============================================================
-        // Constructors
+        //Properties
+        //============================================================
+        public string Id => _id;
+        public EPeriodTimerType CurType => _curType;
+
+        //============================================================
+        //Constructors
         //============================================================
         public PeriodTimerData(string id, EPeriodTimerType curType)
         {
-            Id = id;
-            CurType = curType;
+            _id = id;
+            _curType = curType;
         }
     }
 }

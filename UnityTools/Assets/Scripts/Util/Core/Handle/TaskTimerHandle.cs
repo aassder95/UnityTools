@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
@@ -6,22 +6,22 @@ namespace UnityTools.Util
     public class TaskTimerHandle
     {
         //============================================================
-        // Constants
+        //Constants
         //============================================================
         private const double SEC_PER_MIN = 60d;
 
         //============================================================
-        // Readonly
+        //Readonly
         //============================================================
         protected readonly TaskTimer _timer;
 
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private bool _isRegistered;
 
         //============================================================
-        // Events
+        //Events
         //============================================================
         public event UnityAction OnProgressStarted { add => _onProgressStarted += value; remove => _onProgressStarted -= value; }
         public event UnityAction<int> OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
@@ -34,7 +34,7 @@ namespace UnityTools.Util
         private event UnityAction _onClaimed;
 
         //============================================================
-        // Properties
+        //Properties
         //============================================================
         public ETaskTimerType CurType => _timer.FSM.CurType;
         public bool IsClaimed => _timer.IsClaimed;
@@ -42,7 +42,7 @@ namespace UnityTools.Util
         public string Id => _timer.Id;
 
         //============================================================
-        // Constructors
+        //Constructors
         //============================================================
         public TaskTimerHandle(TaskTimer timer)
         {
@@ -50,7 +50,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Init/Register
+        //Init/Register
         //============================================================
         public virtual void Init()
         {
@@ -69,10 +69,10 @@ namespace UnityTools.Util
             if(_isRegistered)
                 return;
 
-            _timer.OnProgressStarted += onProgressStartedCallback;
-            _timer.OnUpdated += onUpdatedCallback;
-            _timer.OnCompleted += onCompletedCallback;
-            _timer.OnClaimed += onClaimedCallback;
+            _timer.OnProgressStarted += OnProgressStartedCallback;
+            _timer.OnUpdated += OnUpdatedCallback;
+            _timer.OnCompleted += OnCompletedCallback;
+            _timer.OnClaimed += OnClaimedCallback;
             _isRegistered = true;
         }
 
@@ -81,24 +81,33 @@ namespace UnityTools.Util
             if(!_isRegistered)
                 return;
 
-            _timer.OnProgressStarted -= onProgressStartedCallback;
-            _timer.OnUpdated -= onUpdatedCallback;
-            _timer.OnCompleted -= onCompletedCallback;
-            _timer.OnClaimed -= onClaimedCallback;
+            _timer.OnProgressStarted -= OnProgressStartedCallback;
+            _timer.OnUpdated -= OnUpdatedCallback;
+            _timer.OnCompleted -= OnCompletedCallback;
+            _timer.OnClaimed -= OnClaimedCallback;
             _isRegistered = false;
         }
 
         //============================================================
-        // Logic
+        //Logic
         //============================================================
         public bool Start(double durationSec)
         {
+            if(_timer == null)
+                return false;
+
+            if(durationSec <= 0d || double.IsNaN(durationSec) || double.IsInfinity(durationSec))
+                return false;
+
             return _timer.Start(durationSec);
         }
 
         public bool StartMinutes(double durationMin)
         {
-            if(double.IsNaN(durationMin) || double.IsInfinity(durationMin))
+            if(_timer == null)
+                return false;
+
+            if(durationMin <= 0d || double.IsNaN(durationMin) || double.IsInfinity(durationMin))
                 return false;
 
             return _timer.Start(durationMin * SEC_PER_MIN);
@@ -106,12 +115,21 @@ namespace UnityTools.Util
 
         public virtual bool Reduce(double reduceSec)
         {
+            if(_timer == null)
+                return false;
+
+            if(reduceSec <= 0d || double.IsNaN(reduceSec) || double.IsInfinity(reduceSec))
+                return false;
+
             return _timer.Reduce(reduceSec);
         }
 
         public virtual bool ReduceMinutes(double reduceMin)
         {
-            if(double.IsNaN(reduceMin) || double.IsInfinity(reduceMin))
+            if(_timer == null)
+                return false;
+
+            if(reduceMin <= 0d || double.IsNaN(reduceMin) || double.IsInfinity(reduceMin))
                 return false;
 
             return _timer.Reduce(reduceMin * SEC_PER_MIN);
@@ -119,48 +137,57 @@ namespace UnityTools.Util
 
         public bool CompleteImmediately()
         {
+            if(_timer == null)
+                return false;
+
             return _timer.CompleteImmediately();
         }
 
         public virtual bool Claim()
         {
+            if(_timer == null)
+                return false;
+
             return _timer.Claim();
         }
 
+        public void NotifyCurType()
+        {
+            if(_timer == null)
+                return;
+
+            _timer.NotifyCurType();
+        }
+
         //============================================================
-        // Callbacks
+        //Callbacks
         //============================================================
-        private void onProgressStartedCallback()
+        private void OnProgressStartedCallback()
         {
             _onProgressStarted?.Invoke();
         }
 
-        private void onUpdatedCallback(int remainingSec)
+        private void OnUpdatedCallback(int remainingSec)
         {
             _onUpdated?.Invoke(remainingSec);
         }
 
-        private void onCompletedCallback()
+        private void OnCompletedCallback()
         {
             _onCompleted?.Invoke();
         }
 
-        private void onClaimedCallback()
+        private void OnClaimedCallback()
         {
             _onClaimed?.Invoke();
         }
 
         //============================================================
-        // Utilities
+        //Utilities
         //============================================================
         public virtual TaskTimerData ToData()
         {
             return new TaskTimerData(_timer.Id, Mathf.Max(_timer.RemainingSec, 0), _timer.DurationSec, _timer.GetProgress());
-        }
-
-        public void NotifyCurType()
-        {
-            _timer.NotifyCurType();
         }
     }
 }

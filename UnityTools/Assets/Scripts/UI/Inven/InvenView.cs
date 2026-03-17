@@ -4,6 +4,9 @@ using UnityTools.Util;
 
 namespace UnityTools.UI
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class InvenView : BaseView<InvenModel>
     {
         [SerializeField] private InvenScrollView _scrollView;

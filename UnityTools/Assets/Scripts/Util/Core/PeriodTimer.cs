@@ -81,10 +81,7 @@ namespace UnityTools.Util
             _runner = runner;
             _storage = new PlayerPrefsStorage();
             _isEnableLog = isEnableLog;
-            _fsm = new EnumStateMachine<EPeriodTimerType>(false)
-            {
-                SameStateTransitionPolicy = ESameStateTransitionPolicy.ReEnter
-            };
+            _fsm = new EnumStateMachine<EPeriodTimerType>(false, ESameStateTransitionPolicy.ReEnter);
 
             if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))
                 LogTest("Ctor", $"상태 등록 실패: {EPeriodTimerType.Reset}");

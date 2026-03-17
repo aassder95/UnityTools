@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class Persistence
     {
         private readonly string ROOT_KEY;

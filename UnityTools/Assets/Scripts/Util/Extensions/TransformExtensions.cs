@@ -2,6 +2,9 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public static class TransformExtensions
     {
         public static void SetSizeWidth(this RectTransform rt, float width)

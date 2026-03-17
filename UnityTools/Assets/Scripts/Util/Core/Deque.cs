@@ -5,6 +5,9 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class Deque<T> : IEnumerable<T>
     {
         private LinkedList<T> _deque = new LinkedList<T>();

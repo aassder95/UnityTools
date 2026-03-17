@@ -3,6 +3,9 @@ using System.Collections;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class Spawner<T> : MonoBehaviour where T : Component, IPoolable
     {
         [SerializeField] private T _prefab;

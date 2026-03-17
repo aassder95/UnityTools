@@ -2,6 +2,10 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    // Exception: type-centric file uses Types section.
+    //============================================================
+    //Types
+    //============================================================
     public interface IView<TModel> where TModel : BaseModel
     {
         void Init();

@@ -1,5 +1,9 @@
 namespace UnityTools.Util
 {
+    // Exception: type-centric file uses Types section.
+    //============================================================
+    //Types
+    //============================================================
     public interface IPresenter
     {
         void Init();

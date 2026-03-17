@@ -3,6 +3,9 @@ using UnityEngine.UI;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class DynamicScrollContext
     {
         private readonly int _itemCntPerLine;

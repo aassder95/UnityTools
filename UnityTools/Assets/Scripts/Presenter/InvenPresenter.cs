@@ -4,6 +4,9 @@ using UnityTools.Util;
 
 namespace UnityTools.Presenter
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class InvenPresenter : BasePresenter<InvenModel, InvenView>
     {
         public InvenPresenter(InvenModel model, InvenView view) : base(model, view)

@@ -8,24 +8,24 @@ namespace UnityTools.Manager
     public class PeriodTimerManager : MonoSingleton<PeriodTimerManager>
     {
         //============================================================
-        // Readonly
+        //Readonly
         //============================================================
         private readonly Dictionary<string, PeriodTimerHandle> _handles = new();
         private readonly Dictionary<string, PeriodTimerEventBinder> _eventBinders = new();
 
         //============================================================
-        // Inspector Fields
+        //Inspector Fields
         //============================================================
         [SerializeField] private bool _isEnableLog;
 
         //============================================================
-        // Events
+        //Events
         //============================================================
         public event UnityAction<PeriodTimerData> OnAnyTimerUpdated { add => _onAnyTimerUpdated += value; remove => _onAnyTimerUpdated -= value; }
         private event UnityAction<PeriodTimerData> _onAnyTimerUpdated;
 
         //============================================================
-        // Unity Methods
+        //Unity Methods
         //============================================================
         private void Awake()
         {
@@ -45,7 +45,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        // Init/Register
+        //Init/Register
         //============================================================
         public void InitTimer(PeriodTimerHandle handle, double openMin, double closedMin)
         {
@@ -73,8 +73,7 @@ namespace UnityTools.Manager
         {
             PeriodTimerEventBinder eventBinder = new(this, id);
             _eventBinders[id] = eventBinder;
-
-            handle.OnUpdated += eventBinder.onUpdatedCallback;
+            handle.OnUpdated += eventBinder.OnUpdatedCallback;
         }
 
         private void UnbindEvents(string id, PeriodTimerHandle handle)
@@ -82,31 +81,23 @@ namespace UnityTools.Manager
             if(!_eventBinders.TryGetValue(id, out PeriodTimerEventBinder eventBinder))
                 return;
 
-            handle.OnUpdated -= eventBinder.onUpdatedCallback;
+            handle.OnUpdated -= eventBinder.OnUpdatedCallback;
             _eventBinders.Remove(id);
         }
 
         //============================================================
-        // Logic
+        //Callbacks
         //============================================================
-        private void NotifyAnyTimer(UnityAction<PeriodTimerData> onAction, string id)
+        private void OnTimerUpdatedCallback(string id, int remainMin)
         {
             if(!_handles.TryGetValue(id, out PeriodTimerHandle handle))
                 return;
 
-            onAction?.Invoke(handle.ToData());
+            _onAnyTimerUpdated?.Invoke(handle.ToData());
         }
 
         //============================================================
-        // Callbacks
-        //============================================================
-        private void onTimerUpdatedCallback(string id, int remainMin)
-        {
-            NotifyAnyTimer(_onAnyTimerUpdated, id);
-        }
-
-        //============================================================
-        // Utilities
+        //Utilities
         //============================================================
         public PeriodTimerHandle GetHandle(string id)
         {
@@ -133,19 +124,19 @@ namespace UnityTools.Manager
                 return;
 
             string safeId = id == null ? "null" : id.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
-            Debug.LogWarning($"[PeriodTimerManager:{method}] ¿Ø»ø«œ¡ˆ æ ¿∫ ID ø‰√ª¿ª π´Ω√«’¥œ¥Ÿ: '{safeId}'");
+            Debug.LogWarning($"[PeriodTimerManager:{method}] Ïú†Ìö®ÌïòÏßÄ ÏïäÏùÄ ID ÏöîÏ≤≠ÏùÑ Î¨¥ÏãúÌï©ÎãàÎã§: '{safeId}'");
         }
 
-        private sealed class PeriodTimerEventBinder
+        private class PeriodTimerEventBinder
         {
             //============================================================
-            // Readonly
+            //Readonly
             //============================================================
             private readonly string _id;
             private readonly PeriodTimerManager _manager;
 
             //============================================================
-            // Constructors
+            //Constructors
             //============================================================
             public PeriodTimerEventBinder(PeriodTimerManager manager, string id)
             {
@@ -154,13 +145,15 @@ namespace UnityTools.Manager
             }
 
             //============================================================
-            // Callbacks
+            //Callbacks
             //============================================================
-            public void onUpdatedCallback(int remainMin)
+            public void OnUpdatedCallback(int remainMin)
             {
-                _manager.onTimerUpdatedCallback(_id, remainMin);
+                if(_manager == null)
+                    return;
+
+                _manager.OnTimerUpdatedCallback(_id, remainMin);
             }
         }
     }
 }
-

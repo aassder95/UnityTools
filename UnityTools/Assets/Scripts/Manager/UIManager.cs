@@ -5,6 +5,9 @@ using UnityTools.Util;
 
 namespace UnityTools.Manager
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class UIManager : MonoSingleton<UIManager>
     {
         [Header("Rank")]

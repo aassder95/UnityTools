@@ -25,7 +25,7 @@ namespace UnityTools.Util
         private string _timerId = "test";
         private string _durationSec = "5";
         private string _reduceSec = "1";
-        private string _status = "ÁØºñ ¿Ï·á";
+        private string _status = "Ready";
         private string _savedStart = "-";
         private string _savedDuration = "-";
         private string _savedUpdated = "-";
@@ -46,18 +46,18 @@ namespace UnityTools.Util
         private void OnGUI()
         {
             EditorGUILayout.Space(5);
-            GUILayout.Label("ÀÛ¾÷ Å¸ÀÌ¸Ó Å×½ºÆ®", EditorStyles.boldLabel);
+            GUILayout.Label("ì‘ì—… íƒ€ì´ë¨¸ í…ŒìŠ¤íŠ¸", EditorStyles.boldLabel);
             GUILayout.Space(5);
 
-            _timerId = EditorGUILayout.TextField("Å¸ÀÌ¸Ó ID", _timerId);
-            _durationSec = EditorGUILayout.TextField("½ÃÀÛ ½Ã°£(ÃÊ)", _durationSec);
-            _reduceSec = EditorGUILayout.TextField("Â÷°¨ ½Ã°£(ÃÊ)", _reduceSec);
+            _timerId = EditorGUILayout.TextField("íƒ€ì´ë¨¸ ID", _timerId);
+            _durationSec = EditorGUILayout.TextField("ì‹œì‘ ì‹œê°„(ì´ˆ)", _durationSec);
+            _reduceSec = EditorGUILayout.TextField("ì°¨ê° ì‹œê°„(ì´ˆ)", _reduceSec);
 
             GUILayout.Space(8);
-            DrawActionButtonRow("Å¸ÀÌ¸Ó ÃÊ±âÈ­", InitTimer, "½ÃÀÛ", StartTimer);
-            DrawActionButtonRow("½Ã°£ Â÷°¨", ReduceTimer, "Áï½Ã ¿Ï·á", CompleteImmediately);
-            DrawActionButtonRow("º¸»ó ¼ö·É", Claim, "ÇöÀç »óÅÂ ¾Ë¸²", NotifyCurrentType);
-            DrawActionButtonRow("ÀúÀå°ª »èÁ¦", ClearSavedData, "ÀúÀå°ª Á¶È¸", LoadSavedData);
+            DrawActionButtonRow("íƒ€ì´ë¨¸ ì´ˆê¸°í™”", InitTimer, "ì‹œì‘", StartTimer);
+            DrawActionButtonRow("ì‹œê°„ ì°¨ê°", ReduceTimer, "ì¦‰ì‹œ ì™„ë£Œ", CompleteImmediately);
+            DrawActionButtonRow("ë³´ìƒ ìˆ˜ë ¹", Claim, "í˜„ì¬ ìƒíƒœ ì•Œë¦¼", NotifyCurrentType);
+            DrawActionButtonRow("ì €ì¥ê°’ ì‚­ì œ", ClearSavedData, "ì €ì¥ê°’ ì¡°íšŒ", LoadSavedData);
 
             GUILayout.Space(8);
             DrawCurrentState();
@@ -77,7 +77,7 @@ namespace UnityTools.Util
             if(!TryGetId(out string id))
                 return;
 
-            if(!EditorUtility.DisplayDialog("È®ÀÎ", $"{id} ÀúÀå°ªÀ» »èÁ¦ÇÒ±î¿ä?", "»èÁ¦", "Ãë¼Ò"))
+            if(!EditorUtility.DisplayDialog("í™•ì¸", $"{id} ì €ì¥ê°’ì„ ì‚­ì œí• ê¹Œìš”?", "ì‚­ì œ", "ì·¨ì†Œ"))
                 return;
 
             _storage.Delete(TaskTimerStorageKeys.Start(id));
@@ -86,7 +86,7 @@ namespace UnityTools.Util
             _storage.Delete(TaskTimerStorageKeys.State(id));
 
             LoadSavedData();
-            _status = $"ÀúÀå°ª »èÁ¦ ¿Ï·á: {id}";
+            _status = $"ì €ì¥ê°’ ì‚­ì œ ì™„ë£Œ: {id}";
         }
 
         private void LoadSavedData()
@@ -98,7 +98,7 @@ namespace UnityTools.Util
             _savedDuration = ReadDurationKey(TaskTimerStorageKeys.Duration(id));
             _savedUpdated = ReadDateKey(TaskTimerStorageKeys.Updated(id));
             _savedState = ReadStateKey(TaskTimerStorageKeys.State(id));
-            _status = $"ÀúÀå°ª Á¶È¸ ¿Ï·á: {id}";
+            _status = $"ì €ì¥ê°’ ì¡°íšŒ ì™„ë£Œ: {id}";
         }
 
         //============================================================
@@ -112,12 +112,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetHandle(id) ?? manager.CreateTaskTimerHandle(id);
             if(handle == null)
             {
-                _status = "TaskTimerHandle »ı¼º ½ÇÆĞ";
+                _status = "TaskTimerHandle ìƒì„± ì‹¤íŒ¨";
                 return;
             }
 
             manager.InitTimer(handle);
-            _status = $"ÃÊ±âÈ­ ¿Ï·á: {id}";
+            _status = $"ì´ˆê¸°í™” ì™„ë£Œ: {id}";
         }
 
         private void StartTimer()
@@ -127,19 +127,19 @@ namespace UnityTools.Util
 
             if(!TryParseSeconds(_durationSec, out double durationSec) || durationSec <= 0d)
             {
-                _status = $"½ÃÀÛ ½Ã°£(ÃÊ) ÆÄ½Ì ½ÇÆĞ ¶Ç´Â 0 ÀÌÇÏ: {_durationSec}";
+                _status = $"ì‹œì‘ ì‹œê°„(ì´ˆ) íŒŒì‹± ì‹¤íŒ¨ ë˜ëŠ” 0 ì´í•˜: {_durationSec}";
                 return;
             }
 
             TaskTimerHandle handle = manager.GetHandle(id);
             if(handle == null)
             {
-                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
+                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
                 return;
             }
 
             manager.StartTimer(id, durationSec);
-            _status = $"½ÃÀÛ ¿äÃ» ¿Ï·á: {id}, duration={durationSec}ÃÊ";
+            _status = $"ì‹œì‘ ìš”ì²­ ì™„ë£Œ: {id}, duration={durationSec}ì´ˆ";
         }
 
         private void ReduceTimer()
@@ -149,19 +149,19 @@ namespace UnityTools.Util
 
             if(!TryParseSeconds(_reduceSec, out double reduceSec) || reduceSec <= 0d)
             {
-                _status = $"Â÷°¨ ½Ã°£(ÃÊ) ÆÄ½Ì ½ÇÆĞ ¶Ç´Â 0 ÀÌÇÏ: {_reduceSec}";
+                _status = $"ì°¨ê° ì‹œê°„(ì´ˆ) íŒŒì‹± ì‹¤íŒ¨ ë˜ëŠ” 0 ì´í•˜: {_reduceSec}";
                 return;
             }
 
             TaskTimerHandle handle = manager.GetHandle(id);
             if(handle == null)
             {
-                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
+                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
                 return;
             }
 
             manager.Reduce(id, reduceSec);
-            _status = $"Â÷°¨ ¿äÃ» ¿Ï·á: {id}, reduce={reduceSec}ÃÊ";
+            _status = $"ì°¨ê° ìš”ì²­ ì™„ë£Œ: {id}, reduce={reduceSec}ì´ˆ";
         }
 
         private void CompleteImmediately()
@@ -172,12 +172,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetHandle(id);
             if(handle == null)
             {
-                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
+                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
                 return;
             }
 
             manager.CompleteImmediately(id);
-            _status = $"Áï½Ã ¿Ï·á ¿äÃ» ¿Ï·á: {id}";
+            _status = $"ì¦‰ì‹œ ì™„ë£Œ ìš”ì²­ ì™„ë£Œ: {id}";
         }
 
         private void Claim()
@@ -188,12 +188,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetHandle(id);
             if(handle == null)
             {
-                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
+                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
                 return;
             }
 
             manager.Claim(id);
-            _status = $"º¸»ó ¼ö·É ¿äÃ» ¿Ï·á: {id}";
+            _status = $"ë³´ìƒ ìˆ˜ë ¹ ìš”ì²­ ì™„ë£Œ: {id}";
         }
 
         private void NotifyCurrentType()
@@ -204,12 +204,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetHandle(id);
             if(handle == null)
             {
-                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
+                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
                 return;
             }
 
             handle.NotifyCurType();
-            _status = $"ÇöÀç »óÅÂ ¾Ë¸² È£Ãâ ¿Ï·á: {id}, {handle.CurType}";
+            _status = $"í˜„ì¬ ìƒíƒœ ì•Œë¦¼ í˜¸ì¶œ ì™„ë£Œ: {id}, {handle.CurType}";
         }
 
         private bool TryGetManagerAndId(out TaskTimerManager manager, out string id)
@@ -219,7 +219,7 @@ namespace UnityTools.Util
 
             if(!Application.isPlaying)
             {
-                _status = "ÇÃ·¹ÀÌ ¸ğµå¿¡¼­¸¸ °¡´ÉÇÕ´Ï´Ù.";
+                _status = "í”Œë ˆì´ ëª¨ë“œì—ì„œë§Œ ê°€ëŠ¥í•©ë‹ˆë‹¤.";
                 return false;
             }
 
@@ -230,7 +230,7 @@ namespace UnityTools.Util
             if(manager != null)
                 return true;
 
-            _status = "TaskTimerManager¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.";
+            _status = "TaskTimerManagerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.";
             return false;
         }
 
@@ -240,7 +240,7 @@ namespace UnityTools.Util
             if(!string.IsNullOrEmpty(id))
                 return true;
 
-            _status = "Å¸ÀÌ¸Ó ID¸¦ ÀÔ·ÂÇÏ¼¼¿ä.";
+            _status = "íƒ€ì´ë¨¸ IDë¥¼ ì…ë ¥í•˜ì„¸ìš”.";
             return false;
         }
 
@@ -257,62 +257,62 @@ namespace UnityTools.Util
         {
             if(!Application.isPlaying)
             {
-                EditorGUILayout.HelpBox("ÇöÀç ¿¡µğÅÍ ¸ğµåÀÔ´Ï´Ù. »óÅÂ Á¶È¸´Â ÇÃ·¹ÀÌ ¸ğµå¿¡¼­ È®ÀÎÇÏ¼¼¿ä.", MessageType.None);
+                EditorGUILayout.HelpBox("í˜„ì¬ ì—ë””í„° ëª¨ë“œì…ë‹ˆë‹¤. ìƒíƒœ ì¡°íšŒëŠ” í”Œë ˆì´ ëª¨ë“œì—ì„œ í™•ì¸í•˜ì„¸ìš”.", MessageType.None);
                 return;
             }
 
             if(!TryGetId(out string id))
             {
-                EditorGUILayout.HelpBox("Å¸ÀÌ¸Ó ID¸¦ ÀÔ·ÂÇÏ¼¼¿ä.", MessageType.None);
+                EditorGUILayout.HelpBox("íƒ€ì´ë¨¸ IDë¥¼ ì…ë ¥í•˜ì„¸ìš”.", MessageType.None);
                 return;
             }
 
             TaskTimerManager manager = TaskTimerManager.Instance;
             if(manager == null)
             {
-                EditorGUILayout.HelpBox("TaskTimerManager¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.", MessageType.None);
+                EditorGUILayout.HelpBox("TaskTimerManagerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", MessageType.None);
                 return;
             }
 
             TaskTimerHandle handle = manager.GetHandle(id);
             if(handle == null)
             {
-                EditorGUILayout.HelpBox("ÇöÀç ÇÚµéÀÌ ¾ø½À´Ï´Ù.", MessageType.None);
-                EditorGUILayout.LabelField("Claimed(ÀúÀå ±âÁØ)", manager.IsClaimed(id).ToString());
+                EditorGUILayout.HelpBox("í˜„ì¬ í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤.", MessageType.None);
+                EditorGUILayout.LabelField("Claimed(ì €ì¥ ê¸°ì¤€)", manager.IsClaimed(id).ToString());
                 return;
             }
 
             TaskTimerData data = handle.ToData();
-            EditorGUILayout.LabelField("ÇöÀç »óÅÂ", handle.CurType.ToString());
-            EditorGUILayout.LabelField("³²Àº ½Ã°£(ÃÊ)", handle.RemainingSec.ToString());
-            EditorGUILayout.LabelField("ÃÑ ½Ã°£(ÃÊ)", data.DurationSec.ToString());
-            EditorGUILayout.LabelField("ÁøÇà·ü", data.Progress.ToString("P1", CultureInfo.InvariantCulture));
+            EditorGUILayout.LabelField("í˜„ì¬ ìƒíƒœ", handle.CurType.ToString());
+            EditorGUILayout.LabelField("ë‚¨ì€ ì‹œê°„(ì´ˆ)", handle.RemainingSec.ToString());
+            EditorGUILayout.LabelField("ì´ ì‹œê°„(ì´ˆ)", data.DurationSec.ToString());
+            EditorGUILayout.LabelField("ì§„í–‰ë¥ ", data.Progress.ToString("P1", CultureInfo.InvariantCulture));
             EditorGUILayout.LabelField("Claimed", handle.IsClaimed.ToString());
         }
 
         private void DrawSavedData()
         {
-            GUILayout.Label("ÀúÀå°ª µğ¹ö±ë", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("½ÃÀÛ ½Ã°£(START)", _savedStart);
-            EditorGUILayout.LabelField("Áö¼Ó ½Ã°£(DURATION)", _savedDuration);
-            EditorGUILayout.LabelField("°»½Å ½Ã°£(UPDATED)", _savedUpdated);
-            EditorGUILayout.LabelField("»óÅÂ(STATE)", _savedState);
+            GUILayout.Label("ì €ì¥ê°’ ë””ë²„ê¹…", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("ì‹œì‘ ì‹œê°„(START)", _savedStart);
+            EditorGUILayout.LabelField("ì§€ì† ì‹œê°„(DURATION)", _savedDuration);
+            EditorGUILayout.LabelField("ê°±ì‹  ì‹œê°„(UPDATED)", _savedUpdated);
+            EditorGUILayout.LabelField("ìƒíƒœ(STATE)", _savedState);
         }
 
         private string ReadDateKey(string key)
         {
             if(!_storage.HasKey(key))
-                return "(¾øÀ½)";
+                return "(ì—†ìŒ)";
 
             string raw = _storage.Load(key);
             if(!long.TryParse(raw, out long ticks))
-                return $"Àß¸øµÈ ticks °ª: {raw}";
+                return $"ì˜ëª»ëœ ticks ê°’: {raw}";
 
             if(ticks == DateTime.MinValue.Ticks)
                 return $"{raw} (DateTime.MinValue)";
 
             if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"¹üÀ§ ÃÊ°ú ticks: {raw}";
+                return $"ë²”ìœ„ ì´ˆê³¼ ticks: {raw}";
 
             DateTime time = new DateTime(ticks, DateTimeKind.Utc);
             return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
@@ -321,7 +321,7 @@ namespace UnityTools.Util
         private string ReadDurationKey(string key)
         {
             if(!_storage.HasKey(key))
-                return "(¾øÀ½)";
+                return "(ì—†ìŒ)";
 
             string raw = _storage.Load(key);
             if(double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
@@ -330,20 +330,20 @@ namespace UnityTools.Util
                 return $"{raw} ({value:F2} sec)";
             }
 
-            return $"Àß¸øµÈ duration °ª: {raw}";
+            return $"ì˜ëª»ëœ duration ê°’: {raw}";
         }
 
         private string ReadStateKey(string key)
         {
             if(!_storage.HasKey(key))
-                return "(¾øÀ½)";
+                return "(ì—†ìŒ)";
 
             string raw = _storage.Load(key);
             if(!int.TryParse(raw, out int intState))
-                return $"Àß¸øµÈ state °ª: {raw}";
+                return $"ì˜ëª»ëœ state ê°’: {raw}";
 
             ETaskTimerType type = (ETaskTimerType)intState;
-            return Enum.IsDefined(typeof(ETaskTimerType), type) ? $"{raw} ({type})" : $"{raw} (Á¤ÀÇµÇÁö ¾ÊÀº »óÅÂ)";
+            return Enum.IsDefined(typeof(ETaskTimerType), type) ? $"{raw} ({type})" : $"{raw} (ì •ì˜ë˜ì§€ ì•Šì€ ìƒíƒœ)";
         }
 
         private static void DrawActionButtonRow(string leftLabel, Action leftAction, string rightLabel, Action rightAction)

@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public static class CsvJsonConverter
     {
         public static void Convert(string csvPath, string jsonPath)

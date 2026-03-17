@@ -4,6 +4,9 @@ using UnityTools.Util;
 
 namespace UnityTools.Presenter
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class RankPresenter : BasePresenter<RankModel, RankView>
     {
         public RankPresenter(RankModel model, RankView view) : base(model, view)

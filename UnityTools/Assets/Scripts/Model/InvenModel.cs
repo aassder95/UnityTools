@@ -3,6 +3,9 @@ using UnityTools.Util;
 
 namespace UnityTools.Model
 {
+    //============================================================
+    //Logic
+    //============================================================
 	public class InvenModel : BaseModel
 	{
 		private List<InvenItemModel> _itemModels = new();

@@ -5,39 +5,56 @@ namespace UnityTools.Model
 {
     public class TimerModel : BaseModel
     {
-        public string State { get; private set; }
-        public string SubState { get; private set; }
-        public int LoopMinutes { get; private set; }
-        public DateTime OpenStart { get; private set; }
-        public DateTime OpenUpdated { get; private set; }
-        public DateTime OpenEnd { get; private set; }
-        public DateTime ClosedEnd { get; private set; }
+        //============================================================
+        //Fields
+        //============================================================
+        private string _state;
+        private string _subState;
+        private int _loopMinutes;
+        private DateTime _openStart;
+        private DateTime _openUpdated;
+        private DateTime _openEnd;
+        private DateTime _closedEnd;
 
+        //============================================================
+        //Properties
+        //============================================================
+        public string State => _state;
+        public string SubState => _subState;
+        public int LoopMinutes => _loopMinutes;
+        public DateTime OpenStart => _openStart;
+        public DateTime OpenUpdated => _openUpdated;
+        public DateTime OpenEnd => _openEnd;
+        public DateTime ClosedEnd => _closedEnd;
+
+        //============================================================
+        //Logic
+        //============================================================
         public void SetState(string state)
         {
-            State = state;
+            _state = state;
             NotifyUpdated();
         }
 
         public void SetSubState(string state)
         {
-            SubState = state;
+            _subState = state;
             NotifyUpdated();
         }
 
         public void SetLoop(int min, DateTime openUpdated)
         {
-            LoopMinutes = min;
-            OpenUpdated = openUpdated;
+            _loopMinutes = min;
+            _openUpdated = openUpdated;
             NotifyUpdated();
         }
 
         public void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
-            OpenStart = openStart;
-            OpenUpdated = openUpdated;
-            OpenEnd = openEnd;
-            ClosedEnd = closedEnd;
+            _openStart = openStart;
+            _openUpdated = openUpdated;
+            _openEnd = openEnd;
+            _closedEnd = closedEnd;
             NotifyUpdated();
         }
     }

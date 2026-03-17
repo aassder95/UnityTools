@@ -2,6 +2,9 @@ using UnityTools.Util;
 
 namespace UnityTools.UI
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class RankScrollView : DynamicScrollView<RankItemView>
     {
         public void UpdateItemView() => ItemController.Update();

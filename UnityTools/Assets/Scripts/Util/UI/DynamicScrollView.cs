@@ -4,6 +4,9 @@ using UnityEngine.UI;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
     {

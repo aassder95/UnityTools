@@ -9,6 +9,9 @@ namespace UnityTools.UI
 {
     public class TimerView : BaseView<TimerModel>
     {
+        //============================================================
+        //Inspector Fields
+        //============================================================
         [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtSubState;
         [SerializeField] private TextMeshProUGUI _txtCur;
@@ -18,9 +21,17 @@ namespace UnityTools.UI
         [SerializeField] private TextMeshProUGUI _txtOpenEnd;
         [SerializeField] private TextMeshProUGUI _txtClosedEnd;
 
-        public event UnityAction OnForceOpen;
-        public event UnityAction OnForceClosed;
-        
+        //============================================================
+        //Events
+        //============================================================
+        public event UnityAction OnForceOpen { add => _onForceOpen += value; remove => _onForceOpen -= value; }
+        public event UnityAction OnForceClosed { add => _onForceClosed += value; remove => _onForceClosed -= value; }
+        private event UnityAction _onForceOpen;
+        private event UnityAction _onForceClosed;
+
+        //============================================================
+        //Logic
+        //============================================================
         public override void Refresh(TimerModel model)
         {
             SetState(model.State, model.SubState);
@@ -28,11 +39,30 @@ namespace UnityTools.UI
             SetTimer(model.OpenStart, model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
         }
 
+        //============================================================
+        //Unity Methods
+        //============================================================
         private void Update()
         {
             _txtCur.SetText($"cur: {DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow)}");
         }
 
+        //============================================================
+        //Callbacks
+        //============================================================
+        public void OnForceOpenInspector()
+        {
+            _onForceOpen?.Invoke();
+        }
+
+        public void OnForceClosedInspector()
+        {
+            _onForceClosed?.Invoke();
+        }
+
+        //============================================================
+        //Utilities
+        //============================================================
         private void SetState(string state, string subState)
         {
             _txtState.SetText(state);
@@ -51,16 +81,6 @@ namespace UnityTools.UI
             _txtOpenUpdated.SetText($"updated: {openUpdated}");
             _txtOpenEnd.SetText($"open: {openEnd}");
             _txtClosedEnd.SetText($"closed: {closedEnd}");
-        }
-
-        public void OnForceOpenInspector()
-        {
-            OnForceOpen?.Invoke();
-        }
-
-        public void OnForceClosedInspector()
-        {
-            OnForceClosed?.Invoke();
         }
     }
 }

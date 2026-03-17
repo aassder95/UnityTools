@@ -4,85 +4,153 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
+    // 예외 사유: 인터페이스 중심 파일이라 Types 섹션을 사용한다.
+    //============================================================
+    //Types
+    //============================================================
     public interface IDynamicScrollItem
     {
-        int Index { get; set; }
+        int GetIndex();
+        void SetIndex(int index);
         void SetPosition(Vector2 pos);
     }
 
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly DynamicScrollContext _context;
         private readonly ObjectPool<TView> _pool;
-        private Deque<TView> _items = new();
+        private readonly Deque<TView> _items = new();
 
-        public int FirstIndex => _items.Peek()?.Index ?? 0;
+        //============================================================
+        //Events
+        //============================================================
+        public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated += value; remove => _onItemUpdated -= value; }
+        private event UnityAction<TView> _onItemUpdated;
+
+        //============================================================
+        //Properties
+        //============================================================
+        public int FirstIndex
+        {
+            get
+            {
+                TView item = _items.Peek();
+                return item == null ? 0 : item.GetIndex();
+            }
+        }
         public int Count => _items.Count;
 
-        public event UnityAction<TView> OnItemUpdated;
-
+        //============================================================
+        //Constructors
+        //============================================================
         public DynamicScrollItemController(DynamicScrollContext context, ObjectPool<TView> pool)
         {
             _context = context;
             _pool = pool;
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public TView Create(int idx)
         {
             TView item = _pool.Get();
-            item.Index = idx;
+            item.SetIndex(idx);
             item.SetPosition(_context.CalculateItemPosition(idx));
-            OnItemUpdated?.Invoke(item);
+            _onItemUpdated?.Invoke(item);
             return item;
         }
 
-        public void Update() => _items.ForEach(item => OnItemUpdated?.Invoke(item));
-        public void UpdatePosition() => _items.ForEach(item => item.SetPosition(_context.CalculateItemPosition(item.Index)));
-
-        private void Add(int idx, bool isBack)
+        public void Update()
         {
-            if (isBack)
-                _items.Enqueue(Create(idx));
-            else
-                _items.EnqueueFront(Create(idx));
+            foreach (TView item in _items)
+                _onItemUpdated?.Invoke(item);
+        }
+
+        public void UpdatePosition()
+        {
+            foreach (TView item in _items)
+                item.SetPosition(_context.CalculateItemPosition(item.GetIndex()));
         }
 
         public void AddRange(int cnt, int totalCnt)
         {
             bool isBack = FirstIndex + _items.Count < totalCnt;
             int idx = isBack ? FirstIndex + _items.Count : FirstIndex - 1;
-            AddRange(cnt, idx, isBack);
+            for(int j = 0; j < cnt; j++)
+                Add(idx + j, isBack);
         }
 
         public void AddRange(int cnt, int idx, bool isBack)
         {
-            for (int j = 0; j < cnt; j++)
-            {
+            for(int j = 0; j < cnt; j++)
                 Add(idx + j, isBack);
+        }
+
+        public void RemoveRange(int cnt, int lastLine)
+        {
+            bool isBack = FirstIndex >= _context.CalculateFirstVisibleItemIndex(lastLine);
+            for(int j = 0; j < cnt; j++)
+                Remove(isBack);
+        }
+
+        public void RemoveRange(int cnt, bool isBack)
+        {
+            for(int j = 0; j < cnt; j++)
+                Remove(isBack);
+        }
+
+        public TView Get(int idx)
+        {
+            foreach (TView item in _items)
+            {
+                if(item.GetIndex() == idx)
+                    return item;
             }
+
+            return null;
+        }
+
+        public TView Get(Func<TView, bool> cond)
+        {
+            if(cond == null)
+                return null;
+
+            foreach (TView item in _items)
+            {
+                if(cond(item))
+                    return item;
+            }
+
+            return null;
+        }
+
+        private void Add(int idx, bool isBack)
+        {
+            if(isBack)
+            {
+                _items.Enqueue(Create(idx));
+                return;
+            }
+
+            _items.EnqueueFront(Create(idx));
         }
 
         private void Remove(bool isBack)
         {
-            if (_items.Count <= 0)
+            if(_items.Count <= 0)
                 return;
 
-            if (isBack)
-                _pool.Return(_items.DequeueBack());
-            else
-                _pool.Return(_items.Dequeue());
-        }
-
-        public void RemoveRange(int cnt, int lastLine) => RemoveRange(cnt, FirstIndex >= _context.CalculateFirstVisibleItemIndex(lastLine));
-        public void RemoveRange(int cnt, bool isBack)
-        {
-            for (int j = 0; j < cnt; j++)
+            if(isBack)
             {
-                Remove(isBack);
+                _pool.Return(_items.DequeueBack());
+                return;
             }
-        }
 
-        public TView Get(int idx) => Get(item => item.Index == idx);
-        public TView Get(Func<TView, bool> cond) => _items.FirstOrDefault(cond);
+            _pool.Return(_items.Dequeue());
+        }
     }
 }

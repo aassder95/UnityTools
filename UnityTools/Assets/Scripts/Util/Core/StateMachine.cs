@@ -1,10 +1,14 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
+    // Exception: type-centric file uses Types section.
+    //============================================================
+    //Types
+    //============================================================
     public interface IState
     {
         void Enter();
@@ -31,20 +35,21 @@ namespace UnityTools.Util
     public class EnumStateMachine<TType> where TType : Enum
     {
         //============================================================
-        // Readonly
+        //Readonly
         //============================================================
         private readonly Dictionary<TType, IState> _states = new();
         private readonly bool _isEnableLog;
 
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private TType _curType;
         private IState _curState;
         private bool _hasCurrentState;
+        private ESameStateTransitionPolicy _sameStateTransitionPolicy;
 
         //============================================================
-        // Events
+        //Events
         //============================================================
         public event UnityAction<TType> OnStateChanged { add => _onStateChanged += value; remove => _onStateChanged -= value; }
         public event UnityAction<TType, TType> OnStateChanging { add => _onStateChanging += value; remove => _onStateChanging -= value; }
@@ -54,22 +59,31 @@ namespace UnityTools.Util
         private event UnityAction<TType, TType, EStateTransitionFailReason> _onTransitionFailed;
 
         //============================================================
-        // Properties
+        //Properties
         //============================================================
         public TType CurType => _curType;
         public bool HasCurrentState => _hasCurrentState;
-        public ESameStateTransitionPolicy SameStateTransitionPolicy { get; set; } = ESameStateTransitionPolicy.ReEnter;
+        public ESameStateTransitionPolicy SameStateTransitionPolicy => _sameStateTransitionPolicy;
 
         //============================================================
-        // Constructors
+        //Constructors
         //============================================================
-        public EnumStateMachine(bool isEnableLog = true)
+        public EnumStateMachine(bool isEnableLog = true, ESameStateTransitionPolicy sameStateTransitionPolicy = ESameStateTransitionPolicy.ReEnter)
         {
             _isEnableLog = isEnableLog;
+            _sameStateTransitionPolicy = sameStateTransitionPolicy;
         }
 
         //============================================================
-        // Logic
+        //Init/Register
+        //============================================================
+        public void SetSameStateTransitionPolicy(ESameStateTransitionPolicy sameStateTransitionPolicy)
+        {
+            _sameStateTransitionPolicy = sameStateTransitionPolicy;
+        }
+
+        //============================================================
+        //Logic
         //============================================================
         public bool Add(TType type, IState state)
         {
@@ -88,7 +102,8 @@ namespace UnityTools.Util
 
         public bool Change(TType type, bool isUpdate = false)
         {
-            return Change(type, out _, isUpdate);
+            EStateTransitionFailReason failReason;
+            return Change(type, out failReason, isUpdate);
         }
 
         public bool Change(TType type, out EStateTransitionFailReason failReason, bool isUpdate = false)
@@ -102,7 +117,7 @@ namespace UnityTools.Util
             }
 
             bool isSameState = _hasCurrentState && EqualityComparer<TType>.Default.Equals(_curType, type);
-            if(isSameState && SameStateTransitionPolicy == ESameStateTransitionPolicy.Ignore)
+            if(isSameState && _sameStateTransitionPolicy == ESameStateTransitionPolicy.Ignore)
             {
                 failReason = EStateTransitionFailReason.SameStateIgnored;
                 LogTransitionFailure("Change", type, failReason);
@@ -134,7 +149,8 @@ namespace UnityTools.Util
                 return false;
             }
 
-            return Change(type, out _, isUpdate);
+            EStateTransitionFailReason failReason;
+            return Change(type, out failReason, isUpdate);
         }
 
         public bool HasState(TType type)
@@ -148,7 +164,7 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        // Utilities
+        //Utilities
         //============================================================
         private void LogTransitionFailure(string method, TType targetType, EStateTransitionFailReason reason)
         {
@@ -157,7 +173,7 @@ namespace UnityTools.Util
                 return;
 
             string fromState = _hasCurrentState ? _curType.ToString() : "<none>";
-            Debug.LogWarning($"[EnumStateMachine:{method}] 상태 전이 실패: {fromState} -> {targetType}, reason={reason}");
+            Debug.LogWarning($"[EnumStateMachine:{method}] transition failed: {fromState} -> {targetType}, reason={reason}");
         }
     }
 }

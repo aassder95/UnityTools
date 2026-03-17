@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
+    //============================================================
+    //Logic
+    //============================================================
     public class CoroutineHelper : MonoBehaviour
     {
         private static CoroutineHelper _instance;

@@ -79,10 +79,7 @@ namespace UnityTools.Util
             _runner = runner;
             _storage = new PlayerPrefsStorage();
             _isEnableLog = isEnableLog;
-            _fsm = new EnumStateMachine<ETaskTimerType>(false)
-            {
-                SameStateTransitionPolicy = ESameStateTransitionPolicy.Ignore
-            };
+            _fsm = new EnumStateMachine<ETaskTimerType>(false, ESameStateTransitionPolicy.Ignore);
 
             if(!_fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this)))
                 LogTest("Ctor", $"상태 등록 실패: {ETaskTimerType.None}");

@@ -1,4 +1,4 @@
-﻿using UnityTools.Model;
+using UnityTools.Model;
 using UnityTools.UI;
 using UnityTools.Util;
 
@@ -7,19 +7,19 @@ namespace UnityTools.Presenter
     public class TimerPresenter : BasePresenter<TimerModel, TimerView>
     {
         //============================================================
-        // Fields
+        //Fields
         //============================================================
         private PeriodTimer _periodTimer;
 
         //============================================================
-        // Constructors
+        //Constructors
         //============================================================
         public TimerPresenter(TimerModel model, TimerView view) : base(model, view)
         {
         }
 
         //============================================================
-        // Init/Register
+        //Init/Register
         //============================================================
         public override void Init()
         {
@@ -44,8 +44,8 @@ namespace UnityTools.Presenter
 
             VIEW.OnForceOpen += _periodTimer.ForceOpen;
             VIEW.OnForceClosed += _periodTimer.ForceClosed;
-            _periodTimer.OnUpdated += onTimerUpdatedCallback;
-            _periodTimer.OnStateChanged += onStateChangedCallback;
+            _periodTimer.OnUpdated += OnTimerUpdatedCallback;
+            _periodTimer.OnStateChanged += OnStateChangedCallback;
         }
 
         protected override void UnbindEvents()
@@ -54,17 +54,17 @@ namespace UnityTools.Presenter
             {
                 VIEW.OnForceOpen -= _periodTimer.ForceOpen;
                 VIEW.OnForceClosed -= _periodTimer.ForceClosed;
-                _periodTimer.OnUpdated -= onTimerUpdatedCallback;
-                _periodTimer.OnStateChanged -= onStateChangedCallback;
+                _periodTimer.OnUpdated -= OnTimerUpdatedCallback;
+                _periodTimer.OnStateChanged -= OnStateChangedCallback;
             }
 
             base.UnbindEvents();
         }
 
         //============================================================
-        // Callbacks
+        //Callbacks
         //============================================================
-        private void onStateChangedCallback(EPeriodTimerType type)
+        private void OnStateChangedCallback(EPeriodTimerType type)
         {
             MODEL.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
@@ -84,7 +84,7 @@ namespace UnityTools.Presenter
             }
         }
 
-        private void onTimerUpdatedCallback(int remainMin)
+        private void OnTimerUpdatedCallback(int remainMin)
         {
             MODEL.SetLoop(remainMin, _periodTimer.OpenUpdatedTime);
         }
