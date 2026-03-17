@@ -30,6 +30,14 @@ namespace UnityTools.UI
         private event UnityAction _onForceClosed;
 
         //============================================================
+        //Unity Methods
+        //============================================================
+        private void Update()
+        {
+            _txtCur.SetText($"cur: {DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow)}");
+        }
+
+        //============================================================
         //Logic
         //============================================================
         public override void Refresh(TimerModel model)
@@ -37,14 +45,6 @@ namespace UnityTools.UI
             SetState(model.State, model.SubState);
             SetLoop(model.LoopMinutes, model.OpenUpdated);
             SetTimer(model.OpenStart, model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
-        }
-
-        //============================================================
-        //Unity Methods
-        //============================================================
-        private void Update()
-        {
-            _txtCur.SetText($"cur: {DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow)}");
         }
 
         //============================================================

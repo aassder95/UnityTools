@@ -31,6 +31,12 @@ namespace UnityTools.Util
         private UnityAction<TView> _onControllerItemUpdated;
 
         //============================================================
+        //Events
+        //============================================================
+        public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated.AddListener(value); remove => _onItemUpdated.RemoveListener(value); }
+        private readonly UnityEvent<TView> _onItemUpdated = new();
+
+        //============================================================
         //Properties
         //============================================================
         protected DynamicScrollContext Context => _context;
@@ -41,12 +47,6 @@ namespace UnityTools.Util
         protected RectTransform RectTransform => _rt;
         protected RectTransform RtContent => _rtContent;
         protected ScrollRect ScrollRect => _scrollRect;
-
-        //============================================================
-        //Events
-        //============================================================
-        public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated.AddListener(value); remove => _onItemUpdated.RemoveListener(value); }
-        private readonly UnityEvent<TView> _onItemUpdated = new();
 
         //============================================================
         //Unity Methods

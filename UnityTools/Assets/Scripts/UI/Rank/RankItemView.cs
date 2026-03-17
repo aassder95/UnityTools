@@ -11,7 +11,6 @@ namespace UnityTools.UI
         //============================================================
         //Inspector Fields
         //============================================================
-        [SerializeField] private Color[] _colorTmp;
         [SerializeField] private TextMeshProUGUI _txtId;
         [SerializeField] private TextMeshProUGUI _txtRank;
         [SerializeField] private TextMeshProUGUI _txtScore;

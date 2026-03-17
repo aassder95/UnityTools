@@ -1,25 +1,27 @@
-using System.IO;
+﻿using System.IO;
 using UnityEditor;
 using UnityEngine;
 
 namespace UnityTools.Util
 {
-    //============================================================
-    //Logic
-    //============================================================
-    public class Menu
+    public class DataMenuCommands
     {
-        [MenuItem("Util/Data/Clear AllData")] 
+        //============================================================
+        //Logic
+        //============================================================
+        [MenuItem("Util/Data/Clear AllData")]
         private static void ClearAllData()
         {
             PlayerPrefs.DeleteAll();
-            Directory.Delete(Application.persistentDataPath, true);
+
+            if(Directory.Exists(Application.persistentDataPath))
+                Directory.Delete(Application.persistentDataPath, true);
         }
 
         [MenuItem("Util/Data/Clear PlayerPrefs")]
         private static void ClearPlayerPrefs()
         {
-            if(!EditorUtility.DisplayDialog("확인", "PlayerPrefs를 삭제하시겠습니까?", "삭제", "취소"))
+            if(!EditorUtility.DisplayDialog("Confirm", "Delete PlayerPrefs?", "Delete", "Cancel"))
                 return;
 
             PlayerPrefs.DeleteAll();
@@ -28,7 +30,7 @@ namespace UnityTools.Util
         [MenuItem("Util/Data/Clear PersistentData")]
         private static void ClearPersistentData()
         {
-            if(!EditorUtility.DisplayDialog("확인", "PersistentData를 삭제하시겠습니까?", "삭제", "취소"))
+            if(!EditorUtility.DisplayDialog("Confirm", "Delete PersistentData?", "Delete", "Cancel"))
                 return;
 
             if(!Directory.Exists(Application.persistentDataPath))
@@ -36,16 +38,22 @@ namespace UnityTools.Util
 
             Directory.Delete(Application.persistentDataPath, true);
         }
+    }
 
-        [MenuItem("Util/Convert/CSV to JSON")] 
+    public class ConvertMenuCommands
+    {
+        //============================================================
+        //Logic
+        //============================================================
+        [MenuItem("Util/Convert/CSV to JSON")]
         private static void ConvertCsvToJson()
         {
             string csvPath = EditorUtility.OpenFilePanel("Select CSV file", "", "csv");
-            if (string.IsNullOrEmpty(csvPath))
+            if(string.IsNullOrEmpty(csvPath))
                 return;
 
             string jsonPath = EditorUtility.SaveFilePanel("Save JSON file", "", "converted.txt", "txt");
-            if (string.IsNullOrEmpty(jsonPath))
+            if(string.IsNullOrEmpty(jsonPath))
                 return;
 
             CsvJsonConverter.Convert(csvPath, jsonPath);

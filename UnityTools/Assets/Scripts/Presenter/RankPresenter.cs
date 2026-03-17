@@ -5,9 +5,6 @@ using UnityEngine.Events;
 
 namespace UnityTools.Presenter
 {
-    //============================================================
-    //Logic
-    //============================================================
     public class RankPresenter : BasePresenter<RankModel, RankView>
     {
         //============================================================
