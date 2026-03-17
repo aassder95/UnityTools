@@ -1,7 +1,5 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
@@ -65,45 +63,12 @@ namespace UnityTools.Util
             return _deque.First.Value;
         }
 
-        public T PeekBack()
-        {
-            if(IsEmpty)
-                return default;
-
-            return _deque.Last.Value;
-        }
-
         public void Clear()
         {
             if(IsEmpty)
                 return;
 
             _deque.Clear();
-        }
-
-        public void ForEach(UnityAction<T> onAction)
-        {
-            if(onAction == null || IsEmpty)
-                return;
-
-            foreach (var item in _deque)
-            {
-                onAction(item);
-            }
-        }
-
-        public T FirstOrDefault(Func<T, bool> cond)
-        {
-            if(cond == null || IsEmpty)
-                return default;
-
-            foreach (var item in _deque)
-            {
-                if (cond(item))
-                    return item;
-            }
-
-            return default;
         }
 
         //============================================================

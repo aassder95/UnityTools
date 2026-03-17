@@ -49,11 +49,5 @@ namespace UnityTools.Util
             Stop(coroutine);
             coroutine = enumerator == null ? null : Start(enumerator);
         }
-
-        public static void Dispose(ref Coroutine coroutine)
-        {
-            Stop(coroutine);
-            coroutine = null;
-        }
     }
 }

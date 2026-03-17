@@ -62,22 +62,6 @@ namespace UnityTools.Util
                 IndexUtils.CalculateClampedIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
         }
 
-        public int CalculateItemIndex(Vector2 itemPos)
-        {
-            if (_scrollRect.vertical)
-            {
-                int x = Mathf.RoundToInt((((itemPos.x - _padding.left) + CenterOffset.x) / ItemSize.x) + ((_itemCntPerLine - 1) / 2.0f));
-                int y = Mathf.RoundToInt(((_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (itemPos.y + _padding.top)) / ItemSize.y);
-                return y * _itemCntPerLine + x;
-            }
-            else
-            {
-                int x = Mathf.RoundToInt((itemPos.x - (_padding.left + (1 - _rtItem.pivot.x) * (_rtItem.sizeDelta.x - _rtContent.sizeDelta.x))) / ItemSize.x);
-                int y = Mathf.RoundToInt(((_itemCntPerLine - 1) / 2.0f) + ((CenterOffset.y - (_padding.top + itemPos.y)) / ItemSize.y));
-                return x * _itemCntPerLine + y;
-            }
-        }
-
         public Vector2 CalculateItemPosition(int itemIdx)
         {
             if (_scrollRect.vertical)

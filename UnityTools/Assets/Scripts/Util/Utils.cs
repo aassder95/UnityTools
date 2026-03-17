@@ -26,17 +26,6 @@ namespace UnityTools.Util
     public static class IndexUtils
     {
         private const float POSITION_EPSILON = 0.0001f;
-        
-        public static int ClampIndex(int index, int lastIndex)
-        {
-            int safeLastIndex = lastIndex < 0 ? 0 : lastIndex;
-            if(index < 0)
-                return 0;
-            if(index > safeLastIndex)
-                return safeLastIndex;
-
-            return index;
-        }
 
         public static int CalculateClampedIndexFromPosition(float position, float itemSize, int lastIndex)
         {

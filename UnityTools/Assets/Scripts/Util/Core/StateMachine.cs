@@ -75,14 +75,6 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        //Init/Register
-        //============================================================
-        public void SetSameStateTransitionPolicy(ESameStateTransitionPolicy sameStateTransitionPolicy)
-        {
-            _sameStateTransitionPolicy = sameStateTransitionPolicy;
-        }
-
-        //============================================================
         //Logic
         //============================================================
         public bool Add(TType type, IState state)
