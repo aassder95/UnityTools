@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +18,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly IStorage _storage = new PlayerPrefsStorage();
+        private readonly PeriodTimerSavedDataReader _savedDataReader;
 
         //============================================================
         //Fields
@@ -31,6 +32,14 @@ namespace UnityTools.Util
         private string _savedClosedEnd = "-";
         private string _savedOpenUpdated = "-";
         private string _savedTampered = "-";
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public PeriodTimerTestWindow()
+        {
+            _savedDataReader = new PeriodTimerSavedDataReader(_storage);
+        }
 
         //============================================================
         //Init/Register
@@ -95,11 +104,11 @@ namespace UnityTools.Util
             if(!TryGetId(out string id))
                 return;
 
-            _savedOpenStart = ReadDateKey(PeriodTimerStorageKeys.OpenStart(id));
-            _savedOpenEnd = ReadDateKey(PeriodTimerStorageKeys.OpenEnd(id));
-            _savedClosedEnd = ReadDateKey(PeriodTimerStorageKeys.ClosedEnd(id));
-            _savedOpenUpdated = ReadDateKey(PeriodTimerStorageKeys.OpenUpdated(id));
-            _savedTampered = ReadTamperedKey(PeriodTimerStorageKeys.Tampered(id));
+            _savedOpenStart = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenStart(id));
+            _savedOpenEnd = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenEnd(id));
+            _savedClosedEnd = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.ClosedEnd(id));
+            _savedOpenUpdated = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenUpdated(id));
+            _savedTampered = _savedDataReader.ReadTamperedKey(PeriodTimerStorageKeys.Tampered(id));
             _status = $"저장값 조회 완료: {id}";
         }
 
@@ -292,34 +301,6 @@ namespace UnityTools.Util
             EditorGUILayout.LabelField("탬퍼 플래그(TAMPERED)", _savedTampered);
         }
 
-        private string ReadDateKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(!long.TryParse(raw, out long ticks))
-                return $"잘못된 ticks 값: {raw}";
-
-            if(ticks == DateTime.MinValue.Ticks)
-                return $"{raw} (DateTime.MinValue)";
-
-            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"범위 초과 ticks: {raw}";
-
-            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
-            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
-        }
-
-        private string ReadTamperedKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            return raw == "1" ? "1 (참)" : $"{raw} (거짓)";
-        }
-
         private static void DrawActionButtonRow(string leftLabel, Action leftAction, string rightLabel, Action rightAction)
         {
             Rect rowRect = EditorGUILayout.GetControlRect(false, BUTTON_HEIGHT);
@@ -335,5 +316,54 @@ namespace UnityTools.Util
                 rightAction?.Invoke();
         }
     }
-}
 
+    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
+    //============================================================
+    //Types
+    //============================================================
+    public class PeriodTimerSavedDataReader
+    {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly IStorage _storage;
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public PeriodTimerSavedDataReader(IStorage storage)
+        {
+            _storage = storage;
+        }
+
+        //============================================================
+        //Logic
+        //============================================================
+        public string ReadDateKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            if(!long.TryParse(raw, out long ticks))
+                return $"잘못된 ticks 값: {raw}";
+
+            if(ticks == DateTime.MinValue.Ticks)
+                return $"{raw} (DateTime.MinValue)";
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return $"범위 초과 ticks: {raw}";
+
+            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
+            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
+        }
+
+        public string ReadTamperedKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            return raw == "1" ? "1 (참)" : $"{raw} (거짓)";
+        }
+    }
+}

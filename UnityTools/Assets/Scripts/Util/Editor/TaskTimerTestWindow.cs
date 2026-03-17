@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Globalization;
 using UnityEditor;
 using UnityEngine;
@@ -18,6 +18,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly IStorage _storage = new PlayerPrefsStorage();
+        private readonly TaskTimerSavedDataReader _savedDataReader;
 
         //============================================================
         //Fields
@@ -30,6 +31,14 @@ namespace UnityTools.Util
         private string _savedDuration = "-";
         private string _savedUpdated = "-";
         private string _savedState = "-";
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public TaskTimerTestWindow()
+        {
+            _savedDataReader = new TaskTimerSavedDataReader(_storage);
+        }
 
         //============================================================
         //Init/Register
@@ -94,10 +103,10 @@ namespace UnityTools.Util
             if(!TryGetId(out string id))
                 return;
 
-            _savedStart = ReadDateKey(TaskTimerStorageKeys.Start(id));
-            _savedDuration = ReadDurationKey(TaskTimerStorageKeys.Duration(id));
-            _savedUpdated = ReadDateKey(TaskTimerStorageKeys.Updated(id));
-            _savedState = ReadStateKey(TaskTimerStorageKeys.State(id));
+            _savedStart = _savedDataReader.ReadDateKey(TaskTimerStorageKeys.Start(id));
+            _savedDuration = _savedDataReader.ReadDurationKey(TaskTimerStorageKeys.Duration(id));
+            _savedUpdated = _savedDataReader.ReadDateKey(TaskTimerStorageKeys.Updated(id));
+            _savedState = _savedDataReader.ReadStateKey(TaskTimerStorageKeys.State(id));
             _status = $"저장값 조회 완료: {id}";
         }
 
@@ -305,53 +314,6 @@ namespace UnityTools.Util
             EditorGUILayout.LabelField("상태(STATE)", _savedState);
         }
 
-        private string ReadDateKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(!long.TryParse(raw, out long ticks))
-                return $"잘못된 ticks 값: {raw}";
-
-            if(ticks == DateTime.MinValue.Ticks)
-                return $"{raw} (DateTime.MinValue)";
-
-            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"범위 초과 ticks: {raw}";
-
-            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
-            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
-        }
-
-        private string ReadDurationKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
-               double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value))
-            {
-                return $"{raw} ({value:F2} sec)";
-            }
-
-            return $"잘못된 duration 값: {raw}";
-        }
-
-        private string ReadStateKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(!int.TryParse(raw, out int intState))
-                return $"잘못된 state 값: {raw}";
-
-            ETaskTimerType type = (ETaskTimerType)intState;
-            return Enum.IsDefined(typeof(ETaskTimerType), type) ? $"{raw} ({type})" : $"{raw} (정의되지 않은 상태)";
-        }
-
         private static void DrawActionButtonRow(string leftLabel, Action leftAction, string rightLabel, Action rightAction)
         {
             Rect rowRect = EditorGUILayout.GetControlRect(false, BUTTON_HEIGHT);
@@ -367,5 +329,72 @@ namespace UnityTools.Util
                 rightAction?.Invoke();
         }
     }
-}
 
+    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
+    //============================================================
+    //Types
+    //============================================================
+    public class TaskTimerSavedDataReader
+    {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly IStorage _storage;
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public TaskTimerSavedDataReader(IStorage storage)
+        {
+            _storage = storage;
+        }
+
+        //============================================================
+        //Logic
+        //============================================================
+        public string ReadDateKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            if(!long.TryParse(raw, out long ticks))
+                return $"잘못된 ticks 값: {raw}";
+
+            if(ticks == DateTime.MinValue.Ticks)
+                return $"{raw} (DateTime.MinValue)";
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return $"범위 초과 ticks: {raw}";
+
+            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
+            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
+        }
+
+        public string ReadDurationKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
+                            double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            if(!isParsed)
+                return $"잘못된 duration 값: {raw}";
+
+            return $"{raw} ({value:F2} sec)";
+        }
+
+        public string ReadStateKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            if(!int.TryParse(raw, out int intState))
+                return $"잘못된 state 값: {raw}";
+
+            ETaskTimerType type = (ETaskTimerType)intState;
+            return Enum.IsDefined(typeof(ETaskTimerType), type) ? $"{raw} ({type})" : $"{raw} (정의되지 않은 상태)";
+        }
+    }
+}
