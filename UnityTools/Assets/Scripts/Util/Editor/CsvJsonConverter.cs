@@ -9,6 +9,9 @@ namespace UnityTools.Util
     //============================================================
     public static class CsvJsonConverter
     {
+        //============================================================
+        //Logic
+        //============================================================
         public static void Convert(string csvPath, string jsonPath)
         {
             string[] lines = File.Exists(csvPath) ? File.ReadAllLines(csvPath) : null;

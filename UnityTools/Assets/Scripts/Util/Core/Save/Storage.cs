@@ -9,6 +9,9 @@ namespace UnityTools.Util
     //============================================================
     public interface IStorage
     {
+        //============================================================
+        //Persistence
+        //============================================================
         void Save(string key, string data);
         string Load(string key);
         bool HasKey(string key);
@@ -17,6 +20,9 @@ namespace UnityTools.Util
     
     public class PlayerPrefsStorage : IStorage
     {
+        //============================================================
+        //Persistence
+        //============================================================
         public void Save(string key, string data)
         {
             PlayerPrefs.SetString(key, data);
@@ -48,15 +54,24 @@ namespace UnityTools.Util
 
     public class FileStorage : IStorage
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly string _rootPath;
-        
+
+        //============================================================
+        //Constructors
+        //============================================================
         public FileStorage(string rootPath)
         {
             _rootPath = rootPath;
             if (!Directory.Exists(_rootPath))
                 Directory.CreateDirectory(_rootPath);
         }
-        
+
+        //============================================================
+        //Persistence
+        //============================================================
         public void Save(string key, string data)
         {
             string path = Path.Combine(_rootPath, key); 

@@ -8,6 +8,9 @@ namespace UnityTools.Util
     //============================================================
     public static class CollectionExtensions
     {
+        //============================================================
+        //Logic
+        //============================================================
         public static bool IsValidIndex<T>(this List<T> list, int index)
         {
             if(list == null)

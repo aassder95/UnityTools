@@ -10,16 +10,25 @@ namespace UnityTools.Util
     //============================================================
     public interface IPoolable
     {
+        //============================================================
+        //Callbacks
+        //============================================================
         void OnGet();
         void OnReturn();
     }
 
     public class ObjectPool<T> where T : Component, IPoolable
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly T _originObj;
         private readonly Queue<T> _pool = new Queue<T>();
         private readonly Func<T, T> _generator;
 
+        //============================================================
+        //Constructors
+        //============================================================
         public ObjectPool(int initialSize, T prefab, Transform parent)
         {
             if (prefab == null)
@@ -43,6 +52,9 @@ namespace UnityTools.Util
             }
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public T Get()
         {
             T obj = _pool.Count > 0 ? _pool.Dequeue() : _generator(_originObj);

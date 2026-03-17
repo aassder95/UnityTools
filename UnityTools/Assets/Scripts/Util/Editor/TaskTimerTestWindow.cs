@@ -12,13 +12,22 @@ namespace UnityTools.Util
     //============================================================
     public class TaskTimerSavedDataReader
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly IStorage _storage;
 
+        //============================================================
+        //Constructors
+        //============================================================
         public TaskTimerSavedDataReader(IStorage storage)
         {
             _storage = storage;
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public string ReadDateKey(string key)
         {
             if(!_storage.HasKey(key))

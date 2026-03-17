@@ -12,13 +12,22 @@ namespace UnityTools.Util
     //============================================================
     public class PeriodTimerSavedDataReader
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly IStorage _storage;
 
+        //============================================================
+        //Constructors
+        //============================================================
         public PeriodTimerSavedDataReader(IStorage storage)
         {
             _storage = storage;
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public string ReadDateKey(string key)
         {
             if(!_storage.HasKey(key))

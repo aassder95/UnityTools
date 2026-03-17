@@ -8,8 +8,15 @@ namespace UnityTools.Util
     //============================================================
     public interface IView<TModel> where TModel : BaseModel
     {
+        //============================================================
+        //Init/Register
+        //============================================================
         void Init();
         void Release();
+
+        //============================================================
+        //Logic
+        //============================================================
         void Show();
         void Hide();
         void Refresh(TModel model);
@@ -17,8 +24,14 @@ namespace UnityTools.Util
 
     public abstract class BaseView<TModel> : MonoBehaviour, IView<TModel> where TModel : BaseModel
     {
+        //============================================================
+        //Properties
+        //============================================================
         public bool IsVisible => gameObject.activeSelf;
-        
+
+        //============================================================
+        //Init/Register
+        //============================================================
         public virtual void Init()
         {
             
@@ -28,7 +41,10 @@ namespace UnityTools.Util
         {
             
         }
-        
+
+        //============================================================
+        //Logic
+        //============================================================
         public virtual void Show()
         {
             if (gameObject.activeSelf)

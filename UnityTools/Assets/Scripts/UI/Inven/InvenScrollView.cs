@@ -7,6 +7,9 @@ namespace UnityTools.UI
     //============================================================
     public class InvenScrollView : DynamicScrollView<InvenItemView>
     {
+        //============================================================
+        //Logic
+        //============================================================
         public void UpdateItemView()
         {
             if(ItemController == null)

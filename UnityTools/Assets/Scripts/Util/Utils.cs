@@ -8,8 +8,14 @@ namespace UnityTools.Util
     //============================================================
     public static class RandomUtils
     {
+        //============================================================
+        //Constants
+        //============================================================
         private const float HALF = 0.5f;
-        
+
+        //============================================================
+        //Logic
+        //============================================================
         public static Vector2 GetRandomPositionInRange(Vector2 center, Vector2 range)
         {
             float x = UnityEngine.Random.Range(center.x - range.x * HALF, center.x + range.x * HALF);
@@ -25,8 +31,14 @@ namespace UnityTools.Util
 
     public static class IndexUtils
     {
+        //============================================================
+        //Constants
+        //============================================================
         private const float POSITION_EPSILON = 0.0001f;
 
+        //============================================================
+        //Logic
+        //============================================================
         public static int CalculateClampedIndexFromPosition(float position, float itemSize, int lastIndex)
         {
             if(itemSize <= 0f)
@@ -45,6 +57,9 @@ namespace UnityTools.Util
 
     public static class DateTimeUtils
     {
+        //============================================================
+        //Logic
+        //============================================================
         public static DateTime RemoveMilliseconds(DateTime time)
         {
             return new DateTime(time.Year, time.Month, time.Day, 

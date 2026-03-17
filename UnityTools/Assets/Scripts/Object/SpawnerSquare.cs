@@ -7,6 +7,6 @@ namespace UnityTools.Object
     //============================================================
     public class SpawnerSquare : Spawner<Square>
     {
-
+        // Exception: empty type, no section is created by rule.
     }
 }

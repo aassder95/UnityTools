@@ -7,13 +7,22 @@
         //============================================================
         public class BaseState : IState
         {
+            //============================================================
+            //Readonly
+            //============================================================
             protected readonly PeriodTimer _timer;
 
+            //============================================================
+            //Constructors
+            //============================================================
             protected BaseState(PeriodTimer timer)
             {
                 _timer = timer;
             }
 
+            //============================================================
+            //Logic
+            //============================================================
             public virtual void Enter() { }
             public virtual void Execute() { }
             public virtual void Exit() { }
@@ -21,8 +30,14 @@
 
         public class ResetState : BaseState
         {
+            //============================================================
+            //Constructors
+            //============================================================
             public ResetState(PeriodTimer timer) : base(timer) { }
 
+            //============================================================
+            //Logic
+            //============================================================
             public override void Enter()
             {
                 _timer.ApplyPeriodTime();
@@ -40,8 +55,14 @@
 
         public class OpenState : BaseState
         {
+            //============================================================
+            //Constructors
+            //============================================================
             public OpenState(PeriodTimer timer) : base(timer) { }
 
+            //============================================================
+            //Logic
+            //============================================================
             public override void Enter()
             {
                 if(_timer.FSM.CurType != EPeriodTimerType.Open)
@@ -70,8 +91,14 @@
 
         public class ClosedState : BaseState
         {
+            //============================================================
+            //Constructors
+            //============================================================
             public ClosedState(PeriodTimer timer) : base(timer) { }
 
+            //============================================================
+            //Logic
+            //============================================================
             public override void Enter()
             {
                 if(_timer.IsTamperedFlag)

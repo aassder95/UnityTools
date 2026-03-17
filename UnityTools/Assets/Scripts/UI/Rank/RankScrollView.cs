@@ -7,6 +7,9 @@ namespace UnityTools.UI
     //============================================================
     public class RankScrollView : DynamicScrollView<RankItemView>
     {
+        //============================================================
+        //Logic
+        //============================================================
         public void UpdateItemView()
         {
             if(ItemController == null)

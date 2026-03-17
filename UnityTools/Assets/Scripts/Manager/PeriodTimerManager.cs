@@ -134,15 +134,24 @@ namespace UnityTools.Manager
 
         private class PeriodTimerEventBinder
         {
+            //============================================================
+            //Readonly
+            //============================================================
             private readonly string _id;
             private readonly PeriodTimerManager _manager;
 
+            //============================================================
+            //Constructors
+            //============================================================
             public PeriodTimerEventBinder(PeriodTimerManager manager, string id)
             {
                 _manager = manager;
                 _id = id;
             }
 
+            //============================================================
+            //Callbacks
+            //============================================================
             public void OnUpdatedCallback(int remainMin)
             {
                 if(_manager == null)

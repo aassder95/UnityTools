@@ -433,18 +433,31 @@ namespace UnityTools.Util
         }
     }
 
+    // Exception: storage snapshot/persistence types are grouped in Types section.
+    //============================================================
+    //Types
+    //============================================================
     public class TaskTimerStorageSnapshot
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly DateTime _startTime;
         private readonly double _durationSec;
         private readonly DateTime _updatedTime;
         private readonly int _savedStateType;
 
+        //============================================================
+        //Properties
+        //============================================================
         public DateTime StartTime => _startTime;
         public double DurationSec => _durationSec;
         public DateTime UpdatedTime => _updatedTime;
         public int SavedStateType => _savedStateType;
 
+        //============================================================
+        //Constructors
+        //============================================================
         public TaskTimerStorageSnapshot(DateTime startTime, double durationSec, DateTime updatedTime, int savedStateType)
         {
             _startTime = startTime;
@@ -456,9 +469,15 @@ namespace UnityTools.Util
 
     public class TaskTimerPersistence
     {
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly string _id;
         private readonly IStorage _storage;
 
+        //============================================================
+        //Constructors
+        //============================================================
         public TaskTimerPersistence(string id)
         {
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
@@ -468,6 +487,9 @@ namespace UnityTools.Util
             _storage = new PlayerPrefsStorage();
         }
 
+        //============================================================
+        //Persistence
+        //============================================================
         public void Save(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
         {
             SaveString(TaskTimerStorageKeys.Start(_id), startTime.Ticks.ToString());
@@ -528,6 +550,9 @@ namespace UnityTools.Util
             return !hasStart && !hasDuration && !hasState && hasUpdated;
         }
 
+        //============================================================
+        //Utilities
+        //============================================================
         private void SaveString(string key, string value)
         {
             if(string.IsNullOrEmpty(key))

@@ -8,8 +8,14 @@ namespace UnityTools.Util
     //============================================================
     public class CoroutineHelper : MonoBehaviour
     {
+        //============================================================
+        //Fields
+        //============================================================
         private static CoroutineHelper _instance;
 
+        //============================================================
+        //Unity Methods
+        //============================================================
         private void Awake()
         {
             if (_instance == null)
@@ -18,6 +24,9 @@ namespace UnityTools.Util
                 Destroy(gameObject);
         }
 
+        //============================================================
+        //Logic
+        //============================================================
         public static Coroutine Start(IEnumerator enumerator)
         {
             if(enumerator == null)
