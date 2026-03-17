@@ -25,7 +25,7 @@ namespace UnityTools.Presenter
                 if(itemView == null)
                     return;
 
-                itemView.Refresh(MODEL.Get(itemView.Index));
+                itemView.Refresh(_model.Get(itemView.Index));
             };
         }
 
@@ -35,18 +35,18 @@ namespace UnityTools.Presenter
         public override void Init()
         {
             base.Init();
-            VIEW.ScrollView.InitView(MODEL.ItemCount);
+            _view.ScrollView.InitView(_model.ItemCount);
         }
 
         protected override void BindEvents()
         {
             base.BindEvents();
-            VIEW.ScrollView.OnItemUpdated += _onItemViewUpdated;
+            _view.ScrollView.OnItemUpdated += _onItemViewUpdated;
         }
 
         protected override void UnbindEvents()
         {
-            VIEW.ScrollView.OnItemUpdated -= _onItemViewUpdated;
+            _view.ScrollView.OnItemUpdated -= _onItemViewUpdated;
             base.UnbindEvents();
         }
     }

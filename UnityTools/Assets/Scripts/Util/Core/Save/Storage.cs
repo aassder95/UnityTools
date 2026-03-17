@@ -48,36 +48,36 @@ namespace UnityTools.Util
 
     public class FileStorage : IStorage
     {
-        private readonly string ROOT_PATH;
+        private readonly string _rootPath;
         
         public FileStorage(string rootPath)
         {
-            ROOT_PATH = rootPath;
-            if (!Directory.Exists(ROOT_PATH))
-                Directory.CreateDirectory(ROOT_PATH);
+            _rootPath = rootPath;
+            if (!Directory.Exists(_rootPath))
+                Directory.CreateDirectory(_rootPath);
         }
         
         public void Save(string key, string data)
         {
-            string path = Path.Combine(ROOT_PATH, key); 
+            string path = Path.Combine(_rootPath, key); 
             File.WriteAllText(path,data);
         }
         
         public string Load(string key)
         {
-            string path = Path.Combine(ROOT_PATH, key);
+            string path = Path.Combine(_rootPath, key);
             return File.Exists(path) ? File.ReadAllText(path) : null;
         }
 
         public bool HasKey(string key)
         {
-            string path = Path.Combine(ROOT_PATH, key);
+            string path = Path.Combine(_rootPath, key);
             return File.Exists(path);
         }
 
         public void Delete(string key)
         {
-            string path = Path.Combine(ROOT_PATH, key);
+            string path = Path.Combine(_rootPath, key);
             if (File.Exists(path))
                 File.Delete(path);
         }

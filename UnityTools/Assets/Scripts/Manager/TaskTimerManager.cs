@@ -61,11 +61,6 @@ namespace UnityTools.Manager
     public class TaskTimerManager : MonoSingleton<TaskTimerManager>
     {
         //============================================================
-        //Constants
-        //============================================================
-        private const double SEC_PER_MIN = 60d;
-
-        //============================================================
         //Readonly
         //============================================================
         private readonly Dictionary<string, TaskTimerHandle> _handles = new();
@@ -177,23 +172,6 @@ namespace UnityTools.Manager
             handle.Start(durationSec);
         }
 
-        public void StartTimerMinutes(string id, double durationMin)
-        {
-            if(double.IsNaN(durationMin) || double.IsInfinity(durationMin))
-                return;
-
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(StartTimerMinutes), id);
-                return;
-            }
-
-            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
-                return;
-
-            handle.Start(durationMin * SEC_PER_MIN);
-        }
-
         public void Reduce(string id, double reduceSec)
         {
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
@@ -206,23 +184,6 @@ namespace UnityTools.Manager
                 return;
 
             handle.Reduce(reduceSec);
-        }
-
-        public void ReduceMinutes(string id, double reduceMin)
-        {
-            if(double.IsNaN(reduceMin) || double.IsInfinity(reduceMin))
-                return;
-
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(ReduceMinutes), id);
-                return;
-            }
-
-            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
-                return;
-
-            handle.Reduce(reduceMin * SEC_PER_MIN);
         }
 
         public void CompleteImmediately(string id)

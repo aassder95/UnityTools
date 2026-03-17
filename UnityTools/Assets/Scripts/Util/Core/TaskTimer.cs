@@ -19,8 +19,6 @@ namespace UnityTools.Util
         //Constants
         //============================================================
         private const double DEFAULT_DURATION_SEC = 1d;
-        private const double SEC_PER_MIN = 60d;
-
         //============================================================
         //Readonly
         //============================================================
@@ -227,14 +225,6 @@ namespace UnityTools.Util
             return true;
         }
 
-        public bool StartMinutes(double durationMin)
-        {
-            if(double.IsNaN(durationMin) || double.IsInfinity(durationMin))
-                return false;
-
-            return Start(durationMin * SEC_PER_MIN);
-        }
-
         public bool Reduce(double reduceSec)
         {
             if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
@@ -257,14 +247,6 @@ namespace UnityTools.Util
                 UpdateCompletionTime();
 
             return true;
-        }
-
-        public bool ReduceMinutes(double reduceMin)
-        {
-            if(double.IsNaN(reduceMin) || double.IsInfinity(reduceMin))
-                return false;
-
-            return Reduce(reduceMin * SEC_PER_MIN);
         }
 
         public bool CompleteImmediately()

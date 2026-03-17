@@ -27,7 +27,7 @@ namespace UnityTools.Presenter
                 if(_periodTimer == null)
                     return;
 
-                MODEL.SetLoop(remainMin, _periodTimer.OpenUpdatedTime);
+                _model.SetLoop(remainMin, _periodTimer.OpenUpdatedTime);
             };
         }
 
@@ -36,7 +36,7 @@ namespace UnityTools.Presenter
         //============================================================
         public override void Init()
         {
-            _periodTimer = new PeriodTimer("TIMER", VIEW);
+            _periodTimer = new PeriodTimer("TIMER", _view);
             _periodTimer.Init(1.0, 1.0);
             base.Init();
         }
@@ -55,8 +55,8 @@ namespace UnityTools.Presenter
             if(_periodTimer == null)
                 return;
 
-            VIEW.OnForceOpen += _periodTimer.ForceOpen;
-            VIEW.OnForceClosed += _periodTimer.ForceClosed;
+            _view.OnForceOpen += _periodTimer.ForceOpen;
+            _view.OnForceClosed += _periodTimer.ForceClosed;
             _periodTimer.OnUpdated += _onTimerUpdated;
             _periodTimer.OnStateChanged += OnStateChangedCallback;
         }
@@ -65,8 +65,8 @@ namespace UnityTools.Presenter
         {
             if(_periodTimer != null)
             {
-                VIEW.OnForceOpen -= _periodTimer.ForceOpen;
-                VIEW.OnForceClosed -= _periodTimer.ForceClosed;
+                _view.OnForceOpen -= _periodTimer.ForceOpen;
+                _view.OnForceClosed -= _periodTimer.ForceClosed;
                 _periodTimer.OnUpdated -= _onTimerUpdated;
                 _periodTimer.OnStateChanged -= OnStateChangedCallback;
             }
@@ -79,20 +79,20 @@ namespace UnityTools.Presenter
         //============================================================
         private void OnStateChangedCallback(EPeriodTimerType type)
         {
-            MODEL.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
+            _model.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
             switch (type)
             {
                 case EPeriodTimerType.Reset:
-                    MODEL.SetState("Reset");
-                    MODEL.SetSubState("Reset");
+                    _model.SetState("Reset");
+                    _model.SetSubState("Reset");
                     break;
                 case EPeriodTimerType.Open:
-                    MODEL.SetState("Open");
+                    _model.SetState("Open");
                     break;
                 case EPeriodTimerType.Closed:
-                    MODEL.SetState("Closed");
-                    MODEL.SetSubState("Closed");
+                    _model.SetState("Closed");
+                    _model.SetSubState("Closed");
                     break;
             }
         }

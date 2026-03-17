@@ -25,17 +25,17 @@ namespace UnityTools.Presenter
         //============================================================
         public RankPresenter(RankModel model, RankView view) : base(model, view)
         {
-            _onRandomScore = MODEL.SetRandomScore;
-            _onIncreaseTotalItem = VIEW.ScrollView.IncreaseTotalItem;
-            _onDecreaseTotalItem = VIEW.ScrollView.DecreaseTotalItem;
-            _onIncreaseVisibleLine = VIEW.ScrollView.IncreaseVisibleLine;
-            _onDecreaseVisibleLine = VIEW.ScrollView.DecreaseVisibleLine;
+            _onRandomScore = _model.SetRandomScore;
+            _onIncreaseTotalItem = _view.ScrollView.IncreaseTotalItem;
+            _onDecreaseTotalItem = _view.ScrollView.DecreaseTotalItem;
+            _onIncreaseVisibleLine = _view.ScrollView.IncreaseVisibleLine;
+            _onDecreaseVisibleLine = _view.ScrollView.DecreaseVisibleLine;
             _onItemViewUpdated = itemView =>
             {
                 if(itemView == null)
                     return;
 
-                itemView.Refresh(MODEL.Get(itemView.Index));
+                itemView.Refresh(_model.Get(itemView.Index));
             };
         }
 
@@ -45,28 +45,28 @@ namespace UnityTools.Presenter
         public override void Init()
         {
             base.Init();
-            VIEW.ScrollView.InitView(MODEL.ItemCount);
+            _view.ScrollView.InitView(_model.ItemCount);
         }
 
         protected override void BindEvents()
         {
             base.BindEvents();
-            VIEW.OnRandomScore += _onRandomScore;
-            VIEW.OnIncreaseTotalItem += _onIncreaseTotalItem;
-            VIEW.OnDecreaseTotalItem += _onDecreaseTotalItem;
-            VIEW.OnIncreaseVisibleLine += _onIncreaseVisibleLine;
-            VIEW.OnDecreaseVisibleLine += _onDecreaseVisibleLine;
-            VIEW.ScrollView.OnItemUpdated += _onItemViewUpdated;
+            _view.OnRandomScore += _onRandomScore;
+            _view.OnIncreaseTotalItem += _onIncreaseTotalItem;
+            _view.OnDecreaseTotalItem += _onDecreaseTotalItem;
+            _view.OnIncreaseVisibleLine += _onIncreaseVisibleLine;
+            _view.OnDecreaseVisibleLine += _onDecreaseVisibleLine;
+            _view.ScrollView.OnItemUpdated += _onItemViewUpdated;
         }
 
         protected override void UnbindEvents()
         {
-            VIEW.OnRandomScore -= _onRandomScore;
-            VIEW.OnIncreaseTotalItem -= _onIncreaseTotalItem;
-            VIEW.OnDecreaseTotalItem -= _onDecreaseTotalItem;
-            VIEW.OnIncreaseVisibleLine -= _onIncreaseVisibleLine;
-            VIEW.OnDecreaseVisibleLine -= _onDecreaseVisibleLine;
-            VIEW.ScrollView.OnItemUpdated -= _onItemViewUpdated;
+            _view.OnRandomScore -= _onRandomScore;
+            _view.OnIncreaseTotalItem -= _onIncreaseTotalItem;
+            _view.OnDecreaseTotalItem -= _onDecreaseTotalItem;
+            _view.OnIncreaseVisibleLine -= _onIncreaseVisibleLine;
+            _view.OnDecreaseVisibleLine -= _onDecreaseVisibleLine;
+            _view.ScrollView.OnItemUpdated -= _onItemViewUpdated;
             base.UnbindEvents();       
         }
     }

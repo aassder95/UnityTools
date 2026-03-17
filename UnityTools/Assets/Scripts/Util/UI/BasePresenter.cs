@@ -12,17 +12,17 @@ namespace UnityTools.Util
 
     public abstract class BasePresenter<TModel, TView> : IPresenter where TModel : BaseModel where TView : BaseView<TModel>
     {
-        protected readonly TModel MODEL;
-        protected readonly TView VIEW;
+        protected readonly TModel _model;
+        protected readonly TView _view;
 
         private bool _isInit = false;
         
-        public bool IsVisible => VIEW.IsVisible;
+        public bool IsVisible => _view.IsVisible;
 
         protected BasePresenter(TModel model, TView view)
         {
-            MODEL = model;
-            VIEW = view;
+            _model = model;
+            _view = view;
 
             Init();
         }
@@ -32,7 +32,7 @@ namespace UnityTools.Util
             if (_isInit)
                 return;
 
-            VIEW.Init();
+            _view.Init();
             BindEvents();
             _isInit = true;
         }
@@ -43,18 +43,18 @@ namespace UnityTools.Util
                 return;
             
             _isInit = false;
-            VIEW.Release();
+            _view.Release();
             UnbindEvents();
         }
 
         protected virtual void BindEvents()
         {
-            MODEL.OnUpdated += OnModelUpdated;
+            _model.OnUpdated += OnModelUpdated;
         }
 
         protected virtual void UnbindEvents()
         {
-            MODEL.OnUpdated -= OnModelUpdated;
+            _model.OnUpdated -= OnModelUpdated;
         }
         
         public virtual void Show()
@@ -62,16 +62,16 @@ namespace UnityTools.Util
             if (!_isInit)
                 return;
             
-            VIEW.Show();
-            VIEW.Refresh(MODEL);
+            _view.Show();
+            _view.Refresh(_model);
         }
         
         public virtual void Hide()
         {
-            if (!_isInit || !VIEW.IsVisible)
+            if (!_isInit || !_view.IsVisible)
                 return;
 
-            VIEW.Hide();
+            _view.Hide();
         }
 
         protected virtual void OnModelUpdated()
@@ -79,7 +79,7 @@ namespace UnityTools.Util
             if (!_isInit)
                 return;
 
-            VIEW.Refresh(MODEL);
+            _view.Refresh(_model);
         }
     }
 }

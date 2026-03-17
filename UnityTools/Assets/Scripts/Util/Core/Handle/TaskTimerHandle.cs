@@ -6,11 +6,6 @@ namespace UnityTools.Util
     public class TaskTimerHandle
     {
         //============================================================
-        //Constants
-        //============================================================
-        private const double SEC_PER_MIN = 60d;
-
-        //============================================================
         //Readonly
         //============================================================
         protected readonly TaskTimer _timer;
@@ -102,17 +97,6 @@ namespace UnityTools.Util
             return _timer.Start(durationSec);
         }
 
-        public bool StartMinutes(double durationMin)
-        {
-            if(_timer == null)
-                return false;
-
-            if(durationMin <= 0d || double.IsNaN(durationMin) || double.IsInfinity(durationMin))
-                return false;
-
-            return _timer.Start(durationMin * SEC_PER_MIN);
-        }
-
         public virtual bool Reduce(double reduceSec)
         {
             if(_timer == null)
@@ -122,17 +106,6 @@ namespace UnityTools.Util
                 return false;
 
             return _timer.Reduce(reduceSec);
-        }
-
-        public virtual bool ReduceMinutes(double reduceMin)
-        {
-            if(_timer == null)
-                return false;
-
-            if(reduceMin <= 0d || double.IsNaN(reduceMin) || double.IsInfinity(reduceMin))
-                return false;
-
-            return _timer.Reduce(reduceMin * SEC_PER_MIN);
         }
 
         public bool CompleteImmediately()
