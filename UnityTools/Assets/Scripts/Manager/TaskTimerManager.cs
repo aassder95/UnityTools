@@ -160,13 +160,7 @@ namespace UnityTools.Manager
         //============================================================
         public void StartTimer(string id, double durationSec)
         {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(StartTimer), id);
-                return;
-            }
-
-            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(StartTimer), id, out TaskTimerHandle handle))
                 return;
 
             handle.Start(durationSec);
@@ -174,13 +168,7 @@ namespace UnityTools.Manager
 
         public void Reduce(string id, double reduceSec)
         {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(Reduce), id);
-                return;
-            }
-
-            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(Reduce), id, out TaskTimerHandle handle))
                 return;
 
             handle.Reduce(reduceSec);
@@ -188,13 +176,7 @@ namespace UnityTools.Manager
 
         public void CompleteImmediately(string id)
         {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(CompleteImmediately), id);
-                return;
-            }
-
-            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(CompleteImmediately), id, out TaskTimerHandle handle))
                 return;
 
             handle.CompleteImmediately();
@@ -202,13 +184,7 @@ namespace UnityTools.Manager
 
         public void Claim(string id)
         {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(Claim), id);
-                return;
-            }
-
-            if(!_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(Claim), id, out TaskTimerHandle handle))
                 return;
 
             handle.Claim();
@@ -255,6 +231,18 @@ namespace UnityTools.Manager
         //============================================================
         //Utilities
         //============================================================
+        private bool TryGetHandle(string method, string id, out TaskTimerHandle handle)
+        {
+            handle = null;
+            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            {
+                LogInvalidId(method, id);
+                return false;
+            }
+
+            return _handles.TryGetValue(normalizedId, out handle);
+        }
+
         public bool IsClaimed(string id)
         {
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))

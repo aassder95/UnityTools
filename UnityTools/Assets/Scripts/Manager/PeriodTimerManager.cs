@@ -53,20 +53,17 @@ namespace UnityTools.Manager
             if(handle == null)
                 return;
 
-            if(!PeriodTimerStorageKeys.TryNormalizeId(handle.Id, out string id))
-            {
-                LogInvalidId(nameof(InitTimer), handle.Id);
+            if(!TryNormalizeId(nameof(InitTimer), handle.Id, out string normalizedId))
                 return;
-            }
 
-            if(_handles.TryGetValue(id, out PeriodTimerHandle oldHandle))
+            if(_handles.TryGetValue(normalizedId, out PeriodTimerHandle oldHandle))
             {
-                UnbindEvents(id, oldHandle);
+                UnbindEvents(normalizedId, oldHandle);
                 oldHandle.Release();
             }
 
-            _handles[id] = handle;
-            BindEvents(id, handle);
+            _handles[normalizedId] = handle;
+            BindEvents(normalizedId, handle);
             handle.Init(openMin, closedMin);
         }
 
@@ -110,13 +107,20 @@ namespace UnityTools.Manager
 
         public PeriodTimerHandle CreatePeriodTimerHandle(string id)
         {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(CreatePeriodTimerHandle), id);
+            if(!TryNormalizeId(nameof(CreatePeriodTimerHandle), id, out string normalizedId))
                 return null;
-            }
 
             return new PeriodTimerHandle(new PeriodTimer(normalizedId, this, _isEnableLog));
+        }
+
+        private bool TryNormalizeId(string method, string id, out string normalizedId)
+        {
+            if(PeriodTimerStorageKeys.TryNormalizeId(id, out normalizedId))
+                return true;
+
+            LogInvalidId(method, id);
+            normalizedId = string.Empty;
+            return false;
         }
 
         private void LogInvalidId(string method, string id)
