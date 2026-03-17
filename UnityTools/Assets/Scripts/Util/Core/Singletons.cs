@@ -1,4 +1,4 @@
-﻿using UnityTools.Manager;
+using UnityTools.Manager;
 
 namespace UnityTools.Util
 {
@@ -15,9 +15,32 @@ namespace UnityTools.Util
         //============================================================
         // Properties
         //============================================================
-        public static GameManager GameManager { get => _gameManager; set => _gameManager = value; }
-        public static UIManager UIManager { get => _uiManager; set => _uiManager = value; }
-        public static TaskTimerManager TaskTimerManager { get => _taskTimerManager; set => _taskTimerManager = value; }
-        public static PeriodTimerManager PeriodTimerManager { get => _periodTimerManager; set => _periodTimerManager = value; }
+        public static GameManager GameManager => _gameManager;
+        public static UIManager UIManager => _uiManager;
+        public static TaskTimerManager TaskTimerManager => _taskTimerManager;
+        public static PeriodTimerManager PeriodTimerManager => _periodTimerManager;
+
+        //============================================================
+        // Logic
+        //============================================================
+        public static void RegisterGameManager(GameManager gameManager)
+        {
+            _gameManager = gameManager;
+        }
+
+        public static void RegisterUIManager(UIManager uiManager)
+        {
+            _uiManager = uiManager;
+        }
+
+        public static void RegisterTaskTimerManager(TaskTimerManager taskTimerManager)
+        {
+            _taskTimerManager = taskTimerManager;
+        }
+
+        public static void RegisterPeriodTimerManager(PeriodTimerManager periodTimerManager)
+        {
+            _periodTimerManager = periodTimerManager;
+        }
     }
 }

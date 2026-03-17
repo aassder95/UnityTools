@@ -23,12 +23,12 @@ namespace UnityTools.Presenter
         protected override void BindEvents()
         {
             base.BindEvents();
-            VIEW.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
+            VIEW.ScrollView.OnItemUpdated += OnItemViewUpdated;
         }
 
         protected override void UnbindEvents()
         {
-            VIEW.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
+            VIEW.ScrollView.OnItemUpdated -= OnItemViewUpdated;
             base.UnbindEvents();
         }
 

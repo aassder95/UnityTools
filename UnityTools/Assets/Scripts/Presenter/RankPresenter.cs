@@ -28,7 +28,7 @@ namespace UnityTools.Presenter
             VIEW.OnDecreaseTotalItem += OnDecreaseTotalItem;
             VIEW.OnIncreaseVisibleLine += OnIncreaseVisibleLine;
             VIEW.OnDecreaseVisibleLine += OnDecreaseVisibleLine;
-            VIEW.ScrollView.OnItemUpdated.AddListener(OnItemViewUpdated);
+            VIEW.ScrollView.OnItemUpdated += OnItemViewUpdated;
         }
 
         protected override void UnbindEvents()
@@ -38,7 +38,7 @@ namespace UnityTools.Presenter
             VIEW.OnDecreaseTotalItem -= OnDecreaseTotalItem;
             VIEW.OnIncreaseVisibleLine -= OnIncreaseVisibleLine;
             VIEW.OnDecreaseVisibleLine -= OnDecreaseVisibleLine;
-            VIEW.ScrollView.OnItemUpdated.RemoveListener(OnItemViewUpdated);
+            VIEW.ScrollView.OnItemUpdated -= OnItemViewUpdated;
             base.UnbindEvents();       
         }
 

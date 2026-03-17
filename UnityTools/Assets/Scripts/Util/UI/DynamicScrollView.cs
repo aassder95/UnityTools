@@ -35,7 +35,8 @@ namespace UnityTools.Util
         protected RectTransform RtContent => _rtContent;
         protected ScrollRect ScrollRect => _scrollRect;
 
-        public UnityEvent<TView> OnItemUpdated = new();
+        public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated.AddListener(value); remove => _onItemUpdated.RemoveListener(value); }
+        private readonly UnityEvent<TView> _onItemUpdated = new();
 
         private void Awake()
         {
@@ -129,6 +130,6 @@ namespace UnityTools.Util
         }
 
         protected virtual void HandleScrollValueChanged(Vector2 value) { }
-        private void HandleItemUpdated(TView itemView) => OnItemUpdated?.Invoke(itemView);
+        private void HandleItemUpdated(TView itemView) => _onItemUpdated?.Invoke(itemView);
     }
 }

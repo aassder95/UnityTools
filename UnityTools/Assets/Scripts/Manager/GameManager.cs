@@ -14,8 +14,8 @@ namespace UnityTools.Manager
 
         private void InitSingletons()
         {
-            Singletons.GameManager = Instance;
-            Singletons.UIManager = UIManager.Instance;
+            Singletons.RegisterGameManager(Instance);
+            Singletons.RegisterUIManager(UIManager.Instance);
         }
     }
 }

@@ -39,7 +39,8 @@ namespace UnityTools.Manager
         //============================================================
         private void Awake()
         {
-            Singletons.TaskTimerManager ??= Instance;
+            if(Singletons.TaskTimerManager == null)
+                Singletons.RegisterTaskTimerManager(Instance);
         }
 
         private void OnDestroy()
@@ -272,7 +273,7 @@ namespace UnityTools.Manager
                 return;
 
             string safeId = id == null ? "null" : id.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
-            Debug.LogWarning($"[TaskTimerManager:{method}] 유효하지 않은 ID 요청을 무시합니다: '{safeId}'");
+            Debug.LogWarning($"[TaskTimerManager:{method}] ?좏슚?섏? ?딆? ID ?붿껌??臾댁떆?⑸땲?? '{safeId}'");
         }
 
         private class TaskTimerEventBinder
