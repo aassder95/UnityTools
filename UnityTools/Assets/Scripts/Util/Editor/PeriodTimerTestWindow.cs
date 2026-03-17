@@ -6,6 +6,47 @@ using UnityTools.Manager;
 
 namespace UnityTools.Util
 {
+    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
+    //============================================================
+    //Types
+    //============================================================
+    public class PeriodTimerSavedDataReader
+    {
+        private readonly IStorage _storage;
+
+        public PeriodTimerSavedDataReader(IStorage storage)
+        {
+            _storage = storage;
+        }
+
+        public string ReadDateKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            if(!long.TryParse(raw, out long ticks))
+                return $"잘못된 ticks 값: {raw}";
+
+            if(ticks == DateTime.MinValue.Ticks)
+                return $"{raw} (DateTime.MinValue)";
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return $"범위 초과 ticks: {raw}";
+
+            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
+            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
+        }
+
+        public string ReadTamperedKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            return raw == "1" ? "1 (참)" : $"{raw} (거짓)";
+        }
+    }
+
     public class PeriodTimerTestWindow : EditorWindow
     {
         //============================================================
@@ -42,15 +83,6 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        //Init/Register
-        //============================================================
-        [MenuItem("Util/Tests/Period Timer")]
-        public static void Open()
-        {
-            GetWindow<PeriodTimerTestWindow>("PeriodTimer Test");
-        }
-
-        //============================================================
         //Unity Methods
         //============================================================
         private void OnGUI()
@@ -76,6 +108,15 @@ namespace UnityTools.Util
 
             GUILayout.Space(8);
             EditorGUILayout.HelpBox(_status, MessageType.Info);
+        }
+
+        //============================================================
+        //Init/Register
+        //============================================================
+        [MenuItem("Util/Tests/Period Timer")]
+        public static void Open()
+        {
+            GetWindow<PeriodTimerTestWindow>("PeriodTimer Test");
         }
 
         //============================================================
@@ -314,56 +355,6 @@ namespace UnityTools.Util
 
             if(GUI.Button(rightRect, rightLabel))
                 rightAction?.Invoke();
-        }
-    }
-
-    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
-    //============================================================
-    //Types
-    //============================================================
-    public class PeriodTimerSavedDataReader
-    {
-        //============================================================
-        //Readonly
-        //============================================================
-        private readonly IStorage _storage;
-
-        //============================================================
-        //Constructors
-        //============================================================
-        public PeriodTimerSavedDataReader(IStorage storage)
-        {
-            _storage = storage;
-        }
-
-        //============================================================
-        //Logic
-        //============================================================
-        public string ReadDateKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(!long.TryParse(raw, out long ticks))
-                return $"잘못된 ticks 값: {raw}";
-
-            if(ticks == DateTime.MinValue.Ticks)
-                return $"{raw} (DateTime.MinValue)";
-            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"범위 초과 ticks: {raw}";
-
-            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
-            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
-        }
-
-        public string ReadTamperedKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            return raw == "1" ? "1 (참)" : $"{raw} (거짓)";
         }
     }
 }

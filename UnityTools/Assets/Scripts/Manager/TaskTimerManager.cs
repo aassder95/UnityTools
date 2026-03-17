@@ -8,18 +8,12 @@ namespace UnityTools.Manager
 {
     public class TaskTimerEventBinder
     {
-        //============================================================
-        //Readonly
-        //============================================================
         private readonly string _id;
         private readonly Action<string, int> _onUpdated;
         private readonly Action<string> _onCompleted;
         private readonly Action<string> _onClaimed;
         private readonly Action<string, ETaskTimerType> _onStateChanged;
 
-        //============================================================
-        //Constructors
-        //============================================================
         public TaskTimerEventBinder(
             string id,
             Action<string, int> onUpdated,
@@ -34,9 +28,6 @@ namespace UnityTools.Manager
             _onStateChanged = onStateChanged;
         }
 
-        //============================================================
-        //Callbacks
-        //============================================================
         public void OnUpdatedCallback(int remainSec)
         {
             _onUpdated?.Invoke(_id, remainSec);

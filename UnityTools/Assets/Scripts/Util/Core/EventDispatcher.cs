@@ -15,6 +15,13 @@ namespace UnityTools.Util
 
     public class EventDispatcher : MonoSingleton<EventDispatcher>
     {
+        // Exception: delegate declarations are grouped in Types section.
+        //============================================================
+        //Types
+        //============================================================
+        public delegate void EventDelegate(object sender);
+        public delegate void EventDelegate<T>(object sender, T param);
+
         //============================================================
         //Constants
         //============================================================
@@ -24,13 +31,6 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly Dictionary<EEventDispatcherType, SortedList<int, List<Delegate>>> _events = new();
-
-        // Exception: delegate declarations are grouped in Types section.
-        //============================================================
-        //Types
-        //============================================================
-        public delegate void EventDelegate(object sender);
-        public delegate void EventDelegate<T>(object sender, T param);
 
         //============================================================
         //Logic

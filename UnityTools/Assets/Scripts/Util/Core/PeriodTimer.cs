@@ -398,33 +398,20 @@ namespace UnityTools.Util
         }
     }
 
-    // Exception: storage snapshot/persistence types are grouped in Types section.
-    //============================================================
-    //Types
-    //============================================================
     public class PeriodTimerStorageSnapshot
     {
-        //============================================================
-        //Readonly
-        //============================================================
         private readonly DateTime _openStartTime;
         private readonly DateTime _openEndTime;
         private readonly DateTime _closedEndTime;
         private readonly DateTime _openUpdatedTime;
         private readonly bool _isTamperedFlag;
 
-        //============================================================
-        //Properties
-        //============================================================
         public DateTime OpenStartTime => _openStartTime;
         public DateTime OpenEndTime => _openEndTime;
         public DateTime ClosedEndTime => _closedEndTime;
         public DateTime OpenUpdatedTime => _openUpdatedTime;
         public bool IsTamperedFlag => _isTamperedFlag;
 
-        //============================================================
-        //Constructors
-        //============================================================
         public PeriodTimerStorageSnapshot(
             DateTime openStartTime,
             DateTime openEndTime,
@@ -442,15 +429,9 @@ namespace UnityTools.Util
 
     public class PeriodTimerPersistence
     {
-        //============================================================
-        //Readonly
-        //============================================================
         private readonly string _id;
         private readonly IStorage _storage;
 
-        //============================================================
-        //Constructors
-        //============================================================
         public PeriodTimerPersistence(string id)
         {
             if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
@@ -460,9 +441,6 @@ namespace UnityTools.Util
             _storage = new PlayerPrefsStorage();
         }
 
-        //============================================================
-        //Persistence
-        //============================================================
         public void Save(
             DateTime openStartTime,
             DateTime openEndTime,
@@ -487,9 +465,6 @@ namespace UnityTools.Util
             return new PeriodTimerStorageSnapshot(openStartTime, openEndTime, closedEndTime, openUpdatedTime, isTamperedFlag);
         }
 
-        //============================================================
-        //Utilities
-        //============================================================
         private void SaveString(string key, string value)
         {
             if(string.IsNullOrEmpty(key))

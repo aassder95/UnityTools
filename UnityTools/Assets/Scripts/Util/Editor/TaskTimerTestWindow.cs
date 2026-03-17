@@ -6,6 +6,65 @@ using UnityTools.Manager;
 
 namespace UnityTools.Util
 {
+    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
+    //============================================================
+    //Types
+    //============================================================
+    public class TaskTimerSavedDataReader
+    {
+        private readonly IStorage _storage;
+
+        public TaskTimerSavedDataReader(IStorage storage)
+        {
+            _storage = storage;
+        }
+
+        public string ReadDateKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            if(!long.TryParse(raw, out long ticks))
+                return $"잘못된 ticks 값: {raw}";
+
+            if(ticks == DateTime.MinValue.Ticks)
+                return $"{raw} (DateTime.MinValue)";
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return $"범위 초과 ticks: {raw}";
+
+            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
+            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
+        }
+
+        public string ReadDurationKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
+                            double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            if(!isParsed)
+                return $"잘못된 duration 값: {raw}";
+
+            return $"{raw} ({value:F2} sec)";
+        }
+
+        public string ReadStateKey(string key)
+        {
+            if(!_storage.HasKey(key))
+                return "(없음)";
+
+            string raw = _storage.Load(key);
+            if(!int.TryParse(raw, out int intState))
+                return $"잘못된 state 값: {raw}";
+
+            ETaskTimerType type = (ETaskTimerType)intState;
+            return Enum.IsDefined(typeof(ETaskTimerType), type) ? $"{raw} ({type})" : $"{raw} (정의되지 않은 상태)";
+        }
+    }
+
     public class TaskTimerTestWindow : EditorWindow
     {
         //============================================================
@@ -41,15 +100,6 @@ namespace UnityTools.Util
         }
 
         //============================================================
-        //Init/Register
-        //============================================================
-        [MenuItem("Util/Tests/Task Timer")]
-        public static void Open()
-        {
-            GetWindow<TaskTimerTestWindow>("TaskTimer Test");
-        }
-
-        //============================================================
         //Unity Methods
         //============================================================
         private void OnGUI()
@@ -76,6 +126,15 @@ namespace UnityTools.Util
 
             GUILayout.Space(8);
             EditorGUILayout.HelpBox(_status, MessageType.Info);
+        }
+
+        //============================================================
+        //Init/Register
+        //============================================================
+        [MenuItem("Util/Tests/Task Timer")]
+        public static void Open()
+        {
+            GetWindow<TaskTimerTestWindow>("TaskTimer Test");
         }
 
         //============================================================
@@ -327,74 +386,6 @@ namespace UnityTools.Util
 
             if(GUI.Button(rightRect, rightLabel))
                 rightAction?.Invoke();
-        }
-    }
-
-    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
-    //============================================================
-    //Types
-    //============================================================
-    public class TaskTimerSavedDataReader
-    {
-        //============================================================
-        //Readonly
-        //============================================================
-        private readonly IStorage _storage;
-
-        //============================================================
-        //Constructors
-        //============================================================
-        public TaskTimerSavedDataReader(IStorage storage)
-        {
-            _storage = storage;
-        }
-
-        //============================================================
-        //Logic
-        //============================================================
-        public string ReadDateKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(!long.TryParse(raw, out long ticks))
-                return $"잘못된 ticks 값: {raw}";
-
-            if(ticks == DateTime.MinValue.Ticks)
-                return $"{raw} (DateTime.MinValue)";
-            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"범위 초과 ticks: {raw}";
-
-            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
-            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
-        }
-
-        public string ReadDurationKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
-                            double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
-            if(!isParsed)
-                return $"잘못된 duration 값: {raw}";
-
-            return $"{raw} ({value:F2} sec)";
-        }
-
-        public string ReadStateKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(!int.TryParse(raw, out int intState))
-                return $"잘못된 state 값: {raw}";
-
-            ETaskTimerType type = (ETaskTimerType)intState;
-            return Enum.IsDefined(typeof(ETaskTimerType), type) ? $"{raw} ({type})" : $"{raw} (정의되지 않은 상태)";
         }
     }
 }
