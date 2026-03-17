@@ -266,17 +266,6 @@ namespace UnityTools.Manager
             return new TaskTimerHandle(new TaskTimer(normalizedId, this, _isEnableLog));
         }
 
-        public TimeManagementTaskTimerHandle CreateTimeManagementTaskTimerHandle(string id, bool isWorldMapTarget, CoffeeMachine machine, Transform trTarget, Func<Sprite> getThumbnail)
-        {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(CreateTimeManagementTaskTimerHandle), id);
-                return null;
-            }
-
-            return new TimeManagementTaskTimerHandle(new TaskTimer(normalizedId, this, _isEnableLog), isWorldMapTarget, machine, trTarget, getThumbnail);
-        }
-
         private void LogInvalidId(string method, string id)
         {
             if(!_isEnableLog)
