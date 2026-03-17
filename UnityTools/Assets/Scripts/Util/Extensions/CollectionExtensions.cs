@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -11,27 +10,19 @@ namespace UnityTools.Util
     {
         public static bool IsValidIndex<T>(this List<T> list, int index)
         {
-            if (list == null)
+            if(list == null)
             {
                 Debug.LogWarning("[CollectionExtensions:IsValidIndex] List가 null입니다.");
                 return false;
             }
 
-            if (0 > index || index >= list.Count)
+            if(0 > index || index >= list.Count)
             {
                 Debug.LogWarning("[CollectionExtensions:IsValidIndex] Index가 범위를 벗어났습니다.");
                 return false;
             }
 
             return true;
-        }
-
-        public static void AddRange<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, IEnumerable<TKey> keys, Func<TKey, TValue> valueSelector)
-        {
-            foreach (var key in keys)
-            {
-                dictionary[key] = valueSelector(key);
-            }
         }
     }
 }
