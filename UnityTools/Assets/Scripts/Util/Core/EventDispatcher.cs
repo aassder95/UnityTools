@@ -15,55 +15,102 @@ namespace UnityTools.Util
 
     public class EventDispatcher : MonoSingleton<EventDispatcher>
     {
+        //============================================================
+        //Constants
+        //============================================================
         private const int DEFAULT_PRIORITY = 0;
+
+        //============================================================
+        //Readonly
+        //============================================================
         private readonly Dictionary<EEventDispatcherType, SortedList<int, List<Delegate>>> _events = new();
 
+        //============================================================
+        //Types
+        //============================================================
         public delegate void EventDelegate(object sender);
         public delegate void EventDelegate<T>(object sender, T param);
 
-        public void Subscribe(EEventDispatcherType key, EventDelegate listener, int priority = DEFAULT_PRIORITY) => Add(key, listener, priority);
-        public void Subscribe<T>(EEventDispatcherType key, EventDelegate<T> listener, int priority = DEFAULT_PRIORITY) => Add(key, listener, priority);
-        public void Unsubscribe(EEventDispatcherType key, EventDelegate listener) => Remove(key, listener);
-        public void Unsubscribe<T>(EEventDispatcherType key, EventDelegate<T> listener) => Remove(key, listener);
-        public void Dispatch(EEventDispatcherType key, object sender) => Invoke(key, del => ((EventDelegate)del)?.Invoke(sender));
-        public void Dispatch<T>(EEventDispatcherType key, object sender, T param) => Invoke(key, del => ((EventDelegate<T>)del)?.Invoke(sender, param));
-
-        private void Add(EEventDispatcherType key, Delegate listener, int priority)
+        //============================================================
+        //Logic
+        //============================================================
+        public void Subscribe(EEventDispatcherType key, EventDelegate listener, int priority = DEFAULT_PRIORITY)
         {
-            var priorityList = GetPriorityList(key);
-            var listeners = GetListeners(priorityList, priority);
+            if(listener == null)
+                return;
 
-            if (!listeners.Contains(listener))
+            SortedList<int, List<Delegate>> priorityList = GetPriorityList(key);
+            List<Delegate> listeners = GetListeners(priorityList, priority);
+            if(!listeners.Contains(listener))
                 listeners.Add(listener);
         }
 
-        private void Remove(EEventDispatcherType key, Delegate listener)
+        public void Subscribe<T>(EEventDispatcherType key, EventDelegate<T> listener, int priority = DEFAULT_PRIORITY)
         {
-            if (!_events.TryGetValue(key, out var priorityList))
+            if(listener == null)
                 return;
 
-            foreach (var listeners in priorityList.Values)
-            {
-                listeners.Remove(listener);
-            }
+            SortedList<int, List<Delegate>> priorityList = GetPriorityList(key);
+            List<Delegate> listeners = GetListeners(priorityList, priority);
+            if(!listeners.Contains(listener))
+                listeners.Add(listener);
         }
 
-        private void Invoke(EEventDispatcherType key, Action<Delegate> onAction)
+        public void Unsubscribe(EEventDispatcherType key, EventDelegate listener)
         {
-            if (!_events.TryGetValue(key, out var priorityList))
+            if(listener == null || !_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
                 return;
 
-            foreach (var listeners in priorityList.Values)
+            foreach (List<Delegate> listeners in priorityList.Values)
+                listeners.Remove(listener);
+        }
+
+        public void Unsubscribe<T>(EEventDispatcherType key, EventDelegate<T> listener)
+        {
+            if(listener == null || !_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+                return;
+
+            foreach (List<Delegate> listeners in priorityList.Values)
+                listeners.Remove(listener);
+        }
+
+        public void Dispatch(EEventDispatcherType key, object sender)
+        {
+            if(!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+                return;
+
+            foreach (List<Delegate> listeners in priorityList.Values)
             {
-                foreach (var listener in listeners)
+                foreach (Delegate listener in listeners)
                 {
                     try
                     {
-                        onAction(listener);
+                        ((EventDelegate)listener)?.Invoke(sender);
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[EventDispatcher:Invoke] {key}: {ex}");
+                        Debug.LogError($"[EventDispatcher:Dispatch] {key}: {ex}");
+                    }
+                }
+            }
+        }
+
+        public void Dispatch<T>(EEventDispatcherType key, object sender, T param)
+        {
+            if(!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+                return;
+
+            foreach (List<Delegate> listeners in priorityList.Values)
+            {
+                foreach (Delegate listener in listeners)
+                {
+                    try
+                    {
+                        ((EventDelegate<T>)listener)?.Invoke(sender, param);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.LogError($"[EventDispatcher:Dispatch] {key}: {ex}");
                     }
                 }
             }

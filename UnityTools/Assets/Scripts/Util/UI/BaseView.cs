@@ -31,11 +31,17 @@ namespace UnityTools.Util
         
         public virtual void Show()
         {
+            if (gameObject.activeSelf)
+                return;
+
             gameObject.SetActive(true);
         }
 
         public virtual void Hide()
         {
+            if (!gameObject.activeSelf)
+                return;
+
             gameObject.SetActive(false);
         }
 

@@ -68,6 +68,9 @@ namespace UnityTools.Util
         
         public virtual void Hide()
         {
+            if (!_isInit || !VIEW.IsVisible)
+                return;
+
             VIEW.Hide();
         }
 

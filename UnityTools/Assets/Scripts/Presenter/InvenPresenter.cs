@@ -1,6 +1,7 @@
 using UnityTools.Model;
 using UnityTools.UI;
 using UnityTools.Util;
+using UnityEngine.Events;
 
 namespace UnityTools.Presenter
 {
@@ -9,11 +10,28 @@ namespace UnityTools.Presenter
     //============================================================
     public class InvenPresenter : BasePresenter<InvenModel, InvenView>
     {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly UnityAction<InvenItemView> _onItemViewUpdated;
+
+        //============================================================
+        //Constructors
+        //============================================================
         public InvenPresenter(InvenModel model, InvenView view) : base(model, view)
         {
-            
+            _onItemViewUpdated = itemView =>
+            {
+                if(itemView == null)
+                    return;
+
+                itemView.Refresh(MODEL.Get(itemView.Index));
+            };
         }
 
+        //============================================================
+        //Init/Register
+        //============================================================
         public override void Init()
         {
             base.Init();
@@ -23,18 +41,13 @@ namespace UnityTools.Presenter
         protected override void BindEvents()
         {
             base.BindEvents();
-            VIEW.ScrollView.OnItemUpdated += OnItemViewUpdated;
+            VIEW.ScrollView.OnItemUpdated += _onItemViewUpdated;
         }
 
         protected override void UnbindEvents()
         {
-            VIEW.ScrollView.OnItemUpdated -= OnItemViewUpdated;
+            VIEW.ScrollView.OnItemUpdated -= _onItemViewUpdated;
             base.UnbindEvents();
-        }
-
-        private void OnItemViewUpdated(InvenItemView itemView)
-        {
-            itemView.Refresh(MODEL.Get(itemView.Index));
         }
     }
 }

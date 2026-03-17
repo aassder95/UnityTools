@@ -7,12 +7,10 @@ namespace UnityTools.Manager
     //============================================================
     public class GameManager : MonoSingleton<GameManager>
     {
+        //============================================================
+        //Unity Methods
+        //============================================================
         private void Awake()
-        {
-            InitSingletons();
-        }
-
-        private void InitSingletons()
         {
             Singletons.RegisterGameManager(Instance);
             Singletons.RegisterUIManager(UIManager.Instance);

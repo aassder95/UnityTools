@@ -25,6 +25,7 @@ namespace UnityTools.Util
         private RectTransform _rtContent;
         private RectTransform _rtItem;
         private ScrollRect _scrollRect;
+        private UnityAction<TView> _onControllerItemUpdated;
 
         protected DynamicScrollContext Context => _context;
         protected DynamicScrollItemController<TView> ItemController => _itemCtrl;
@@ -59,15 +60,16 @@ namespace UnityTools.Util
             _context = new DynamicScrollContext(_itemCntPerLine, _spacing, _padding, _rtItem, _scrollRect);
             _pool = new ObjectPool<TView>(_visibleLineCnt * _itemCntPerLine, _item, _rtContent);
             _itemCtrl = new DynamicScrollItemController<TView>(_context, _pool);
+            _onControllerItemUpdated = itemView => _onItemUpdated?.Invoke(itemView);
 
             _scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
-            _itemCtrl.OnItemUpdated += HandleItemUpdated;
+            _itemCtrl.OnItemUpdated += _onControllerItemUpdated;
         }
 
         private void OnDestroy()
         {
             _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
-            _itemCtrl.OnItemUpdated -= HandleItemUpdated;
+            _itemCtrl.OnItemUpdated -= _onControllerItemUpdated;
             _pool?.Clear();
         }
 
@@ -130,6 +132,5 @@ namespace UnityTools.Util
         }
 
         protected virtual void HandleScrollValueChanged(Vector2 value) { }
-        private void HandleItemUpdated(TView itemView) => _onItemUpdated?.Invoke(itemView);
     }
 }

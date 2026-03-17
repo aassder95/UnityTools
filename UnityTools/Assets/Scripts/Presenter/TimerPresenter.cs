@@ -1,11 +1,17 @@
 using UnityTools.Model;
 using UnityTools.UI;
 using UnityTools.Util;
+using UnityEngine.Events;
 
 namespace UnityTools.Presenter
 {
     public class TimerPresenter : BasePresenter<TimerModel, TimerView>
     {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly UnityAction<int> _onTimerUpdated;
+
         //============================================================
         //Fields
         //============================================================
@@ -16,6 +22,13 @@ namespace UnityTools.Presenter
         //============================================================
         public TimerPresenter(TimerModel model, TimerView view) : base(model, view)
         {
+            _onTimerUpdated = remainMin =>
+            {
+                if(_periodTimer == null)
+                    return;
+
+                MODEL.SetLoop(remainMin, _periodTimer.OpenUpdatedTime);
+            };
         }
 
         //============================================================
@@ -44,7 +57,7 @@ namespace UnityTools.Presenter
 
             VIEW.OnForceOpen += _periodTimer.ForceOpen;
             VIEW.OnForceClosed += _periodTimer.ForceClosed;
-            _periodTimer.OnUpdated += OnTimerUpdatedCallback;
+            _periodTimer.OnUpdated += _onTimerUpdated;
             _periodTimer.OnStateChanged += OnStateChangedCallback;
         }
 
@@ -54,7 +67,7 @@ namespace UnityTools.Presenter
             {
                 VIEW.OnForceOpen -= _periodTimer.ForceOpen;
                 VIEW.OnForceClosed -= _periodTimer.ForceClosed;
-                _periodTimer.OnUpdated -= OnTimerUpdatedCallback;
+                _periodTimer.OnUpdated -= _onTimerUpdated;
                 _periodTimer.OnStateChanged -= OnStateChangedCallback;
             }
 
@@ -82,11 +95,6 @@ namespace UnityTools.Presenter
                     MODEL.SetSubState("Closed");
                     break;
             }
-        }
-
-        private void OnTimerUpdatedCallback(int remainMin)
-        {
-            MODEL.SetLoop(remainMin, _periodTimer.OpenUpdatedTime);
         }
     }
 }
