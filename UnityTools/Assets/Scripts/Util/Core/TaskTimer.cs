@@ -159,7 +159,13 @@ namespace UnityTools.Util
 
         private void SaveData(string key, string value)
         {
-            _storage.Save(key, value);
+            if(string.IsNullOrEmpty(key))
+            {
+                LogTest("SaveData", "저장 키가 비어 있어 저장을 건너뜁니다.");
+                return;
+            }
+
+            _storage.Save(key, value ?? "0");
         }
 
         private string LoadData(string key)
@@ -169,6 +175,9 @@ namespace UnityTools.Util
 
         private bool HasData(string key)
         {
+            if(string.IsNullOrEmpty(key))
+                return false;
+
             return _storage.HasKey(key);
         }
 

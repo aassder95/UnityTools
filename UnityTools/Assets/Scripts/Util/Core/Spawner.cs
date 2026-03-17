@@ -22,6 +22,9 @@ namespace UnityTools.Util
 
         private void Start()
         {
+            if(_pool == null || _cnt <= 0)
+                return;
+
             StartCoroutine(CoSpawn());
         }
 

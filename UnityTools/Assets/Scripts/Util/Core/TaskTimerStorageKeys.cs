@@ -20,15 +20,28 @@
             return !string.IsNullOrEmpty(normalizedId);
         }
 
-        public static string Start(string id) => Build(id, START_TIME_SUFFIX);
-        public static string Updated(string id) => Build(id, UPDATED_TIME_SUFFIX);
-        public static string Duration(string id) => Build(id, DURATION_SUFFIX);
-        public static string State(string id) => Build(id, STATE_SUFFIX);
-
-        private static string Build(string id, string suffix)
+        public static string Start(string id)
         {
             TryNormalizeId(id, out string normalizedId);
-            return $"{PREFIX}{normalizedId}{suffix}";
+            return $"{PREFIX}{normalizedId ?? string.Empty}{START_TIME_SUFFIX}";
+        }
+
+        public static string Updated(string id)
+        {
+            TryNormalizeId(id, out string normalizedId);
+            return $"{PREFIX}{normalizedId ?? string.Empty}{UPDATED_TIME_SUFFIX}";
+        }
+
+        public static string Duration(string id)
+        {
+            TryNormalizeId(id, out string normalizedId);
+            return $"{PREFIX}{normalizedId ?? string.Empty}{DURATION_SUFFIX}";
+        }
+
+        public static string State(string id)
+        {
+            TryNormalizeId(id, out string normalizedId);
+            return $"{PREFIX}{normalizedId ?? string.Empty}{STATE_SUFFIX}";
         }
     }
 }

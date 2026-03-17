@@ -20,13 +20,28 @@ namespace UnityTools.Util
 
         public static Coroutine Start(IEnumerator enumerator)
         {
+            if(enumerator == null)
+                return null;
+
+            if(_instance == null)
+                _instance = FindFirstObjectByType<CoroutineHelper>();
+            if(_instance == null)
+                return null;
+
             return _instance.StartCoroutine(enumerator);
         }
 
         public static void Stop(Coroutine coroutine)
         {
-            if (coroutine != null)
-                _instance.StopCoroutine(coroutine);
+            if(coroutine == null)
+                return;
+
+            if(_instance == null)
+                _instance = FindFirstObjectByType<CoroutineHelper>();
+            if(_instance == null)
+                return;
+
+            _instance.StopCoroutine(coroutine);
         }
 
         public static void Replace(ref Coroutine coroutine, IEnumerator enumerator)

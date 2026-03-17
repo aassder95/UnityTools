@@ -155,7 +155,13 @@ namespace UnityTools.Util
 
         private void SaveData(string key, string value)
         {
-            _storage.Save(key, value);
+            if(string.IsNullOrEmpty(key))
+            {
+                LogTest("SaveData", "저장 키가 비어 있어 저장을 건너뜁니다.");
+                return;
+            }
+
+            _storage.Save(key, value ?? "0");
         }
 
         private string LoadData(string key)
@@ -353,9 +359,9 @@ namespace UnityTools.Util
             switch (_fsm.CurType)
             {
                 case EPeriodTimerType.Open:
-                    return Mathf.Clamp(GetRemainingSec(_openEndTime), 1, 60);
+                    return Mathf.Clamp(DateTimeUtils.GetRemainingSeconds(_openEndTime), 1, 60);
                 case EPeriodTimerType.Closed:
-                    return Mathf.Clamp(GetRemainingSec(_closedEndTime), 1, 60);
+                    return Mathf.Clamp(DateTimeUtils.GetRemainingSeconds(_closedEndTime), 1, 60);
                 default:
                     return 1;
             }
@@ -374,7 +380,7 @@ namespace UnityTools.Util
             _openUpdatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
             Save();
 
-            int remainMin = GetRemainingMin(_openEndTime);
+            int remainMin = DateTimeUtils.GetRemainingMinutes(_openEndTime);
             _onUpdated?.Invoke(remainMin);
         }
 
@@ -382,7 +388,7 @@ namespace UnityTools.Util
         {
             Save();
 
-            int remainMin = GetRemainingMin(_closedEndTime);
+            int remainMin = DateTimeUtils.GetRemainingMinutes(_closedEndTime);
             _onUpdated?.Invoke(remainMin);
         }
 
@@ -399,9 +405,9 @@ namespace UnityTools.Util
             switch (_fsm.CurType)
             {
                 case EPeriodTimerType.Open:
-                    return GetRemainingMin(_openEndTime);
+                    return DateTimeUtils.GetRemainingMinutes(_openEndTime);
                 case EPeriodTimerType.Closed:
-                    return GetRemainingMin(_closedEndTime);
+                    return DateTimeUtils.GetRemainingMinutes(_closedEndTime);
                 default:
                     return 0;
             }
@@ -412,9 +418,9 @@ namespace UnityTools.Util
             switch (_fsm.CurType)
             {
                 case EPeriodTimerType.Open:
-                    return GetRemainingSec(_openEndTime);
+                    return DateTimeUtils.GetRemainingSeconds(_openEndTime);
                 case EPeriodTimerType.Closed:
-                    return GetRemainingSec(_closedEndTime);
+                    return DateTimeUtils.GetRemainingSeconds(_closedEndTime);
                 default:
                     return 0;
             }
@@ -435,14 +441,5 @@ namespace UnityTools.Util
             return DEFAULT_PERIOD_MIN;
         }
 
-        private static int GetRemainingMin(DateTime targetTime)
-        {
-            return DateTimeUtils.GetRemainingMinutes(targetTime);
-        }
-
-        private static int GetRemainingSec(DateTime targetTime)
-        {
-            return DateTimeUtils.GetRemainingSeconds(targetTime);
-        }
     }
 }

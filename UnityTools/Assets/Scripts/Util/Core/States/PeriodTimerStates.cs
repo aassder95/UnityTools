@@ -31,6 +31,9 @@
 
             public override void Execute()
             {
+                if(_timer.FSM.CurType != EPeriodTimerType.Reset)
+                    return;
+
                 _timer.TryChangeState(EPeriodTimerType.Open, false, "ResetState.Execute");
             }
         }
@@ -41,6 +44,9 @@
 
             public override void Enter()
             {
+                if(_timer.FSM.CurType != EPeriodTimerType.Open)
+                    return;
+
                 _timer.NotifyUpdateOpen();
             }
 

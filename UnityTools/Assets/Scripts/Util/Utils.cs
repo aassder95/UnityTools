@@ -29,12 +29,28 @@ namespace UnityTools.Util
         
         public static int ClampIndex(int index, int lastIndex)
         {
-            return Mathf.Clamp(index, 0, Mathf.Max(0, lastIndex));
+            int safeLastIndex = lastIndex < 0 ? 0 : lastIndex;
+            if(index < 0)
+                return 0;
+            if(index > safeLastIndex)
+                return safeLastIndex;
+
+            return index;
         }
 
         public static int CalculateClampedIndexFromPosition(float position, float itemSize, int lastIndex)
         {
-            return ClampIndex(Mathf.FloorToInt(position / itemSize + POSITION_EPSILON), lastIndex);
+            if(itemSize <= 0f)
+                return 0;
+
+            int index = Mathf.FloorToInt(position / itemSize + POSITION_EPSILON);
+            int safeLastIndex = lastIndex < 0 ? 0 : lastIndex;
+            if(index < 0)
+                return 0;
+            if(index > safeLastIndex)
+                return safeLastIndex;
+
+            return index;
         }
     }
 
@@ -48,22 +64,32 @@ namespace UnityTools.Util
 
         public static int CompareWithoutMilliseconds(DateTime first, DateTime second)
         {
-            return RemoveMilliseconds(first).CompareTo(RemoveMilliseconds(second));
+            DateTime firstWithoutMilliseconds = RemoveMilliseconds(first);
+            DateTime secondWithoutMilliseconds = RemoveMilliseconds(second);
+            if(firstWithoutMilliseconds < secondWithoutMilliseconds)
+                return -1;
+            if(firstWithoutMilliseconds > secondWithoutMilliseconds)
+                return 1;
+
+            return 0;
         }
 
         public static int GetRemainingMinutes(DateTime targetTime)
         {
-            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeUntil(targetTime).TotalMinutes));
+            TimeSpan remainingTime = targetTime - RemoveMilliseconds(DateTime.UtcNow);
+            if(remainingTime.TotalMinutes <= 0d)
+                return 0;
+
+            return Mathf.CeilToInt((float)remainingTime.TotalMinutes);
         }
 
         public static int GetRemainingSeconds(DateTime targetTime)
         {
-            return Mathf.Max(0, Mathf.CeilToInt((float)CalculateTimeUntil(targetTime).TotalSeconds));
-        }
+            TimeSpan remainingTime = targetTime - RemoveMilliseconds(DateTime.UtcNow);
+            if(remainingTime.TotalSeconds <= 0d)
+                return 0;
 
-        private static TimeSpan CalculateTimeUntil(DateTime targetTime)
-        {
-            return targetTime - RemoveMilliseconds(DateTime.UtcNow);
+            return Mathf.CeilToInt((float)remainingTime.TotalSeconds);
         }
     }
 

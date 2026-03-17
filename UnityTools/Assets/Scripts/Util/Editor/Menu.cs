@@ -19,12 +19,21 @@ namespace UnityTools.Util
         [MenuItem("Util/Data/Clear PlayerPrefs")]
         private static void ClearPlayerPrefs()
         {
+            if(!EditorUtility.DisplayDialog("확인", "PlayerPrefs를 삭제하시겠습니까?", "삭제", "취소"))
+                return;
+
             PlayerPrefs.DeleteAll();
         }
 
         [MenuItem("Util/Data/Clear PersistentData")]
         private static void ClearPersistentData()
         {
+            if(!EditorUtility.DisplayDialog("확인", "PersistentData를 삭제하시겠습니까?", "삭제", "취소"))
+                return;
+
+            if(!Directory.Exists(Application.persistentDataPath))
+                return;
+
             Directory.Delete(Application.persistentDataPath, true);
         }
 

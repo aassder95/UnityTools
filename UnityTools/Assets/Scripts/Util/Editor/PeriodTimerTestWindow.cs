@@ -249,8 +249,14 @@ namespace UnityTools.Util
 
         private static bool TryParseMinutes(string input, out double value)
         {
-            return double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out value) ||
-                   double.TryParse(input, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            value = 0d;
+            if(double.TryParse(input, NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+                return true;
+
+            if(double.TryParse(input, NumberStyles.Float, CultureInfo.CurrentCulture, out value))
+                return true;
+
+            return false;
         }
 
         //============================================================

@@ -36,6 +36,9 @@ namespace UnityTools.UI
         //============================================================
         public override void Refresh(RankModel model)
         {
+            if(model == null || _scrollView == null)
+                return;
+
             _scrollView.UpdateItemView();
         }
 

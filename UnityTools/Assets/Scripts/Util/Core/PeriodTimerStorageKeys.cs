@@ -21,16 +21,34 @@
             return !string.IsNullOrEmpty(normalizedId);
         }
 
-        public static string OpenStart(string id) => Build(id, OPEN_START_TIME_SUFFIX);
-        public static string OpenEnd(string id) => Build(id, OPEN_END_TIME_SUFFIX);
-        public static string ClosedEnd(string id) => Build(id, CLOSED_END_TIME_SUFFIX);
-        public static string OpenUpdated(string id) => Build(id, OPEN_UPDATED_TIME_SUFFIX);
-        public static string Tampered(string id) => Build(id, TAMPERED_SUFFIX);
-
-        private static string Build(string id, string suffix)
+        public static string OpenStart(string id)
         {
             TryNormalizeId(id, out string normalizedId);
-            return $"{PREFIX}{normalizedId}{suffix}";
+            return $"{PREFIX}{normalizedId ?? string.Empty}{OPEN_START_TIME_SUFFIX}";
+        }
+
+        public static string OpenEnd(string id)
+        {
+            TryNormalizeId(id, out string normalizedId);
+            return $"{PREFIX}{normalizedId ?? string.Empty}{OPEN_END_TIME_SUFFIX}";
+        }
+
+        public static string ClosedEnd(string id)
+        {
+            TryNormalizeId(id, out string normalizedId);
+            return $"{PREFIX}{normalizedId ?? string.Empty}{CLOSED_END_TIME_SUFFIX}";
+        }
+
+        public static string OpenUpdated(string id)
+        {
+            TryNormalizeId(id, out string normalizedId);
+            return $"{PREFIX}{normalizedId ?? string.Empty}{OPEN_UPDATED_TIME_SUFFIX}";
+        }
+
+        public static string Tampered(string id)
+        {
+            TryNormalizeId(id, out string normalizedId);
+            return $"{PREFIX}{normalizedId ?? string.Empty}{TAMPERED_SUFFIX}";
         }
     }
 }

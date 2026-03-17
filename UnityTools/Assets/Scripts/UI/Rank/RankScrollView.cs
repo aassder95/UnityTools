@@ -17,7 +17,11 @@ namespace UnityTools.UI
 
         public void IncreaseTotalItem()
         {
-            SetTotalItemCount(TotalItemCount + 1);
+            int nextTotalItemCount = TotalItemCount + 1;
+            if(nextTotalItemCount <= TotalItemCount)
+                return;
+
+            SetTotalItemCount(nextTotalItemCount);
         }
 
         public void DecreaseTotalItem()

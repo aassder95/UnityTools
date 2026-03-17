@@ -66,7 +66,12 @@ namespace UnityTools.Util
 
         public void Clear()
         {
-            _pool.Clear();
+            while (_pool.Count > 0)
+            {
+                T obj = _pool.Dequeue();
+                if(obj != null)
+                    UnityEngine.Object.Destroy(obj.gameObject);
+            }
         }
     }
 }

@@ -15,6 +15,9 @@ namespace UnityTools.UI
         
         public override void Refresh(InvenModel model)
         {
+            if(model == null || _scrollView == null)
+                return;
+
             _scrollView.UpdateItemView();
         }
     }

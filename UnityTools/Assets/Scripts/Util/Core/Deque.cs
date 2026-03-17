@@ -15,19 +15,71 @@ namespace UnityTools.Util
         public bool IsEmpty => Count == 0;
         public int Count => _deque.Count;
 
-        public void Enqueue(T item) => _deque.AddLast(item);
-        public void EnqueueFront(T item) => _deque.AddFirst(item);
+        public void Enqueue(T item)
+        {
+            if(_deque == null)
+                _deque = new LinkedList<T>();
 
-        public T Dequeue() => RemoveNode(_deque.First);
-        public T DequeueBack() => RemoveNode(_deque.Last);
+            _deque.AddLast(item);
+        }
 
-        public T Peek() => PeekNode(_deque.First);
-        public T PeekBack() => PeekNode(_deque.Last);
+        public void EnqueueFront(T item)
+        {
+            if(_deque == null)
+                _deque = new LinkedList<T>();
 
-        public void Clear() => _deque.Clear();
+            _deque.AddFirst(item);
+        }
+
+        public T Dequeue()
+        {
+            if(IsEmpty)
+                return default;
+
+            T value = _deque.First.Value;
+            _deque.RemoveFirst();
+            return value;
+        }
+
+        public T DequeueBack()
+        {
+            if(IsEmpty)
+                return default;
+
+            T value = _deque.Last.Value;
+            _deque.RemoveLast();
+            return value;
+        }
+
+        public T Peek()
+        {
+            if(IsEmpty)
+                return default;
+
+            return _deque.First.Value;
+        }
+
+        public T PeekBack()
+        {
+            if(IsEmpty)
+                return default;
+
+            return _deque.Last.Value;
+        }
+
+        public void Clear()
+        {
+            if(IsEmpty)
+                return;
+
+            _deque.Clear();
+        }
 
         public void ForEach(UnityAction<T> onAction)
         {
+            if(onAction == null || IsEmpty)
+                return;
+
             foreach (var item in _deque)
             {
                 onAction(item);
@@ -36,6 +88,9 @@ namespace UnityTools.Util
 
         public T FirstOrDefault(Func<T, bool> cond)
         {
+            if(cond == null || IsEmpty)
+                return default;
+
             foreach (var item in _deque)
             {
                 if (cond(item))
@@ -43,24 +98,6 @@ namespace UnityTools.Util
             }
 
             return default;
-        }
-
-        private T PeekNode(LinkedListNode<T> node)
-        {
-            if (IsEmpty)
-                return default;
-
-            return node.Value;
-        }
-
-        private T RemoveNode(LinkedListNode<T> node)
-        {
-            if (IsEmpty)
-                return default;
-
-            T value = node.Value;
-            _deque.Remove(node);
-            return value;
         }
 
         public IEnumerator<T> GetEnumerator()

@@ -155,6 +155,9 @@ namespace UnityTools.Util
 
         public bool HasState(TType type)
         {
+            if(_states.Count == 0)
+                return false;
+
             return _states.ContainsKey(type);
         }
 
