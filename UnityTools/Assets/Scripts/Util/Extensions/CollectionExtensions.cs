@@ -13,13 +13,13 @@ namespace UnityTools.Util
         {
             if (list == null)
             {
-                Debug.LogWarning("[CollectionExtensions:IsValidIndex] List is null");
+                Debug.LogWarning("[CollectionExtensions:IsValidIndex] List가 null입니다.");
                 return false;
             }
 
             if (0 > index || index >= list.Count)
             {
-                Debug.LogWarning("[CollectionExtensions:IsValidIndex] Index out of range");
+                Debug.LogWarning("[CollectionExtensions:IsValidIndex] Index가 범위를 벗어났습니다.");
                 return false;
             }
 

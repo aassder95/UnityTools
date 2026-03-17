@@ -451,6 +451,7 @@ namespace UnityTools.Util
         }
     }
 
+    // Exception: storage snapshot/persistence types are grouped in Types section.
     //============================================================
     //Types
     //============================================================

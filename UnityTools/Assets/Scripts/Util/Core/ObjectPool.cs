@@ -24,7 +24,7 @@ namespace UnityTools.Util
         {
             if (prefab == null)
             {
-                Debug.LogError("[ObjectPool] Prefab is null.");
+                Debug.LogError("[ObjectPool] 프리팹이 null입니다.");
                 return;
             }
 
@@ -55,7 +55,7 @@ namespace UnityTools.Util
         {
             if (obj == null)
             {
-                Debug.LogWarning("[ObjectPool:Return] Object is null");
+                Debug.LogWarning("[ObjectPool:Return] 반환 대상 오브젝트가 null입니다.");
                 return;
             }
 

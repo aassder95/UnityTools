@@ -11,7 +11,7 @@ namespace UnityTools.Util
         {
             if (rt == null)
             {
-                Debug.LogWarning("[TransformExtensions:SetSizeWidth] RectTransform is null");
+                Debug.LogWarning("[TransformExtensions:SetSizeWidth] RectTransform가 null입니다.");
                 return;
             }
 
@@ -22,7 +22,7 @@ namespace UnityTools.Util
         {
             if (rt == null)
             {
-                Debug.LogWarning("[TransformExtensions:SetSizeHeight] RectTransform is null");
+                Debug.LogWarning("[TransformExtensions:SetSizeHeight] RectTransform가 null입니다.");
                 return;
             }
 
@@ -33,7 +33,7 @@ namespace UnityTools.Util
         {
             if (rt == null)
             {
-                Debug.LogWarning("[TransformExtensions:SetAnchoredPositionY] RectTransform is null");
+                Debug.LogWarning("[TransformExtensions:SetAnchoredPositionY] RectTransform가 null입니다.");
                 return;
             }
 

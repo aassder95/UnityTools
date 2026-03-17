@@ -168,7 +168,7 @@ namespace UnityTools.Util
                 return;
 
             string fromState = _hasCurrentState ? _curType.ToString() : "<none>";
-            Debug.LogWarning($"[EnumStateMachine:{method}] transition failed: {fromState} -> {targetType}, reason={reason}");
+            Debug.LogWarning($"[EnumStateMachine:{method}] 상태 전이 실패: {fromState} -> {targetType}, reason={reason}");
         }
     }
 }

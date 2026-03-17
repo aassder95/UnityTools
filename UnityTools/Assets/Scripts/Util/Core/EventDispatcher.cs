@@ -25,6 +25,7 @@ namespace UnityTools.Util
         //============================================================
         private readonly Dictionary<EEventDispatcherType, SortedList<int, List<Delegate>>> _events = new();
 
+        // Exception: delegate declarations are grouped in Types section.
         //============================================================
         //Types
         //============================================================
@@ -89,7 +90,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[EventDispatcher:Dispatch] {key}: {ex}");
+                        Debug.LogError($"[EventDispatcher:Dispatch] 이벤트 처리 중 예외 발생: key={key}, ex={ex}");
                     }
                 }
             }
@@ -110,7 +111,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[EventDispatcher:Dispatch] {key}: {ex}");
+                        Debug.LogError($"[EventDispatcher:Dispatch] 이벤트 처리 중 예외 발생: key={key}, ex={ex}");
                     }
                 }
             }
