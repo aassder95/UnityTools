@@ -23,8 +23,8 @@ namespace UnityTools.Manager
         //============================================================
         //Events
         //============================================================
-        public event UnityAction<PeriodTimerData> OnAnyTimerUpdated { add => _onAnyTimerUpdated += value; remove => _onAnyTimerUpdated -= value; }
-        private event UnityAction<PeriodTimerData> _onAnyTimerUpdated;
+        public event UnityAction<PeriodTimerData> OnAnyTimerRemainMinUpdated { add => _onAnyTimerRemainMinUpdated += value; remove => _onAnyTimerRemainMinUpdated -= value; }
+        private event UnityAction<PeriodTimerData> _onAnyTimerRemainMinUpdated;
 
         //============================================================
         //Unity Methods
@@ -107,12 +107,12 @@ namespace UnityTools.Manager
         //============================================================
         //Callbacks
         //============================================================
-        private void OnTimerUpdatedCallback(string id, int remainMin)
+        private void OnTimerRemainMinUpdatedCallback(string id, int remainMin)
         {
             if(!_handles.TryGetValue(id, out PeriodTimerHandle handle))
                 return;
 
-            _onAnyTimerUpdated?.Invoke(handle.ToData());
+            _onAnyTimerRemainMinUpdated?.Invoke(handle.ToData());
         }
 
         //============================================================
@@ -178,7 +178,7 @@ namespace UnityTools.Manager
                 if(_manager == null)
                     return;
 
-                _manager.OnTimerUpdatedCallback(_id, remainMin);
+                _manager.OnTimerRemainMinUpdatedCallback(_id, remainMin);
             }
         }
     }
