@@ -49,12 +49,12 @@ namespace UnityTools.Samples
         //============================================================
         private void OnRemainSecUpdatedCallback(int remainingSec)
         {
-            DebugLogger.Log($"Remaining: {remainingSec}");
+            DebugLogger.Log($"남은 시간: {remainingSec}초");
         }
 
         private void OnCompletedCallback()
         {
-            DebugLogger.Log("Completed");
+            DebugLogger.Log("완료");
         }
     }
 }

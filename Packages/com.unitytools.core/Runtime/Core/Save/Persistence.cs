@@ -1,4 +1,4 @@
-namespace UnityTools.Util
+﻿namespace UnityTools.Util
 {
     public class Persistence
     {
@@ -34,7 +34,7 @@ namespace UnityTools.Util
 
             _storage.Save(key, serialized);
             UnityEngine.PlayerPrefs.Save();
-            DebugLogger.Log($"저장 완료 key={key}, data={serialized}");
+            DebugLogger.Log($"저장 완료: 키={key}, 값={serialized}");
         }
 
         public T Load<T>(string suffix, T defaultValue = default)
@@ -42,14 +42,14 @@ namespace UnityTools.Util
             string key = GetKey(suffix);
             if(!_storage.HasKey(key))
             {
-                DebugLogger.Log($"데이터가 없습니다. key={key}");
+                DebugLogger.Log($"데이터가 없습니다: 키={key}");
                 return defaultValue;
             }
 
             string data = _storage.Load(key);
             if(string.IsNullOrEmpty(data) || data == "{}" || data == "[]")
             {
-                DebugLogger.Log($"데이터가 비어 있습니다. key={key}");
+                DebugLogger.Log($"데이터가 비어 있습니다: 키={key}");
                 return defaultValue;
             }
 
@@ -61,7 +61,7 @@ namespace UnityTools.Util
             else
                 result = _serializer.Deserialize<T>(data);
 
-            DebugLogger.Log($"로드 완료 key={key}, data={result}");
+            DebugLogger.Log($"로드 완료: 키={key}, 값={result}");
             return result;
         }
 
@@ -69,7 +69,7 @@ namespace UnityTools.Util
         {
             string key = GetKey(suffix);
             _storage.Delete(key);
-            DebugLogger.Log($"삭제 완료 key={key}");
+            DebugLogger.Log($"삭제 완료: 키={key}");
         }
 
         public bool HasKey(string suffix)

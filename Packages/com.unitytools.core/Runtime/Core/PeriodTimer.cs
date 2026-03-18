@@ -106,7 +106,7 @@ namespace UnityTools.Util
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("러너가 null이라 초기화를 무시합니다.");
+                DebugLogger.LogWarning("러너 참조가 비어 있어 초기화를 무시합니다.");
                 return;
             }
 
@@ -432,7 +432,7 @@ namespace UnityTools.Util
             if(min > 0d && !double.IsNaN(min) && !double.IsInfinity(min))
                 return min;
 
-            DebugLogger.LogWarning($"유효하지 않은 값 {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분 적용");
+            DebugLogger.LogWarning($"유효하지 않은 주기 값입니다: {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분을 적용합니다.");
             return DEFAULT_PERIOD_MIN;
         }
     }

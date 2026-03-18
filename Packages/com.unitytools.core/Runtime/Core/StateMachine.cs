@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
 
@@ -19,6 +19,11 @@ namespace UnityTools.Util
 
     public class StateMachine<TType> where TType : Enum
     {
+        //============================================================
+        //Constants
+        //============================================================
+        private const string UNINITIALIZED_STATE = "미초기화";
+
         //============================================================
         //Readonly
         //============================================================
@@ -53,7 +58,7 @@ namespace UnityTools.Util
         //============================================================
         public bool Add(TType type, IState state)
         {
-            string fromState = _hasCurrentState ? _curType.ToString() : "미초기화";
+            string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(state == null)
             {
                 DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 null입니다.");
@@ -69,7 +74,7 @@ namespace UnityTools.Util
 
         public bool Change(TType type, bool isUpdate = false)
         {
-            string fromState = _hasCurrentState ? _curType.ToString() : "미초기화";
+            string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(!_states.TryGetValue(type, out IState newState))
             {
                 DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 없습니다.");
@@ -120,4 +125,3 @@ namespace UnityTools.Util
         }
     }
 }
-

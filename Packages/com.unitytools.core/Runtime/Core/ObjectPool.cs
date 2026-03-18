@@ -33,7 +33,7 @@ namespace UnityTools.Util
         {
             if(prefab == null)
             {
-                DebugLogger.LogError("프리팹이 null입니다.");
+                DebugLogger.LogError("프리팹 참조가 비어 있습니다.");
                 return;
             }
 
@@ -67,7 +67,7 @@ namespace UnityTools.Util
         {
             if(obj == null)
             {
-                DebugLogger.LogWarning("반환 대상 오브젝트가 null입니다.");
+                DebugLogger.LogWarning("반환 대상 오브젝트가 비어 있습니다.");
                 return;
             }
 

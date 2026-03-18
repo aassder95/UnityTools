@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace UnityTools.Util
@@ -88,7 +88,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
+                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: 이벤트키={key}, 예외={ex}");
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
+                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: 이벤트키={key}, 예외={ex}");
                     }
                 }
             }

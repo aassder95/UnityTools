@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityTools.Util
 {
@@ -39,15 +38,6 @@ namespace UnityTools.Util
         {
             get => _defaultEnabled;
             set => _defaultEnabled = value;
-        }
-
-        //============================================================
-        //Unity Methods
-        //============================================================
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-        private static void InitializeOnLoad()
-        {
-            Initialize();
         }
 
         //============================================================

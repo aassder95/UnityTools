@@ -96,7 +96,7 @@ namespace UnityTools.Util
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("러너가 null이라 초기화를 무시합니다.");
+                DebugLogger.LogWarning("러너 참조가 비어 있어 초기화를 무시합니다.");
                 return;
             }
 
@@ -388,7 +388,7 @@ namespace UnityTools.Util
             if(durationSec > 0d && !double.IsNaN(durationSec) && !double.IsInfinity(durationSec))
                 return durationSec;
 
-            DebugLogger.LogWarning($"유효하지 않은 duration={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초 적용");
+            DebugLogger.LogWarning($"유효하지 않은 지속시간 값입니다: durationSec={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초를 적용합니다.");
             return DEFAULT_DURATION_SEC;
         }
 

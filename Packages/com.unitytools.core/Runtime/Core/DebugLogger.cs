@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -7,6 +7,12 @@ namespace UnityTools.Util
 {
     public static class DebugLogger
     {
+        //============================================================
+        //Constants
+        //============================================================
+        private const string UNKNOWN_CLASS = "알수없는클래스";
+        private const string UNKNOWN_METHOD = "알수없는메서드";
+
         //============================================================
         //Logic
         //============================================================
@@ -83,7 +89,7 @@ namespace UnityTools.Util
         {
             if(ex == null)
             {
-                WriteLog(ELogLevel.Error, className, method, "예외 정보가 null입니다.", context);
+                WriteLog(ELogLevel.Error, className, method, "예외 정보가 비어 있습니다.", context);
                 return;
             }
 
@@ -97,15 +103,15 @@ namespace UnityTools.Util
         private static string ResolveClassName(string filePath)
         {
             if(string.IsNullOrWhiteSpace(filePath))
-                return "UnknownClass";
+                return UNKNOWN_CLASS;
 
             string className = Path.GetFileNameWithoutExtension(filePath);
-            return StringTokenUtils.Normalize(className, "UnknownClass");
+            return StringTokenUtils.Normalize(className, UNKNOWN_CLASS);
         }
 
         private static string ResolveMethod(string memberName)
         {
-            string method = StringTokenUtils.Normalize(memberName, "UnknownMethod");
+            string method = StringTokenUtils.Normalize(memberName, UNKNOWN_METHOD);
             if(method == ".ctor")
                 return "Ctor";
 
@@ -114,8 +120,8 @@ namespace UnityTools.Util
 
         private static string FormatMessage(string className, string method, string msg)
         {
-            string safeClassName = StringTokenUtils.Normalize(className, "UnknownClass");
-            string safeMethod = StringTokenUtils.Normalize(method, "UnknownMethod");
+            string safeClassName = StringTokenUtils.Normalize(className, UNKNOWN_CLASS);
+            string safeMethod = StringTokenUtils.Normalize(method, UNKNOWN_METHOD);
             string safeMsg = msg ?? string.Empty;
             return $"[{safeClassName}:{safeMethod}] {safeMsg}";
         }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
 namespace UnityTools.Util
 {
@@ -14,13 +14,13 @@ namespace UnityTools.Util
         {
             if(list == null)
             {
-                DebugLogger.LogWarning("List가 null입니다.");
+                DebugLogger.LogWarning("리스트가 비어 있습니다.");
                 return false;
             }
 
             if(0 > index || index >= list.Count)
             {
-                DebugLogger.LogWarning("Index가 범위를 벗어났습니다.");
+                DebugLogger.LogWarning("인덱스가 범위를 벗어났습니다.");
                 return false;
             }
 
