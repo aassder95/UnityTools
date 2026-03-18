@@ -1,135 +1,99 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    // Exception: type-centric file uses Types section.
     //============================================================
-    //Types
+    // Interface
     //============================================================
     public interface IState
     {
-        //============================================================
-        //Logic
-        //============================================================
         void Enter();
         void Execute();
         void Exit();
     }
 
-    public enum ESameStateTransitionPolicy
-    {
-        ReEnter,
-        Ignore
-    }
-
-    public enum EStateTransitionFailReason
-    {
-        None,
-        DuplicateState,
-        MissingState,
-        AlreadyInitialized,
-        SameStateIgnored,
-        NullState
-    }
-
-    public class EnumStateMachine<TType> where TType : Enum
+    public class StateMachine<TType> where TType : Enum
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly Dictionary<TType, IState> _states = new();
         private readonly bool _isEnableLog;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private TType _curType;
         private IState _curState;
         private bool _hasCurrentState;
-        private ESameStateTransitionPolicy _sameStateTransitionPolicy;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
-        public event UnityAction<TType> OnStateChanged { add => _onStateChanged += value; remove => _onStateChanged -= value; }
-        public event UnityAction<TType, TType> OnStateChanging { add => _onStateChanging += value; remove => _onStateChanging -= value; }
-        public event UnityAction<TType, TType, EStateTransitionFailReason> OnTransitionFailed { add => _onTransitionFailed += value; remove => _onTransitionFailed -= value; }
-        private event UnityAction<TType> _onStateChanged;
-        private event UnityAction<TType, TType> _onStateChanging;
-        private event UnityAction<TType, TType, EStateTransitionFailReason> _onTransitionFailed;
+        public event UnityAction<TType, TType> OnStateTransition { add => _onStateTransition += value; remove => _onStateTransition -= value; }
+        private event UnityAction<TType, TType> _onStateTransition;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public TType CurType => _curType;
         public bool HasCurrentState => _hasCurrentState;
-        public ESameStateTransitionPolicy SameStateTransitionPolicy => _sameStateTransitionPolicy;
 
         //============================================================
-        //Constructors
+        // Constructor
         //============================================================
-        public EnumStateMachine(bool isEnableLog = true, ESameStateTransitionPolicy sameStateTransitionPolicy = ESameStateTransitionPolicy.ReEnter)
+        public StateMachine(bool isEnableLog = true)
         {
             _isEnableLog = isEnableLog;
-            _sameStateTransitionPolicy = sameStateTransitionPolicy;
         }
 
         //============================================================
-        //Logic
+        // State Management
         //============================================================
         public bool Add(TType type, IState state)
         {
+            string fromState = _hasCurrentState ? _curType.ToString() : "미초기화";
             if(state == null)
             {
-                LogTransitionFailure("Add", type, EStateTransitionFailReason.NullState);
+                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Add), $"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 null입니다.");
                 return false;
             }
 
             if(_states.TryAdd(type, state))
                 return true;
 
-            LogTransitionFailure("Add", type, EStateTransitionFailReason.DuplicateState);
+            DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Add), $"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 중복입니다.");
             return false;
         }
 
         public bool Change(TType type, bool isUpdate = false)
         {
-            EStateTransitionFailReason failReason;
-            return Change(type, out failReason, isUpdate);
-        }
-
-        public bool Change(TType type, out EStateTransitionFailReason failReason, bool isUpdate = false)
-        {
-            failReason = EStateTransitionFailReason.None;
+            string fromState = _hasCurrentState ? _curType.ToString() : "미초기화";
             if(!_states.TryGetValue(type, out IState newState))
             {
-                failReason = EStateTransitionFailReason.MissingState;
-                LogTransitionFailure("Change", type, failReason);
+                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Change), $"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 없습니다.");
                 return false;
             }
 
             bool isSameState = _hasCurrentState && EqualityComparer<TType>.Default.Equals(_curType, type);
-            if(isSameState && _sameStateTransitionPolicy == ESameStateTransitionPolicy.Ignore)
+            if(isSameState)
             {
-                failReason = EStateTransitionFailReason.SameStateIgnored;
-                LogTransitionFailure("Change", type, failReason);
+                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Change), $"전이 실패: 이전={fromState}, 대상={type}, 사유=동일 상태입니다.");
                 return false;
             }
 
             TType prevType = _curType;
-            _onStateChanging?.Invoke(prevType, type);
+            _onStateTransition?.Invoke(prevType, type);
 
             _curState?.Exit();
+
             _curType = type;
             _curState = newState;
             _hasCurrentState = true;
 
             _curState.Enter();
-            _onStateChanged?.Invoke(_curType);
-
             if(isUpdate)
                 Update();
 
@@ -140,38 +104,21 @@ namespace UnityTools.Util
         {
             if(_hasCurrentState)
             {
-                LogTransitionFailure("SetInitialState", type, EStateTransitionFailReason.AlreadyInitialized);
+                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(SetInitialState), $"전이 실패: 이전={_curType}, 대상={type}, 사유=초기 상태가 이미 설정되었습니다.");
                 return false;
             }
 
-            EStateTransitionFailReason failReason;
-            return Change(type, out failReason, isUpdate);
+            return Change(type, isUpdate);
         }
 
         public bool HasState(TType type)
         {
-            if(_states.Count == 0)
-                return false;
-
             return _states.ContainsKey(type);
         }
 
         public void Update()
         {
             _curState?.Execute();
-        }
-
-        //============================================================
-        //Utilities
-        //============================================================
-        private void LogTransitionFailure(string method, TType targetType, EStateTransitionFailReason reason)
-        {
-            _onTransitionFailed?.Invoke(_curType, targetType, reason);
-            if(!_isEnableLog)
-                return;
-
-            string fromState = _hasCurrentState ? _curType.ToString() : "<none>";
-            Debug.LogWarning($"[EnumStateMachine:{method}] 상태 전이 실패: {fromState} -> {targetType}, reason={reason}");
         }
     }
 }
