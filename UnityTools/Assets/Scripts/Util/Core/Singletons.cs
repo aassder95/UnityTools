@@ -9,16 +9,14 @@ namespace UnityTools.Util
         //============================================================
         private static GameManager _gameManager;
         private static UIManager _uiManager;
-        private static TaskTimerManager _taskTimerManager;
-        private static PeriodTimerManager _periodTimerManager;
+        private static TimerManager _timerManager;
 
         //============================================================
         //Properties
         //============================================================
         public static GameManager GameManager => _gameManager;
         public static UIManager UIManager => _uiManager;
-        public static TaskTimerManager TaskTimerManager => _taskTimerManager;
-        public static PeriodTimerManager PeriodTimerManager => _periodTimerManager;
+        public static TimerManager TimerManager => _timerManager;
 
         //============================================================
         //Logic
@@ -33,14 +31,9 @@ namespace UnityTools.Util
             _uiManager = uiManager;
         }
 
-        public static void RegisterTaskTimerManager(TaskTimerManager taskTimerManager)
+        public static void RegisterTimerManager(TimerManager timerManager)
         {
-            _taskTimerManager = taskTimerManager;
-        }
-
-        public static void RegisterPeriodTimerManager(PeriodTimerManager periodTimerManager)
-        {
-            _periodTimerManager = periodTimerManager;
+            _timerManager = timerManager;
         }
     }
 }

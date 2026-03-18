@@ -4,12 +4,12 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    public class PeriodTimerHandle
+    public class PeriodTimerHandle : ITimerHandle
     {
         //============================================================
         //Readonly
         //============================================================
-        protected readonly PeriodTimer _timer;
+        protected readonly IPeriodTimer _timer;
 
         //============================================================
         //Fields
@@ -33,7 +33,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
-        public EPeriodTimerType CurType => _timer.FSM.CurType;
+        public EPeriodTimerType CurType => _timer.CurType;
         public bool IsReady => _timer.IsReady;
         public bool IsOpenPeriod => _timer.IsOpenPeriod;
         public bool IsClosedPeriod => _timer.IsClosedPeriod;
@@ -42,7 +42,7 @@ namespace UnityTools.Util
         //============================================================
         //Constructors
         //============================================================
-        public PeriodTimerHandle(PeriodTimer timer)
+        public PeriodTimerHandle(IPeriodTimer timer)
         {
             _timer = timer;
         }
@@ -158,7 +158,7 @@ namespace UnityTools.Util
 
         public virtual PeriodTimerData ToData()
         {
-            return new PeriodTimerData(_timer.Id, _timer.FSM.CurType);
+            return new PeriodTimerData(_timer.Id, _timer.CurType);
         }
     }
 }

@@ -114,7 +114,7 @@ namespace UnityTools.Util
         //============================================================
         private void InitTimer()
         {
-            if(!TryGetManagerAndId(out PeriodTimerManager manager, out string id))
+            if(!TryGetManagerAndId(out TimerManager manager, out string id))
                 return;
 
             if(!TryParseMinutes(_openMin, out double openMin) || openMin <= 0d)
@@ -129,14 +129,14 @@ namespace UnityTools.Util
                 return;
             }
 
-            PeriodTimerHandle handle = manager.GetHandle(id) ?? manager.CreatePeriodTimerHandle(id);
+            PeriodTimerHandle handle = manager.GetPeriodHandle(id) ?? manager.CreatePeriodTimerHandle(id);
             if(handle == null)
             {
                 _status = "PeriodTimerHandle 생성 실패";
                 return;
             }
 
-            manager.InitTimer(handle, openMin, closedMin);
+            manager.InitPeriodTimer(handle, openMin, closedMin);
             _status = $"초기화 완료: {id} (오픈={openMin}분, 클로즈={closedMin}분)";
         }
 
@@ -209,7 +209,7 @@ namespace UnityTools.Util
             _status = "강제 클로즈 실행 완료";
         }
 
-        private bool TryGetManagerAndId(out PeriodTimerManager manager, out string id)
+        private bool TryGetManagerAndId(out TimerManager manager, out string id)
         {
             manager = null;
             id = string.Empty;
@@ -223,11 +223,11 @@ namespace UnityTools.Util
             if(!TryGetId(out id))
                 return false;
 
-            manager = PeriodTimerManager.Instance;
+            manager = TimerManager.Instance;
             if(manager != null)
                 return true;
 
-            _status = "PeriodTimerManager를 찾을 수 없습니다.";
+            _status = "TimerManager를 찾을 수 없습니다.";
             return false;
         }
 
@@ -236,11 +236,11 @@ namespace UnityTools.Util
             if(!TryGetId(out string id))
                 return null;
 
-            PeriodTimerManager manager = PeriodTimerManager.Instance;
+            TimerManager manager = TimerManager.Instance;
             if(manager == null)
                 return null;
 
-            return manager.GetHandle(id);
+            return manager.GetPeriodHandle(id);
         }
 
         private bool TryGetId(out string id)

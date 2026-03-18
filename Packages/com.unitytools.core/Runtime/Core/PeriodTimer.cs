@@ -13,7 +13,7 @@ namespace UnityTools.Util
         Closed
     }
 
-    public class PeriodTimer
+    public class PeriodTimer : IPeriodTimer
     {
         //============================================================
         //Constants
@@ -63,6 +63,7 @@ namespace UnityTools.Util
         //============================================================
         public string Id => _id;
         public StateMachine<EPeriodTimerType> FSM => _fsm;
+        public EPeriodTimerType CurType => _fsm.CurType;
         public bool IsTamperedFlag => _isTamperedFlag;
         public bool IsOpenPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _openEndTime) < 0;
         public bool IsClosedPeriod => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _closedEndTime) < 0;

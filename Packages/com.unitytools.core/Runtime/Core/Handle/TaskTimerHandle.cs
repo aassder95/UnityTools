@@ -3,12 +3,12 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    public class TaskTimerHandle
+    public class TaskTimerHandle : ITimerHandle
     {
         //============================================================
         //Readonly
         //============================================================
-        protected readonly TaskTimer _timer;
+        protected readonly ITaskTimer _timer;
 
         //============================================================
         //Fields
@@ -32,7 +32,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
-        public ETaskTimerType CurType => _timer.FSM.CurType;
+        public ETaskTimerType CurType => _timer.CurType;
         public bool IsClaimed => _timer.IsClaimed;
         public int RemainingSec => _timer.RemainingSec;
         public string Id => _timer.Id;
@@ -40,7 +40,7 @@ namespace UnityTools.Util
         //============================================================
         //Constructors
         //============================================================
-        public TaskTimerHandle(TaskTimer timer)
+        public TaskTimerHandle(ITaskTimer timer)
         {
             _timer = timer;
         }
@@ -159,7 +159,7 @@ namespace UnityTools.Util
         //============================================================
         public virtual TaskTimerData ToData()
         {
-            return new TaskTimerData(_timer.Id, Mathf.Max(_timer.RemainingSec, 0), _timer.DurationSec, _timer.GetProgress());
+            return new TaskTimerData(_timer.Id, _timer.CurType, Mathf.Max(_timer.RemainingSec, 0), _timer.DurationSec, _timer.GetProgress());
         }
     }
 }

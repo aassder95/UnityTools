@@ -541,7 +541,7 @@ GameObject:
   - component: {fileID: 524161749}
   - component: {fileID: 524161750}
   m_Layer: 0
-  m_Name: TaskTimerManager
+  m_Name: TimerManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -571,16 +571,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 524161748}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: bbfa0a0844ff475380daf0ba005aa633, type: 3}
+  m_Script: {fileID: 11500000, guid: b740047d07cb4ac3978fcb81ce46ae3d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _rootKey: TASK_TIMER_TEST
-  _ids:
-  - A
-  - B
-  - C
-  _trParentCanvas: {fileID: 106806488}
-  _view: {fileID: 4318476662688502968, guid: 3083a807f237ff94ab32fa2281016f01, type: 3}
 --- !u!114 &550709469 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 255715509558692628, guid: 6638cced55b58374a8730b492d82ff5e, type: 3}

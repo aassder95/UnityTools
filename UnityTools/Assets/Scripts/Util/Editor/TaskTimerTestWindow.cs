@@ -6,79 +6,6 @@ using UnityTools.Manager;
 
 namespace UnityTools.Util
 {
-    public class StorageDebugValueReader
-    {
-        //============================================================
-        //Readonly
-        //============================================================
-        private readonly IStorage _storage;
-
-        //============================================================
-        //Constructors
-        //============================================================
-        public StorageDebugValueReader(IStorage storage)
-        {
-            _storage = storage;
-        }
-
-        //============================================================
-        //Logic
-        //============================================================
-        public string ReadDateKey(string key)
-        {
-            if(!StorageValueUtils.HasKey(_storage, key))
-                return "(없음)";
-
-            string raw = StorageValueUtils.LoadString(_storage, key);
-            if(!long.TryParse(raw, out long ticks))
-                return $"잘못된 ticks 값: {raw}";
-
-            if(ticks == DateTime.MinValue.Ticks)
-                return $"{raw} (DateTime.MinValue)";
-            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"범위 초과 ticks: {raw}";
-
-            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
-            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
-        }
-
-        public string ReadDoubleKey(string key, string unit = "")
-        {
-            if(!StorageValueUtils.HasKey(_storage, key))
-                return "(없음)";
-
-            string raw = StorageValueUtils.LoadString(_storage, key);
-            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
-                            double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
-            if(!isParsed)
-                return $"잘못된 값: {raw}";
-
-            return string.IsNullOrWhiteSpace(unit) ? $"{raw} ({value:F2})" : $"{raw} ({value:F2} {unit})";
-        }
-
-        public string ReadEnumKey<TEnum>(string key) where TEnum : struct, Enum
-        {
-            if(!StorageValueUtils.HasKey(_storage, key))
-                return "(없음)";
-
-            string raw = StorageValueUtils.LoadString(_storage, key);
-            if(!int.TryParse(raw, out int intValue))
-                return $"잘못된 state 값: {raw}";
-
-            TEnum type = (TEnum)Enum.ToObject(typeof(TEnum), intValue);
-            return Enum.IsDefined(typeof(TEnum), type) ? $"{raw} ({type})" : $"{raw} (정의되지 않은 상태)";
-        }
-
-        public string ReadFlagKey(string key, string trueRaw = "1", string trueText = "참", string falseText = "거짓")
-        {
-            if(!StorageValueUtils.HasKey(_storage, key))
-                return "(없음)";
-
-            string raw = StorageValueUtils.LoadString(_storage, key);
-            return raw == trueRaw ? $"{raw} ({trueText})" : $"{raw} ({falseText})";
-        }
-    }
-
     public class TaskTimerTestWindow : EditorWindow
     {
         //============================================================
@@ -188,23 +115,23 @@ namespace UnityTools.Util
         //============================================================
         private void InitTimer()
         {
-            if(!TryGetManagerAndId(out TaskTimerManager manager, out string id))
+            if(!TryGetManagerAndId(out TimerManager manager, out string id))
                 return;
 
-            TaskTimerHandle handle = manager.GetHandle(id) ?? manager.CreateTaskTimerHandle(id);
+            TaskTimerHandle handle = manager.GetTaskHandle(id) ?? manager.CreateTaskTimerHandle(id);
             if(handle == null)
             {
                 _status = "TaskTimerHandle 생성 실패";
                 return;
             }
 
-            manager.InitTimer(handle);
+            manager.InitTaskTimer(handle);
             _status = $"초기화 완료: {id}";
         }
 
         private void StartTimer()
         {
-            if(!TryGetManagerAndId(out TaskTimerManager manager, out string id))
+            if(!TryGetManagerAndId(out TimerManager manager, out string id))
                 return;
 
             if(!TryParseSeconds(_durationSec, out double durationSec) || durationSec <= 0d)
@@ -213,20 +140,20 @@ namespace UnityTools.Util
                 return;
             }
 
-            TaskTimerHandle handle = manager.GetHandle(id);
+            TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
                 _status = "핸들이 없습니다. 먼저 타이머 초기화를 실행하세요.";
                 return;
             }
 
-            manager.StartTimer(id, durationSec);
+            manager.StartTaskTimer(id, durationSec);
             _status = $"시작 요청 완료: {id}, duration={durationSec}초";
         }
 
         private void ReduceTimer()
         {
-            if(!TryGetManagerAndId(out TaskTimerManager manager, out string id))
+            if(!TryGetManagerAndId(out TimerManager manager, out string id))
                 return;
 
             if(!TryParseSeconds(_reduceSec, out double reduceSec) || reduceSec <= 0d)
@@ -235,55 +162,55 @@ namespace UnityTools.Util
                 return;
             }
 
-            TaskTimerHandle handle = manager.GetHandle(id);
+            TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
                 _status = "핸들이 없습니다. 먼저 타이머 초기화를 실행하세요.";
                 return;
             }
 
-            manager.Reduce(id, reduceSec);
+            manager.ReduceTaskTimer(id, reduceSec);
             _status = $"차감 요청 완료: {id}, reduce={reduceSec}초";
         }
 
         private void CompleteImmediately()
         {
-            if(!TryGetManagerAndId(out TaskTimerManager manager, out string id))
+            if(!TryGetManagerAndId(out TimerManager manager, out string id))
                 return;
 
-            TaskTimerHandle handle = manager.GetHandle(id);
+            TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
                 _status = "핸들이 없습니다. 먼저 타이머 초기화를 실행하세요.";
                 return;
             }
 
-            manager.CompleteImmediately(id);
+            manager.CompleteTaskTimerImmediately(id);
             _status = $"즉시 완료 요청 완료: {id}";
         }
 
         private void Claim()
         {
-            if(!TryGetManagerAndId(out TaskTimerManager manager, out string id))
+            if(!TryGetManagerAndId(out TimerManager manager, out string id))
                 return;
 
-            TaskTimerHandle handle = manager.GetHandle(id);
+            TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
                 _status = "핸들이 없습니다. 먼저 타이머 초기화를 실행하세요.";
                 return;
             }
 
-            manager.Claim(id);
+            manager.ClaimTaskTimer(id);
             _status = $"보상 수령 요청 완료: {id}";
         }
 
         private void NotifyCurrentType()
         {
-            if(!TryGetManagerAndId(out TaskTimerManager manager, out string id))
+            if(!TryGetManagerAndId(out TimerManager manager, out string id))
                 return;
 
-            TaskTimerHandle handle = manager.GetHandle(id);
+            TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
                 _status = "핸들이 없습니다. 먼저 타이머 초기화를 실행하세요.";
@@ -294,7 +221,7 @@ namespace UnityTools.Util
             _status = $"현재 상태 알림 호출 완료: {id}, {handle.CurType}";
         }
 
-        private bool TryGetManagerAndId(out TaskTimerManager manager, out string id)
+        private bool TryGetManagerAndId(out TimerManager manager, out string id)
         {
             manager = null;
             id = string.Empty;
@@ -308,11 +235,11 @@ namespace UnityTools.Util
             if(!TryGetId(out id))
                 return false;
 
-            manager = TaskTimerManager.Instance;
+            manager = TimerManager.Instance;
             if(manager != null)
                 return true;
 
-            _status = "TaskTimerManager를 찾을 수 없습니다.";
+            _status = "TimerManager를 찾을 수 없습니다.";
             return false;
         }
 
@@ -355,23 +282,23 @@ namespace UnityTools.Util
                 return;
             }
 
-            TaskTimerManager manager = TaskTimerManager.Instance;
+            TimerManager manager = TimerManager.Instance;
             if(manager == null)
             {
-                EditorGUILayout.HelpBox("TaskTimerManager를 찾을 수 없습니다.", MessageType.None);
+                EditorGUILayout.HelpBox("TimerManager를 찾을 수 없습니다.", MessageType.None);
                 return;
             }
 
-            TaskTimerHandle handle = manager.GetHandle(id);
+            TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
                 EditorGUILayout.HelpBox("현재 핸들이 없습니다.", MessageType.None);
-                EditorGUILayout.LabelField("Claimed(저장 기준)", manager.IsClaimed(id).ToString());
+                EditorGUILayout.LabelField("Claimed(저장 기준)", manager.IsTaskTimerClaimed(id).ToString());
                 return;
             }
 
             TaskTimerData data = handle.ToData();
-            EditorGUILayout.LabelField("현재 상태", handle.CurType.ToString());
+            EditorGUILayout.LabelField("현재 상태", data.CurType.ToString());
             EditorGUILayout.LabelField("남은 시간(초)", handle.RemainingSec.ToString());
             EditorGUILayout.LabelField("총 시간(초)", data.DurationSec.ToString());
             EditorGUILayout.LabelField("진행률", data.Progress.ToString("P1", CultureInfo.InvariantCulture));

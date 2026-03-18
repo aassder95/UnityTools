@@ -12,7 +12,7 @@ namespace UnityTools.Util
         Completed
     }
 
-    public class TaskTimer
+    public class TaskTimer : ITaskTimer
     {
         //============================================================
         //Constants
@@ -55,6 +55,7 @@ namespace UnityTools.Util
         //============================================================
         public string Id => _id;
         public StateMachine<ETaskTimerType> FSM => _fsm;
+        public ETaskTimerType CurType => _fsm.CurType;
         public int RemainingSec => DateTimeUtils.GetRemainingSeconds(EndTime);
         public int DurationSec => (int)_durationSec;
         public bool IsClaimed => _persistence.IsClaimed();
