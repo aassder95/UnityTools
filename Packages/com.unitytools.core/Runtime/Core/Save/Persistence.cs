@@ -1,5 +1,3 @@
-using UnityEngine;
-
 namespace UnityTools.Util
 {
     public class Persistence
@@ -35,8 +33,8 @@ namespace UnityTools.Util
                 serialized = _serializer.Serialize(data);
 
             _storage.Save(key, serialized);
-            PlayerPrefs.Save();
-            Debug.Log($"[Persistence:Save] 저장 완료 key={key}, data={serialized}");
+            UnityEngine.PlayerPrefs.Save();
+            DebugLogger.Log(true, nameof(Persistence), nameof(Save), $"저장 완료 key={key}, data={serialized}");
         }
 
         public T Load<T>(string suffix, T defaultValue = default)
@@ -44,14 +42,14 @@ namespace UnityTools.Util
             string key = GetKey(suffix);
             if(!_storage.HasKey(key))
             {
-                Debug.Log($"[Persistence:Load] 데이터가 없습니다. key={key}");
+                DebugLogger.Log(true, nameof(Persistence), nameof(Load), $"데이터가 없습니다. key={key}");
                 return defaultValue;
             }
 
             string data = _storage.Load(key);
             if(string.IsNullOrEmpty(data) || data == "{}" || data == "[]")
             {
-                Debug.Log($"[Persistence:Load] 데이터가 비어 있습니다. key={key}");
+                DebugLogger.Log(true, nameof(Persistence), nameof(Load), $"데이터가 비어 있습니다. key={key}");
                 return defaultValue;
             }
 
@@ -63,7 +61,7 @@ namespace UnityTools.Util
             else
                 result = _serializer.Deserialize<T>(data);
 
-            Debug.Log($"[Persistence:Load] 로드 완료 key={key}, data={result}");
+            DebugLogger.Log(true, nameof(Persistence), nameof(Load), $"로드 완료 key={key}, data={result}");
             return result;
         }
 
@@ -71,7 +69,7 @@ namespace UnityTools.Util
         {
             string key = GetKey(suffix);
             _storage.Delete(key);
-            Debug.Log($"[Persistence:Delete] 삭제 완료 key={key}");
+            DebugLogger.Log(true, nameof(Persistence), nameof(Delete), $"삭제 완료 key={key}");
         }
 
         public bool HasKey(string suffix)

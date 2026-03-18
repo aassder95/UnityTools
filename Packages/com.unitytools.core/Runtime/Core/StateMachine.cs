@@ -1,9 +1,163 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
+    // Exception: common logging types are grouped in Types section.
+    //============================================================
+    //Types
+    //============================================================
+    public static class DebugLogGate
+    {
+        //============================================================
+        //Constants
+        //============================================================
+        private const string DEFAULT_CATEGORY = "__default__";
+
+        //============================================================
+        //Readonly
+        //============================================================
+        private static readonly Dictionary<string, bool> _categoryEnabled = new(StringComparer.Ordinal);
+
+        //============================================================
+        //Fields
+        //============================================================
+        private static bool _defaultEnabled = true;
+
+        //============================================================
+        //Properties
+        //============================================================
+        public static bool DefaultEnabled
+        {
+            get => _defaultEnabled;
+            set => _defaultEnabled = value;
+        }
+
+        //============================================================
+        //Logic
+        //============================================================
+        public static void SetEnabled(string category, bool isEnabled)
+        {
+            string key = NormalizeCategory(category);
+            _categoryEnabled[key] = isEnabled;
+        }
+
+        public static bool IsEnabled(string category)
+        {
+            string key = NormalizeCategory(category);
+            if(_categoryEnabled.TryGetValue(key, out bool isEnabled))
+                return isEnabled;
+
+            return _defaultEnabled;
+        }
+
+        public static void Reset()
+        {
+            _categoryEnabled.Clear();
+        }
+
+        //============================================================
+        //Utilities
+        //============================================================
+        private static string NormalizeCategory(string category)
+        {
+            if(string.IsNullOrWhiteSpace(category))
+                return DEFAULT_CATEGORY;
+
+            return category.Trim();
+        }
+    }
+
+    public static class DebugLogger
+    {
+        //============================================================
+        //Logic
+        //============================================================
+        public static void Log(bool isEnabled, string className, string method, string msg, string category = null, UnityEngine.Object context = null)
+        {
+            if(!CanLog(isEnabled, className, category))
+                return;
+
+            string message = FormatMessage(className, method, msg);
+            if(context == null)
+                Debug.Log(message);
+            else
+                Debug.Log(message, context);
+        }
+
+        public static void LogWarning(bool isEnabled, string className, string method, string msg, string category = null, UnityEngine.Object context = null)
+        {
+            if(!CanLog(isEnabled, className, category))
+                return;
+
+            string message = FormatMessage(className, method, msg);
+            if(context == null)
+                Debug.LogWarning(message);
+            else
+                Debug.LogWarning(message, context);
+        }
+
+        public static void LogError(bool isEnabled, string className, string method, string msg, string category = null, UnityEngine.Object context = null)
+        {
+            if(!CanLog(isEnabled, className, category))
+                return;
+
+            string message = FormatMessage(className, method, msg);
+            if(context == null)
+                Debug.LogError(message);
+            else
+                Debug.LogError(message, context);
+        }
+
+        public static void LogException(bool isEnabled, string className, string method, Exception ex, string category = null, UnityEngine.Object context = null)
+        {
+            if(!CanLog(isEnabled, className, category))
+                return;
+
+            if(ex == null)
+            {
+                LogError(isEnabled, className, method, "예외 정보가 null입니다.", category, context);
+                return;
+            }
+
+            LogError(isEnabled, className, method, $"예외 발생: {ex.Message}", category, context);
+            if(context == null)
+                Debug.LogException(ex);
+            else
+                Debug.LogException(ex, context);
+        }
+
+        //============================================================
+        //Utilities
+        //============================================================
+        private static bool CanLog(bool isEnabled, string className, string category)
+        {
+            if(!isEnabled)
+                return false;
+
+            string resolvedCategory = string.IsNullOrWhiteSpace(category) ? NormalizeToken(className, "UnknownClass") : category.Trim();
+            return DebugLogGate.IsEnabled(resolvedCategory);
+        }
+
+        private static string FormatMessage(string className, string method, string msg)
+        {
+            string safeClassName = NormalizeToken(className, "UnknownClass");
+            string safeMethod = NormalizeToken(method, "UnknownMethod");
+            string safeMsg = msg ?? string.Empty;
+            return $"[{safeClassName}:{safeMethod}] {safeMsg}";
+        }
+
+        private static string NormalizeToken(string value, string fallback)
+        {
+            if(string.IsNullOrWhiteSpace(value))
+                return fallback;
+
+            return value.Trim();
+        }
+    }
+
     //============================================================
     // Interface
     //============================================================

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,34 +12,34 @@ namespace UnityTools.Manager
         //Readonly
         //============================================================
         private readonly string _id;
-        private readonly Action<string, int> _onUpdated;
+        private readonly Action<string, int> _onRemainSecUpdated;
         private readonly Action<string> _onCompleted;
         private readonly Action<string> _onClaimed;
-        private readonly Action<string, ETaskTimerType> _onStateChanged;
+        private readonly Action<string, ETaskTimerType, ETaskTimerType> _onStateTransition;
 
         //============================================================
         //Constructors
         //============================================================
         public TaskTimerEventBinder(
             string id,
-            Action<string, int> onUpdated,
+            Action<string, int> onRemainSecUpdated,
             Action<string> onCompleted,
             Action<string> onClaimed,
-            Action<string, ETaskTimerType> onStateChanged)
+            Action<string, ETaskTimerType, ETaskTimerType> onStateTransition)
         {
             _id = id;
-            _onUpdated = onUpdated;
+            _onRemainSecUpdated = onRemainSecUpdated;
             _onCompleted = onCompleted;
             _onClaimed = onClaimed;
-            _onStateChanged = onStateChanged;
+            _onStateTransition = onStateTransition;
         }
 
         //============================================================
         //Callbacks
         //============================================================
-        public void OnUpdatedCallback(int remainSec)
+        public void OnRemainSecUpdatedCallback(int remainSec)
         {
-            _onUpdated?.Invoke(_id, remainSec);
+            _onRemainSecUpdated?.Invoke(_id, remainSec);
         }
 
         public void OnCompletedCallback()
@@ -52,9 +52,9 @@ namespace UnityTools.Manager
             _onClaimed?.Invoke(_id);
         }
 
-        public void OnStateChangedCallback(ETaskTimerType type)
+        public void OnStateTransitionCallback(ETaskTimerType prevType, ETaskTimerType nextType)
         {
-            _onStateChanged?.Invoke(_id, type);
+            _onStateTransition?.Invoke(_id, prevType, nextType);
         }
     }
 
@@ -74,10 +74,10 @@ namespace UnityTools.Manager
         //============================================================
         //Events
         //============================================================
-        public event UnityAction<TaskTimerData> OnAnyTimerUpdated { add => _onAnyTimerUpdated += value; remove => _onAnyTimerUpdated -= value; }
+        public event UnityAction<TaskTimerData> OnAnyTimerRemainSecUpdated { add => _onAnyTimerRemainSecUpdated += value; remove => _onAnyTimerRemainSecUpdated -= value; }
         public event UnityAction<TaskTimerData> OnAnyTimerCompleted { add => _onAnyTimerCompleted += value; remove => _onAnyTimerCompleted -= value; }
         public event UnityAction<TaskTimerData> OnAnyTimerClaimed { add => _onAnyTimerClaimed += value; remove => _onAnyTimerClaimed -= value; }
-        private event UnityAction<TaskTimerData> _onAnyTimerUpdated;
+        private event UnityAction<TaskTimerData> _onAnyTimerRemainSecUpdated;
         private event UnityAction<TaskTimerData> _onAnyTimerCompleted;
         private event UnityAction<TaskTimerData> _onAnyTimerClaimed;
 
@@ -131,16 +131,16 @@ namespace UnityTools.Manager
         {
             TaskTimerEventBinder eventBinder = new(
                 id,
-                OnTimerUpdatedCallback,
+                OnTimerRemainSecUpdatedCallback,
                 OnTimerCompletedCallback,
                 OnTimerClaimedCallback,
-                OnStateChangedCallback);
+                OnStateTransitionCallback);
             _eventBinders[id] = eventBinder;
 
-            handle.OnUpdated += eventBinder.OnUpdatedCallback;
+            handle.OnRemainSecUpdated += eventBinder.OnRemainSecUpdatedCallback;
             handle.OnCompleted += eventBinder.OnCompletedCallback;
             handle.OnClaimed += eventBinder.OnClaimedCallback;
-            handle.OnStateChanged += eventBinder.OnStateChangedCallback;
+            handle.OnStateTransition += eventBinder.OnStateTransitionCallback;
         }
 
         private void UnbindEvents(string id, TaskTimerHandle handle)
@@ -148,10 +148,10 @@ namespace UnityTools.Manager
             if(!_eventBinders.TryGetValue(id, out TaskTimerEventBinder eventBinder))
                 return;
 
-            handle.OnUpdated -= eventBinder.OnUpdatedCallback;
+            handle.OnRemainSecUpdated -= eventBinder.OnRemainSecUpdatedCallback;
             handle.OnCompleted -= eventBinder.OnCompletedCallback;
             handle.OnClaimed -= eventBinder.OnClaimedCallback;
-            handle.OnStateChanged -= eventBinder.OnStateChangedCallback;
+            handle.OnStateTransition -= eventBinder.OnStateTransitionCallback;
             _eventBinders.Remove(id);
         }
 
@@ -193,12 +193,12 @@ namespace UnityTools.Manager
         //============================================================
         //Callbacks
         //============================================================
-        private void OnTimerUpdatedCallback(string id, int remainSec)
+        private void OnTimerRemainSecUpdatedCallback(string id, int remainSec)
         {
             if(!_handles.TryGetValue(id, out TaskTimerHandle handle))
                 return;
 
-            _onAnyTimerUpdated?.Invoke(handle.ToData());
+            _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());
         }
 
         private void OnTimerCompletedCallback(string id)
@@ -217,15 +217,15 @@ namespace UnityTools.Manager
             _onAnyTimerClaimed?.Invoke(handle.ToData());
         }
 
-        private void OnStateChangedCallback(string id, ETaskTimerType type)
+        private void OnStateTransitionCallback(string id, ETaskTimerType prevType, ETaskTimerType nextType)
         {
-            if(type != ETaskTimerType.Processing)
+            if(nextType != ETaskTimerType.Processing)
                 return;
 
             if(!_handles.TryGetValue(id, out TaskTimerHandle handle))
                 return;
 
-            _onAnyTimerUpdated?.Invoke(handle.ToData());
+            _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());
         }
 
         //============================================================
@@ -279,7 +279,7 @@ namespace UnityTools.Manager
                 return;
 
             string safeId = id == null ? "null" : id.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
-            Debug.LogWarning($"[TaskTimerManager:{method}] 유효하지 않은 ID 입력: '{safeId}'");
+            DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimerManager), method, $"유효하지 않은 ID 입력: '{safeId}'");
         }
     }
 }

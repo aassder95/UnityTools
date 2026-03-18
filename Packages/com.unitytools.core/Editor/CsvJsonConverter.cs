@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text;
-using UnityEngine;
 
 namespace UnityTools.Util
 {
@@ -15,23 +14,23 @@ namespace UnityTools.Util
         public static void Convert(string csvPath, string jsonPath)
         {
             string[] lines = File.Exists(csvPath) ? File.ReadAllLines(csvPath) : null;
-            if (lines == null || lines.Length <= 1)
+            if(lines == null || lines.Length <= 1)
             {
                 File.WriteAllText(jsonPath, "[]");
                 return;
             }
 
             string[] headers = lines[0].Trim().Split(',');
-            StringBuilder sb = new StringBuilder("[");
+            StringBuilder sb = new("[");
             bool isFirstLine = true;
 
-            for (int i = 1; i < lines.Length; i++)
+            for(int i = 1; i < lines.Length; i++)
             {
                 string line = ConvertLineToJson(headers, lines[i]);
-                if (line == null)
+                if(line == null)
                     continue;
 
-                if (!isFirstLine)
+                if(!isFirstLine)
                     sb.Append(",");
 
                 sb.Append(line);
@@ -40,27 +39,27 @@ namespace UnityTools.Util
 
             sb.Append("]");
             File.WriteAllText(jsonPath, sb.ToString());
-            Debug.Log("[CsvJsonConverter:Convert] 변환 완료: " + jsonPath);
+            DebugLogger.Log(true, nameof(CsvJsonConverter), nameof(Convert), "변환 완료: " + jsonPath);
         }
 
         private static string ConvertLineToJson(string[] headers, string line)
         {
-            if (string.IsNullOrWhiteSpace(line))
+            if(string.IsNullOrWhiteSpace(line))
                 return null;
 
             string[] values = line.Trim().Split(',');
-            StringBuilder sb = new StringBuilder("{");
+            StringBuilder sb = new("{");
             bool isFirstPair = true;
 
-            for (int i = 0; i < headers.Length; i++)
+            for(int i = 0; i < headers.Length; i++)
             {
                 string header = headers[i].Trim();
-                if (header.StartsWith("_"))
+                if(header.StartsWith("_"))
                     continue;
 
-                string value = (i < values.Length) ? values[i].Trim() : "";
+                string value = i < values.Length ? values[i].Trim() : string.Empty;
 
-                if (!isFirstPair)
+                if(!isFirstPair)
                     sb.Append(",");
 
                 sb.Append("\"").Append(header).Append("\":\"").Append(value).Append("\"");

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Globalization;
 using UnityEngine;
@@ -19,11 +19,12 @@ namespace UnityTools.Util
         //Constants
         //============================================================
         private const double DEFAULT_DURATION_SEC = 1d;
+
         //============================================================
         //Readonly
         //============================================================
         private readonly string _id;
-        private readonly EnumStateMachine<ETaskTimerType> _fsm;
+        private readonly StateMachine<ETaskTimerType> _fsm;
         private readonly MonoBehaviour _runner;
         private readonly TaskTimerPersistence _persistence;
         private readonly bool _isEnableLog;
@@ -42,12 +43,12 @@ namespace UnityTools.Util
         //Events
         //============================================================
         public event UnityAction OnProgressStarted { add => _onProgressStarted += value; remove => _onProgressStarted -= value; }
-        public event UnityAction<int> OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
+        public event UnityAction<int> OnRemainSecUpdated { add => _onRemainSecUpdated += value; remove => _onRemainSecUpdated -= value; }
         public event UnityAction OnCompleted { add => _onCompleted += value; remove => _onCompleted -= value; }
         public event UnityAction OnClaimed { add => _onClaimed += value; remove => _onClaimed -= value; }
-        public event UnityAction<ETaskTimerType> OnStateChanged { add => _fsm.OnStateChanged += value; remove => _fsm.OnStateChanged -= value; }
+        public event UnityAction<ETaskTimerType, ETaskTimerType> OnStateTransition { add => _fsm.OnStateTransition += value; remove => _fsm.OnStateTransition -= value; }
         private event UnityAction _onProgressStarted;
-        private event UnityAction<int> _onUpdated;
+        private event UnityAction<int> _onRemainSecUpdated;
         private event UnityAction _onCompleted;
         private event UnityAction _onClaimed;
 
@@ -55,7 +56,7 @@ namespace UnityTools.Util
         //Properties
         //============================================================
         public string Id => _id;
-        public EnumStateMachine<ETaskTimerType> FSM => _fsm;
+        public StateMachine<ETaskTimerType> FSM => _fsm;
         public int RemainingSec => DateTimeUtils.GetRemainingSeconds(EndTime);
         public int DurationSec => (int)_durationSec;
         public bool IsClaimed => _persistence.IsClaimed();
@@ -75,14 +76,14 @@ namespace UnityTools.Util
             _runner = runner;
             _persistence = new TaskTimerPersistence(_id);
             _isEnableLog = isEnableLog;
-            _fsm = new EnumStateMachine<ETaskTimerType>(false, ESameStateTransitionPolicy.Ignore);
+            _fsm = new StateMachine<ETaskTimerType>(false);
 
             if(!_fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this)))
-                LogTest("Ctor", $"상태 등록 실패: {ETaskTimerType.None}");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), "Ctor", $"상태 등록 실패: {ETaskTimerType.None}");
             if(!_fsm.Add(ETaskTimerType.Processing, new TaskTimerStates.ProcessingState(this)))
-                LogTest("Ctor", $"상태 등록 실패: {ETaskTimerType.Processing}");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), "Ctor", $"상태 등록 실패: {ETaskTimerType.Processing}");
             if(!_fsm.Add(ETaskTimerType.Completed, new TaskTimerStates.CompletedState(this)))
-                LogTest("Ctor", $"상태 등록 실패: {ETaskTimerType.Completed}");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), "Ctor", $"상태 등록 실패: {ETaskTimerType.Completed}");
         }
 
         //============================================================
@@ -92,13 +93,13 @@ namespace UnityTools.Util
         {
             if(string.IsNullOrEmpty(_id))
             {
-                LogTest("Init", "유효하지 않은 ID라 초기화를 무시합니다.");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(Init), "유효하지 않은 ID로 초기화를 무시합니다.");
                 return;
             }
 
             if(_runner == null)
             {
-                LogTest("Init", "러너가 null이라 초기화를 무시합니다.");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(Init), "러너가 null이라 초기화를 무시합니다.");
                 return;
             }
 
@@ -117,10 +118,6 @@ namespace UnityTools.Util
 
             StopUpdate();
             _isInit = false;
-            _onProgressStarted = null;
-            _onUpdated = null;
-            _onCompleted = null;
-            _onClaimed = null;
         }
 
         //============================================================
@@ -241,7 +238,7 @@ namespace UnityTools.Util
             _startTime = _startTime.AddSeconds(-actualReduceSec);
             Save();
 
-            _onUpdated?.Invoke(RemainingSec);
+            _onRemainSecUpdated?.Invoke(RemainingSec);
 
             if(IsPeriodExpired)
                 UpdateCompletionTime();
@@ -321,20 +318,16 @@ namespace UnityTools.Util
         public void NotifyUpdate()
         {
             if(_fsm.CurType == ETaskTimerType.Processing)
-                _onUpdated?.Invoke(RemainingSec);
+                _onRemainSecUpdated?.Invoke(RemainingSec);
         }
 
         public void NotifyProcessingStarted()
         {
-            if(_fsm.CurType == ETaskTimerType.Processing)
-                _onProgressStarted?.Invoke();
+            _onProgressStarted?.Invoke();
         }
 
         public void NotifyCompleted()
         {
-            if(_fsm.CurType != ETaskTimerType.Completed)
-                return;
-
             StopUpdate();
             _onCompleted?.Invoke();
         }
@@ -389,7 +382,7 @@ namespace UnityTools.Util
                 return type;
 
             if(_savedStateType != 0)
-                LogTest("LoadStateType", $"유효하지 않은 저장 상태값: {_savedStateType}");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(LoadStateType), $"유효하지 않은 저장 상태값입니다: {_savedStateType}");
             return ETaskTimerType.None;
         }
 
@@ -398,7 +391,7 @@ namespace UnityTools.Util
             if(durationSec > 0d && !double.IsNaN(durationSec) && !double.IsInfinity(durationSec))
                 return durationSec;
 
-            LogTest("SanitizeDuration", $"유효하지 않은 duration={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초를 사용합니다.");
+            DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(SanitizeDuration), $"유효하지 않은 duration={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초 적용");
             return DEFAULT_DURATION_SEC;
         }
 
@@ -406,7 +399,7 @@ namespace UnityTools.Util
         {
             if(!_fsm.HasState(type))
             {
-                LogTest(method, $"등록되지 않은 상태 전이 요청: {type}");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), method, $"등록되지 않은 상태 전이 요청: {type}");
                 return false;
             }
 
@@ -415,21 +408,15 @@ namespace UnityTools.Util
                 if(_fsm.SetInitialState(type, isUpdate))
                     return true;
 
-                LogTest(method, $"초기 상태 설정 실패: {type}");
+                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), method, $"초기 상태 설정 실패: {type}");
                 return false;
             }
 
-            if(_fsm.Change(type, out EStateTransitionFailReason reason, isUpdate))
+            if(_fsm.Change(type, isUpdate))
                 return true;
 
-            LogTest(method, $"상태 전이 실패: {_fsm.CurType} -> {type}, reason={reason}");
+            DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), method, $"상태 전이 실패: {_fsm.CurType} -> {type}");
             return false;
-        }
-
-        private void LogTest(string method, string msg)
-        {
-            if(_isEnableLog)
-                Debug.LogWarning($"[TaskTimer:{method}] {msg}");
         }
     }
 

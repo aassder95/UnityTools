@@ -21,9 +21,9 @@ namespace UnityTools.Samples
         //============================================================
         private void Awake()
         {
-            TaskTimer timer = new TaskTimer(_timerId);
+            TaskTimer timer = new TaskTimer(_timerId, this);
             _handle = new TaskTimerHandle(timer);
-            _handle.OnUpdated += OnUpdatedCallback;
+            _handle.OnRemainSecUpdated += OnRemainSecUpdatedCallback;
             _handle.OnCompleted += OnCompletedCallback;
             _handle.Init();
         }
@@ -38,7 +38,7 @@ namespace UnityTools.Samples
             if(_handle == null)
                 return;
 
-            _handle.OnUpdated -= OnUpdatedCallback;
+            _handle.OnRemainSecUpdated -= OnRemainSecUpdatedCallback;
             _handle.OnCompleted -= OnCompletedCallback;
             _handle.Release();
             _handle = null;
@@ -47,14 +47,14 @@ namespace UnityTools.Samples
         //============================================================
         //Callbacks
         //============================================================
-        private void OnUpdatedCallback(int remainingSec)
+        private void OnRemainSecUpdatedCallback(int remainingSec)
         {
-            Debug.Log($"[TaskTimerSample] Remaining: {remainingSec}");
+            DebugLogger.Log(true, nameof(TaskTimerSample), nameof(OnRemainSecUpdatedCallback), $"Remaining: {remainingSec}");
         }
 
         private void OnCompletedCallback()
         {
-            Debug.Log("[TaskTimerSample] Completed");
+            DebugLogger.Log(true, nameof(TaskTimerSample), nameof(OnCompletedCallback), "Completed");
         }
     }
 }

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 namespace UnityTools.Util
 {
@@ -10,7 +9,6 @@ namespace UnityTools.Util
     //============================================================
     public enum EEventDispatcherType
     {
-
     }
 
     public class EventDispatcher : MonoSingleton<EventDispatcher>
@@ -90,7 +88,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[EventDispatcher:Dispatch] 이벤트 처리 중 예외 발생: key={key}, ex={ex}");
+                        DebugLogger.LogError(true, nameof(EventDispatcher), nameof(Dispatch), $"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
                     }
                 }
             }
@@ -111,15 +109,18 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        Debug.LogError($"[EventDispatcher:Dispatch] 이벤트 처리 중 예외 발생: key={key}, ex={ex}");
+                        DebugLogger.LogError(true, nameof(EventDispatcher), nameof(Dispatch), $"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
                     }
                 }
             }
         }
 
+        //============================================================
+        //Utilities
+        //============================================================
         private SortedList<int, List<Delegate>> GetPriorityList(EEventDispatcherType key)
         {
-            if (!_events.TryGetValue(key, out var priorityList))
+            if(!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
             {
                 priorityList = new SortedList<int, List<Delegate>>();
                 _events[key] = priorityList;
@@ -130,7 +131,7 @@ namespace UnityTools.Util
 
         private List<Delegate> GetListeners(SortedList<int, List<Delegate>> priorityList, int priority)
         {
-            if (!priorityList.TryGetValue(priority, out var listeners))
+            if(!priorityList.TryGetValue(priority, out List<Delegate> listeners))
             {
                 listeners = new List<Delegate>();
                 priorityList[priority] = listeners;
@@ -140,4 +141,3 @@ namespace UnityTools.Util
         }
     }
 }
-

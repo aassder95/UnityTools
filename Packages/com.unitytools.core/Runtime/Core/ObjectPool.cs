@@ -23,7 +23,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly T _originObj;
-        private readonly Queue<T> _pool = new Queue<T>();
+        private readonly Queue<T> _pool = new();
         private readonly Func<T, T> _generator;
 
         //============================================================
@@ -31,21 +31,21 @@ namespace UnityTools.Util
         //============================================================
         public ObjectPool(int initialSize, T prefab, Transform parent)
         {
-            if (prefab == null)
+            if(prefab == null)
             {
-                Debug.LogError("[ObjectPool] 프리팹이 null입니다.");
+                DebugLogger.LogError(true, nameof(ObjectPool<T>), "Ctor", "프리팹이 null입니다.");
                 return;
             }
 
             _originObj = prefab;
-            _generator = (original) =>
+            _generator = original =>
             {
-                var newObj = UnityEngine.Object.Instantiate(original, parent);
+                T newObj = UnityEngine.Object.Instantiate(original, parent);
                 newObj.gameObject.SetActive(false);
                 return newObj;
             };
 
-            for (int i = 0; i < initialSize; i++)
+            for(int i = 0; i < initialSize; i++)
             {
                 T newObj = _generator(_originObj);
                 _pool.Enqueue(newObj);
@@ -65,9 +65,9 @@ namespace UnityTools.Util
 
         public void Return(T obj)
         {
-            if (obj == null)
+            if(obj == null)
             {
-                Debug.LogWarning("[ObjectPool:Return] 반환 대상 오브젝트가 null입니다.");
+                DebugLogger.LogWarning(true, nameof(ObjectPool<T>), nameof(Return), "반환 대상 오브젝트가 null입니다.");
                 return;
             }
 
@@ -78,7 +78,7 @@ namespace UnityTools.Util
 
         public void Clear()
         {
-            while (_pool.Count > 0)
+            while(_pool.Count > 0)
             {
                 T obj = _pool.Dequeue();
                 if(obj != null)

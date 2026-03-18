@@ -1,3 +1,5 @@
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -48,7 +50,7 @@ namespace UnityTools.Manager
         //============================================================
         //Init/Register
         //============================================================
-        public void InitTimer(PeriodTimerHandle handle, double openMin, double closedMin)
+        public void InitTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             if(handle == null)
                 return;
@@ -64,14 +66,33 @@ namespace UnityTools.Manager
 
             _handles[normalizedId] = handle;
             BindEvents(normalizedId, handle);
-            handle.Init(openMin, closedMin);
+            handle.Init(openMin, closedMin, initWaitFunc);
+        }
+
+        public void DeleteTimer(string id)
+        {
+            if(!TryNormalizeId(nameof(DeleteTimer), id, out string normalizedId))
+                return;
+
+            if(_handles.TryGetValue(normalizedId, out PeriodTimerHandle handle))
+            {
+                UnbindEvents(normalizedId, handle);
+                handle.Release();
+                _handles.Remove(normalizedId);
+            }
+            else
+            {
+                _eventBinders.Remove(normalizedId);
+            }
+
+            PeriodTimerStorageKeys.DeleteAll(normalizedId);
         }
 
         private void BindEvents(string id, PeriodTimerHandle handle)
         {
             PeriodTimerEventBinder eventBinder = new(this, id);
             _eventBinders[id] = eventBinder;
-            handle.OnUpdated += eventBinder.OnUpdatedCallback;
+            handle.OnRemainMinUpdated += eventBinder.OnRemainMinUpdatedCallback;
         }
 
         private void UnbindEvents(string id, PeriodTimerHandle handle)
@@ -79,7 +100,7 @@ namespace UnityTools.Manager
             if(!_eventBinders.TryGetValue(id, out PeriodTimerEventBinder eventBinder))
                 return;
 
-            handle.OnUpdated -= eventBinder.OnUpdatedCallback;
+            handle.OnRemainMinUpdated -= eventBinder.OnRemainMinUpdatedCallback;
             _eventBinders.Remove(id);
         }
 
@@ -129,7 +150,7 @@ namespace UnityTools.Manager
                 return;
 
             string safeId = id == null ? "null" : id.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
-            Debug.LogWarning($"[PeriodTimerManager:{method}] 유효하지 않은 ID 입력: '{safeId}'");
+            DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimerManager), method, $"유효하지 않은 ID 입력: '{safeId}'");
         }
 
         private class PeriodTimerEventBinder
@@ -152,7 +173,7 @@ namespace UnityTools.Manager
             //============================================================
             //Callbacks
             //============================================================
-            public void OnUpdatedCallback(int remainMin)
+            public void OnRemainMinUpdatedCallback(int remainMin)
             {
                 if(_manager == null)
                     return;
