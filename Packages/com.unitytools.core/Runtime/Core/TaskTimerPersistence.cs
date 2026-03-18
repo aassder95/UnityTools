@@ -9,7 +9,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly string _id;
-        private readonly PlayerPrefsStorage _storage;
+        private readonly IStorage _storage;
 
         //============================================================
         //Constructors

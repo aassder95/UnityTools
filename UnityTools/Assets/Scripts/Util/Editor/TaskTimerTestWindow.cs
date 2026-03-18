@@ -15,12 +15,12 @@ namespace UnityTools.Util
         //============================================================
         //Readonly
         //============================================================
-        private readonly PlayerPrefsStorage _storage;
+        private readonly IStorage _storage;
 
         //============================================================
         //Constructors
         //============================================================
-        public TaskTimerSavedDataReader(PlayerPrefsStorage storage)
+        public TaskTimerSavedDataReader(IStorage storage)
         {
             _storage = storage;
         }
@@ -85,7 +85,7 @@ namespace UnityTools.Util
         //============================================================
         //Readonly
         //============================================================
-        private readonly PlayerPrefsStorage _storage = new PlayerPrefsStorage();
+        private readonly IStorage _storage = new PlayerPrefsStorage();
         private readonly TaskTimerSavedDataReader _savedDataReader;
 
         //============================================================

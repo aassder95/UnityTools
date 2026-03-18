@@ -8,7 +8,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly string _id;
-        private readonly PlayerPrefsStorage _storage;
+        private readonly IStorage _storage;
 
         //============================================================
         //Constructors
@@ -42,9 +42,9 @@ namespace UnityTools.Util
             return new PeriodTimerStorageSnapshot(openEndTime, closedEndTime, openUpdatedTime, isTamperedFlag);
         }
 
-        public static void DeleteAll(string id, PlayerPrefsStorage storage = null)
+        public static void DeleteAll(string id, IStorage storage = null)
         {
-            PlayerPrefsStorage targetStorage = storage ?? new PlayerPrefsStorage();
+            IStorage targetStorage = storage ?? new PlayerPrefsStorage();
             PeriodTimerStorageKeys.DeleteAll(id, targetStorage);
         }
 
