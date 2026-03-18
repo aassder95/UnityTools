@@ -49,12 +49,12 @@ namespace UnityTools.Samples
         //============================================================
         private void OnRemainSecUpdatedCallback(int remainingSec)
         {
-            DebugLogger.Log(true, nameof(TaskTimerSample), nameof(OnRemainSecUpdatedCallback), $"Remaining: {remainingSec}");
+            DebugLogger.Log($"Remaining: {remainingSec}");
         }
 
         private void OnCompletedCallback()
         {
-            DebugLogger.Log(true, nameof(TaskTimerSample), nameof(OnCompletedCallback), "Completed");
+            DebugLogger.Log("Completed");
         }
     }
 }

@@ -40,7 +40,7 @@ namespace UnityTools.Util
                     _instance = FindFirstObjectByType<T>();
 
                 if(_instance == null)
-                    DebugLogger.LogError(true, nameof(MonoSingleton<T>), nameof(Instance), $"{typeof(T).Name} 인스턴스를 찾을 수 없습니다.");
+                    DebugLogger.LogError($"{typeof(T).Name} 인스턴스를 찾을 수 없습니다.");
 
                 return _instance;
             }

@@ -39,7 +39,7 @@ namespace UnityTools.Util
 
             sb.Append("]");
             File.WriteAllText(jsonPath, sb.ToString());
-            DebugLogger.Log(true, nameof(CsvJsonConverter), nameof(Convert), "변환 완료: " + jsonPath);
+            DebugLogger.Log("변환 완료: " + jsonPath);
         }
 
         private static string ConvertLineToJson(string[] headers, string line)

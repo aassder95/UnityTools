@@ -88,7 +88,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError(true, nameof(EventDispatcher), nameof(Dispatch), $"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
+                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
                     }
                 }
             }
@@ -109,7 +109,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError(true, nameof(EventDispatcher), nameof(Dispatch), $"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
+                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: key={key}, ex={ex}");
                     }
                 }
             }

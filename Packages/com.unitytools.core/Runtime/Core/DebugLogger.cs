@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 using UnityEngine;
 
 namespace UnityTools.Util
@@ -8,86 +10,114 @@ namespace UnityTools.Util
         //============================================================
         //Logic
         //============================================================
-        public static void Log(bool isEnabled, string className, string method, string msg, string category = null, UnityEngine.Object context = null)
+        public static void Log(string msg, UnityEngine.Object context = null, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
         {
-            if(!CanLog(isEnabled, className, category))
+            if(!DebugLogGate.IsLevelEnabled(ELogLevel.Log))
+                return;
+
+            string className = ResolveClassName(filePath);
+            string method = ResolveMethod(memberName);
+            WriteLog(ELogLevel.Log, className, method, msg, context);
+        }
+
+        public static void LogWarning(string msg, UnityEngine.Object context = null, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
+        {
+            if(!DebugLogGate.IsLevelEnabled(ELogLevel.Warning))
+                return;
+
+            string className = ResolveClassName(filePath);
+            string method = ResolveMethod(memberName);
+            WriteLog(ELogLevel.Warning, className, method, msg, context);
+        }
+
+        public static void LogError(string msg, UnityEngine.Object context = null, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
+        {
+            if(!DebugLogGate.IsLevelEnabled(ELogLevel.Error))
+                return;
+
+            string className = ResolveClassName(filePath);
+            string method = ResolveMethod(memberName);
+            WriteLog(ELogLevel.Error, className, method, msg, context);
+        }
+
+        public static void LogException(Exception ex, UnityEngine.Object context = null, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
+        {
+            string className = ResolveClassName(filePath);
+            string method = ResolveMethod(memberName);
+            WriteException(className, method, ex, context);
+        }
+
+        //============================================================
+        //Utilities
+        //============================================================
+        private static void WriteLog(ELogLevel level, string className, string method, string msg, UnityEngine.Object context)
+        {
+            if(!DebugLogGate.IsEnabled(className, level))
                 return;
 
             string message = FormatMessage(className, method, msg);
-            if(context == null)
-                Debug.Log(message);
-            else
-                Debug.Log(message, context);
+            switch(level)
+            {
+                case ELogLevel.Log:
+                    if(context == null)
+                        Debug.Log(message);
+                    else
+                        Debug.Log(message, context);
+                    break;
+                case ELogLevel.Warning:
+                    if(context == null)
+                        Debug.LogWarning(message);
+                    else
+                        Debug.LogWarning(message, context);
+                    break;
+                case ELogLevel.Error:
+                    if(context == null)
+                        Debug.LogError(message);
+                    else
+                        Debug.LogError(message, context);
+                    break;
+            }
         }
 
-        public static void LogWarning(bool isEnabled, string className, string method, string msg, string category = null, UnityEngine.Object context = null)
+        private static void WriteException(string className, string method, Exception ex, UnityEngine.Object context)
         {
-            if(!CanLog(isEnabled, className, category))
-                return;
-
-            string message = FormatMessage(className, method, msg);
-            if(context == null)
-                Debug.LogWarning(message);
-            else
-                Debug.LogWarning(message, context);
-        }
-
-        public static void LogError(bool isEnabled, string className, string method, string msg, string category = null, UnityEngine.Object context = null)
-        {
-            if(!CanLog(isEnabled, className, category))
-                return;
-
-            string message = FormatMessage(className, method, msg);
-            if(context == null)
-                Debug.LogError(message);
-            else
-                Debug.LogError(message, context);
-        }
-
-        public static void LogException(bool isEnabled, string className, string method, Exception ex, string category = null, UnityEngine.Object context = null)
-        {
-            if(!CanLog(isEnabled, className, category))
-                return;
-
             if(ex == null)
             {
-                LogError(isEnabled, className, method, "예외 정보가 null입니다.", category, context);
+                WriteLog(ELogLevel.Error, className, method, "예외 정보가 null입니다.", context);
                 return;
             }
 
-            LogError(isEnabled, className, method, $"예외 발생: {ex.Message}", category, context);
+            WriteLog(ELogLevel.Error, className, method, $"예외 발생: {ex.Message}", context);
             if(context == null)
                 Debug.LogException(ex);
             else
                 Debug.LogException(ex, context);
         }
 
-        //============================================================
-        //Utilities
-        //============================================================
-        private static bool CanLog(bool isEnabled, string className, string category)
+        private static string ResolveClassName(string filePath)
         {
-            if(!isEnabled)
-                return false;
+            if(string.IsNullOrWhiteSpace(filePath))
+                return "UnknownClass";
 
-            string resolvedCategory = string.IsNullOrWhiteSpace(category) ? NormalizeToken(className, "UnknownClass") : category.Trim();
-            return DebugLogGate.IsEnabled(resolvedCategory);
+            string className = Path.GetFileNameWithoutExtension(filePath);
+            return StringTokenUtils.Normalize(className, "UnknownClass");
+        }
+
+        private static string ResolveMethod(string memberName)
+        {
+            string method = StringTokenUtils.Normalize(memberName, "UnknownMethod");
+            if(method == ".ctor")
+                return "Ctor";
+
+            return method;
         }
 
         private static string FormatMessage(string className, string method, string msg)
         {
-            string safeClassName = NormalizeToken(className, "UnknownClass");
-            string safeMethod = NormalizeToken(method, "UnknownMethod");
+            string safeClassName = StringTokenUtils.Normalize(className, "UnknownClass");
+            string safeMethod = StringTokenUtils.Normalize(method, "UnknownMethod");
             string safeMsg = msg ?? string.Empty;
             return $"[{safeClassName}:{safeMethod}] {safeMsg}";
-        }
-
-        private static string NormalizeToken(string value, string fallback)
-        {
-            if(string.IsNullOrWhiteSpace(value))
-                return fallback;
-
-            return value.Trim();
         }
     }
 }
