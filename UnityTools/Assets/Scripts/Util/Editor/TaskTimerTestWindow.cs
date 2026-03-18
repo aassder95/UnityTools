@@ -6,11 +6,7 @@ using UnityTools.Manager;
 
 namespace UnityTools.Util
 {
-    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
-    //============================================================
-    //Types
-    //============================================================
-    public class TaskTimerSavedDataReader
+    public class StorageDebugValueReader
     {
         //============================================================
         //Readonly
@@ -20,7 +16,7 @@ namespace UnityTools.Util
         //============================================================
         //Constructors
         //============================================================
-        public TaskTimerSavedDataReader(IStorage storage)
+        public StorageDebugValueReader(IStorage storage)
         {
             _storage = storage;
         }
@@ -30,10 +26,10 @@ namespace UnityTools.Util
         //============================================================
         public string ReadDateKey(string key)
         {
-            if(!_storage.HasKey(key))
+            if(!StorageValueUtils.HasKey(_storage, key))
                 return "(없음)";
 
-            string raw = _storage.Load(key);
+            string raw = StorageValueUtils.LoadString(_storage, key);
             if(!long.TryParse(raw, out long ticks))
                 return $"잘못된 ticks 값: {raw}";
 
@@ -46,31 +42,40 @@ namespace UnityTools.Util
             return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
         }
 
-        public string ReadDurationKey(string key)
+        public string ReadDoubleKey(string key, string unit = "")
         {
-            if(!_storage.HasKey(key))
+            if(!StorageValueUtils.HasKey(_storage, key))
                 return "(없음)";
 
-            string raw = _storage.Load(key);
+            string raw = StorageValueUtils.LoadString(_storage, key);
             bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
                             double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
             if(!isParsed)
-                return $"잘못된 duration 값: {raw}";
+                return $"잘못된 값: {raw}";
 
-            return $"{raw} ({value:F2} sec)";
+            return string.IsNullOrWhiteSpace(unit) ? $"{raw} ({value:F2})" : $"{raw} ({value:F2} {unit})";
         }
 
-        public string ReadStateKey(string key)
+        public string ReadEnumKey<TEnum>(string key) where TEnum : struct, Enum
         {
-            if(!_storage.HasKey(key))
+            if(!StorageValueUtils.HasKey(_storage, key))
                 return "(없음)";
 
-            string raw = _storage.Load(key);
-            if(!int.TryParse(raw, out int intState))
+            string raw = StorageValueUtils.LoadString(_storage, key);
+            if(!int.TryParse(raw, out int intValue))
                 return $"잘못된 state 값: {raw}";
 
-            ETaskTimerType type = (ETaskTimerType)intState;
-            return Enum.IsDefined(typeof(ETaskTimerType), type) ? $"{raw} ({type})" : $"{raw} (정의되지 않은 상태)";
+            TEnum type = (TEnum)Enum.ToObject(typeof(TEnum), intValue);
+            return Enum.IsDefined(typeof(TEnum), type) ? $"{raw} ({type})" : $"{raw} (정의되지 않은 상태)";
+        }
+
+        public string ReadFlagKey(string key, string trueRaw = "1", string trueText = "참", string falseText = "거짓")
+        {
+            if(!StorageValueUtils.HasKey(_storage, key))
+                return "(없음)";
+
+            string raw = StorageValueUtils.LoadString(_storage, key);
+            return raw == trueRaw ? $"{raw} ({trueText})" : $"{raw} ({falseText})";
         }
     }
 
@@ -86,7 +91,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly IStorage _storage = new PlayerPrefsStorage();
-        private readonly TaskTimerSavedDataReader _savedDataReader;
+        private readonly StorageDebugValueReader _savedDataReader;
 
         //============================================================
         //Fields
@@ -105,7 +110,7 @@ namespace UnityTools.Util
         //============================================================
         public TaskTimerTestWindow()
         {
-            _savedDataReader = new TaskTimerSavedDataReader(_storage);
+            _savedDataReader = new StorageDebugValueReader(_storage);
         }
 
         //============================================================
@@ -172,9 +177,9 @@ namespace UnityTools.Util
                 return;
 
             _savedStart = _savedDataReader.ReadDateKey(TaskTimerStorageKeys.Start(id));
-            _savedDuration = _savedDataReader.ReadDurationKey(TaskTimerStorageKeys.Duration(id));
+            _savedDuration = _savedDataReader.ReadDoubleKey(TaskTimerStorageKeys.Duration(id), "sec");
             _savedUpdated = _savedDataReader.ReadDateKey(TaskTimerStorageKeys.Updated(id));
-            _savedState = _savedDataReader.ReadStateKey(TaskTimerStorageKeys.State(id));
+            _savedState = _savedDataReader.ReadEnumKey<ETaskTimerType>(TaskTimerStorageKeys.State(id));
             _status = $"저장값 조회 완료: {id}";
         }
 

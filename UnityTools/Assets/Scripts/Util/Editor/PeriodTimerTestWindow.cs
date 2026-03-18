@@ -6,56 +6,6 @@ using UnityTools.Manager;
 
 namespace UnityTools.Util
 {
-    // Exception: editor window delegates saved-data parsing to a dedicated helper type.
-    //============================================================
-    //Types
-    //============================================================
-    public class PeriodTimerSavedDataReader
-    {
-        //============================================================
-        //Readonly
-        //============================================================
-        private readonly IStorage _storage;
-
-        //============================================================
-        //Constructors
-        //============================================================
-        public PeriodTimerSavedDataReader(IStorage storage)
-        {
-            _storage = storage;
-        }
-
-        //============================================================
-        //Logic
-        //============================================================
-        public string ReadDateKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            if(!long.TryParse(raw, out long ticks))
-                return $"잘못된 ticks 값: {raw}";
-
-            if(ticks == DateTime.MinValue.Ticks)
-                return $"{raw} (DateTime.MinValue)";
-            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"범위 초과 ticks: {raw}";
-
-            DateTime time = new DateTime(ticks, DateTimeKind.Utc);
-            return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
-        }
-
-        public string ReadTamperedKey(string key)
-        {
-            if(!_storage.HasKey(key))
-                return "(없음)";
-
-            string raw = _storage.Load(key);
-            return raw == "1" ? "1 (참)" : $"{raw} (거짓)";
-        }
-    }
-
     public class PeriodTimerTestWindow : EditorWindow
     {
         //============================================================
@@ -68,7 +18,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly IStorage _storage = new PlayerPrefsStorage();
-        private readonly PeriodTimerSavedDataReader _savedDataReader;
+        private readonly StorageDebugValueReader _savedDataReader;
 
         //============================================================
         //Fields
@@ -87,7 +37,7 @@ namespace UnityTools.Util
         //============================================================
         public PeriodTimerTestWindow()
         {
-            _savedDataReader = new PeriodTimerSavedDataReader(_storage);
+            _savedDataReader = new StorageDebugValueReader(_storage);
         }
 
         //============================================================
@@ -155,7 +105,7 @@ namespace UnityTools.Util
             _savedOpenEnd = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenEnd(id));
             _savedClosedEnd = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.ClosedEnd(id));
             _savedOpenUpdated = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenUpdated(id));
-            _savedTampered = _savedDataReader.ReadTamperedKey(PeriodTimerStorageKeys.Tampered(id));
+            _savedTampered = _savedDataReader.ReadFlagKey(PeriodTimerStorageKeys.Tampered(id));
             _status = $"저장값 조회 완료: {id}";
         }
 
