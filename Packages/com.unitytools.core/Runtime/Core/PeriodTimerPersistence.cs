@@ -41,5 +41,11 @@ namespace UnityTools.Util
             bool isTamperedFlag = StorageValueUtils.LoadString(_storage, PeriodTimerStorageKeys.Tampered(_id)) == "1";
             return new PeriodTimerStorageSnapshot(openEndTime, closedEndTime, openUpdatedTime, isTamperedFlag);
         }
+
+        public static void DeleteAll(string id, IStorage storage = null)
+        {
+            IStorage targetStorage = storage ?? new PlayerPrefsStorage();
+            PeriodTimerStorageKeys.DeleteAll(id, targetStorage);
+        }
     }
 }

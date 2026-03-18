@@ -43,12 +43,14 @@
             return $"{PREFIX}{normalizedId ?? string.Empty}{TAMPERED_SUFFIX}";
         }
 
-        public static void DeleteAll(string id)
+        public static void DeleteAll(string id, IStorage storage)
         {
+            if(storage == null)
+                return;
+
             if(!TryNormalizeId(id, out string normalizedId))
                 return;
 
-            IStorage storage = new PlayerPrefsStorage();
             storage.Delete(OpenEnd(normalizedId));
             storage.Delete(ClosedEnd(normalizedId));
             storage.Delete(OpenUpdated(normalizedId));

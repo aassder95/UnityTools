@@ -85,7 +85,7 @@ namespace UnityTools.Manager
                 _eventBinders.Remove(normalizedId);
             }
 
-            PeriodTimerStorageKeys.DeleteAll(normalizedId);
+            PeriodTimerPersistence.DeleteAll(normalizedId);
         }
 
         private void BindEvents(string id, PeriodTimerHandle handle)
