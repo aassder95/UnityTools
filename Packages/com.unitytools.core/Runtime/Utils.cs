@@ -117,17 +117,11 @@ namespace UnityTools.Util
 
             return value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
         }
-    }
 
-    public static class TimerIdUtils
-    {
-        //============================================================
-        //Utilities
-        //============================================================
-        public static bool TryNormalizeId(string rawId, out string normalizedId)
+        public static bool TryNormalizeNonEmpty(string value, out string normalizedValue)
         {
-            normalizedId = rawId?.Trim();
-            return !string.IsNullOrEmpty(normalizedId);
+            normalizedValue = value?.Trim();
+            return !string.IsNullOrEmpty(normalizedValue);
         }
     }
 

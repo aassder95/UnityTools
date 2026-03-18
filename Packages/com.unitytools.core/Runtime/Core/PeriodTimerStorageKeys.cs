@@ -16,7 +16,7 @@
         //============================================================
         public static bool TryNormalizeId(string rawId, out string normalizedId)
         {
-            return TimerIdUtils.TryNormalizeId(rawId, out normalizedId);
+            return StringTokenUtils.TryNormalizeNonEmpty(rawId, out normalizedId);
         }
 
         public static string OpenEnd(string id)
