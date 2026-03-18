@@ -278,8 +278,8 @@ namespace UnityTools.Manager
             if(!_isEnableLog)
                 return;
 
-            string safeId = id == null ? "null" : id.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");
-            DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimerManager), method, $"유효하지 않은 ID 입력: '{safeId}'");
+            string safeId = StringTokenUtils.ToLogSafe(id);
+            DebugLogger.LogWarning($"[{method}] 유효하지 않은 ID 입력: '{safeId}'");
         }
     }
 }
