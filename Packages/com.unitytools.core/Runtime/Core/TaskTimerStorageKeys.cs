@@ -16,8 +16,7 @@
         //============================================================
         public static bool TryNormalizeId(string rawId, out string normalizedId)
         {
-            normalizedId = rawId?.Trim();
-            return !string.IsNullOrEmpty(normalizedId);
+            return TimerIdUtils.TryNormalizeId(rawId, out normalizedId);
         }
 
         public static string Start(string id)
@@ -45,3 +44,4 @@
         }
     }
 }
+

@@ -119,4 +119,16 @@ namespace UnityTools.Util
         }
     }
 
+    public static class TimerIdUtils
+    {
+        //============================================================
+        //Utilities
+        //============================================================
+        public static bool TryNormalizeId(string rawId, out string normalizedId)
+        {
+            normalizedId = rawId?.Trim();
+            return !string.IsNullOrEmpty(normalizedId);
+        }
+    }
+
 }
