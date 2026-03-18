@@ -67,11 +67,6 @@ namespace UnityTools.Manager
         private readonly Dictionary<string, TaskTimerEventBinder> _eventBinders = new();
 
         //============================================================
-        //Inspector Fields
-        //============================================================
-        [SerializeField] private bool _isEnableLog;
-
-        //============================================================
         //Events
         //============================================================
         public event UnityAction<TaskTimerData> OnAnyTimerRemainSecUpdated { add => _onAnyTimerRemainSecUpdated += value; remove => _onAnyTimerRemainSecUpdated -= value; }
@@ -270,14 +265,11 @@ namespace UnityTools.Manager
                 return null;
             }
 
-            return new TaskTimerHandle(new TaskTimer(normalizedId, this, _isEnableLog));
+            return new TaskTimerHandle(new TaskTimer(normalizedId, this));
         }
 
         private void LogInvalidId(string method, string id)
         {
-            if(!_isEnableLog)
-                return;
-
             string safeId = StringTokenUtils.ToLogSafe(id);
             DebugLogger.LogWarning($"[{method}] 유효하지 않은 ID 입력: '{safeId}'");
         }

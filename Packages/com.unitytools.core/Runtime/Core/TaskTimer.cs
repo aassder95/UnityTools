@@ -65,16 +65,15 @@ namespace UnityTools.Util
         //============================================================
         //Constructors
         //============================================================
-        public TaskTimer(string id, MonoBehaviour runner, bool isEnableLog = false)
+        public TaskTimer(string id, MonoBehaviour runner)
         {
-            _ = isEnableLog;
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
                 normalizedId = string.Empty;
 
             _id = normalizedId;
             _runner = runner;
             _persistence = new TaskTimerPersistence(_id);
-            _fsm = new StateMachine<ETaskTimerType>(false);
+            _fsm = new StateMachine<ETaskTimerType>();
 
             if(!_fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this)))
                 DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.None}");

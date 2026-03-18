@@ -46,10 +46,7 @@ namespace UnityTools.Util
         //============================================================
         //Constructors
         //============================================================
-        public StateMachine(bool isEnableLog = true)
-        {
-            _ = isEnableLog;
-        }
+        public StateMachine() { }
 
         //============================================================
         //Logic

@@ -75,15 +75,14 @@ namespace UnityTools.Util
         //============================================================
         //Constructors
         //============================================================
-        public PeriodTimer(string id, MonoBehaviour runner, bool isEnableLog = false)
+        public PeriodTimer(string id, MonoBehaviour runner)
         {
-            _ = isEnableLog;
             if(!PeriodTimerStorageKeys.TryNormalizeId(id, out _id))
                 _id = string.Empty;
 
             _runner = runner;
             _persistence = new PeriodTimerPersistence(_id);
-            _fsm = new StateMachine<EPeriodTimerType>(false);
+            _fsm = new StateMachine<EPeriodTimerType>();
             _fsm.OnStateTransition += OnStateTransitionCallback;
 
             if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))

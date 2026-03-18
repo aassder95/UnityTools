@@ -16,11 +16,6 @@ namespace UnityTools.Manager
         private readonly Dictionary<string, PeriodTimerEventBinder> _eventBinders = new();
 
         //============================================================
-        //Inspector Fields
-        //============================================================
-        [SerializeField] private bool _isEnableLog;
-
-        //============================================================
         //Events
         //============================================================
         public event UnityAction<PeriodTimerData> OnAnyTimerRemainMinUpdated { add => _onAnyTimerRemainMinUpdated += value; remove => _onAnyTimerRemainMinUpdated -= value; }
@@ -131,7 +126,7 @@ namespace UnityTools.Manager
             if(!TryNormalizeId(nameof(CreatePeriodTimerHandle), id, out string normalizedId))
                 return null;
 
-            return new PeriodTimerHandle(new PeriodTimer(normalizedId, this, _isEnableLog));
+            return new PeriodTimerHandle(new PeriodTimer(normalizedId, this));
         }
 
         private bool TryNormalizeId(string method, string id, out string normalizedId)
@@ -146,9 +141,6 @@ namespace UnityTools.Manager
 
         private void LogInvalidId(string method, string id)
         {
-            if(!_isEnableLog)
-                return;
-
             string safeId = StringTokenUtils.ToLogSafe(id);
             DebugLogger.LogWarning($"[{method}] 유효하지 않은 ID 입력: '{safeId}'");
         }
