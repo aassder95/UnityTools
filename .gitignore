@@ -9,10 +9,6 @@
 [Ll]ogs/
 [Mm]emoryCaptures/
 
-# Unity Auto-Generated Plugin Metadata
-Assets/Plugins/*/*.meta
-Assets/Plugins/Editor/*/*.meta
-
 # Unity Build and Project Settings
 BuildSettings.asset
 EditorBuildSettings.asset
@@ -36,6 +32,11 @@ UserSettings/*
 *.bak
 *.tmp
 *.lock
+
+# Unity metadata tracking policy (phase-2)
+!UnityTools/Assets/**/*.meta
+!UnityTools/Packages/**/*.meta
+!Packages/**/*.meta
 
 # ------------------------------------------
 # Visual Studio Code
