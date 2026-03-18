@@ -7,16 +7,16 @@ namespace UnityTools.Util
         //============================================================
         private readonly string _rootKey;
         private readonly ISerializer _serializer;
-        private readonly IStorage _storage;
+        private readonly PlayerPrefsStorage _storage;
 
         //============================================================
         //Constructors
         //============================================================
-        public Persistence(string rootKey, ISerializer serializer = null, IStorage storage = null)
+        public Persistence(string rootKey, ISerializer serializer = null)
         {
             _rootKey = rootKey;
             _serializer = serializer ?? new JsonSerializer();
-            _storage = storage ?? new PlayerPrefsStorage();
+            _storage = new PlayerPrefsStorage();
         }
 
         //============================================================

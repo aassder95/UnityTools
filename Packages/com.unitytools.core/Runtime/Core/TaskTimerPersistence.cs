@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 
 namespace UnityTools.Util
 {
@@ -8,7 +9,7 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly string _id;
-        private readonly IStorage _storage;
+        private readonly PlayerPrefsStorage _storage;
 
         //============================================================
         //Constructors
@@ -27,33 +28,33 @@ namespace UnityTools.Util
         //============================================================
         public void Save(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Start(_id), startTime.Ticks.ToString());
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Duration(_id), durationSec.ToString(System.Globalization.CultureInfo.InvariantCulture));
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.State(_id), ((int)stateType).ToString());
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Updated(_id), updatedTime.Ticks.ToString());
+            SaveString(TaskTimerStorageKeys.Start(_id), startTime.Ticks.ToString());
+            SaveString(TaskTimerStorageKeys.Duration(_id), durationSec.ToString(CultureInfo.InvariantCulture));
+            SaveString(TaskTimerStorageKeys.State(_id), ((int)stateType).ToString());
+            SaveString(TaskTimerStorageKeys.Updated(_id), updatedTime.Ticks.ToString());
         }
 
         public void SaveDuration(double durationSec)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Duration(_id), durationSec.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            SaveString(TaskTimerStorageKeys.Duration(_id), durationSec.ToString(CultureInfo.InvariantCulture));
         }
 
         public void SaveState(ETaskTimerType stateType)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.State(_id), ((int)stateType).ToString());
+            SaveString(TaskTimerStorageKeys.State(_id), ((int)stateType).ToString());
         }
 
         public void SaveUpdated(DateTime updatedTime)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Updated(_id), updatedTime.Ticks.ToString());
+            SaveString(TaskTimerStorageKeys.Updated(_id), updatedTime.Ticks.ToString());
         }
 
         public TaskTimerStorageSnapshot Load()
         {
-            DateTime startTime = StorageValueUtils.TryLoadDate(_storage, TaskTimerStorageKeys.Start(_id));
-            double durationSec = StorageValueUtils.TryLoadDouble(_storage, TaskTimerStorageKeys.Duration(_id));
-            DateTime updatedTime = StorageValueUtils.TryLoadDate(_storage, TaskTimerStorageKeys.Updated(_id));
-            int savedStateType = StorageValueUtils.TryLoadInt(_storage, TaskTimerStorageKeys.State(_id));
+            DateTime startTime = TryLoadDate(TaskTimerStorageKeys.Start(_id));
+            double durationSec = TryLoadDouble(TaskTimerStorageKeys.Duration(_id));
+            DateTime updatedTime = TryLoadDate(TaskTimerStorageKeys.Updated(_id));
+            int savedStateType = TryLoadInt(TaskTimerStorageKeys.State(_id));
             return new TaskTimerStorageSnapshot(startTime, durationSec, updatedTime, savedStateType);
         }
 
@@ -66,11 +67,72 @@ namespace UnityTools.Util
 
         public bool IsClaimed()
         {
-            bool hasStart = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.Start(_id));
-            bool hasDuration = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.Duration(_id));
-            bool hasState = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.State(_id));
-            bool hasUpdated = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.Updated(_id));
+            bool hasStart = HasKey(TaskTimerStorageKeys.Start(_id));
+            bool hasDuration = HasKey(TaskTimerStorageKeys.Duration(_id));
+            bool hasState = HasKey(TaskTimerStorageKeys.State(_id));
+            bool hasUpdated = HasKey(TaskTimerStorageKeys.Updated(_id));
             return !hasStart && !hasDuration && !hasState && hasUpdated;
+        }
+
+        //============================================================
+        //Utilities
+        //============================================================
+        private void SaveString(string key, string value)
+        {
+            if(string.IsNullOrEmpty(key))
+                return;
+
+            _storage.Save(key, value ?? string.Empty);
+        }
+
+        private string LoadString(string key)
+        {
+            if(!HasKey(key))
+                return string.Empty;
+
+            return _storage.Load(key);
+        }
+
+        private bool HasKey(string key)
+        {
+            if(string.IsNullOrEmpty(key))
+                return false;
+
+            return _storage.HasKey(key);
+        }
+
+        private DateTime TryLoadDate(string key)
+        {
+            string raw = LoadString(key);
+            if(!long.TryParse(raw, out long ticks))
+                return DateTime.MinValue;
+
+            if(ticks == DateTime.MinValue.Ticks)
+                return DateTime.MinValue;
+            if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
+                return DateTime.MinValue;
+
+            return new DateTime(ticks, DateTimeKind.Utc);
+        }
+
+        private double TryLoadDouble(string key)
+        {
+            string raw = LoadString(key);
+            bool isSuccess = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
+                             double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            if(!isSuccess || double.IsNaN(value) || double.IsInfinity(value))
+                return 0d;
+
+            return Math.Max(0d, value);
+        }
+
+        private int TryLoadInt(string key)
+        {
+            string raw = LoadString(key);
+            if(!int.TryParse(raw, out int value))
+                return 0;
+
+            return value;
         }
     }
 }

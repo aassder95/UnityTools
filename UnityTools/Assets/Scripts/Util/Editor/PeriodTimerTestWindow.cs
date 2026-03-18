@@ -15,12 +15,12 @@ namespace UnityTools.Util
         //============================================================
         //Readonly
         //============================================================
-        private readonly IStorage _storage;
+        private readonly PlayerPrefsStorage _storage;
 
         //============================================================
         //Constructors
         //============================================================
-        public PeriodTimerSavedDataReader(IStorage storage)
+        public PeriodTimerSavedDataReader(PlayerPrefsStorage storage)
         {
             _storage = storage;
         }
@@ -67,7 +67,7 @@ namespace UnityTools.Util
         //============================================================
         //Readonly
         //============================================================
-        private readonly IStorage _storage = new PlayerPrefsStorage();
+        private readonly PlayerPrefsStorage _storage = new PlayerPrefsStorage();
         private readonly PeriodTimerSavedDataReader _savedDataReader;
 
         //============================================================

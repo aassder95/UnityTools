@@ -365,7 +365,7 @@ namespace UnityTools.Util
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
                 return false;
 
-            IStorage storage = new PlayerPrefsStorage();
+            PlayerPrefsStorage storage = new PlayerPrefsStorage();
             bool hasStart = storage.HasKey(TaskTimerStorageKeys.Start(normalizedId));
             bool hasDuration = storage.HasKey(TaskTimerStorageKeys.Duration(normalizedId));
             bool hasState = storage.HasKey(TaskTimerStorageKeys.State(normalizedId));
