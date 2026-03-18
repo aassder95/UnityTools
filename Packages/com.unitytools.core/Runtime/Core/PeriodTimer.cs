@@ -27,7 +27,6 @@ namespace UnityTools.Util
         private readonly StateMachine<EPeriodTimerType> _fsm;
         private readonly MonoBehaviour _runner;
         private readonly PeriodTimerPersistence _persistence;
-        private readonly bool _isEnableLog;
 
         //============================================================
         //Fields
@@ -78,21 +77,21 @@ namespace UnityTools.Util
         //============================================================
         public PeriodTimer(string id, MonoBehaviour runner, bool isEnableLog = false)
         {
+            _ = isEnableLog;
             if(!PeriodTimerStorageKeys.TryNormalizeId(id, out _id))
                 _id = string.Empty;
 
             _runner = runner;
             _persistence = new PeriodTimerPersistence(_id);
-            _isEnableLog = isEnableLog;
             _fsm = new StateMachine<EPeriodTimerType>(false);
             _fsm.OnStateTransition += OnStateTransitionCallback;
 
             if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))
-                DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), "Ctor", $"상태 등록 실패: {EPeriodTimerType.Reset}");
+                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Reset}");
             if(!_fsm.Add(EPeriodTimerType.Open, new PeriodTimerStates.OpenState(this)))
-                DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), "Ctor", $"상태 등록 실패: {EPeriodTimerType.Open}");
+                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Open}");
             if(!_fsm.Add(EPeriodTimerType.Closed, new PeriodTimerStates.ClosedState(this)))
-                DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), "Ctor", $"상태 등록 실패: {EPeriodTimerType.Closed}");
+                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Closed}");
         }
 
         //============================================================
@@ -102,13 +101,13 @@ namespace UnityTools.Util
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), nameof(Init), "유효하지 않은 ID로 초기화를 무시합니다.");
+                DebugLogger.LogWarning("유효하지 않은 ID로 초기화를 무시합니다.");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), nameof(Init), "러너가 null이라 초기화를 무시합니다.");
+                DebugLogger.LogWarning("러너가 null이라 초기화를 무시합니다.");
                 return;
             }
 
@@ -247,7 +246,7 @@ namespace UnityTools.Util
         {
             if(!_fsm.HasState(type))
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), method, $"등록되지 않은 상태 전이 요청: {type}");
+                StateTransitionLogUtils.LogMissingState(method, type);
                 return false;
             }
 
@@ -256,14 +255,14 @@ namespace UnityTools.Util
                 if(_fsm.SetInitialState(type, isUpdate))
                     return true;
 
-                DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), method, $"초기 상태 설정 실패: {type}");
+                StateTransitionLogUtils.LogInitialSetFailed(method, type);
                 return false;
             }
 
             if(_fsm.Change(type, isUpdate))
                 return true;
 
-            DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), method, $"상태 전이 실패: {_fsm.CurType} -> {type}");
+            StateTransitionLogUtils.LogTransitionFailed(method, _fsm.CurType, type);
             return false;
         }
 
@@ -434,7 +433,7 @@ namespace UnityTools.Util
             if(min > 0d && !double.IsNaN(min) && !double.IsInfinity(min))
                 return min;
 
-            DebugLogger.LogWarning(_isEnableLog, nameof(PeriodTimer), nameof(SanitizePeriod), $"유효하지 않은 값 {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분 적용");
+            DebugLogger.LogWarning($"유효하지 않은 값 {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분 적용");
             return DEFAULT_PERIOD_MIN;
         }
     }

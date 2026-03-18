@@ -26,7 +26,6 @@ namespace UnityTools.Util
         private readonly StateMachine<ETaskTimerType> _fsm;
         private readonly MonoBehaviour _runner;
         private readonly TaskTimerPersistence _persistence;
-        private readonly bool _isEnableLog;
 
         //============================================================
         //Fields
@@ -68,21 +67,21 @@ namespace UnityTools.Util
         //============================================================
         public TaskTimer(string id, MonoBehaviour runner, bool isEnableLog = false)
         {
+            _ = isEnableLog;
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
                 normalizedId = string.Empty;
 
             _id = normalizedId;
             _runner = runner;
             _persistence = new TaskTimerPersistence(_id);
-            _isEnableLog = isEnableLog;
             _fsm = new StateMachine<ETaskTimerType>(false);
 
             if(!_fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this)))
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), "Ctor", $"상태 등록 실패: {ETaskTimerType.None}");
+                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.None}");
             if(!_fsm.Add(ETaskTimerType.Processing, new TaskTimerStates.ProcessingState(this)))
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), "Ctor", $"상태 등록 실패: {ETaskTimerType.Processing}");
+                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.Processing}");
             if(!_fsm.Add(ETaskTimerType.Completed, new TaskTimerStates.CompletedState(this)))
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), "Ctor", $"상태 등록 실패: {ETaskTimerType.Completed}");
+                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.Completed}");
         }
 
         //============================================================
@@ -92,13 +91,13 @@ namespace UnityTools.Util
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(Init), "유효하지 않은 ID로 초기화를 무시합니다.");
+                DebugLogger.LogWarning("유효하지 않은 ID로 초기화를 무시합니다.");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(Init), "러너가 null이라 초기화를 무시합니다.");
+                DebugLogger.LogWarning("러너가 null이라 초기화를 무시합니다.");
                 return;
             }
 
@@ -381,7 +380,7 @@ namespace UnityTools.Util
                 return type;
 
             if(_savedStateType != 0)
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(LoadStateType), $"유효하지 않은 저장 상태값입니다: {_savedStateType}");
+                DebugLogger.LogWarning($"유효하지 않은 저장 상태값입니다: {_savedStateType}");
             return ETaskTimerType.None;
         }
 
@@ -390,7 +389,7 @@ namespace UnityTools.Util
             if(durationSec > 0d && !double.IsNaN(durationSec) && !double.IsInfinity(durationSec))
                 return durationSec;
 
-            DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), nameof(SanitizeDuration), $"유효하지 않은 duration={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초 적용");
+            DebugLogger.LogWarning($"유효하지 않은 duration={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초 적용");
             return DEFAULT_DURATION_SEC;
         }
 
@@ -398,7 +397,7 @@ namespace UnityTools.Util
         {
             if(!_fsm.HasState(type))
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), method, $"등록되지 않은 상태 전이 요청: {type}");
+                StateTransitionLogUtils.LogMissingState(method, type);
                 return false;
             }
 
@@ -407,14 +406,14 @@ namespace UnityTools.Util
                 if(_fsm.SetInitialState(type, isUpdate))
                     return true;
 
-                DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), method, $"초기 상태 설정 실패: {type}");
+                StateTransitionLogUtils.LogInitialSetFailed(method, type);
                 return false;
             }
 
             if(_fsm.Change(type, isUpdate))
                 return true;
 
-            DebugLogger.LogWarning(_isEnableLog, nameof(TaskTimer), method, $"상태 전이 실패: {_fsm.CurType} -> {type}");
+            StateTransitionLogUtils.LogTransitionFailed(method, _fsm.CurType, type);
             return false;
         }
     }

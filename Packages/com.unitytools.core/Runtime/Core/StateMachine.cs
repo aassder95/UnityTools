@@ -23,7 +23,6 @@ namespace UnityTools.Util
         //Readonly
         //============================================================
         private readonly Dictionary<TType, IState> _states = new();
-        private readonly bool _isEnableLog;
 
         //============================================================
         //Fields
@@ -49,7 +48,7 @@ namespace UnityTools.Util
         //============================================================
         public StateMachine(bool isEnableLog = true)
         {
-            _isEnableLog = isEnableLog;
+            _ = isEnableLog;
         }
 
         //============================================================
@@ -60,14 +59,14 @@ namespace UnityTools.Util
             string fromState = _hasCurrentState ? _curType.ToString() : "미초기화";
             if(state == null)
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Add), $"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 null입니다.");
+                DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 null입니다.");
                 return false;
             }
 
             if(_states.TryAdd(type, state))
                 return true;
 
-            DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Add), $"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 중복입니다.");
+            DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 중복입니다.");
             return false;
         }
 
@@ -76,14 +75,14 @@ namespace UnityTools.Util
             string fromState = _hasCurrentState ? _curType.ToString() : "미초기화";
             if(!_states.TryGetValue(type, out IState newState))
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Change), $"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 없습니다.");
+                DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 없습니다.");
                 return false;
             }
 
             bool isSameState = _hasCurrentState && EqualityComparer<TType>.Default.Equals(_curType, type);
             if(isSameState)
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(Change), $"전이 실패: 이전={fromState}, 대상={type}, 사유=동일 상태입니다.");
+                DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=동일 상태입니다.");
                 return false;
             }
 
@@ -106,7 +105,7 @@ namespace UnityTools.Util
         {
             if(_hasCurrentState)
             {
-                DebugLogger.LogWarning(_isEnableLog, nameof(StateMachine<TType>), nameof(SetInitialState), $"전이 실패: 이전={_curType}, 대상={type}, 사유=초기 상태가 이미 설정되었습니다.");
+                DebugLogger.LogWarning($"전이 실패: 이전={_curType}, 대상={type}, 사유=초기 상태가 이미 설정되었습니다.");
                 return false;
             }
 
@@ -124,3 +123,4 @@ namespace UnityTools.Util
         }
     }
 }
+
