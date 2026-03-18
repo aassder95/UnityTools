@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
@@ -19,14 +19,15 @@ namespace UnityTools.Util
         //Events
         //============================================================
         public event UnityAction OnProgressStarted { add => _onProgressStarted += value; remove => _onProgressStarted -= value; }
-        public event UnityAction<int> OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
+        public event UnityAction<int> OnRemainSecUpdated { add => _onRemainSecUpdated += value; remove => _onRemainSecUpdated -= value; }
         public event UnityAction OnCompleted { add => _onCompleted += value; remove => _onCompleted -= value; }
         public event UnityAction OnClaimed { add => _onClaimed += value; remove => _onClaimed -= value; }
-        public event UnityAction<ETaskTimerType> OnStateChanged { add => _timer.FSM.OnStateChanged += value; remove => _timer.FSM.OnStateChanged -= value; }
+        public event UnityAction<ETaskTimerType, ETaskTimerType> OnStateTransition { add => _onStateTransition += value; remove => _onStateTransition -= value; }
         private event UnityAction _onProgressStarted;
-        private event UnityAction<int> _onUpdated;
+        private event UnityAction<int> _onRemainSecUpdated;
         private event UnityAction _onCompleted;
         private event UnityAction _onClaimed;
+        private event UnityAction<ETaskTimerType, ETaskTimerType> _onStateTransition;
 
         //============================================================
         //Properties
@@ -65,9 +66,10 @@ namespace UnityTools.Util
                 return;
 
             _timer.OnProgressStarted += OnProgressStartedCallback;
-            _timer.OnUpdated += OnUpdatedCallback;
+            _timer.OnRemainSecUpdated += OnRemainSecUpdatedCallback;
             _timer.OnCompleted += OnCompletedCallback;
             _timer.OnClaimed += OnClaimedCallback;
+            _timer.OnStateTransition += OnStateTransitionCallback;
             _isRegistered = true;
         }
 
@@ -77,9 +79,10 @@ namespace UnityTools.Util
                 return;
 
             _timer.OnProgressStarted -= OnProgressStartedCallback;
-            _timer.OnUpdated -= OnUpdatedCallback;
+            _timer.OnRemainSecUpdated -= OnRemainSecUpdatedCallback;
             _timer.OnCompleted -= OnCompletedCallback;
             _timer.OnClaimed -= OnClaimedCallback;
+            _timer.OnStateTransition -= OnStateTransitionCallback;
             _isRegistered = false;
         }
 
@@ -88,9 +91,6 @@ namespace UnityTools.Util
         //============================================================
         public bool Start(double durationSec)
         {
-            if(_timer == null)
-                return false;
-
             if(durationSec <= 0d || double.IsNaN(durationSec) || double.IsInfinity(durationSec))
                 return false;
 
@@ -99,9 +99,6 @@ namespace UnityTools.Util
 
         public virtual bool Reduce(double reduceSec)
         {
-            if(_timer == null)
-                return false;
-
             if(reduceSec <= 0d || double.IsNaN(reduceSec) || double.IsInfinity(reduceSec))
                 return false;
 
@@ -110,7 +107,7 @@ namespace UnityTools.Util
 
         public bool CompleteImmediately()
         {
-            if(_timer == null)
+            if(CurType != ETaskTimerType.Processing)
                 return false;
 
             return _timer.CompleteImmediately();
@@ -118,7 +115,7 @@ namespace UnityTools.Util
 
         public virtual bool Claim()
         {
-            if(_timer == null)
+            if(CurType != ETaskTimerType.Completed)
                 return false;
 
             return _timer.Claim();
@@ -126,9 +123,6 @@ namespace UnityTools.Util
 
         public void NotifyCurType()
         {
-            if(_timer == null)
-                return;
-
             _timer.NotifyCurType();
         }
 
@@ -140,9 +134,9 @@ namespace UnityTools.Util
             _onProgressStarted?.Invoke();
         }
 
-        private void OnUpdatedCallback(int remainingSec)
+        private void OnRemainSecUpdatedCallback(int remainingSec)
         {
-            _onUpdated?.Invoke(remainingSec);
+            _onRemainSecUpdated?.Invoke(remainingSec);
         }
 
         private void OnCompletedCallback()
@@ -153,6 +147,11 @@ namespace UnityTools.Util
         private void OnClaimedCallback()
         {
             _onClaimed?.Invoke();
+        }
+
+        private void OnStateTransitionCallback(ETaskTimerType prevType, ETaskTimerType nextType)
+        {
+            _onStateTransition?.Invoke(prevType, nextType);
         }
 
         //============================================================

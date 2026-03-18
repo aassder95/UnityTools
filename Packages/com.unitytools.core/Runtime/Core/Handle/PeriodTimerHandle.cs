@@ -1,3 +1,5 @@
+﻿using System;
+using System.Collections;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
@@ -17,21 +19,25 @@ namespace UnityTools.Util
         //============================================================
         //Events
         //============================================================
-        public event UnityAction OnOpenStarted { add => _onOpenStarted += value; remove => _onOpenStarted -= value; }
-        public event UnityAction<int> OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
-        public event UnityAction OnClosedStarted { add => _onClosedStarted += value; remove => _onClosedStarted -= value; }
-        public event UnityAction<EPeriodTimerType> OnStateChanged { add => _timer.FSM.OnStateChanged += value; remove => _timer.FSM.OnStateChanged -= value; }
-        private event UnityAction _onOpenStarted;
-        private event UnityAction<int> _onUpdated;
-        private event UnityAction _onClosedStarted;
+        public event UnityAction OnOpenPeriodPreparing { add => _onOpenPeriodPreparing += value; remove => _onOpenPeriodPreparing -= value; }
+        public event UnityAction OnOpenPeriodStarted { add => _onOpenPeriodStarted += value; remove => _onOpenPeriodStarted -= value; }
+        public event UnityAction<int> OnRemainMinUpdated { add => _onRemainMinUpdated += value; remove => _onRemainMinUpdated -= value; }
+        public event UnityAction OnClosedPeriodStarted { add => _onClosedPeriodStarted += value; remove => _onClosedPeriodStarted -= value; }
+        public event UnityAction<EPeriodTimerType, EPeriodTimerType> OnPeriodStateTransition { add => _onPeriodStateTransition += value; remove => _onPeriodStateTransition -= value; }
+        private event UnityAction _onOpenPeriodPreparing;
+        private event UnityAction _onOpenPeriodStarted;
+        private event UnityAction<int> _onRemainMinUpdated;
+        private event UnityAction _onClosedPeriodStarted;
+        private event UnityAction<EPeriodTimerType, EPeriodTimerType> _onPeriodStateTransition;
 
         //============================================================
         //Properties
         //============================================================
         public EPeriodTimerType CurType => _timer.FSM.CurType;
+        public bool IsReady => _timer.IsReady;
+        public bool IsOpenPeriod => _timer.IsOpenPeriod;
+        public bool IsClosedPeriod => _timer.IsClosedPeriod;
         public string Id => _timer.Id;
-        public int RemainingMin => _timer.GetRemainingMin();
-        public int RemainingSec => _timer.GetRemainingSec();
 
         //============================================================
         //Constructors
@@ -44,10 +50,10 @@ namespace UnityTools.Util
         //============================================================
         //Init/Register
         //============================================================
-        public virtual void Init(double openMin, double closedMin)
+        public virtual void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             RegisterCallbacks();
-            _timer.Init(openMin, closedMin);
+            _timer.Init(openMin, closedMin, initWaitFunc);
         }
 
         public virtual void Release()
@@ -61,9 +67,11 @@ namespace UnityTools.Util
             if(_isRegistered)
                 return;
 
-            _timer.OnUpdated += OnUpdatedCallback;
-            _timer.OnOpenStarted += OnOpenStartedCallback;
-            _timer.OnClosedStarted += OnClosedStartedCallback;
+            _timer.OnOpenPeriodPreparing += OnOpenPeriodPreparingCallback;
+            _timer.OnOpenPeriodStarted += OnOpenPeriodStartedCallback;
+            _timer.OnRemainMinUpdated += OnRemainMinUpdatedCallback;
+            _timer.OnClosedPeriodStarted += OnClosedPeriodStartedCallback;
+            _timer.OnPeriodStateTransition += OnPeriodStateTransitionCallback;
             _isRegistered = true;
         }
 
@@ -72,9 +80,11 @@ namespace UnityTools.Util
             if(!_isRegistered)
                 return;
 
-            _timer.OnUpdated -= OnUpdatedCallback;
-            _timer.OnOpenStarted -= OnOpenStartedCallback;
-            _timer.OnClosedStarted -= OnClosedStartedCallback;
+            _timer.OnOpenPeriodPreparing -= OnOpenPeriodPreparingCallback;
+            _timer.OnOpenPeriodStarted -= OnOpenPeriodStartedCallback;
+            _timer.OnRemainMinUpdated -= OnRemainMinUpdatedCallback;
+            _timer.OnClosedPeriodStarted -= OnClosedPeriodStartedCallback;
+            _timer.OnPeriodStateTransition -= OnPeriodStateTransitionCallback;
             _isRegistered = false;
         }
 
@@ -83,7 +93,7 @@ namespace UnityTools.Util
         //============================================================
         public void ForceOpen()
         {
-            if(_timer == null)
+            if(!IsReady)
                 return;
 
             _timer.ForceOpen();
@@ -91,7 +101,7 @@ namespace UnityTools.Util
 
         public void ForceClosed()
         {
-            if(_timer == null)
+            if(!IsReady)
                 return;
 
             _timer.ForceClosed();
@@ -99,7 +109,7 @@ namespace UnityTools.Util
 
         public void SetPeriods(double openMin, double closedMin)
         {
-            if(_timer == null)
+            if(!IsReady)
                 return;
 
             _timer.SetPeriods(openMin, closedMin);
@@ -108,24 +118,44 @@ namespace UnityTools.Util
         //============================================================
         //Callbacks
         //============================================================
-        private void OnOpenStartedCallback()
+        private void OnOpenPeriodPreparingCallback()
         {
-            _onOpenStarted?.Invoke();
+            _onOpenPeriodPreparing?.Invoke();
         }
 
-        private void OnUpdatedCallback(int remainMin)
+        private void OnOpenPeriodStartedCallback()
         {
-            _onUpdated?.Invoke(remainMin);
+            _onOpenPeriodStarted?.Invoke();
         }
 
-        private void OnClosedStartedCallback()
+        private void OnRemainMinUpdatedCallback(int remainMin)
         {
-            _onClosedStarted?.Invoke();
+            _onRemainMinUpdated?.Invoke(remainMin);
+        }
+
+        private void OnClosedPeriodStartedCallback()
+        {
+            _onClosedPeriodStarted?.Invoke();
+        }
+
+        private void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)
+        {
+            _onPeriodStateTransition?.Invoke(prevType, nextType);
         }
 
         //============================================================
         //Utilities
         //============================================================
+        public int GetRemainingMin()
+        {
+            return !IsReady ? 0 : _timer.GetRemainingMin();
+        }
+
+        public int GetRemainingSec()
+        {
+            return !IsReady ? 0 : _timer.GetRemainingSec();
+        }
+
         public virtual PeriodTimerData ToData()
         {
             return new PeriodTimerData(_timer.Id, _timer.FSM.CurType);

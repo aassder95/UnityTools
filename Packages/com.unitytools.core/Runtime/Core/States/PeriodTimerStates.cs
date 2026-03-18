@@ -40,15 +40,13 @@
             //============================================================
             public override void Enter()
             {
+                _timer.NotifyOpenPeriodPreparing();
                 _timer.ApplyPeriodTime();
-                _timer.NotifyOpenStarted();
+                _timer.NotifyOpenPeriodStarted();
             }
 
             public override void Execute()
             {
-                if(_timer.FSM.CurType != EPeriodTimerType.Reset)
-                    return;
-
                 _timer.TryChangeState(EPeriodTimerType.Open, false, "ResetState.Execute");
             }
         }
@@ -65,10 +63,7 @@
             //============================================================
             public override void Enter()
             {
-                if(_timer.FSM.CurType != EPeriodTimerType.Open)
-                    return;
-
-                _timer.NotifyUpdateOpen();
+                _timer.NotifyOpenRemainMinUpdated();
             }
 
             public override void Execute()
@@ -85,7 +80,7 @@
                     return;
                 }
 
-                _timer.NotifyUpdateOpen();
+                _timer.NotifyOpenRemainMinUpdated();
             }
         }
 
@@ -104,8 +99,8 @@
                 if(_timer.IsTamperedFlag)
                     _timer.ClearTampered();
 
-                _timer.NotifyClosedStarted();
-                _timer.NotifyUpdateClosed();
+                _timer.NotifyClosedPeriodStarted();
+                _timer.NotifyClosedRemainMinUpdated();
             }
 
             public override void Execute()
@@ -116,7 +111,7 @@
                     return;
                 }
 
-                _timer.NotifyUpdateClosed();
+                _timer.NotifyClosedRemainMinUpdated();
             }
         }
     }

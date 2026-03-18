@@ -77,7 +77,6 @@ namespace UnityTools.Util
         private string _openMin = "1";
         private string _closedMin = "1";
         private string _status = "Ready";
-        private string _savedOpenStart = "-";
         private string _savedOpenEnd = "-";
         private string _savedClosedEnd = "-";
         private string _savedOpenUpdated = "-";
@@ -139,7 +138,6 @@ namespace UnityTools.Util
             if(!EditorUtility.DisplayDialog("확인", $"{id} 저장값을 삭제할까요?", "삭제", "취소"))
                 return;
 
-            _storage.Delete(PeriodTimerStorageKeys.OpenStart(id));
             _storage.Delete(PeriodTimerStorageKeys.OpenEnd(id));
             _storage.Delete(PeriodTimerStorageKeys.ClosedEnd(id));
             _storage.Delete(PeriodTimerStorageKeys.OpenUpdated(id));
@@ -154,7 +152,6 @@ namespace UnityTools.Util
             if(!TryGetId(out string id))
                 return;
 
-            _savedOpenStart = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenStart(id));
             _savedOpenEnd = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenEnd(id));
             _savedClosedEnd = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.ClosedEnd(id));
             _savedOpenUpdated = _savedDataReader.ReadDateKey(PeriodTimerStorageKeys.OpenUpdated(id));
@@ -337,14 +334,13 @@ namespace UnityTools.Util
             }
 
             EditorGUILayout.LabelField("현재 상태", handle.CurType.ToString());
-            EditorGUILayout.LabelField("남은 시간(분)", handle.RemainingMin.ToString());
-            EditorGUILayout.LabelField("남은 시간(초)", handle.RemainingSec.ToString());
+            EditorGUILayout.LabelField("남은 시간(분)", handle.GetRemainingMin().ToString());
+            EditorGUILayout.LabelField("남은 시간(초)", handle.GetRemainingSec().ToString());
         }
 
         private void DrawSavedData()
         {
             GUILayout.Label("저장값 디버깅", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("오픈 시작(OPEN_START)", _savedOpenStart);
             EditorGUILayout.LabelField("오픈 종료(OPEN_END)", _savedOpenEnd);
             EditorGUILayout.LabelField("클로즈 종료(CLOSED_END)", _savedClosedEnd);
             EditorGUILayout.LabelField("오픈 갱신(OPEN_UPDATED)", _savedOpenUpdated);

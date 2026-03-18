@@ -57,8 +57,8 @@ namespace UnityTools.Presenter
 
             _view.OnForceOpen += _periodTimer.ForceOpen;
             _view.OnForceClosed += _periodTimer.ForceClosed;
-            _periodTimer.OnUpdated += _onTimerUpdated;
-            _periodTimer.OnStateChanged += OnStateChangedCallback;
+            _periodTimer.OnRemainMinUpdated += _onTimerUpdated;
+            _periodTimer.OnPeriodStateTransition += OnPeriodStateTransitionCallback;
         }
 
         protected override void UnbindEvents()
@@ -67,8 +67,8 @@ namespace UnityTools.Presenter
             {
                 _view.OnForceOpen -= _periodTimer.ForceOpen;
                 _view.OnForceClosed -= _periodTimer.ForceClosed;
-                _periodTimer.OnUpdated -= _onTimerUpdated;
-                _periodTimer.OnStateChanged -= OnStateChangedCallback;
+                _periodTimer.OnRemainMinUpdated -= _onTimerUpdated;
+                _periodTimer.OnPeriodStateTransition -= OnPeriodStateTransitionCallback;
             }
 
             base.UnbindEvents();
@@ -77,11 +77,11 @@ namespace UnityTools.Presenter
         //============================================================
         //Callbacks
         //============================================================
-        private void OnStateChangedCallback(EPeriodTimerType type)
+        private void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)
         {
-            _model.SetTimer(_periodTimer.OpenStartTime, _periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
+            _model.SetTimer(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
-            switch (type)
+            switch (nextType)
             {
                 case EPeriodTimerType.Reset:
                     _model.SetState("Reset");

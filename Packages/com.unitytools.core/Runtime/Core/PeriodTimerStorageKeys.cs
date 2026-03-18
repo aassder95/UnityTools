@@ -6,7 +6,6 @@
         //Constants
         //============================================================
         private const string PREFIX = "PeriodTimer_";
-        private const string OPEN_START_TIME_SUFFIX = "_OPEN_START";
         private const string OPEN_END_TIME_SUFFIX = "_OPEN_END";
         private const string CLOSED_END_TIME_SUFFIX = "_CLOSED_END";
         private const string OPEN_UPDATED_TIME_SUFFIX = "_OPEN_UPDATED";
@@ -19,12 +18,6 @@
         {
             normalizedId = rawId?.Trim();
             return !string.IsNullOrEmpty(normalizedId);
-        }
-
-        public static string OpenStart(string id)
-        {
-            TryNormalizeId(id, out string normalizedId);
-            return $"{PREFIX}{normalizedId ?? string.Empty}{OPEN_START_TIME_SUFFIX}";
         }
 
         public static string OpenEnd(string id)
@@ -49,6 +42,18 @@
         {
             TryNormalizeId(id, out string normalizedId);
             return $"{PREFIX}{normalizedId ?? string.Empty}{TAMPERED_SUFFIX}";
+        }
+
+        public static void DeleteAll(string id)
+        {
+            if(!TryNormalizeId(id, out string normalizedId))
+                return;
+
+            IStorage storage = new PlayerPrefsStorage();
+            storage.Delete(OpenEnd(normalizedId));
+            storage.Delete(ClosedEnd(normalizedId));
+            storage.Delete(OpenUpdated(normalizedId));
+            storage.Delete(Tampered(normalizedId));
         }
     }
 }

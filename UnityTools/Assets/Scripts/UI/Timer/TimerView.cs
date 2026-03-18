@@ -16,7 +16,6 @@ namespace UnityTools.UI
         [SerializeField] private TextMeshProUGUI _txtSubState;
         [SerializeField] private TextMeshProUGUI _txtCur;
         [SerializeField] private TextMeshProUGUI _txtLoop;
-        [SerializeField] private TextMeshProUGUI _txtOpenStart;
         [SerializeField] private TextMeshProUGUI _txtOpenUpdated;
         [SerializeField] private TextMeshProUGUI _txtOpenEnd;
         [SerializeField] private TextMeshProUGUI _txtClosedEnd;
@@ -44,7 +43,7 @@ namespace UnityTools.UI
         {
             SetState(model.State, model.SubState);
             SetLoop(model.LoopMinutes, model.OpenUpdated);
-            SetTimer(model.OpenStart, model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
+            SetTimer(model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
         }
 
         //============================================================
@@ -75,9 +74,8 @@ namespace UnityTools.UI
             _txtOpenUpdated.SetText($"updated: {openUpdated}");
         }
 
-        private void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
+        private void SetTimer(DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
-            _txtOpenStart.SetText($"start: {openStart}");
             _txtOpenUpdated.SetText($"updated: {openUpdated}");
             _txtOpenEnd.SetText($"open: {openEnd}");
             _txtClosedEnd.SetText($"closed: {closedEnd}");

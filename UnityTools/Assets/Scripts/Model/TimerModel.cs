@@ -11,7 +11,6 @@ namespace UnityTools.Model
         private string _state;
         private string _subState;
         private int _loopMinutes;
-        private DateTime _openStart;
         private DateTime _openUpdated;
         private DateTime _openEnd;
         private DateTime _closedEnd;
@@ -22,7 +21,6 @@ namespace UnityTools.Model
         public string State => _state;
         public string SubState => _subState;
         public int LoopMinutes => _loopMinutes;
-        public DateTime OpenStart => _openStart;
         public DateTime OpenUpdated => _openUpdated;
         public DateTime OpenEnd => _openEnd;
         public DateTime ClosedEnd => _closedEnd;
@@ -49,9 +47,8 @@ namespace UnityTools.Model
             NotifyUpdated();
         }
 
-        public void SetTimer(DateTime openStart, DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
+        public void SetTimer(DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
-            _openStart = openStart;
             _openUpdated = openUpdated;
             _openEnd = openEnd;
             _closedEnd = closedEnd;

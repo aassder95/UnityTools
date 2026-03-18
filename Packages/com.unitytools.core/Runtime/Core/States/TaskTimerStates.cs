@@ -48,9 +48,6 @@
             //============================================================
             public override void Enter()
             {
-                if(_timer.FSM.CurType != ETaskTimerType.Processing)
-                    return;
-
                 _timer.NotifyProcessingStarted();
             }
 
@@ -78,9 +75,6 @@
             //============================================================
             public override void Enter()
             {
-                if(_timer.FSM.CurType != ETaskTimerType.Completed)
-                    return;
-
                 _timer.NotifyCompleted();
             }
         }
