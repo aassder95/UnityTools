@@ -7,8 +7,12 @@ using UnityTools.Util.Core.Pooling;
 
 namespace UnityTools.Util.UIFramework
 {
+    public abstract class DynamicScrollViewBase : MonoBehaviour
+    {
+    }
+
     [RequireComponent(typeof(ScrollRect))]
-    public class DynamicScrollView<TView> : MonoBehaviour where TView : Component, IDynamicScrollItem, IPoolable
+    public class DynamicScrollView<TView> : DynamicScrollViewBase where TView : Component, IDynamicScrollItem, IPoolable
     {
         //============================================================
         //Constants

@@ -1,11 +1,10 @@
-using System;
 using UnityEditor;
 using UnityEngine;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Util.Editor
 {
-    [CustomEditor(typeof(MonoBehaviour), true)]
+    [CustomEditor(typeof(DynamicScrollViewBase), true)]
     [CanEditMultipleObjects]
     public class DynamicScrollViewInspector : UnityEditor.Editor
     {
@@ -25,21 +24,10 @@ namespace UnityTools.Util.Editor
         private const string PADDING_PROP = "_padding";
 
         //============================================================
-        //Properties
-        //============================================================
-        private bool IsDynamicScrollTarget => target is MonoBehaviour monoBehaviour && IsDynamicScrollType(monoBehaviour.GetType());
-
-        //============================================================
         //Logic
         //============================================================
         public override void OnInspectorGUI()
         {
-            if(!IsDynamicScrollTarget)
-            {
-                DrawDefaultInspector();
-                return;
-            }
-
             serializedObject.Update();
             DrawScriptField();
             DrawProperty(ITEM_PROP);
@@ -67,20 +55,6 @@ namespace UnityTools.Util.Editor
         //============================================================
         //Utilities
         //============================================================
-        private static bool IsDynamicScrollType(Type type)
-        {
-            Type currentType = type;
-            while(currentType != null)
-            {
-                if(currentType.IsGenericType && currentType.GetGenericTypeDefinition() == typeof(DynamicScrollView<>))
-                    return true;
-
-                currentType = currentType.BaseType;
-            }
-
-            return false;
-        }
-
         private void DrawScriptField()
         {
             MonoBehaviour monoBehaviour = target as MonoBehaviour;
