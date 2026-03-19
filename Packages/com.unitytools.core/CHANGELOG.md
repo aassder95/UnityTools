@@ -1,8 +1,14 @@
-# Changelog
+﻿# Changelog
+
+## 0.1.1 - 2026-03-19
+
+- Remove CsvJsonConverter and CSV conversion menu from core package
+- Keep only data cleanup editor menu in com.unitytools.core
 
 ## 0.1.0 - 2026-03-17
 
-- `UnityTools` 프로젝트의 `Util` 공통 코드를 UPM 패키지로 분리
-- Runtime/Editor asmdef 분리
-- 프로젝트 의존(Adapter) 코드 분리 기준 정리
-- QuickStart 샘플 추가
+- `UnityTools` ?꾨줈?앺듃??`Util` 怨듯넻 肄붾뱶瑜?UPM ?⑦궎吏濡?遺꾨━
+- Runtime/Editor asmdef 遺꾨━
+- ?꾨줈?앺듃 ?섏〈(Adapter) 肄붾뱶 遺꾨━ 湲곗? ?뺣━
+- QuickStart ?섑뵆 異붽?
+
