@@ -14,12 +14,8 @@ namespace UnityTools.Samples.Templates
         //============================================================
         //Logic
         //============================================================
-        public override void Refresh(TemplateSampleModel model)
+        protected override void OnRefresh(TemplateSampleModel model)
         {
-            if (model == null)
-                return;
-
-            base.Refresh(model);
         }
 
         //============================================================

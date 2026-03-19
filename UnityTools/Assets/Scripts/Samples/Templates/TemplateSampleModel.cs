@@ -17,11 +17,7 @@ namespace UnityTools.Samples.Templates
         //============================================================
         public void SetCount(int count)
         {
-            if (_count == count)
-                return;
-
-            _count = count;
-            NotifyUpdated();
+            SetField(ref _count, count);
         }
 
         public void Increase()

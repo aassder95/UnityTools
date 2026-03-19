@@ -25,7 +25,7 @@ namespace UnityTools.Samples.Inven
         //============================================================
         //Logic
         //============================================================
-        public override void Refresh(InvenItemModel model)
+        protected override void OnRefresh(InvenItemModel model)
         {
             _txtIndex.SetText("{0}", model.Id);
         }

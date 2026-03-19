@@ -30,29 +30,54 @@ namespace UnityTools.Samples.Timer
         //============================================================
         public void SetState(string state)
         {
-            _state = state;
-            NotifyUpdated();
+            SetField(ref _state, state);
         }
 
-        public void SetSubState(string state)
+        public void SetSubState(string subState)
         {
-            _subState = state;
-            NotifyUpdated();
+            SetField(ref _subState, subState);
+        }
+
+        public void SetStateAndSubState(string state, string subState)
+        {
+            RunBatchUpdate(() =>
+            {
+                SetField(ref _state, state);
+                SetField(ref _subState, subState);
+            });
         }
 
         public void SetLoop(int min, DateTime openUpdated)
         {
-            _loopMinutes = min;
-            _openUpdated = openUpdated;
-            NotifyUpdated();
+            RunBatchUpdate(() =>
+            {
+                SetField(ref _loopMinutes, min);
+                SetField(ref _openUpdated, openUpdated);
+            });
         }
 
         public void SetTimer(DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
-            _openUpdated = openUpdated;
-            _openEnd = openEnd;
-            _closedEnd = closedEnd;
-            NotifyUpdated();
+            RunBatchUpdate(() =>
+            {
+                SetField(ref _openUpdated, openUpdated);
+                SetField(ref _openEnd, openEnd);
+                SetField(ref _closedEnd, closedEnd);
+            });
+        }
+
+        public void SetSnapshot(DateTime openUpdated, DateTime openEnd, DateTime closedEnd, string state, string subState, bool shouldUpdateSubState)
+        {
+            RunBatchUpdate(() =>
+            {
+                SetField(ref _openUpdated, openUpdated);
+                SetField(ref _openEnd, openEnd);
+                SetField(ref _closedEnd, closedEnd);
+                SetField(ref _state, state);
+
+                if (shouldUpdateSubState)
+                    SetField(ref _subState, subState);
+            });
         }
     }
 }

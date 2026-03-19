@@ -6,7 +6,7 @@ namespace UnityTools.Util
     //============================================================
     //Types
     //============================================================
-    public interface IView<TModel> where TModel : BaseModel
+    public interface IView<TModel> where TModel : IModel
     {
         //============================================================
         //Properties
@@ -28,7 +28,7 @@ namespace UnityTools.Util
         void Refresh(TModel model);
     }
 
-    public abstract class BaseView<TModel> : MonoBehaviour, IView<TModel> where TModel : BaseModel
+    public abstract class BaseView<TModel> : MonoBehaviour, IView<TModel> where TModel : IModel
     {
         //============================================================
         //Fields
@@ -67,6 +67,14 @@ namespace UnityTools.Util
         protected virtual void OnRelease() { }
 
         //============================================================
+        //Unity Methods
+        //============================================================
+        private void OnDestroy()
+        {
+            Release();
+        }
+
+        //============================================================
         //Logic
         //============================================================
         public virtual void Show()
@@ -88,10 +96,14 @@ namespace UnityTools.Util
             gameObject.SetActive(false);
         }
 
-        public virtual void Refresh(TModel model)
+        public void Refresh(TModel model)
         {
             if (!_isInitialized || model == null)
                 return;
+
+            OnRefresh(model);
         }
+
+        protected abstract void OnRefresh(TModel model);
     }
 }

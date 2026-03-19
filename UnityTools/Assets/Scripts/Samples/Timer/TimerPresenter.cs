@@ -78,20 +78,16 @@ namespace UnityTools.Samples.Timer
             if(prevType == nextType)
                 return;
 
-            _model.SetTimer(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
-
             switch (nextType)
             {
                 case EPeriodTimerType.Reset:
-                    _model.SetState("Reset");
-                    _model.SetSubState("Reset");
+                    _model.SetSnapshot(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime, "Reset", "Reset", true);
                     break;
                 case EPeriodTimerType.Open:
-                    _model.SetState("Open");
+                    _model.SetSnapshot(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime, "Open", null, false);
                     break;
                 case EPeriodTimerType.Closed:
-                    _model.SetState("Closed");
-                    _model.SetSubState("Closed");
+                    _model.SetSnapshot(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime, "Closed", "Closed", true);
                     break;
             }
         }

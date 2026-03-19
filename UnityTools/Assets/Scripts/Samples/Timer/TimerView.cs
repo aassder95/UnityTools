@@ -38,7 +38,7 @@ namespace UnityTools.Samples.Timer
         //============================================================
         //Logic
         //============================================================
-        public override void Refresh(TimerModel model)
+        protected override void OnRefresh(TimerModel model)
         {
             SetState(model.State, model.SubState);
             SetLoop(model.LoopMinutes, model.OpenUpdated);

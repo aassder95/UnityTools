@@ -18,9 +18,9 @@ namespace UnityTools.Samples.Inven
         //============================================================
         //Logic
         //============================================================
-        public override void Refresh(InvenModel model)
+        protected override void OnRefresh(InvenModel model)
         {
-            if(model == null || _scrollView == null)
+            if (_scrollView == null)
                 return;
 
             _scrollView.UpdateItemView();

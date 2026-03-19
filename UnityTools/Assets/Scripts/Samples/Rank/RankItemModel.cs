@@ -32,7 +32,6 @@ namespace UnityTools.Samples.Rank
         {
             _id = id;
             _bgColor = RandomUtils.GetRandomColor();
-            NotifyUpdated();
         }
 
         //============================================================
@@ -40,14 +39,12 @@ namespace UnityTools.Samples.Rank
         //============================================================
         public void SetRank(int rank)
         {
-            _rank = rank;
-            NotifyUpdated();
+            SetField(ref _rank, rank);
         }
 
         public void SetScore(int score)
         {
-            _score = score;
-            NotifyUpdated();
+            SetField(ref _score, score);
         }
     }
 }

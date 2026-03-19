@@ -29,12 +29,12 @@ namespace UnityTools.Samples.Rank
         //============================================================
         //Logic
         //============================================================
-        public override void Refresh(RankItemModel model)
+        protected override void OnRefresh(RankItemModel model)
         {
-            _txtId.SetText("{0}", model?.Id ?? Index);
-            _txtRank.SetText("{0}", model?.Rank ?? 0);
-            _txtScore.SetText("{0}", model?.Score ?? 0);
-            _imgTmp.color = model != null ? model.BgColor : Color.white;
+            _txtId.SetText("{0}", model.Id);
+            _txtRank.SetText("{0}", model.Rank);
+            _txtScore.SetText("{0}", model.Score);
+            _imgTmp.color = model.BgColor;
         }
 
         //============================================================

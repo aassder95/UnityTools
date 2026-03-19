@@ -31,7 +31,7 @@ namespace UnityTools.Util
         void Release();
     }
 
-    public abstract class BasePresenter<TModel, TView> : IPresenter where TModel : BaseModel where TView : BaseView<TModel>
+    public abstract class BasePresenter<TModel, TView> : IPresenter where TModel : IModel where TView : IView<TModel>
     {
         //============================================================
         //Readonly
@@ -73,10 +73,41 @@ namespace UnityTools.Util
             if (_isInitialized)
                 return;
 
-            _view.Init();
-            OnInit();
-            BindEvents();
-            _isInitialized = true;
+            bool isViewInitializedByPresenter = false;
+            bool isPresenterInitialized = false;
+            bool isEventsBound = false;
+
+            try
+            {
+                if (!_view.IsInitialized)
+                {
+                    _view.Init();
+                    isViewInitializedByPresenter = true;
+                }
+
+                OnInit();
+                isPresenterInitialized = true;
+
+                BindEvents();
+                isEventsBound = true;
+
+                _isInitialized = true;
+            }
+            catch
+            {
+                _isInitialized = false;
+
+                if (isEventsBound)
+                    TryExecute(UnbindEvents);
+
+                if (isPresenterInitialized)
+                    TryExecute(OnRelease);
+
+                if (isViewInitializedByPresenter)
+                    TryExecute(_view.Release);
+
+                throw;
+            }
         }
 
         public void Release()
@@ -85,9 +116,14 @@ namespace UnityTools.Util
                 return;
 
             _isInitialized = false;
-            UnbindEvents();
-            OnRelease();
-            _view.Release();
+
+            Exception releaseException = null;
+            TryExecuteAndCapture(UnbindEvents, ref releaseException);
+            TryExecuteAndCapture(OnRelease, ref releaseException);
+            TryExecuteAndCapture(_view.Release, ref releaseException);
+
+            if (releaseException != null)
+                throw releaseException;
         }
 
         //============================================================
@@ -142,6 +178,54 @@ namespace UnityTools.Util
                 return;
 
             _view.Refresh(_model);
+        }
+
+        //============================================================
+        //Utilities
+        //============================================================
+        private static void TryExecute(Action action)
+        {
+            try
+            {
+                action?.Invoke();
+            }
+            catch
+            {
+            }
+        }
+
+        private static void TryExecuteAndCapture(Action action, ref Exception releaseException)
+        {
+            try
+            {
+                action?.Invoke();
+            }
+            catch (Exception exception)
+            {
+                releaseException = MergeException(releaseException, exception);
+            }
+        }
+
+        private static Exception MergeException(Exception currentException, Exception nextException)
+        {
+            if (currentException == null)
+                return nextException;
+
+            if (currentException is AggregateException aggregateException)
+            {
+                int prevCount = aggregateException.InnerExceptions.Count;
+                Exception[] mergedExceptions = new Exception[prevCount + 1];
+
+                for (int i = 0; i < prevCount; i++)
+                {
+                    mergedExceptions[i] = aggregateException.InnerExceptions[i];
+                }
+
+                mergedExceptions[prevCount] = nextException;
+                return new AggregateException(mergedExceptions);
+            }
+
+            return new AggregateException(currentException, nextException);
         }
     }
 }

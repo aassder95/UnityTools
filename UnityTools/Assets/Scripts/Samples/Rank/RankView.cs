@@ -33,9 +33,9 @@ namespace UnityTools.Samples.Rank
         //============================================================
         //Logic
         //============================================================
-        public override void Refresh(RankModel model)
+        protected override void OnRefresh(RankModel model)
         {
-            if(model == null || _scrollView == null)
+            if (_scrollView == null)
                 return;
 
             _scrollView.UpdateItemView();
