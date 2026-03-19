@@ -1,4 +1,4 @@
-using UnityTools.Model;
+﻿using UnityTools.Model;
 using UnityTools.UI;
 using UnityTools.Util;
 using UnityEngine.Events;
@@ -79,6 +79,9 @@ namespace UnityTools.Presenter
         //============================================================
         private void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)
         {
+            if(prevType == nextType)
+                return;
+
             _model.SetTimer(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime);
 
             switch (nextType)
@@ -98,3 +101,4 @@ namespace UnityTools.Presenter
         }
     }
 }
+

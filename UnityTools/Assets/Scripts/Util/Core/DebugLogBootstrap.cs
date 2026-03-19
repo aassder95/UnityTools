@@ -1,4 +1,4 @@
-using UnityEngine;
+﻿using UnityEngine;
 
 namespace UnityTools.Util
 {
@@ -12,7 +12,7 @@ namespace UnityTools.Util
         {
             DebugLogGate.Initialize();
             DebugLogGate.Reset();
-            DebugLogGate.DefaultEnabled = true;
+            DebugLogGate.SetDefaultEnabled(true);
             ApplyClassOverrides();
         }
 
@@ -26,3 +26,4 @@ namespace UnityTools.Util
         }
     }
 }
+

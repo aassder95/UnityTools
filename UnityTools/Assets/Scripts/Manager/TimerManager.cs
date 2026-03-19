@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Util;
 
@@ -262,6 +261,9 @@ namespace UnityTools.Manager
             if(!_taskHandles.TryGet(id, out TaskTimerHandle handle))
                 return;
 
+            if(handle.RemainingSec != remainSec)
+                return;
+
             _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());
         }
 
@@ -283,6 +285,9 @@ namespace UnityTools.Manager
 
         private void OnTaskTimerStateTransitionCallback(string id, ETaskTimerType prevType, ETaskTimerType nextType)
         {
+            if(prevType == nextType)
+                return;
+
             if(nextType != ETaskTimerType.Processing)
                 return;
 
@@ -295,6 +300,9 @@ namespace UnityTools.Manager
         private void OnPeriodTimerRemainMinUpdatedCallback(string id, int remainMin)
         {
             if(!_periodHandles.TryGet(id, out PeriodTimerHandle handle))
+                return;
+
+            if(handle.GetRemainingMin() != remainMin)
                 return;
 
             _onAnyTimerRemainMinUpdated?.Invoke(handle.ToData());
@@ -419,4 +427,5 @@ namespace UnityTools.Manager
         }
     }
 }
+
 

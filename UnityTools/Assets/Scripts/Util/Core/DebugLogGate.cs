@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace UnityTools.Util
@@ -34,11 +34,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
-        public static bool DefaultEnabled
-        {
-            get => _defaultEnabled;
-            set => _defaultEnabled = value;
-        }
+        public static bool DefaultEnabled => _defaultEnabled;
 
         //============================================================
         //Init/Register
@@ -90,6 +86,11 @@ namespace UnityTools.Util
             _classEnabled.Clear();
         }
 
+        public static void SetDefaultEnabled(bool isEnabled)
+        {
+            _defaultEnabled = isEnabled;
+        }
+
         //============================================================
         //Utilities
         //============================================================
@@ -126,3 +127,4 @@ namespace UnityTools.Util
 
     }
 }
+
