@@ -6,6 +6,7 @@ using UnityTools.Manager;
 
 namespace UnityTools.Util
 {
+    // Exception: Period timer values are minute-based by product requirement.
     public class PeriodTimerTestWindow : EditorWindow
     {
         //============================================================

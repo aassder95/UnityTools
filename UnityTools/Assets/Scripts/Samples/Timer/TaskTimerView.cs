@@ -63,6 +63,9 @@ namespace UnityTools.Samples.Timer
         //============================================================
         public void SetState(string state)
         {
+            if(string.IsNullOrWhiteSpace(state))
+                return;
+
             _txtState.text = $"State: {state}";
             _txtState.color = state switch
             {
@@ -74,6 +77,9 @@ namespace UnityTools.Samples.Timer
 
         public void SetTimer(string time)
         {
+            if(string.IsNullOrWhiteSpace(time))
+                return;
+
             _txtTimer.text = time;
         }
 

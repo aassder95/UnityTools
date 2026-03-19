@@ -1,22 +1,16 @@
-namespace UnityTools.Samples.Modules
+using UnityEngine;
+
+namespace UnityTools.Util
 {
     // Exception: interface-centric file uses Types section.
     //============================================================
     //Types
     //============================================================
-    public interface ISampleModule
+    public interface ITimerHandleFactory<THandle> where THandle : ITimerHandle
     {
-        //============================================================
-        //Properties
-        //============================================================
-        string ModuleKey { get; }
-        bool IsInit { get; }
-
         //============================================================
         //Logic
         //============================================================
-        void Init();
-        void Show();
-        void Release();
+        THandle Create(string normalizedId, MonoBehaviour runner);
     }
 }

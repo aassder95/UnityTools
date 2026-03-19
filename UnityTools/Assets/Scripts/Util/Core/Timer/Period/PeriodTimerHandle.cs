@@ -4,6 +4,7 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
+    // Exception: Period timer values are minute-based by product requirement.
     public class PeriodTimerHandle : ITimerHandle
     {
         //============================================================

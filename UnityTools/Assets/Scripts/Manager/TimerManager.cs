@@ -6,6 +6,7 @@ using UnityTools.Util;
 
 namespace UnityTools.Manager
 {
+    // Exception: Period timer values are minute-based by product requirement.
     public class TimerManager : MonoSingleton<TimerManager>
     {
         //============================================================

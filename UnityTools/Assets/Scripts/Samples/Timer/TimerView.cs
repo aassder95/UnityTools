@@ -32,7 +32,14 @@ namespace UnityTools.Samples.Timer
         //============================================================
         private void Update()
         {
-            _txtCur.SetText($"cur: {DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow)}");
+            DateTime currentUtcTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            _txtCur.SetText("cur: {0:0000}-{1:00}-{2:00} {3:00}:{4:00}:{5:00}",
+                currentUtcTime.Year,
+                currentUtcTime.Month,
+                currentUtcTime.Day,
+                currentUtcTime.Hour,
+                currentUtcTime.Minute,
+                currentUtcTime.Second);
         }
 
         //============================================================

@@ -1,22 +1,20 @@
-namespace UnityTools.Samples.Modules
+namespace UnityTools.Util
 {
     // Exception: interface-centric file uses Types section.
     //============================================================
     //Types
     //============================================================
-    public interface ISampleModule
+    public interface ITimerLifecycle
     {
         //============================================================
         //Properties
         //============================================================
-        string ModuleKey { get; }
-        bool IsInit { get; }
+        string Id { get; }
 
         //============================================================
         //Logic
         //============================================================
-        void Init();
-        void Show();
+        void Refresh();
         void Release();
     }
 }
