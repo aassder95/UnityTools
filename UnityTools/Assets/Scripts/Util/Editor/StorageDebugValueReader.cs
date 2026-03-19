@@ -1,7 +1,21 @@
-ï»¿using System;
+using System;
 using System.Globalization;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Editor
 {
     public class StorageDebugValueReader
     {
@@ -24,16 +38,16 @@ namespace UnityTools.Util
         public string ReadDateKey(string key)
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(ì—†ìŒ)";
+                return "(¾øÀ½)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             if(!long.TryParse(raw, out long ticks))
-                return $"ì˜ëª»ëœ ticks ê°’: {raw}";
+                return $"Àß¸øµÈ ticks °ª: {raw}";
 
             if(ticks == DateTime.MinValue.Ticks)
                 return $"{raw} (DateTime.MinValue)";
             if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"ë²”ìœ„ ì´ˆê³¼ ticks: {raw}";
+                return $"¹üÀ§ ÃÊ°ú ticks: {raw}";
 
             DateTime time = new DateTime(ticks, DateTimeKind.Utc);
             return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
@@ -42,13 +56,13 @@ namespace UnityTools.Util
         public string ReadDoubleKey(string key, string unit = "")
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(ì—†ìŒ)";
+                return "(¾øÀ½)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
                             double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
             if(!isParsed)
-                return $"ì˜ëª»ëœ ê°’: {raw}";
+                return $"Àß¸øµÈ °ª: {raw}";
 
             return string.IsNullOrWhiteSpace(unit) ? $"{raw} ({value:F2})" : $"{raw} ({value:F2} {unit})";
         }
@@ -56,20 +70,20 @@ namespace UnityTools.Util
         public string ReadEnumKey<TEnum>(string key) where TEnum : struct, Enum
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(ì—†ìŒ)";
+                return "(¾øÀ½)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             if(!int.TryParse(raw, out int intValue))
-                return $"ì˜ëª»ëœ state ê°’: {raw}";
+                return $"Àß¸øµÈ state °ª: {raw}";
 
             TEnum type = (TEnum)Enum.ToObject(typeof(TEnum), intValue);
-            return Enum.IsDefined(typeof(TEnum), type) ? $"{raw} ({type})" : $"{raw} (ì •ì˜ë˜ì§€ ì•Šì€ ìƒíƒœ)";
+            return Enum.IsDefined(typeof(TEnum), type) ? $"{raw} ({type})" : $"{raw} (Á¤ÀÇµÇÁö ¾ÊÀº »óÅÂ)";
         }
 
-        public string ReadFlagKey(string key, string trueRaw = "1", string trueText = "ì°¸", string falseText = "ê±°ì§“")
+        public string ReadFlagKey(string key, string trueRaw = "1", string trueText = "Âü", string falseText = "°ÅÁş")
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(ì—†ìŒ)";
+                return "(¾øÀ½)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             return raw == trueRaw ? $"{raw} ({trueText})" : $"{raw} ({falseText})";

@@ -1,4 +1,20 @@
-ï»¿namespace UnityTools.Util
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
+
+namespace UnityTools.Util.Core.Persistence
 {
     public class Persistence
     {
@@ -34,7 +50,7 @@
 
             _storage.Save(key, serialized);
             UnityEngine.PlayerPrefs.Save();
-            DebugLogger.Log($"ì €ì¥ ì™„ë£Œ: í‚¤={key}, ê°’={serialized}");
+            DebugLogger.Log($"ÀúÀå ¿Ï·á: Å°={key}, °ª={serialized}");
         }
 
         public T Load<T>(string suffix, T defaultValue = default)
@@ -42,14 +58,14 @@
             string key = GetKey(suffix);
             if(!_storage.HasKey(key))
             {
-                DebugLogger.Log($"ë°ì´í„°ê°€ ì—†ìŠµë‹ˆë‹¤: í‚¤={key}");
+                DebugLogger.Log($"µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù: Å°={key}");
                 return defaultValue;
             }
 
             string data = _storage.Load(key);
             if(string.IsNullOrEmpty(data) || data == "{}" || data == "[]")
             {
-                DebugLogger.Log($"ë°ì´í„°ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤: í‚¤={key}");
+                DebugLogger.Log($"µ¥ÀÌÅÍ°¡ ºñ¾î ÀÖ½À´Ï´Ù: Å°={key}");
                 return defaultValue;
             }
 
@@ -61,7 +77,7 @@
             else
                 result = _serializer.Deserialize<T>(data);
 
-            DebugLogger.Log($"ë¡œë“œ ì™„ë£Œ: í‚¤={key}, ê°’={result}");
+            DebugLogger.Log($"·Îµå ¿Ï·á: Å°={key}, °ª={result}");
             return result;
         }
 
@@ -69,7 +85,7 @@
         {
             string key = GetKey(suffix);
             _storage.Delete(key);
-            DebugLogger.Log($"ì‚­ì œ ì™„ë£Œ: í‚¤={key}");
+            DebugLogger.Log($"»èÁ¦ ¿Ï·á: Å°={key}");
         }
 
         public bool HasKey(string suffix)

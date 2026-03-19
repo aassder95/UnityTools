@@ -1,6 +1,21 @@
-ï»¿using UnityEngine;
+using UnityEngine;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Core.Logging
 {
     public static class DebugLogBootstrap
     {
@@ -21,8 +36,8 @@ namespace UnityTools.Util
         //============================================================
         private static void ApplyClassOverrides()
         {
-            // í•„ìš” ì‹œ íŠ¹ì • í´ë˜ìŠ¤ ë¡œê·¸ë¥¼ ê°œë³„ ì œì–´í•©ë‹ˆë‹¤.
-            // ì˜ˆì‹œ: DebugLogGate.SetEnabled("TaskTimer", false);
+            // ÇÊ¿ä ½Ã Æ¯Á¤ Å¬·¡½º ·Î±×¸¦ °³º° Á¦¾îÇÕ´Ï´Ù.
+            // ¿¹½Ã: DebugLogGate.SetEnabled("TaskTimer", false);
         }
     }
 }

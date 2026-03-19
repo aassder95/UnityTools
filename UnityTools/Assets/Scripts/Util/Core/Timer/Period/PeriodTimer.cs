@@ -1,9 +1,24 @@
-ï»¿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Core.Timer.Period
 {
     // Exception: Period timer values are minute-based by product requirement.
     public class PeriodTimer : IPeriodTimer
@@ -80,11 +95,11 @@ namespace UnityTools.Util
             _fsm.OnStateTransition += OnStateTransitionCallback;
 
             if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))
-                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {EPeriodTimerType.Reset}");
+                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {EPeriodTimerType.Reset}");
             if(!_fsm.Add(EPeriodTimerType.Open, new PeriodTimerStates.OpenState(this)))
-                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {EPeriodTimerType.Open}");
+                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {EPeriodTimerType.Open}");
             if(!_fsm.Add(EPeriodTimerType.Closed, new PeriodTimerStates.ClosedState(this)))
-                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {EPeriodTimerType.Closed}");
+                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {EPeriodTimerType.Closed}");
         }
 
         //============================================================
@@ -94,13 +109,13 @@ namespace UnityTools.Util
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning("ìœ íš¨í•˜ì§€ ì•Šì€ IDë¡œ ì´ˆê¸°í™”ë¥¼ ë¬´ì‹œí•©ë‹ˆë‹¤.");
+                DebugLogger.LogWarning("À¯È¿ÇÏÁö ¾ÊÀº ID·Î ÃÊ±âÈ­¸¦ ¹«½ÃÇÕ´Ï´Ù.");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("ëŸ¬ë„ˆ ì°¸ì¡°ê°€ ë¹„ì–´ ìˆì–´ ì´ˆê¸°í™”ë¥¼ ë¬´ì‹œí•©ë‹ˆë‹¤.");
+                DebugLogger.LogWarning("·¯³Ê ÂüÁ¶°¡ ºñ¾î ÀÖ¾î ÃÊ±âÈ­¸¦ ¹«½ÃÇÕ´Ï´Ù.");
                 return;
             }
 
@@ -426,7 +441,7 @@ namespace UnityTools.Util
             if(min > 0d && !double.IsNaN(min) && !double.IsInfinity(min))
                 return min;
 
-            DebugLogger.LogWarning($"ìœ íš¨í•˜ì§€ ì•Šì€ ì£¼ê¸° ê°’ì…ë‹ˆë‹¤: {name}={min}, ê¸°ë³¸ê°’ {DEFAULT_PERIOD_MIN}ë¶„ì„ ì ìš©í•©ë‹ˆë‹¤.");
+            DebugLogger.LogWarning($"À¯È¿ÇÏÁö ¾ÊÀº ÁÖ±â °ªÀÔ´Ï´Ù: {name}={min}, ±âº»°ª {DEFAULT_PERIOD_MIN}ºĞÀ» Àû¿ëÇÕ´Ï´Ù.");
             return DEFAULT_PERIOD_MIN;
         }
     }

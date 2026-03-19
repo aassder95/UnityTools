@@ -1,10 +1,24 @@
-ï»¿using System;
+using System;
 using System.Globalization;
 using UnityEditor;
 using UnityEngine;
 using UnityTools.Manager;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Editor
 {
     public class TaskTimerTestWindow : EditorWindow
     {
@@ -46,18 +60,18 @@ namespace UnityTools.Util
         private void OnGUI()
         {
             EditorGUILayout.Space(5);
-            GUILayout.Label("ì‘ì—… íƒ€ì´ë¨¸ í…ŒìŠ¤íŠ¸", EditorStyles.boldLabel);
+            GUILayout.Label("ÀÛ¾÷ Å¸ÀÌ¸Ó Å×½ºÆ®", EditorStyles.boldLabel);
             GUILayout.Space(5);
 
-            _timerId = EditorGUILayout.TextField("íƒ€ì´ë¨¸ ID", _timerId);
-            _durationSec = EditorGUILayout.TextField("ì‹œì‘ ì‹œê°„(ì´ˆ)", _durationSec);
-            _reduceSec = EditorGUILayout.TextField("ì°¨ê° ì‹œê°„(ì´ˆ)", _reduceSec);
+            _timerId = EditorGUILayout.TextField("Å¸ÀÌ¸Ó ID", _timerId);
+            _durationSec = EditorGUILayout.TextField("½ÃÀÛ ½Ã°£(ÃÊ)", _durationSec);
+            _reduceSec = EditorGUILayout.TextField("Â÷°¨ ½Ã°£(ÃÊ)", _reduceSec);
 
             GUILayout.Space(8);
-            DrawActionButtonRow("íƒ€ì´ë¨¸ ì´ˆê¸°í™”", InitTimer, "ì‹œì‘", StartTimer);
-            DrawActionButtonRow("ì‹œê°„ ì°¨ê°", ReduceTimer, "ì¦‰ì‹œ ì™„ë£Œ", CompleteImmediately);
-            DrawActionButtonRow("ë³´ìƒ ìˆ˜ë ¹", Claim, "í˜„ì¬ ìƒíƒœ ì•Œë¦¼", NotifyCurrentType);
-            DrawActionButtonRow("ì €ì¥ê°’ ì‚­ì œ", ClearSavedData, "ì €ì¥ê°’ ì¡°íšŒ", LoadSavedData);
+            DrawActionButtonRow("Å¸ÀÌ¸Ó ÃÊ±âÈ­", InitTimer, "½ÃÀÛ", StartTimer);
+            DrawActionButtonRow("½Ã°£ Â÷°¨", ReduceTimer, "Áï½Ã ¿Ï·á", CompleteImmediately);
+            DrawActionButtonRow("º¸»ó ¼ö·É", Claim, "ÇöÀç »óÅÂ ¾Ë¸²", NotifyCurrentType);
+            DrawActionButtonRow("ÀúÀå°ª »èÁ¦", ClearSavedData, "ÀúÀå°ª Á¶È¸", LoadSavedData);
 
             GUILayout.Space(8);
             DrawCurrentState();
@@ -86,7 +100,7 @@ namespace UnityTools.Util
             if(!TryGetId(out string id))
                 return;
 
-            if(!EditorUtility.DisplayDialog("í™•ì¸", $"{id} ì €ì¥ê°’ì„ ì‚­ì œí• ê¹Œìš”?", "ì‚­ì œ", "ì·¨ì†Œ"))
+            if(!EditorUtility.DisplayDialog("È®ÀÎ", $"{id} ÀúÀå°ªÀ» »èÁ¦ÇÒ±î¿ä?", "»èÁ¦", "Ãë¼Ò"))
                 return;
 
             _storage.Delete(TaskTimerStorageKeys.Start(id));
@@ -95,7 +109,7 @@ namespace UnityTools.Util
             _storage.Delete(TaskTimerStorageKeys.State(id));
 
             LoadSavedData();
-            _status = $"ì €ì¥ê°’ ì‚­ì œ ì™„ë£Œ: {id}";
+            _status = $"ÀúÀå°ª »èÁ¦ ¿Ï·á: {id}";
         }
 
         private void LoadSavedData()
@@ -107,7 +121,7 @@ namespace UnityTools.Util
             _savedDuration = _savedDataReader.ReadDoubleKey(TaskTimerStorageKeys.Duration(id), "sec");
             _savedUpdated = _savedDataReader.ReadDateKey(TaskTimerStorageKeys.Updated(id));
             _savedState = _savedDataReader.ReadEnumKey<ETaskTimerType>(TaskTimerStorageKeys.State(id));
-            _status = $"ì €ì¥ê°’ ì¡°íšŒ ì™„ë£Œ: {id}";
+            _status = $"ÀúÀå°ª Á¶È¸ ¿Ï·á: {id}";
         }
 
         //============================================================
@@ -121,12 +135,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetTaskHandle(id) ?? manager.CreateTaskTimerHandle(id);
             if(handle == null)
             {
-                _status = "TaskTimerHandle ìƒì„± ì‹¤íŒ¨";
+                _status = "TaskTimerHandle »ı¼º ½ÇÆĞ";
                 return;
             }
 
             manager.InitTaskTimer(handle);
-            _status = $"ì´ˆê¸°í™” ì™„ë£Œ: {id}";
+            _status = $"ÃÊ±âÈ­ ¿Ï·á: {id}";
         }
 
         private void StartTimer()
@@ -136,19 +150,19 @@ namespace UnityTools.Util
 
             if(!TryParseSeconds(_durationSec, out double durationSec) || durationSec <= 0d)
             {
-                _status = $"ì‹œì‘ ì‹œê°„(ì´ˆ) íŒŒì‹± ì‹¤íŒ¨ ë˜ëŠ” 0 ì´í•˜: {_durationSec}";
+                _status = $"½ÃÀÛ ½Ã°£(ÃÊ) ÆÄ½Ì ½ÇÆĞ ¶Ç´Â 0 ÀÌÇÏ: {_durationSec}";
                 return;
             }
 
             TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
-                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
+                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
                 return;
             }
 
             manager.StartTaskTimer(id, durationSec);
-            _status = $"ì‹œì‘ ìš”ì²­ ì™„ë£Œ: {id}, duration={durationSec}ì´ˆ";
+            _status = $"½ÃÀÛ ¿äÃ» ¿Ï·á: {id}, duration={durationSec}ÃÊ";
         }
 
         private void ReduceTimer()
@@ -158,19 +172,19 @@ namespace UnityTools.Util
 
             if(!TryParseSeconds(_reduceSec, out double reduceSec) || reduceSec <= 0d)
             {
-                _status = $"ì°¨ê° ì‹œê°„(ì´ˆ) íŒŒì‹± ì‹¤íŒ¨ ë˜ëŠ” 0 ì´í•˜: {_reduceSec}";
+                _status = $"Â÷°¨ ½Ã°£(ÃÊ) ÆÄ½Ì ½ÇÆĞ ¶Ç´Â 0 ÀÌÇÏ: {_reduceSec}";
                 return;
             }
 
             TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
-                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
+                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
                 return;
             }
 
             manager.ReduceTaskTimer(id, reduceSec);
-            _status = $"ì°¨ê° ìš”ì²­ ì™„ë£Œ: {id}, reduce={reduceSec}ì´ˆ";
+            _status = $"Â÷°¨ ¿äÃ» ¿Ï·á: {id}, reduce={reduceSec}ÃÊ";
         }
 
         private void CompleteImmediately()
@@ -181,12 +195,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
-                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
+                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
                 return;
             }
 
             manager.CompleteTaskTimerImmediately(id);
-            _status = $"ì¦‰ì‹œ ì™„ë£Œ ìš”ì²­ ì™„ë£Œ: {id}";
+            _status = $"Áï½Ã ¿Ï·á ¿äÃ» ¿Ï·á: {id}";
         }
 
         private void Claim()
@@ -197,12 +211,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
-                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
+                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
                 return;
             }
 
             manager.ClaimTaskTimer(id);
-            _status = $"ë³´ìƒ ìˆ˜ë ¹ ìš”ì²­ ì™„ë£Œ: {id}";
+            _status = $"º¸»ó ¼ö·É ¿äÃ» ¿Ï·á: {id}";
         }
 
         private void NotifyCurrentType()
@@ -213,12 +227,12 @@ namespace UnityTools.Util
             TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
-                _status = "í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤. ë¨¼ì € íƒ€ì´ë¨¸ ì´ˆê¸°í™”ë¥¼ ì‹¤í–‰í•˜ì„¸ìš”.";
+                _status = "ÇÚµéÀÌ ¾ø½À´Ï´Ù. ¸ÕÀú Å¸ÀÌ¸Ó ÃÊ±âÈ­¸¦ ½ÇÇàÇÏ¼¼¿ä.";
                 return;
             }
 
             handle.NotifyCurType();
-            _status = $"í˜„ì¬ ìƒíƒœ ì•Œë¦¼ í˜¸ì¶œ ì™„ë£Œ: {id}, {handle.CurType}";
+            _status = $"ÇöÀç »óÅÂ ¾Ë¸² È£Ãâ ¿Ï·á: {id}, {handle.CurType}";
         }
 
         private bool TryGetManagerAndId(out TimerManager manager, out string id)
@@ -228,7 +242,7 @@ namespace UnityTools.Util
 
             if(!Application.isPlaying)
             {
-                _status = "í”Œë ˆì´ ëª¨ë“œì—ì„œë§Œ ê°€ëŠ¥í•©ë‹ˆë‹¤.";
+                _status = "ÇÃ·¹ÀÌ ¸ğµå¿¡¼­¸¸ °¡´ÉÇÕ´Ï´Ù.";
                 return false;
             }
 
@@ -239,7 +253,7 @@ namespace UnityTools.Util
             if(manager != null)
                 return true;
 
-            _status = "TimerManagerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.";
+            _status = "TimerManager¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.";
             return false;
         }
 
@@ -249,7 +263,7 @@ namespace UnityTools.Util
             if(!string.IsNullOrEmpty(id))
                 return true;
 
-            _status = "íƒ€ì´ë¨¸ IDë¥¼ ì…ë ¥í•˜ì„¸ìš”.";
+            _status = "Å¸ÀÌ¸Ó ID¸¦ ÀÔ·ÂÇÏ¼¼¿ä.";
             return false;
         }
 
@@ -272,46 +286,46 @@ namespace UnityTools.Util
         {
             if(!Application.isPlaying)
             {
-                EditorGUILayout.HelpBox("í˜„ì¬ ì—ë””í„° ëª¨ë“œì…ë‹ˆë‹¤. ìƒíƒœ ì¡°íšŒëŠ” í”Œë ˆì´ ëª¨ë“œì—ì„œ í™•ì¸í•˜ì„¸ìš”.", MessageType.None);
+                EditorGUILayout.HelpBox("ÇöÀç ¿¡µğÅÍ ¸ğµåÀÔ´Ï´Ù. »óÅÂ Á¶È¸´Â ÇÃ·¹ÀÌ ¸ğµå¿¡¼­ È®ÀÎÇÏ¼¼¿ä.", MessageType.None);
                 return;
             }
 
             if(!TryGetId(out string id))
             {
-                EditorGUILayout.HelpBox("íƒ€ì´ë¨¸ IDë¥¼ ì…ë ¥í•˜ì„¸ìš”.", MessageType.None);
+                EditorGUILayout.HelpBox("Å¸ÀÌ¸Ó ID¸¦ ÀÔ·ÂÇÏ¼¼¿ä.", MessageType.None);
                 return;
             }
 
             TimerManager manager = TimerManager.Instance;
             if(manager == null)
             {
-                EditorGUILayout.HelpBox("TimerManagerë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.", MessageType.None);
+                EditorGUILayout.HelpBox("TimerManager¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.", MessageType.None);
                 return;
             }
 
             TaskTimerHandle handle = manager.GetTaskHandle(id);
             if(handle == null)
             {
-                EditorGUILayout.HelpBox("í˜„ì¬ í•¸ë“¤ì´ ì—†ìŠµë‹ˆë‹¤.", MessageType.None);
-                EditorGUILayout.LabelField("Claimed(ì €ì¥ ê¸°ì¤€)", manager.IsTaskTimerClaimed(id).ToString());
+                EditorGUILayout.HelpBox("ÇöÀç ÇÚµéÀÌ ¾ø½À´Ï´Ù.", MessageType.None);
+                EditorGUILayout.LabelField("Claimed(ÀúÀå ±âÁØ)", manager.IsTaskTimerClaimed(id).ToString());
                 return;
             }
 
             TaskTimerData data = handle.ToData();
-            EditorGUILayout.LabelField("í˜„ì¬ ìƒíƒœ", data.CurType.ToString());
-            EditorGUILayout.LabelField("ë‚¨ì€ ì‹œê°„(ì´ˆ)", handle.RemainingSec.ToString());
-            EditorGUILayout.LabelField("ì´ ì‹œê°„(ì´ˆ)", data.DurationSec.ToString());
-            EditorGUILayout.LabelField("ì§„í–‰ë¥ ", data.Progress.ToString("P1", CultureInfo.InvariantCulture));
+            EditorGUILayout.LabelField("ÇöÀç »óÅÂ", data.CurType.ToString());
+            EditorGUILayout.LabelField("³²Àº ½Ã°£(ÃÊ)", handle.RemainingSec.ToString());
+            EditorGUILayout.LabelField("ÃÑ ½Ã°£(ÃÊ)", data.DurationSec.ToString());
+            EditorGUILayout.LabelField("ÁøÇà·ü", data.Progress.ToString("P1", CultureInfo.InvariantCulture));
             EditorGUILayout.LabelField("Claimed", handle.IsClaimed.ToString());
         }
 
         private void DrawSavedData()
         {
-            GUILayout.Label("ì €ì¥ê°’ ë””ë²„ê¹…", EditorStyles.boldLabel);
-            EditorGUILayout.LabelField("ì‹œì‘ ì‹œê°„(START)", _savedStart);
-            EditorGUILayout.LabelField("ì§€ì† ì‹œê°„(DURATION)", _savedDuration);
-            EditorGUILayout.LabelField("ê°±ì‹  ì‹œê°„(UPDATED)", _savedUpdated);
-            EditorGUILayout.LabelField("ìƒíƒœ(STATE)", _savedState);
+            GUILayout.Label("ÀúÀå°ª µğ¹ö±ë", EditorStyles.boldLabel);
+            EditorGUILayout.LabelField("½ÃÀÛ ½Ã°£(START)", _savedStart);
+            EditorGUILayout.LabelField("Áö¼Ó ½Ã°£(DURATION)", _savedDuration);
+            EditorGUILayout.LabelField("°»½Å ½Ã°£(UPDATED)", _savedUpdated);
+            EditorGUILayout.LabelField("»óÅÂ(STATE)", _savedState);
         }
 
         private static void DrawActionButtonRow(string leftLabel, Action leftAction, string rightLabel, Action rightAction)

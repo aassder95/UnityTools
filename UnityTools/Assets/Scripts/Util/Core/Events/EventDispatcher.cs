@@ -1,7 +1,22 @@
-ï»¿using System;
+using System;
 using System.Collections.Generic;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Core.Events
 {
     public class EventDispatcher : MonoSingleton<EventDispatcher>
     {
@@ -80,7 +95,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"ì´ë²¤íŠ¸ ì²˜ë¦¬ ì¤‘ ì˜ˆì™¸ ë°œìƒ: ì´ë²¤íŠ¸í‚¤={key}, ì˜ˆì™¸={ex}");
+                        DebugLogger.LogError($"ÀÌº¥Æ® Ã³¸® Áß ¿¹¿Ü ¹ß»ı: ÀÌº¥Æ®Å°={key}, ¿¹¿Ü={ex}");
                     }
                 }
             }
@@ -101,7 +116,7 @@ namespace UnityTools.Util
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"ì´ë²¤íŠ¸ ì²˜ë¦¬ ì¤‘ ì˜ˆì™¸ ë°œìƒ: ì´ë²¤íŠ¸í‚¤={key}, ì˜ˆì™¸={ex}");
+                        DebugLogger.LogError($"ÀÌº¥Æ® Ã³¸® Áß ¿¹¿Ü ¹ß»ı: ÀÌº¥Æ®Å°={key}, ¿¹¿Ü={ex}");
                     }
                 }
             }

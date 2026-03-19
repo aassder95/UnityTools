@@ -1,6 +1,21 @@
-ï»¿using System.Collections.Generic;
+using System.Collections.Generic;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Extensions
 {
     //============================================================
     //Logic
@@ -14,13 +29,13 @@ namespace UnityTools.Util
         {
             if(list == null)
             {
-                DebugLogger.LogWarning("ë¦¬ìŠ¤íŠ¸ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.");
+                DebugLogger.LogWarning("¸®½ºÆ®°¡ ºñ¾î ÀÖ½À´Ï´Ù.");
                 return false;
             }
 
             if(0 > index || index >= list.Count)
             {
-                DebugLogger.LogWarning("ì¸ë±ìŠ¤ê°€ ë²”ìœ„ë¥¼ ë²—ì–´ë‚¬ìŠµë‹ˆë‹¤.");
+                DebugLogger.LogWarning("ÀÎµ¦½º°¡ ¹üÀ§¸¦ ¹ş¾î³µ½À´Ï´Ù.");
                 return false;
             }
 

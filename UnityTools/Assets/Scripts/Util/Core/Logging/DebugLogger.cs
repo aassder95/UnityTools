@@ -1,17 +1,32 @@
-ï»¿using System;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Core.Logging
 {
     public static class DebugLogger
     {
         //============================================================
         //Constants
         //============================================================
-        private const string UNKNOWN_CLASS = "ì•Œìˆ˜ì—†ëŠ”í´ë˜ìŠ¤";
-        private const string UNKNOWN_METHOD = "ì•Œìˆ˜ì—†ëŠ”ë©”ì„œë“œ";
+        private const string UNKNOWN_CLASS = "¾Ë¼ö¾ø´ÂÅ¬·¡½º";
+        private const string UNKNOWN_METHOD = "¾Ë¼ö¾ø´Â¸Ş¼­µå";
 
         //============================================================
         //Logic
@@ -89,11 +104,11 @@ namespace UnityTools.Util
         {
             if(ex == null)
             {
-                WriteLog(ELogLevel.Error, className, method, "ì˜ˆì™¸ ì •ë³´ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.", context);
+                WriteLog(ELogLevel.Error, className, method, "¿¹¿Ü Á¤º¸°¡ ºñ¾î ÀÖ½À´Ï´Ù.", context);
                 return;
             }
 
-            WriteLog(ELogLevel.Error, className, method, $"ì˜ˆì™¸ ë°œìƒ: {ex.Message}", context);
+            WriteLog(ELogLevel.Error, className, method, $"¿¹¿Ü ¹ß»ı: {ex.Message}", context);
             if(context == null)
                 Debug.LogException(ex);
             else

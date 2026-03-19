@@ -1,6 +1,21 @@
-ï»¿using UnityEngine;
+using UnityEngine;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Core.Singleton
 {
     public class MonoSingleton<T> : MonoBehaviour where T : Component
     {
@@ -20,7 +35,7 @@ namespace UnityTools.Util
                     _instance = FindFirstObjectByType<T>();
 
                 if(_instance == null)
-                    DebugLogger.LogError($"{typeof(T).Name} ì¸ìŠ¤í„´ìŠ¤ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
+                    DebugLogger.LogError($"{typeof(T).Name} ÀÎ½ºÅÏ½º¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
 
                 return _instance;
             }

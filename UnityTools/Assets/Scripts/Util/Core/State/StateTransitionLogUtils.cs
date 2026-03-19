@@ -1,7 +1,22 @@
 using System;
 using System.Runtime.CompilerServices;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.Core.State
 {
     public static class StateTransitionLogUtils
     {
@@ -14,7 +29,7 @@ namespace UnityTools.Util
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] 등록되지 않은 상태 전이 요청: {type}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] ?�록?��? ?��? ?�태 ?�이 ?�청: {type}", null, memberName, filePath);
         }
 
         public static void LogInitialSetFailed<TType>(
@@ -23,7 +38,7 @@ namespace UnityTools.Util
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] 초기 상태 설정 실패: {type}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] 초기 ?�태 ?�정 ?�패: {type}", null, memberName, filePath);
         }
 
         public static void LogTransitionFailed<TType>(
@@ -33,7 +48,7 @@ namespace UnityTools.Util
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] 상태 전이 실패: {fromType} -> {toType}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] ?�태 ?�이 ?�패: {fromType} -> {toType}", null, memberName, filePath);
         }
     }
 }
