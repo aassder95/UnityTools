@@ -1,8 +1,23 @@
-﻿using System;
+using System;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityTools.Util.Constants;
+using UnityTools.Util.Core.Collections;
+using UnityTools.Util.Core.Events;
+using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Singleton;
+using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.Core.Timer.Shared;
+using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Util.Coroutines;
+using UnityTools.Util.Extensions;
+using UnityTools.Util.UIFramework;
+using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util
+namespace UnityTools.Util.UIFramework
 {
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {
@@ -67,20 +82,44 @@ namespace UnityTools.Util
 
         public void AddRange(int cnt, int totalCnt)
         {
+            if(cnt <= 0)
+                return;
+
             bool isBack = FirstIndex + _items.Count < totalCnt;
-            int idx = isBack ? FirstIndex + _items.Count : FirstIndex - 1;
+            if(isBack)
+            {
+                int idx = FirstIndex + _items.Count;
+                for(int j = 0; j < cnt; j++)
+                    Add(idx + j, true);
+                return;
+            }
+
+            int frontIdx = FirstIndex - 1;
             for(int j = 0; j < cnt; j++)
-                Add(idx + j, isBack);
+                Add(frontIdx - j, false);
         }
 
         public void AddRange(int cnt, int idx, bool isBack)
         {
-            for(int j = 0; j < cnt; j++)
-                Add(idx + j, isBack);
+            if(cnt <= 0)
+                return;
+
+            if(isBack)
+            {
+                for(int j = 0; j < cnt; j++)
+                    Add(idx + j, true);
+                return;
+            }
+
+            for(int j = cnt - 1; j >= 0; j--)
+                Add(idx + j, false);
         }
 
         public void RemoveRange(int cnt, int lastLine)
         {
+            if(cnt <= 0)
+                return;
+
             bool isBack = FirstIndex >= _context.CalculateFirstVisibleItemIndex(lastLine);
             for(int j = 0; j < cnt; j++)
                 Remove(isBack);
@@ -88,8 +127,17 @@ namespace UnityTools.Util
 
         public void RemoveRange(int cnt, bool isBack)
         {
+            if(cnt <= 0)
+                return;
+
             for(int j = 0; j < cnt; j++)
                 Remove(isBack);
+        }
+
+        public void Clear()
+        {
+            while(_items.Count > 0)
+                _pool.Return(_items.Dequeue());
         }
 
         public TView Get(int idx)
@@ -119,6 +167,9 @@ namespace UnityTools.Util
 
         private void Add(int idx, bool isBack)
         {
+            if(idx < 0)
+                return;
+
             if(isBack)
             {
                 _items.Enqueue(Create(idx));
