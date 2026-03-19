@@ -3,7 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace UnityTools.UI
+namespace UnityTools.Samples.Timer
 {
     public class TaskTimerView : MonoBehaviour
     {

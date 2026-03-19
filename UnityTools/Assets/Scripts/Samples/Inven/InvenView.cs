@@ -1,8 +1,7 @@
 using UnityEngine;
-using UnityTools.Model;
 using UnityTools.Util;
 
-namespace UnityTools.UI
+namespace UnityTools.Samples.Inven
 {
     public class InvenView : BaseView<InvenModel>
     {

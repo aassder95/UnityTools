@@ -1,6 +1,6 @@
 using UnityTools.Util;
 
-namespace UnityTools.UI
+namespace UnityTools.Samples.Inven
 {
     //============================================================
     //Logic

@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityTools.Util;
 
-namespace UnityTools.Model
+namespace UnityTools.Samples.Rank
 {
     public class RankItemModel : BaseModel
     {

@@ -1,21 +1,16 @@
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
-using UnityTools.Model;
 using UnityTools.Util;
 
-namespace UnityTools.UI
+namespace UnityTools.Samples.Inven
 {
-    public class RankItemView : BaseView<RankItemModel>, IDynamicScrollItem, IPoolable 
+    public class InvenItemView : BaseView<InvenItemModel>, IDynamicScrollItem, IPoolable
     {
         //============================================================
         //Inspector Fields
         //============================================================
-        [SerializeField] private TextMeshProUGUI _txtId;
-        [SerializeField] private TextMeshProUGUI _txtRank;
-        [SerializeField] private TextMeshProUGUI _txtScore;
-        [SerializeField] private Image _imgTmp;
         [SerializeField] private RectTransform _rtView;
+        [SerializeField] private TextMeshProUGUI _txtIndex;
 
         //============================================================
         //Fields
@@ -30,12 +25,9 @@ namespace UnityTools.UI
         //============================================================
         //Logic
         //============================================================
-        public override void Refresh(RankItemModel model)
+        public override void Refresh(InvenItemModel model)
         {
-            _txtId.SetText("{0}", model?.Id ?? Index);
-            _txtRank.SetText("{0}", model?.Rank ?? 0);
-            _txtScore.SetText("{0}", model?.Score ?? 0);
-            _imgTmp.color = model != null ? model.BgColor : Color.white;
+            _txtIndex.SetText("{0}", model.Id);
         }
 
         //============================================================

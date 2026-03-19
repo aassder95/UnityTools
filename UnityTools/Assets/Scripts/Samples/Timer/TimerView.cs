@@ -2,10 +2,9 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Model;
 using UnityTools.Util;
 
-namespace UnityTools.UI
+namespace UnityTools.Samples.Timer
 {
     public class TimerView : BaseView<TimerModel>
     {

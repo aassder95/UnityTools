@@ -1,9 +1,7 @@
-﻿using UnityTools.Model;
-using UnityTools.UI;
 using UnityTools.Util;
 using UnityEngine.Events;
 
-namespace UnityTools.Presenter
+namespace UnityTools.Samples.Timer
 {
     public class TimerPresenter : BasePresenter<TimerModel, TimerView>
     {

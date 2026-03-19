@@ -1,7 +1,7 @@
 using System;
 using UnityTools.Util;
 
-namespace UnityTools.Model
+namespace UnityTools.Samples.Timer
 {
     public class TimerModel : BaseModel
     {

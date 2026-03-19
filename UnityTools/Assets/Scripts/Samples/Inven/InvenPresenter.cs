@@ -1,9 +1,7 @@
-using UnityTools.Model;
-using UnityTools.UI;
 using UnityTools.Util;
 using UnityEngine.Events;
 
-namespace UnityTools.Presenter
+namespace UnityTools.Samples.Inven
 {
     public class InvenPresenter : BasePresenter<InvenModel, InvenView>
     {

@@ -1,9 +1,8 @@
 using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Model;
 using UnityTools.Util;
 
-namespace UnityTools.UI
+namespace UnityTools.Samples.Rank
 {
     public class RankView : BaseView<RankModel>
     {

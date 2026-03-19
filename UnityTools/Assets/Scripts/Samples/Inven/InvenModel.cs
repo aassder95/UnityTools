@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityTools.Util;
 
-namespace UnityTools.Model
+namespace UnityTools.Samples.Inven
 {
     public class InvenModel : BaseModel
     {
