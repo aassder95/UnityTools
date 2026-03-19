@@ -40,7 +40,7 @@ namespace UnityTools.Util.UIFramework
         [SerializeField] private EDynamicScrollLayoutMode _layoutMode = EDynamicScrollLayoutMode.Single;
         [SerializeField] private int _fixedCellsPerGroup = 1;
         [SerializeField] private EDynamicScrollMovementType _movementType = EDynamicScrollMovementType.Clamped;
-        [SerializeField] private bool _inertia = true;
+        [SerializeField] private bool _isInertia = true;
         [SerializeField] [Range(0.001f, 0.3f)] private float _decelerationRate = 0.135f;
         [SerializeField] [Range(0.1f, 1.0f)] private float _elasticity = 0.1f;
         [SerializeField] private EDynamicScrollContentAlignment _contentAlignment = EDynamicScrollContentAlignment.TopLeft;
@@ -168,7 +168,7 @@ namespace UnityTools.Util.UIFramework
             RebuildVisibleItems();
         }
 
-        public void ScrollTo(int itemIdx, bool immediate = false, float durationSec = 0.3f)
+        public void ScrollTo(int itemIdx, bool isImmediate = false, float durationSec = 0.3f)
         {
             if(_context == null || _totalItemCnt <= 0)
                 return;
@@ -177,7 +177,7 @@ namespace UnityTools.Util.UIFramework
             Vector2 targetPos = _context.CalculateContentPosition(targetIdx);
             targetPos = _context.ClampContentPosition(targetPos, _totalLineCnt, _visibleLineCnt);
 
-            if(immediate || durationSec <= MIN_SCROLL_DURATION_SEC)
+            if(isImmediate || durationSec <= MIN_SCROLL_DURATION_SEC)
             {
                 StopSmoothScroll();
                 _rtContent.anchoredPosition = targetPos;
@@ -309,7 +309,7 @@ namespace UnityTools.Util.UIFramework
             _scrollRect.vertical = IsVertical;
             _scrollRect.horizontal = !IsVertical;
             _scrollRect.movementType = ConvertMovementType(_movementType);
-            _scrollRect.inertia = _inertia;
+            _scrollRect.inertia = _isInertia;
             _scrollRect.decelerationRate = _decelerationRate;
             _scrollRect.elasticity = _elasticity;
         }

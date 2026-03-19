@@ -25,6 +25,7 @@ namespace UnityTools.Util.Core.Logging
         Error
     }
 
+    // Exception: stateless utility is kept as a static helper.
     public static class DebugLogGate
     {
         //============================================================
@@ -41,7 +42,7 @@ namespace UnityTools.Util.Core.Logging
         //Fields
         //============================================================
         private static bool _isInitialized;
-        private static bool _defaultEnabled = true;
+        private static bool _isDefaultEnabled = true;
         private static bool _isLogEnabled = true;
         private static bool _isWarningEnabled = true;
         private static bool _isErrorEnabled = true;
@@ -49,7 +50,7 @@ namespace UnityTools.Util.Core.Logging
         //============================================================
         //Properties
         //============================================================
-        public static bool DefaultEnabled => _defaultEnabled;
+        public static bool IsDefaultEnabled => _isDefaultEnabled;
 
         //============================================================
         //Init/Register
@@ -93,7 +94,7 @@ namespace UnityTools.Util.Core.Logging
             if(_classEnabled.TryGetValue(key, out bool isEnabled))
                 return isEnabled;
 
-            return _defaultEnabled;
+            return _isDefaultEnabled;
         }
 
         public static void Reset()
@@ -103,7 +104,7 @@ namespace UnityTools.Util.Core.Logging
 
         public static void SetDefaultEnabled(bool isEnabled)
         {
-            _defaultEnabled = isEnabled;
+            _isDefaultEnabled = isEnabled;
         }
 
         //============================================================
