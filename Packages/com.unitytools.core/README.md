@@ -20,7 +20,7 @@
 `Package Manager > Add package from git URL...` ???꾨옒 ?뺥깭濡?異붽??⑸땲??
 
 ```text
-https://<git-repo-url>.git?path=/Packages/com.unitytools.core#v0.1.0
+https://<git-repo-url>.git?path=/Packages/com.unitytools.core#<tag>
 ```
 
 ### 2. 濡쒖뺄 ?뚯씪 寃쎈줈 諛⑹떇
@@ -50,11 +50,11 @@ https://<git-repo-url>.git?path=/Packages/com.unitytools.core#v0.1.0
 ?꾨옒 ?ㅽ겕由쏀듃濡?`package.json` 踰꾩쟾怨??쒓렇瑜??쇱튂?쒖폒 由대━?ㅽ븷 ???덉뒿?덈떎.
 
 ```powershell
-pwsh ./Tools/Package/release-unitytools-core.ps1 -Version 0.1.0
+pwsh ./Tools/Package/release-unitytools-core.ps1 -Version <version>
 ```
 
 ?먭꺽 ?쒓렇 ?몄떆源뚯? ??踰덉뿉 ?섑뻾?섎젮硫?
 
 ```powershell
-pwsh ./Tools/Package/release-unitytools-core.ps1 -Version 0.1.0 -Push
+pwsh ./Tools/Package/release-unitytools-core.ps1 -Version <version> -Push
 ```

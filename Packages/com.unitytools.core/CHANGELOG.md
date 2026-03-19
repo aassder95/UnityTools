@@ -1,6 +1,6 @@
 ﻿# Changelog
 
-## 0.1.1 - 2026-03-19
+## Unreleased
 
 - Remove CsvJsonConverter and CSV conversion menu from core package
 - Keep only data cleanup editor menu in com.unitytools.core
