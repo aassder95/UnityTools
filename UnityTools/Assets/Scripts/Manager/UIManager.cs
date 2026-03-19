@@ -1,6 +1,7 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
-using UnityTools.Presenter;
-using UnityTools.UI;
+using UnityTools.Samples.Modules;
 using UnityTools.Util;
 
 namespace UnityTools.Manager
@@ -10,61 +11,95 @@ namespace UnityTools.Manager
         //============================================================
         //Inspector Fields
         //============================================================
-        [Header("Rank")]
-        [SerializeField] private RankView _rankView;
-        [SerializeField] private int _rankModelCnt = 10;
+        [Header("Entry")]
+        [SerializeField] private string _entryModuleKey = SampleModuleKeys.ALL;
 
-        [Header("RankOSA")]
-        [SerializeField] private RankOSAView _rankOSAView;
-        [SerializeField] private int _rankOSAModelCnt = 10;
-
-        [Header("Timer")]
-        [SerializeField] private TimerView _timerView;
-
-        [Header("Inven")]
-        [SerializeField] private InvenView _invenView;
-        [SerializeField] private int _invenModelCnt = 50;
+        [Header("Modules")]
+        [SerializeField] private MonoBehaviour[] _sampleModuleBehaviours;
 
         //============================================================
         //Fields
         //============================================================
-        private RankPresenter _rankPresenter;
-        private RankOSAPresenter _rankOSAPresenter;
-        private TimerPresenter _timerPresenter;
-        private InvenPresenter _invenPresenter;
+        private readonly List<ISampleModule> _modules = new();
+        private readonly List<ISampleModule> _activeModules = new();
 
         //============================================================
         //Unity Methods
         //============================================================
         private void Awake()
         {
-            if (_rankView != null && _rankView.gameObject.activeInHierarchy)
-                _rankPresenter = new(new(_rankModelCnt), _rankView);
-
-            if (_rankOSAView != null && _rankOSAView.gameObject.activeInHierarchy)
-                _rankOSAPresenter = new(new(_rankOSAModelCnt, new() { 3, 10 }), _rankOSAView);
-
-            if (_timerView != null && _timerView.gameObject.activeInHierarchy)
-                _timerPresenter = new(new(), _timerView);
-
-            if (_invenView != null && _invenView.gameObject.activeInHierarchy)
-                _invenPresenter = new(new(_invenModelCnt), _invenView);
+            RegisterModules();
+            InitModules();
         }
 
         private void Start()
         {
-            _rankPresenter?.Show();
-            _rankOSAPresenter?.Show();
-            _timerPresenter?.Show();
-            _invenPresenter?.Show();
+            for (int i = 0; i < _activeModules.Count; i++)
+            {
+                _activeModules[i].Show();
+            }
         }
 
         private void OnDestroy()
         {
-            _rankPresenter?.Release();
-            _rankOSAPresenter?.Release();
-            _timerPresenter?.Release();
-            _invenPresenter?.Release();
+            for (int i = 0; i < _activeModules.Count; i++)
+            {
+                _activeModules[i].Release();
+            }
+
+            _activeModules.Clear();
+            _modules.Clear();
+        }
+
+        //============================================================
+        //Init/Register
+        //============================================================
+        private void RegisterModules()
+        {
+            _modules.Clear();
+
+            if (_sampleModuleBehaviours == null)
+                return;
+
+            for (int i = 0; i < _sampleModuleBehaviours.Length; i++)
+            {
+                MonoBehaviour behaviour = _sampleModuleBehaviours[i];
+                if (behaviour == null)
+                    continue;
+
+                if (behaviour is ISampleModule sampleModule)
+                    _modules.Add(sampleModule);
+            }
+        }
+
+        private void InitModules()
+        {
+            _activeModules.Clear();
+
+            for (int i = 0; i < _modules.Count; i++)
+            {
+                ISampleModule module = _modules[i];
+                if (!IsTargetModule(module.ModuleKey))
+                    continue;
+
+                module.Init();
+                if (module.IsInitialized)
+                    _activeModules.Add(module);
+            }
+        }
+
+        private bool IsTargetModule(string moduleKey)
+        {
+            if (string.IsNullOrWhiteSpace(moduleKey))
+                return false;
+
+            if (string.IsNullOrWhiteSpace(_entryModuleKey))
+                return true;
+
+            if (string.Equals(_entryModuleKey, SampleModuleKeys.ALL, StringComparison.OrdinalIgnoreCase))
+                return true;
+
+            return string.Equals(moduleKey, _entryModuleKey, StringComparison.OrdinalIgnoreCase);
         }
     }
 }
