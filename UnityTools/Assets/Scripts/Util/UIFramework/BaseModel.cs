@@ -18,16 +18,16 @@ namespace UnityTools.Util.UIFramework
     public abstract class BaseModel : IModel
     {
         //============================================================
-        //Events
-        //============================================================
-        public event Action OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
-        private event Action _onUpdated;
-
-        //============================================================
         //Fields
         //============================================================
         private int _updateDepth;
         private bool _hasPendingUpdate;
+
+        //============================================================
+        //Events
+        //============================================================
+        public event Action OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
+        private event Action _onUpdated;
 
         //============================================================
         //Logic
