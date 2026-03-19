@@ -20,7 +20,7 @@ namespace UnityTools.Samples.Modules
         //Properties
         //============================================================
         public string ModuleKey => SampleModuleKeys.TIMER;
-        public bool IsInitialized => _isInitialized;
+        public bool IsInit => _isInitialized;
 
         //============================================================
         //Init/Register
@@ -35,7 +35,7 @@ namespace UnityTools.Samples.Modules
 
             _timerPresenter = new(new(), _timerView);
             _timerPresenter.Init();
-            _isInitialized = _timerPresenter.IsInitialized;
+            _isInitialized = _timerPresenter.IsInit;
         }
 
         public void Show()

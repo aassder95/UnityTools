@@ -21,7 +21,7 @@ namespace UnityTools.Samples.Modules
         //Properties
         //============================================================
         public string ModuleKey => SampleModuleKeys.RANK;
-        public bool IsInitialized => _isInitialized;
+        public bool IsInit => _isInitialized;
 
         //============================================================
         //Init/Register
@@ -36,7 +36,7 @@ namespace UnityTools.Samples.Modules
 
             _rankPresenter = new(new(_rankModelCnt), _rankView);
             _rankPresenter.Init();
-            _isInitialized = _rankPresenter.IsInitialized;
+            _isInitialized = _rankPresenter.IsInit;
         }
 
         public void Show()

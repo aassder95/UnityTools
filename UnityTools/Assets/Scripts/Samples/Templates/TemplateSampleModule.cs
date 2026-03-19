@@ -23,7 +23,7 @@ namespace UnityTools.Samples.Templates
         //Properties
         //============================================================
         public string ModuleKey => _moduleKey;
-        public bool IsInitialized => _isInitialized;
+        public bool IsInit => _isInitialized;
 
         //============================================================
         //Init/Register
@@ -41,7 +41,7 @@ namespace UnityTools.Samples.Templates
 
             _presenter = new TemplateSamplePresenter(_model, _view);
             _presenter.Init();
-            _isInitialized = _presenter.IsInitialized;
+            _isInitialized = _presenter.IsInit;
         }
 
         public void Show()

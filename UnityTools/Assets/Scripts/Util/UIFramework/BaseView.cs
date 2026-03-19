@@ -11,7 +11,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
-        bool IsInitialized { get; }
+        bool IsInit { get; }
         bool IsVisible { get; }
 
         //============================================================
@@ -38,7 +38,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
-        public bool IsInitialized => _isInitialized;
+        public bool IsInit => _isInitialized;
         public bool IsVisible => gameObject.activeSelf;
 
         //============================================================

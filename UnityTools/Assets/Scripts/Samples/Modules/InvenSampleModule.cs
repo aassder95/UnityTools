@@ -21,7 +21,7 @@ namespace UnityTools.Samples.Modules
         //Properties
         //============================================================
         public string ModuleKey => SampleModuleKeys.INVEN;
-        public bool IsInitialized => _isInitialized;
+        public bool IsInit => _isInitialized;
 
         //============================================================
         //Init/Register
@@ -36,7 +36,7 @@ namespace UnityTools.Samples.Modules
 
             _invenPresenter = new(new(_invenModelCnt), _invenView);
             _invenPresenter.Init();
-            _isInitialized = _invenPresenter.IsInitialized;
+            _isInitialized = _invenPresenter.IsInit;
         }
 
         public void Show()

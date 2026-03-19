@@ -11,7 +11,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
-        bool IsInitialized { get; }
+        bool IsInit { get; }
         bool IsVisible { get; }
 
         //============================================================
@@ -47,7 +47,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
-        public bool IsInitialized => _isInitialized;
+        public bool IsInit => _isInitialized;
         public bool IsVisible => _view.IsVisible;
 
         //============================================================
@@ -79,7 +79,7 @@ namespace UnityTools.Util
 
             try
             {
-                if (!_view.IsInitialized)
+                if (!_view.IsInit)
                 {
                     _view.Init();
                     isViewInitializedByPresenter = true;

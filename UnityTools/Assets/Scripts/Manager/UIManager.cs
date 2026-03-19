@@ -83,7 +83,7 @@ namespace UnityTools.Manager
                     continue;
 
                 module.Init();
-                if (module.IsInitialized)
+                if (module.IsInit)
                     _activeModules.Add(module);
             }
         }
