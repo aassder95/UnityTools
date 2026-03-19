@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityTools.Util;
@@ -21,18 +20,14 @@ using UnityTools.Util.Utilities;
 
 namespace UnityTools.Manager
 {
-    // Exception: Period timer values are minute-based by product requirement.
-    public class TimerManager : MonoSingleton<TimerManager>
+    public class TaskTimerManager : MonoSingleton<TaskTimerManager>
     {
         //============================================================
         //Readonly
         //============================================================
-        private readonly TimerHandleRegistry<TaskTimerHandle> _taskHandles = new();
-        private readonly TimerHandleRegistry<PeriodTimerHandle> _periodHandles = new();
-        private readonly Dictionary<string, TaskTimerEventBinder> _taskEventBinders = new();
-        private readonly Dictionary<string, PeriodTimerEventBinder> _periodEventBinders = new();
-        private readonly ITimerHandleFactory<TaskTimerHandle> _taskHandleFactory = new TaskTimerHandleFactory();
-        private readonly ITimerHandleFactory<PeriodTimerHandle> _periodHandleFactory = new PeriodTimerHandleFactory();
+        private readonly TimerHandleRegistry<TaskTimerHandle> _handles = new();
+        private readonly Dictionary<string, TaskTimerEventBinder> _eventBinders = new();
+        private readonly ITimerHandleFactory<TaskTimerHandle> _handleFactory = new TaskTimerHandleFactory();
 
         //============================================================
         //Events
@@ -40,25 +35,16 @@ namespace UnityTools.Manager
         public event UnityAction<TaskTimerData> OnAnyTimerRemainSecUpdated { add => _onAnyTimerRemainSecUpdated += value; remove => _onAnyTimerRemainSecUpdated -= value; }
         public event UnityAction<TaskTimerData> OnAnyTimerCompleted { add => _onAnyTimerCompleted += value; remove => _onAnyTimerCompleted -= value; }
         public event UnityAction<TaskTimerData> OnAnyTimerClaimed { add => _onAnyTimerClaimed += value; remove => _onAnyTimerClaimed -= value; }
-        public event UnityAction<PeriodTimerData> OnAnyTimerRemainMinUpdated { add => _onAnyTimerRemainMinUpdated += value; remove => _onAnyTimerRemainMinUpdated -= value; }
         private event UnityAction<TaskTimerData> _onAnyTimerRemainSecUpdated;
         private event UnityAction<TaskTimerData> _onAnyTimerCompleted;
         private event UnityAction<TaskTimerData> _onAnyTimerClaimed;
-        private event UnityAction<PeriodTimerData> _onAnyTimerRemainMinUpdated;
 
         //============================================================
         //Unity Methods
         //============================================================
-        private void Awake()
-        {
-            if(Singletons.TimerManager == null)
-                Singletons.RegisterTimerManager(Instance);
-        }
-
         private void OnDestroy()
         {
-            ClearTaskHandles();
-            ClearPeriodHandles();
+            ClearHandles();
         }
 
         //============================================================
@@ -72,18 +58,7 @@ namespace UnityTools.Manager
                 return null;
             }
 
-            return _taskHandleFactory.Create(normalizedId, this);
-        }
-
-        public PeriodTimerHandle CreatePeriodTimerHandle(string id)
-        {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(CreatePeriodTimerHandle), id);
-                return null;
-            }
-
-            return _periodHandleFactory.Create(normalizedId, this);
+            return _handleFactory.Create(normalizedId, this);
         }
 
         public void InitTaskTimer(TaskTimerHandle handle)
@@ -97,37 +72,15 @@ namespace UnityTools.Manager
                 return;
             }
 
-            TaskTimerHandle oldHandle = _taskHandles.SetOrReplace(normalizedId, handle);
+            TaskTimerHandle oldHandle = _handles.SetOrReplace(normalizedId, handle);
             if(oldHandle != null)
             {
-                UnbindTaskEvents(normalizedId, oldHandle);
+                UnbindEvents(normalizedId, oldHandle);
                 oldHandle.Release();
             }
 
-            BindTaskEvents(normalizedId, handle);
+            BindEvents(normalizedId, handle);
             handle.Init();
-        }
-
-        public void InitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
-        {
-            if(handle == null)
-                return;
-
-            if(!PeriodTimerStorageKeys.TryNormalizeId(handle.Id, out string normalizedId))
-            {
-                LogInvalidId(nameof(InitPeriodTimer), handle.Id);
-                return;
-            }
-
-            PeriodTimerHandle oldHandle = _periodHandles.SetOrReplace(normalizedId, handle);
-            if(oldHandle != null)
-            {
-                UnbindPeriodEvents(normalizedId, oldHandle);
-                oldHandle.Release();
-            }
-
-            BindPeriodEvents(normalizedId, handle);
-            handle.Init(openMin, closedMin, initWaitFunc);
         }
 
         //============================================================
@@ -135,7 +88,7 @@ namespace UnityTools.Manager
         //============================================================
         public void StartTaskTimer(string id, double durationSec)
         {
-            if(!TryGetTaskHandle(nameof(StartTaskTimer), id, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(StartTaskTimer), id, out TaskTimerHandle handle))
                 return;
 
             handle.Start(durationSec);
@@ -143,7 +96,7 @@ namespace UnityTools.Manager
 
         public void ReduceTaskTimer(string id, double reduceSec)
         {
-            if(!TryGetTaskHandle(nameof(ReduceTaskTimer), id, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(ReduceTaskTimer), id, out TaskTimerHandle handle))
                 return;
 
             handle.Reduce(reduceSec);
@@ -151,7 +104,7 @@ namespace UnityTools.Manager
 
         public void CompleteTaskTimerImmediately(string id)
         {
-            if(!TryGetTaskHandle(nameof(CompleteTaskTimerImmediately), id, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(CompleteTaskTimerImmediately), id, out TaskTimerHandle handle))
                 return;
 
             handle.CompleteImmediately();
@@ -159,31 +112,10 @@ namespace UnityTools.Manager
 
         public void ClaimTaskTimer(string id)
         {
-            if(!TryGetTaskHandle(nameof(ClaimTaskTimer), id, out TaskTimerHandle handle))
+            if(!TryGetHandle(nameof(ClaimTaskTimer), id, out TaskTimerHandle handle))
                 return;
 
             handle.Claim();
-        }
-
-        public void DeletePeriodTimer(string id)
-        {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(DeletePeriodTimer), id);
-                return;
-            }
-
-            if(_periodHandles.Remove(normalizedId, out PeriodTimerHandle handle))
-            {
-                UnbindPeriodEvents(normalizedId, handle);
-                handle.Release();
-            }
-            else
-            {
-                _periodEventBinders.Remove(normalizedId);
-            }
-
-            PeriodTimerPersistence.DeleteAll(normalizedId);
         }
 
         public bool IsTaskTimerClaimed(string id)
@@ -191,13 +123,13 @@ namespace UnityTools.Manager
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
                 return false;
 
-            if(_taskHandles.TryGet(normalizedId, out TaskTimerHandle handle))
+            if(_handles.TryGet(normalizedId, out TaskTimerHandle handle))
                 return handle.IsClaimed;
 
             return TaskTimer.IsClaimedStatic(normalizedId);
         }
 
-        private void BindTaskEvents(string id, TaskTimerHandle handle)
+        private void BindEvents(string id, TaskTimerHandle handle)
         {
             TaskTimerEventBinder eventBinder = new(
                 id,
@@ -205,7 +137,7 @@ namespace UnityTools.Manager
                 OnTaskTimerCompletedCallback,
                 OnTaskTimerClaimedCallback,
                 OnTaskTimerStateTransitionCallback);
-            _taskEventBinders[id] = eventBinder;
+            _eventBinders[id] = eventBinder;
 
             handle.OnRemainSecUpdated += eventBinder.OnRemainSecUpdatedCallback;
             handle.OnCompleted += eventBinder.OnCompletedCallback;
@@ -213,60 +145,30 @@ namespace UnityTools.Manager
             handle.OnStateTransition += eventBinder.OnStateTransitionCallback;
         }
 
-        private void UnbindTaskEvents(string id, TaskTimerHandle handle)
+        private void UnbindEvents(string id, TaskTimerHandle handle)
         {
-            if(!_taskEventBinders.TryGetValue(id, out TaskTimerEventBinder eventBinder))
+            if(!_eventBinders.TryGetValue(id, out TaskTimerEventBinder eventBinder))
                 return;
 
             handle.OnRemainSecUpdated -= eventBinder.OnRemainSecUpdatedCallback;
             handle.OnCompleted -= eventBinder.OnCompletedCallback;
             handle.OnClaimed -= eventBinder.OnClaimedCallback;
             handle.OnStateTransition -= eventBinder.OnStateTransitionCallback;
-            _taskEventBinders.Remove(id);
+            _eventBinders.Remove(id);
         }
 
-        private void BindPeriodEvents(string id, PeriodTimerHandle handle)
+        private void ClearHandles()
         {
-            PeriodTimerEventBinder eventBinder = new(this, id);
-            _periodEventBinders[id] = eventBinder;
-            handle.OnRemainMinUpdated += eventBinder.OnRemainMinUpdatedCallback;
-        }
-
-        private void UnbindPeriodEvents(string id, PeriodTimerHandle handle)
-        {
-            if(!_periodEventBinders.TryGetValue(id, out PeriodTimerEventBinder eventBinder))
-                return;
-
-            handle.OnRemainMinUpdated -= eventBinder.OnRemainMinUpdatedCallback;
-            _periodEventBinders.Remove(id);
-        }
-
-        private void ClearTaskHandles()
-        {
-            string[] ids = new string[_taskEventBinders.Count];
-            _taskEventBinders.Keys.CopyTo(ids, 0);
+            string[] ids = new string[_eventBinders.Count];
+            _eventBinders.Keys.CopyTo(ids, 0);
             foreach (string id in ids)
             {
-                if(_taskHandles.TryGet(id, out TaskTimerHandle handle))
-                    UnbindTaskEvents(id, handle);
+                if(_handles.TryGet(id, out TaskTimerHandle handle))
+                    UnbindEvents(id, handle);
             }
 
-            _taskEventBinders.Clear();
-            _taskHandles.ClearAll();
-        }
-
-        private void ClearPeriodHandles()
-        {
-            string[] ids = new string[_periodEventBinders.Count];
-            _periodEventBinders.Keys.CopyTo(ids, 0);
-            foreach (string id in ids)
-            {
-                if(_periodHandles.TryGet(id, out PeriodTimerHandle handle))
-                    UnbindPeriodEvents(id, handle);
-            }
-
-            _periodEventBinders.Clear();
-            _periodHandles.ClearAll();
+            _eventBinders.Clear();
+            _handles.ClearAll();
         }
 
         //============================================================
@@ -274,7 +176,7 @@ namespace UnityTools.Manager
         //============================================================
         private void OnTaskTimerRemainSecUpdatedCallback(string id, int remainSec)
         {
-            if(!_taskHandles.TryGet(id, out TaskTimerHandle handle))
+            if(!_handles.TryGet(id, out TaskTimerHandle handle))
                 return;
 
             if(handle.RemainingSec != remainSec)
@@ -285,7 +187,7 @@ namespace UnityTools.Manager
 
         private void OnTaskTimerCompletedCallback(string id)
         {
-            if(!_taskHandles.TryGet(id, out TaskTimerHandle handle))
+            if(!_handles.TryGet(id, out TaskTimerHandle handle))
                 return;
 
             _onAnyTimerCompleted?.Invoke(handle.ToData());
@@ -293,7 +195,7 @@ namespace UnityTools.Manager
 
         private void OnTaskTimerClaimedCallback(string id)
         {
-            if(!_taskHandles.TryGet(id, out TaskTimerHandle handle))
+            if(!_handles.TryGet(id, out TaskTimerHandle handle))
                 return;
 
             _onAnyTimerClaimed?.Invoke(handle.ToData());
@@ -307,21 +209,10 @@ namespace UnityTools.Manager
             if(nextType != ETaskTimerType.Processing)
                 return;
 
-            if(!_taskHandles.TryGet(id, out TaskTimerHandle handle))
+            if(!_handles.TryGet(id, out TaskTimerHandle handle))
                 return;
 
             _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());
-        }
-
-        private void OnPeriodTimerRemainMinUpdatedCallback(string id, int remainMin)
-        {
-            if(!_periodHandles.TryGet(id, out PeriodTimerHandle handle))
-                return;
-
-            if(handle.GetRemainingMin() != remainMin)
-                return;
-
-            _onAnyTimerRemainMinUpdated?.Invoke(handle.ToData());
         }
 
         //============================================================
@@ -332,18 +223,10 @@ namespace UnityTools.Manager
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
                 return null;
 
-            return _taskHandles.GetOrDefault(normalizedId);
+            return _handles.GetOrDefault(normalizedId);
         }
 
-        public PeriodTimerHandle GetPeriodHandle(string id)
-        {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-                return null;
-
-            return _periodHandles.GetOrDefault(normalizedId);
-        }
-
-        private bool TryGetTaskHandle(string method, string id, out TaskTimerHandle handle)
+        private bool TryGetHandle(string method, string id, out TaskTimerHandle handle)
         {
             handle = null;
             if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
@@ -352,42 +235,13 @@ namespace UnityTools.Manager
                 return false;
             }
 
-            return _taskHandles.TryGet(normalizedId, out handle);
+            return _handles.TryGet(normalizedId, out handle);
         }
 
         private void LogInvalidId(string method, string id)
         {
             string safeId = StringTokenUtils.ToLogSafe(id);
-            DebugLogger.LogWarning($"[{method}] ¿Ø»ø«œ¡ˆ æ ¿∫ ID ¿‘∑¬: '{safeId}'");
-        }
-
-        private class PeriodTimerEventBinder
-        {
-            //============================================================
-            //Readonly
-            //============================================================
-            private readonly string _id;
-            private readonly TimerManager _manager;
-
-            //============================================================
-            //Constructors
-            //============================================================
-            public PeriodTimerEventBinder(TimerManager manager, string id)
-            {
-                _manager = manager;
-                _id = id;
-            }
-
-            //============================================================
-            //Callbacks
-            //============================================================
-            public void OnRemainMinUpdatedCallback(int remainMin)
-            {
-                if(_manager == null)
-                    return;
-
-                _manager.OnPeriodTimerRemainMinUpdatedCallback(_id, remainMin);
-            }
+            DebugLogger.LogWarning($"[{method}] Ïú†Ìö®ÌïòÏßÄ ÏïäÏùÄ ID ÏûÖÎ†•: '{safeId}'");
         }
 
         private class TaskTimerEventBinder
@@ -443,5 +297,3 @@ namespace UnityTools.Manager
         }
     }
 }
-
-
