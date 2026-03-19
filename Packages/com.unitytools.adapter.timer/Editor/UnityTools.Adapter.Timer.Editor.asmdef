@@ -1,0 +1,19 @@
+{
+  "name": "UnityTools.Adapter.Timer.Editor",
+  "rootNamespace": "UnityTools",
+  "references": [
+    "UnityTools.Adapter.Timer.Runtime",
+    "UnityTools.Core.Runtime"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

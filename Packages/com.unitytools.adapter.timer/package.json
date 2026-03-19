@@ -1,0 +1,19 @@
+{
+  "name": "com.unitytools.adapter.timer",
+  "displayName": "UnityTools Adapter Timer",
+  "version": "0.1.0",
+  "unity": "2021.3",
+  "description": "Project integration layer for UnityTools timer features.",
+  "license": "MIT",
+  "keywords": [
+    "unitytools",
+    "adapter",
+    "timer"
+  ],
+  "author": {
+    "name": "UnityTools"
+  },
+  "dependencies": {
+    "com.unitytools.core": "0.1.0"
+  }
+}

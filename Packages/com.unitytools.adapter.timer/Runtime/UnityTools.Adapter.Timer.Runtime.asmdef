@@ -1,0 +1,16 @@
+{
+  "name": "UnityTools.Adapter.Timer.Runtime",
+  "rootNamespace": "UnityTools",
+  "references": [
+    "UnityTools.Core.Runtime"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
