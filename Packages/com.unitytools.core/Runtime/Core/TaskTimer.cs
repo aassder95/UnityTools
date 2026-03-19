@@ -5,13 +5,6 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    public enum ETaskTimerType
-    {
-        None,
-        Processing,
-        Completed
-    }
-
     public class TaskTimer : ITaskTimer
     {
         //============================================================

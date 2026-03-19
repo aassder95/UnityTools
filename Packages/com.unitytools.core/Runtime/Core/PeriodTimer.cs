@@ -5,14 +5,6 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    public enum EPeriodTimerType
-    {
-        None,
-        Reset,
-        Open,
-        Closed
-    }
-
     public class PeriodTimer : IPeriodTimer
     {
         //============================================================

@@ -3,14 +3,6 @@ using System.Collections.Generic;
 
 namespace UnityTools.Util
 {
-    // Exception: type-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
-    public enum EEventDispatcherType
-    {
-    }
-
     public class EventDispatcher : MonoSingleton<EventDispatcher>
     {
         // Exception: delegate declarations are grouped in Types section.

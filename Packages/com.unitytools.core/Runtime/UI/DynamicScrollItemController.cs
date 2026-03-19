@@ -1,23 +1,9 @@
-using System;
+﻿using System;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace UnityTools.Util
 {
-    // Exception: type-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
-    public interface IDynamicScrollItem
-    {
-        //============================================================
-        //Logic
-        //============================================================
-        int GetIndex();
-        void SetIndex(int index);
-        void SetPosition(Vector2 pos);
-    }
-
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {
         //============================================================

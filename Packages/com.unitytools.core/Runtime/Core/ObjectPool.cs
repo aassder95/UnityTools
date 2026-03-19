@@ -4,19 +4,6 @@ using UnityEngine;
 
 namespace UnityTools.Util
 {
-    // Exception: type-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
-    public interface IPoolable
-    {
-        //============================================================
-        //Callbacks
-        //============================================================
-        void OnGet();
-        void OnReturn();
-    }
-
     public class ObjectPool<T> where T : Component, IPoolable
     {
         //============================================================
