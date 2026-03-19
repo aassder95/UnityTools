@@ -1,19 +1,5 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.UIFramework
@@ -59,9 +45,9 @@ namespace UnityTools.Util.UIFramework
         public Vector2 CalculateContentPosition(int itemIdx, float offset = 0.0f)
         {
             int line = itemIdx / _itemCntPerLine;
-            return _scrollRect.vertical ?
-                new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) + offset) :
-                new Vector2(-(_padding.left + (line * ItemSize.x) + offset), _rtContent.anchoredPosition.y);
+            return _scrollRect.vertical
+                ? new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) + offset)
+                : new Vector2(-(_padding.left + (line * ItemSize.x) + offset), _rtContent.anchoredPosition.y);
         }
 
         public void SetItemCountPerLine(int itemCntPerLine)
@@ -73,14 +59,14 @@ namespace UnityTools.Util.UIFramework
         {
             if(totalLineCnt <= 0)
             {
-                return _scrollRect.vertical ?
-                    new Vector2(_rtContent.sizeDelta.x, _padding.top + _padding.bottom) :
-                    new Vector2(_padding.left + _padding.right, _rtContent.sizeDelta.y);
+                return _scrollRect.vertical
+                    ? new Vector2(_rtContent.sizeDelta.x, _padding.top + _padding.bottom)
+                    : new Vector2(_padding.left + _padding.right, _rtContent.sizeDelta.y);
             }
 
-            return _scrollRect.vertical ?
-                new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalLineCnt * ItemSize.y - _spacing.y) + _padding.bottom) :
-                new Vector2(_padding.left + (totalLineCnt * ItemSize.x - _spacing.x) + _padding.right, _rtContent.sizeDelta.y);
+            return _scrollRect.vertical
+                ? new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalLineCnt * ItemSize.y - _spacing.y) + _padding.bottom)
+                : new Vector2(_padding.left + (totalLineCnt * ItemSize.x - _spacing.x) + _padding.right, _rtContent.sizeDelta.y);
         }
 
         public Vector2 ClampContentPosition(Vector2 contentPos, int totalLineCnt, int visibleLineCnt)
@@ -105,6 +91,7 @@ namespace UnityTools.Util.UIFramework
             float availableSize = Mathf.Max(0.0f, viewportSize - paddingSize);
             float itemMainSize = _scrollRect.vertical ? ItemSize.y : ItemSize.x;
             float spacingMain = _scrollRect.vertical ? _spacing.y : _spacing.x;
+
             if(itemMainSize <= 0.0f)
                 return Mathf.Max(1, extraLineCnt + 1);
 
@@ -116,16 +103,17 @@ namespace UnityTools.Util.UIFramework
         }
 
         public int CalculateFirstVisibleItemIndex(int lastLine) => CalculateFirstVisibleLine(lastLine) * _itemCntPerLine;
+
         public int CalculateFirstVisibleLine(int lastLine)
         {
-            return _scrollRect.vertical ?
-                IndexUtils.CalculateClampedIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine) :
-                IndexUtils.CalculateClampedIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
+            return _scrollRect.vertical
+                ? IndexUtils.CalculateClampedIndexFromPosition(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine)
+                : IndexUtils.CalculateClampedIndexFromPosition(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
         }
 
         public Vector2 CalculateItemPosition(int itemIdx)
         {
-            if (_scrollRect.vertical)
+            if(_scrollRect.vertical)
             {
                 int x = itemIdx % _itemCntPerLine;
                 int y = itemIdx / _itemCntPerLine;
@@ -133,14 +121,12 @@ namespace UnityTools.Util.UIFramework
                 float posY = (_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (y * ItemSize.y);
                 return new Vector2(_padding.left + posX, posY - _padding.top);
             }
-            else
-            {
-                int y = itemIdx % _itemCntPerLine;
-                int x = itemIdx / _itemCntPerLine;
-                float posX = (_rtContent.sizeDelta.x - _rtItem.sizeDelta.x) * _rtItem.pivot.x + (x * ItemSize.x);
-                float posY = (y - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.y - CenterOffset.y;
-                return new Vector2(_padding.left + posX - _rtContent.sizeDelta.x + _rtItem.sizeDelta.x, -posY - _padding.top);
-            }
+
+            int col = itemIdx / _itemCntPerLine;
+            int row = itemIdx % _itemCntPerLine;
+            float xPos = (_rtContent.sizeDelta.x - _rtItem.sizeDelta.x) * _rtItem.pivot.x + (col * ItemSize.x);
+            float yPos = (row - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.y - CenterOffset.y;
+            return new Vector2(_padding.left + xPos - _rtContent.sizeDelta.x + _rtItem.sizeDelta.x, -yPos - _padding.top);
         }
 
         public int GetItemCountForLine(int line, int totalItemCnt)
@@ -159,17 +145,6 @@ namespace UnityTools.Util.UIFramework
 
             return _itemCntPerLine;
         }
-
-        public int GetItemCountForLineRange(int newLineCnt, int prevLineCnt, int totalItemCnt, int firstIdx)
-        {
-            bool isAdd = newLineCnt > prevLineCnt;
-            int itemCnt = 0;
-            for (int i = 0, lineCnt = Mathf.Abs(newLineCnt - prevLineCnt); i < lineCnt; i++)
-            {
-                itemCnt += GetItemCountForLine((isAdd ? prevLineCnt : newLineCnt) + firstIdx / _itemCntPerLine + i, totalItemCnt);
-            }
-
-            return itemCnt;
-        }
     }
 }
+

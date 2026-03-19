@@ -1,21 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
 using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Pooling
 {
@@ -35,7 +21,7 @@ namespace UnityTools.Util.Core.Pooling
         {
             if(prefab == null)
             {
-                DebugLogger.LogError("?�리??참조가 비어 ?�습?�다.");
+                DebugLogger.LogError("풀링 프리팹 참조가 비어 있습니다.");
                 return;
             }
 
@@ -69,7 +55,7 @@ namespace UnityTools.Util.Core.Pooling
         {
             if(obj == null)
             {
-                DebugLogger.LogWarning("반환 ?�???�브?�트가 비어 ?�습?�다.");
+                DebugLogger.LogWarning("반환 대상 오브젝트가 비어 있습니다.");
                 return;
             }
 

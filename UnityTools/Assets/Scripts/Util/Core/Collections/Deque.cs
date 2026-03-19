@@ -1,20 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Collections
 {
@@ -23,7 +8,7 @@ namespace UnityTools.Util.Core.Collections
         //============================================================
         //Fields
         //============================================================
-        private LinkedList<T> _deque = new LinkedList<T>();
+        private LinkedList<T> _deque = new();
 
         //============================================================
         //Properties
@@ -91,10 +76,8 @@ namespace UnityTools.Util.Core.Collections
         //============================================================
         public IEnumerator<T> GetEnumerator()
         {
-            foreach (var item in _deque)
-            {
+            foreach(T item in _deque)
                 yield return item;
-            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()

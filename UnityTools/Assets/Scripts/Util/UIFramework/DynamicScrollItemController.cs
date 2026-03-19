@@ -1,21 +1,8 @@
 using System;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Util.Constants;
 using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
 using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -45,6 +32,7 @@ namespace UnityTools.Util.UIFramework
                 return item == null ? 0 : item.GetIndex();
             }
         }
+
         public int Count => _items.Count;
 
         //============================================================
@@ -70,13 +58,13 @@ namespace UnityTools.Util.UIFramework
 
         public void Update()
         {
-            foreach (TView item in _items)
+            foreach(TView item in _items)
                 _onItemUpdated?.Invoke(item);
         }
 
         public void UpdatePosition()
         {
-            foreach (TView item in _items)
+            foreach(TView item in _items)
                 item.SetPosition(_context.CalculateItemPosition(item.GetIndex()));
         }
 
@@ -142,7 +130,7 @@ namespace UnityTools.Util.UIFramework
 
         public TView Get(int idx)
         {
-            foreach (TView item in _items)
+            foreach(TView item in _items)
             {
                 if(item.GetIndex() == idx)
                     return item;
@@ -156,7 +144,7 @@ namespace UnityTools.Util.UIFramework
             if(cond == null)
                 return null;
 
-            foreach (TView item in _items)
+            foreach(TView item in _items)
             {
                 if(cond(item))
                     return item;
@@ -165,6 +153,9 @@ namespace UnityTools.Util.UIFramework
             return null;
         }
 
+        //============================================================
+        //Utilities
+        //============================================================
         private void Add(int idx, bool isBack)
         {
             if(idx < 0)

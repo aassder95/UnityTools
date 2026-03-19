@@ -1,19 +1,4 @@
 using System;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -53,12 +38,12 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         //Fields
         //============================================================
-        private bool _isInitialized;
+        private bool _isInit;
 
         //============================================================
         //Properties
         //============================================================
-        public bool IsInit => _isInitialized;
+        public bool IsInit => _isInit;
         public bool IsVisible => _view.IsVisible;
 
         //============================================================
@@ -66,10 +51,10 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         protected BasePresenter(TModel model, TView view)
         {
-            if (model == null)
+            if(model == null)
                 throw new ArgumentNullException(nameof(model));
 
-            if (view == null)
+            if(view == null)
                 throw new ArgumentNullException(nameof(view));
 
             _model = model;
@@ -81,7 +66,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         public void Init()
         {
-            if (_isInitialized)
+            if(_isInit)
                 return;
 
             bool isViewInitializedByPresenter = false;
@@ -90,7 +75,7 @@ namespace UnityTools.Util.UIFramework
 
             try
             {
-                if (!_view.IsInit)
+                if(!_view.IsInit)
                 {
                     _view.Init();
                     isViewInitializedByPresenter = true;
@@ -102,20 +87,24 @@ namespace UnityTools.Util.UIFramework
                 BindEvents();
                 isEventsBound = true;
 
-                _isInitialized = true;
+                _isInit = true;
             }
-            catch
+            catch(Exception initException)
             {
-                _isInitialized = false;
+                _isInit = false;
+                Exception rollbackException = null;
 
-                if (isEventsBound)
-                    TryExecute(UnbindEvents);
+                if(isEventsBound)
+                    TryExecuteAndCapture(UnbindEvents, ref rollbackException);
 
-                if (isPresenterInitialized)
-                    TryExecute(OnRelease);
+                if(isPresenterInitialized)
+                    TryExecuteAndCapture(OnRelease, ref rollbackException);
 
-                if (isViewInitializedByPresenter)
-                    TryExecute(_view.Release);
+                if(isViewInitializedByPresenter)
+                    TryExecuteAndCapture(_view.Release, ref rollbackException);
+
+                if(rollbackException != null)
+                    throw MergeException(initException, rollbackException);
 
                 throw;
             }
@@ -123,17 +112,17 @@ namespace UnityTools.Util.UIFramework
 
         public void Release()
         {
-            if (!_isInitialized)
+            if(!_isInit)
                 return;
 
-            _isInitialized = false;
+            _isInit = false;
 
             Exception releaseException = null;
             TryExecuteAndCapture(UnbindEvents, ref releaseException);
             TryExecuteAndCapture(OnRelease, ref releaseException);
             TryExecuteAndCapture(_view.Release, ref releaseException);
 
-            if (releaseException != null)
+            if(releaseException != null)
                 throw releaseException;
         }
 
@@ -154,10 +143,10 @@ namespace UnityTools.Util.UIFramework
 
         public void Show()
         {
-            if (!_isInitialized)
+            if(!_isInit)
                 Init();
 
-            if (!_isInitialized)
+            if(!_isInit)
                 return;
 
             _view.Show();
@@ -167,7 +156,7 @@ namespace UnityTools.Util.UIFramework
 
         public void Hide()
         {
-            if (!_isInitialized || !_view.IsVisible)
+            if(!_isInit || !_view.IsVisible)
                 return;
 
             _view.Hide();
@@ -175,9 +164,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         protected virtual void OnShow() { }
-
         protected virtual void OnHide() { }
-
         protected virtual void OnRelease() { }
 
         //============================================================
@@ -185,7 +172,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         protected virtual void OnModelUpdated()
         {
-            if (!_isInitialized)
+            if(!_isInit)
                 return;
 
             _view.Refresh(_model);
@@ -194,24 +181,13 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         //Utilities
         //============================================================
-        private static void TryExecute(Action action)
-        {
-            try
-            {
-                action?.Invoke();
-            }
-            catch
-            {
-            }
-        }
-
         private static void TryExecuteAndCapture(Action action, ref Exception releaseException)
         {
             try
             {
                 action?.Invoke();
             }
-            catch (Exception exception)
+            catch(Exception exception)
             {
                 releaseException = MergeException(releaseException, exception);
             }
@@ -219,18 +195,16 @@ namespace UnityTools.Util.UIFramework
 
         private static Exception MergeException(Exception currentException, Exception nextException)
         {
-            if (currentException == null)
+            if(currentException == null)
                 return nextException;
 
-            if (currentException is AggregateException aggregateException)
+            if(currentException is AggregateException aggregateException)
             {
                 int prevCount = aggregateException.InnerExceptions.Count;
                 Exception[] mergedExceptions = new Exception[prevCount + 1];
 
-                for (int i = 0; i < prevCount; i++)
-                {
+                for(int i = 0; i < prevCount; i++)
                     mergedExceptions[i] = aggregateException.InnerExceptions[i];
-                }
 
                 mergedExceptions[prevCount] = nextException;
                 return new AggregateException(mergedExceptions);

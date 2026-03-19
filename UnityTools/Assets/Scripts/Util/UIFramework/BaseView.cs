@@ -1,19 +1,4 @@
 using UnityEngine;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -48,12 +33,12 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         //Fields
         //============================================================
-        private bool _isInitialized;
+        private bool _isInit;
 
         //============================================================
         //Properties
         //============================================================
-        public bool IsInit => _isInitialized;
+        public bool IsInit => _isInit;
         public bool IsVisible => gameObject.activeSelf;
 
         //============================================================
@@ -61,24 +46,23 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         public virtual void Init()
         {
-            if (_isInitialized)
+            if(_isInit)
                 return;
 
             OnInit();
-            _isInitialized = true;
+            _isInit = true;
         }
 
         public virtual void Release()
         {
-            if (!_isInitialized)
+            if(!_isInit)
                 return;
 
             OnRelease();
-            _isInitialized = false;
+            _isInit = false;
         }
 
         protected virtual void OnInit() { }
-
         protected virtual void OnRelease() { }
 
         //============================================================
@@ -94,10 +78,10 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         public virtual void Show()
         {
-            if (!_isInitialized)
+            if(!_isInit)
                 Init();
 
-            if (gameObject.activeSelf)
+            if(gameObject.activeSelf)
                 return;
 
             gameObject.SetActive(true);
@@ -105,7 +89,7 @@ namespace UnityTools.Util.UIFramework
 
         public virtual void Hide()
         {
-            if (!gameObject.activeSelf)
+            if(!gameObject.activeSelf)
                 return;
 
             gameObject.SetActive(false);
@@ -113,7 +97,7 @@ namespace UnityTools.Util.UIFramework
 
         public void Refresh(TModel model)
         {
-            if (!_isInitialized || model == null)
+            if(!_isInit || model == null)
                 return;
 
             OnRefresh(model);

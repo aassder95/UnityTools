@@ -2,21 +2,8 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
 using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
 using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -196,13 +183,14 @@ namespace UnityTools.Util.UIFramework
 
             _totalItemCnt = nextTotalItemCnt;
             UpdateContentLayout();
+
             if(_isInitialized)
             {
                 RebuildVisibleItems();
                 return;
             }
 
-            _itemCtrl.UpdatePosition();
+            _itemCtrl?.UpdatePosition();
         }
 
         protected void SetVisibleLineCount(int visibleLineCnt)
@@ -243,16 +231,16 @@ namespace UnityTools.Util.UIFramework
             }
 
             _lastScrollPos = currentScrollPos;
-            int line = _itemCtrl.FirstIndex / _itemCntPerLine;
+            int currentLine = _itemCtrl.FirstIndex / _itemCntPerLine;
             int visibleLine = _context.CalculateFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
-            if(line != visibleLine)
+            if(currentLine != visibleLine)
             {
-                bool isDown = visibleLine > line;
-                int moveLineCnt = Mathf.Min(Mathf.Abs(line - visibleLine), _visibleLineCnt);
+                bool isDown = visibleLine > currentLine;
+                int moveLineCnt = Mathf.Min(Mathf.Abs(currentLine - visibleLine), _visibleLineCnt);
                 for(int i = 0; i < moveLineCnt; i++)
                 {
                     int addLine = isDown ? visibleLine + _visibleLineCnt - moveLineCnt + i : visibleLine + moveLineCnt - i - 1;
-                    int removeLine = isDown ? line + i : line + _visibleLineCnt - i - 1;
+                    int removeLine = isDown ? currentLine + i : currentLine + _visibleLineCnt - i - 1;
 
                     _itemCtrl.AddRange(_context.GetItemCountForLine(addLine, _totalItemCnt), addLine * _itemCntPerLine, isDown);
                     _itemCtrl.RemoveRange(_context.GetItemCountForLine(removeLine, _totalItemCnt), !isDown);
@@ -266,38 +254,38 @@ namespace UnityTools.Util.UIFramework
         {
             if(_padding == null)
             {
-                DebugLogger.LogWarning("?�딩 참조가 비어 ?�어 기본값으�?보정?�니??");
+                DebugLogger.LogWarning("Padding 참조가 비어 있어 기본값으로 보정합니다.");
                 _padding = new RectOffset();
             }
 
             if(_fixedCellsPerGroup < MIN_FIXED_CELLS_PER_GROUP)
             {
-                DebugLogger.LogWarning($"고정 그룹 ?�이????{_fixedCellsPerGroup})가 ?�못?�어 1�?보정?�니??");
+                DebugLogger.LogWarning($"고정 라인 아이템 수({_fixedCellsPerGroup})가 잘못되어 1로 보정합니다.");
                 _fixedCellsPerGroup = MIN_FIXED_CELLS_PER_GROUP;
             }
 
             if(_scrollRect == null)
             {
-                DebugLogger.LogError("ScrollRect 참조�?찾을 ???�습?�다.");
+                DebugLogger.LogError("ScrollRect 참조를 찾을 수 없습니다.");
                 return false;
             }
 
             if(_rtContent == null)
             {
-                DebugLogger.LogError("ScrollRect Content 참조가 비어 ?�습?�다.");
+                DebugLogger.LogError("ScrollRect Content 참조가 비어 있습니다.");
                 return false;
             }
 
             if(_item == null)
             {
-                DebugLogger.LogError("?�적 ?�크�??�이???�리??참조가 비어 ?�습?�다.");
+                DebugLogger.LogError("동적 스크롤 아이템 프리팹 참조가 비어 있습니다.");
                 return false;
             }
 
             _rtItem = _item.GetComponent<RectTransform>();
             if(_rtItem == null)
             {
-                DebugLogger.LogError("?�적 ?�크�??�이?�에 RectTransform???�습?�다.");
+                DebugLogger.LogError("동적 스크롤 아이템에 RectTransform이 없습니다.");
                 return false;
             }
 
@@ -400,6 +388,7 @@ namespace UnityTools.Util.UIFramework
             if(_itemCtrl == null)
                 return;
 
+            _lastScrollPos = float.MinValue;
             _itemCtrl.Clear();
             if(_totalItemCnt <= 0)
                 return;
@@ -407,6 +396,9 @@ namespace UnityTools.Util.UIFramework
             _rtContent.anchoredPosition = _context.ClampContentPosition(_rtContent.anchoredPosition, _totalLineCnt, _visibleLineCnt);
             int firstLine = _context.CalculateFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
             int firstIdx = firstLine * _itemCntPerLine;
+            if(firstIdx >= _totalItemCnt)
+                return;
+
             int visibleItemCnt = Mathf.Min(_visibleLineCnt * _itemCntPerLine, _totalItemCnt - firstIdx);
             if(visibleItemCnt <= 0)
                 return;
@@ -436,11 +428,12 @@ namespace UnityTools.Util.UIFramework
         {
             Vector2 startPos = _rtContent.anchoredPosition;
             float elapsedSec = 0.0f;
+
             while(elapsedSec < durationSec)
             {
                 elapsedSec += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsedSec / durationSec);
-                float smoothT = t * t * (3.0f - 2.0f * t);
+                float smoothT = t * t * (3.0f - (2.0f * t));
                 _rtContent.anchoredPosition = Vector2.Lerp(startPos, targetPos, smoothT);
                 OnScrollValueChanged(Vector2.zero);
                 yield return null;

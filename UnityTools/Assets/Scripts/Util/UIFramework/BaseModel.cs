@@ -1,20 +1,5 @@
 using System;
 using System.Collections.Generic;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -54,12 +39,11 @@ namespace UnityTools.Util.UIFramework
 
         protected void EndUpdate()
         {
-            if (_updateDepth <= 0)
+            if(_updateDepth <= 0)
                 return;
 
             _updateDepth--;
-
-            if (_updateDepth > 0 || !_hasPendingUpdate)
+            if(_updateDepth > 0 || !_hasPendingUpdate)
                 return;
 
             _hasPendingUpdate = false;
@@ -68,11 +52,10 @@ namespace UnityTools.Util.UIFramework
 
         protected void RunBatchUpdate(Action updateAction)
         {
-            if (updateAction == null)
+            if(updateAction == null)
                 return;
 
             BeginUpdate();
-
             try
             {
                 updateAction.Invoke();
@@ -85,7 +68,7 @@ namespace UnityTools.Util.UIFramework
 
         protected bool SetField<TValue>(ref TValue field, TValue value)
         {
-            if (EqualityComparer<TValue>.Default.Equals(field, value))
+            if(EqualityComparer<TValue>.Default.Equals(field, value))
                 return false;
 
             field = value;
@@ -95,7 +78,7 @@ namespace UnityTools.Util.UIFramework
 
         protected void NotifyUpdated()
         {
-            if (_updateDepth > 0)
+            if(_updateDepth > 0)
             {
                 _hasPendingUpdate = true;
                 return;
