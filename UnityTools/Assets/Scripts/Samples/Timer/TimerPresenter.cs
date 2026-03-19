@@ -32,16 +32,14 @@ namespace UnityTools.Samples.Timer
         //============================================================
         //Init/Register
         //============================================================
-        public override void Init()
+        protected override void OnInit()
         {
             _periodTimer = new PeriodTimer("TIMER", _view);
             _periodTimer.Init(1.0, 1.0);
-            base.Init();
         }
 
-        public override void Release()
+        protected override void OnRelease()
         {
-            base.Release();
             _periodTimer?.Release();
             _periodTimer = null;
         }

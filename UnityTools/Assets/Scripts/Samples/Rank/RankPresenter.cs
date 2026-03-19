@@ -37,9 +37,8 @@ namespace UnityTools.Samples.Rank
         //============================================================
         //Init/Register
         //============================================================
-        public override void Init()
+        protected override void OnInit()
         {
-            base.Init();
             _view.ScrollView.InitView(_model.ItemCount);
         }
 

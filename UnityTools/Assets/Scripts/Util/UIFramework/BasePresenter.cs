@@ -42,12 +42,12 @@ namespace UnityTools.Util
         //============================================================
         //Fields
         //============================================================
-        private bool _isInit = false;
+        private bool _isInitialized;
 
         //============================================================
         //Properties
         //============================================================
-        public bool IsInitialized => _isInit;
+        public bool IsInitialized => _isInitialized;
         public bool IsVisible => _view.IsVisible;
 
         //============================================================
@@ -68,29 +68,33 @@ namespace UnityTools.Util
         //============================================================
         //Init/Register
         //============================================================
-        public virtual void Init()
+        public void Init()
         {
-            if (_isInit)
+            if (_isInitialized)
                 return;
 
             _view.Init();
+            OnInit();
             BindEvents();
-            _isInit = true;
+            _isInitialized = true;
         }
 
-        public virtual void Release()
+        public void Release()
         {
-            if (!_isInit)
+            if (!_isInitialized)
                 return;
-            
-            _isInit = false;
+
+            _isInitialized = false;
             UnbindEvents();
+            OnRelease();
             _view.Release();
         }
 
         //============================================================
         //Logic
         //============================================================
+        protected virtual void OnInit() { }
+
         protected virtual void BindEvents()
         {
             _model.OnUpdated += OnModelUpdated;
@@ -100,33 +104,41 @@ namespace UnityTools.Util
         {
             _model.OnUpdated -= OnModelUpdated;
         }
-        
-        public virtual void Show()
+
+        public void Show()
         {
-            if (!_isInit)
+            if (!_isInitialized)
                 Init();
 
-            if (!_isInit)
+            if (!_isInitialized)
                 return;
-            
+
             _view.Show();
             _view.Refresh(_model);
+            OnShow();
         }
-        
-        public virtual void Hide()
+
+        public void Hide()
         {
-            if (!_isInit || !_view.IsVisible)
+            if (!_isInitialized || !_view.IsVisible)
                 return;
 
             _view.Hide();
+            OnHide();
         }
+
+        protected virtual void OnShow() { }
+
+        protected virtual void OnHide() { }
+
+        protected virtual void OnRelease() { }
 
         //============================================================
         //Callbacks
         //============================================================
         protected virtual void OnModelUpdated()
         {
-            if (!_isInit)
+            if (!_isInitialized)
                 return;
 
             _view.Refresh(_model);

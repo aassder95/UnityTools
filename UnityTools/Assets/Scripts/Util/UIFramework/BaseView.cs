@@ -49,6 +49,7 @@ namespace UnityTools.Util
             if (_isInitialized)
                 return;
 
+            OnInit();
             _isInitialized = true;
         }
 
@@ -57,14 +58,22 @@ namespace UnityTools.Util
             if (!_isInitialized)
                 return;
 
+            OnRelease();
             _isInitialized = false;
         }
+
+        protected virtual void OnInit() { }
+
+        protected virtual void OnRelease() { }
 
         //============================================================
         //Logic
         //============================================================
         public virtual void Show()
         {
+            if (!_isInitialized)
+                Init();
+
             if (gameObject.activeSelf)
                 return;
 
@@ -81,7 +90,7 @@ namespace UnityTools.Util
 
         public virtual void Refresh(TModel model)
         {
-            if (model == null)
+            if (!_isInitialized || model == null)
                 return;
         }
     }
