@@ -50,7 +50,7 @@ namespace UnityTools.Util.Core.Persistence
 
             _storage.Save(key, serialized);
             UnityEngine.PlayerPrefs.Save();
-            DebugLogger.Log($"ÀúÀå ¿Ï·á: Å°={key}, °ª={serialized}");
+            DebugLogger.Log($"ì €ì¥ ì™„ë£Œ: í‚¤={key}, ê°’={serialized}");
         }
 
         public T Load<T>(string suffix, T defaultValue = default)
@@ -58,14 +58,14 @@ namespace UnityTools.Util.Core.Persistence
             string key = GetKey(suffix);
             if(!_storage.HasKey(key))
             {
-                DebugLogger.Log($"µ¥ÀÌÅÍ°¡ ¾ø½À´Ï´Ù: Å°={key}");
+                DebugLogger.Log($"ë°ì´í„°ê°€ ì—†ìŠµë‹ˆë‹¤: í‚¤={key}");
                 return defaultValue;
             }
 
             string data = _storage.Load(key);
             if(string.IsNullOrEmpty(data) || data == "{}" || data == "[]")
             {
-                DebugLogger.Log($"µ¥ÀÌÅÍ°¡ ºñ¾î ÀÖ½À´Ï´Ù: Å°={key}");
+                DebugLogger.Log($"ë°ì´í„°ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤: í‚¤={key}");
                 return defaultValue;
             }
 
@@ -77,7 +77,7 @@ namespace UnityTools.Util.Core.Persistence
             else
                 result = _serializer.Deserialize<T>(data);
 
-            DebugLogger.Log($"·Îµå ¿Ï·á: Å°={key}, °ª={result}");
+            DebugLogger.Log($"ë¡œë“œ ì™„ë£Œ: í‚¤={key}, ê°’={result}");
             return result;
         }
 
@@ -85,7 +85,7 @@ namespace UnityTools.Util.Core.Persistence
         {
             string key = GetKey(suffix);
             _storage.Delete(key);
-            DebugLogger.Log($"»èÁ¦ ¿Ï·á: Å°={key}");
+            DebugLogger.Log($"ì‚­ì œ ì™„ë£Œ: í‚¤={key}");
         }
 
         public bool HasKey(string suffix)

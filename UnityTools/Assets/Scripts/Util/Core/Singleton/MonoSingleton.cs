@@ -35,7 +35,7 @@ namespace UnityTools.Util.Core.Singleton
                     _instance = FindFirstObjectByType<T>();
 
                 if(_instance == null)
-                    DebugLogger.LogError($"{typeof(T).Name} ÀÎ½ºÅÏ½º¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+                    DebugLogger.LogError($"{typeof(T).Name} ì¸ìŠ¤í„´ìŠ¤ë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
 
                 return _instance;
             }

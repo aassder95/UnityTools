@@ -95,7 +95,7 @@ namespace UnityTools.Util.Core.Events
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"ΐΜΊ¥Ζ® Γ³Έ® Αί ΏΉΏά Ήί»ύ: ΐΜΊ¥Ζ®Ε°={key}, ΏΉΏά={ex}");
+                        DebugLogger.LogError($"μ΄λ²¤νΈ μ²λ¦¬ μ¤‘ μμ™Έ λ°μƒ: μ΄λ²¤νΈν‚¤={key}, μμ™Έ={ex}");
                     }
                 }
             }
@@ -116,7 +116,7 @@ namespace UnityTools.Util.Core.Events
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"ΐΜΊ¥Ζ® Γ³Έ® Αί ΏΉΏά Ήί»ύ: ΐΜΊ¥Ζ®Ε°={key}, ΏΉΏά={ex}");
+                        DebugLogger.LogError($"μ΄λ²¤νΈ μ²λ¦¬ μ¤‘ μμ™Έ λ°μƒ: μ΄λ²¤νΈν‚¤={key}, μμ™Έ={ex}");
                     }
                 }
             }

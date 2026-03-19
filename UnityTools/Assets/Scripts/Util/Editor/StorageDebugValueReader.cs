@@ -38,16 +38,16 @@ namespace UnityTools.Util.Editor
         public string ReadDateKey(string key)
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(¾øÀ½)";
+                return "(ì—†ìŒ)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             if(!long.TryParse(raw, out long ticks))
-                return $"Àß¸øµÈ ticks °ª: {raw}";
+                return $"ì˜ëª»ëœ ticks ê°’: {raw}";
 
             if(ticks == DateTime.MinValue.Ticks)
                 return $"{raw} (DateTime.MinValue)";
             if(ticks < DateTime.MinValue.Ticks || ticks > DateTime.MaxValue.Ticks)
-                return $"¹üÀ§ ÃÊ°ú ticks: {raw}";
+                return $"ë²”ìœ„ ì´ˆê³¼ ticks: {raw}";
 
             DateTime time = new DateTime(ticks, DateTimeKind.Utc);
             return $"{raw} ({time:yyyy-MM-dd HH:mm:ss} UTC)";
@@ -56,13 +56,13 @@ namespace UnityTools.Util.Editor
         public string ReadDoubleKey(string key, string unit = "")
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(¾øÀ½)";
+                return "(ì—†ìŒ)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
                             double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
             if(!isParsed)
-                return $"Àß¸øµÈ °ª: {raw}";
+                return $"ì˜ëª»ëœ ê°’: {raw}";
 
             return string.IsNullOrWhiteSpace(unit) ? $"{raw} ({value:F2})" : $"{raw} ({value:F2} {unit})";
         }
@@ -70,20 +70,20 @@ namespace UnityTools.Util.Editor
         public string ReadEnumKey<TEnum>(string key) where TEnum : struct, Enum
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(¾øÀ½)";
+                return "(ì—†ìŒ)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             if(!int.TryParse(raw, out int intValue))
-                return $"Àß¸øµÈ state °ª: {raw}";
+                return $"ì˜ëª»ëœ state ê°’: {raw}";
 
             TEnum type = (TEnum)Enum.ToObject(typeof(TEnum), intValue);
-            return Enum.IsDefined(typeof(TEnum), type) ? $"{raw} ({type})" : $"{raw} (Á¤ÀÇµÇÁö ¾ÊÀº »óÅÂ)";
+            return Enum.IsDefined(typeof(TEnum), type) ? $"{raw} ({type})" : $"{raw} (ì •ì˜ë˜ì§€ ì•Šì€ ìƒíƒœ)";
         }
 
-        public string ReadFlagKey(string key, string trueRaw = "1", string trueText = "Âü", string falseText = "°ÅÁş")
+        public string ReadFlagKey(string key, string trueRaw = "1", string trueText = "ì°¸", string falseText = "ê±°ì§“")
         {
             if(!StorageValueUtils.HasKey(_storage, key))
-                return "(¾øÀ½)";
+                return "(ì—†ìŒ)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
             return raw == trueRaw ? $"{raw} ({trueText})" : $"{raw} ({falseText})";

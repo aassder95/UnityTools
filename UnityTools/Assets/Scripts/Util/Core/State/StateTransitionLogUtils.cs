@@ -30,7 +30,7 @@ namespace UnityTools.Util.Core.State
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] ?�록?��? ?��? ?�태 ?�이 ?�청: {type}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] ?깅줉?섏? ?딆? ?곹깭 ?꾩씠 ?붿껌: {type}", null, memberName, filePath);
         }
 
         public static void LogInitialSetFailed<TType>(
@@ -39,7 +39,7 @@ namespace UnityTools.Util.Core.State
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] 초기 ?�태 ?�정 ?�패: {type}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] 珥덇린 ?곹깭 ?ㅼ젙 ?ㅽ뙣: {type}", null, memberName, filePath);
         }
 
         public static void LogTransitionFailed<TType>(
@@ -49,7 +49,7 @@ namespace UnityTools.Util.Core.State
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] ?�태 ?�이 ?�패: {fromType} -> {toType}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] ?곹깭 ?꾩씠 ?ㅽ뙣: {fromType} -> {toType}", null, memberName, filePath);
         }
     }
 }

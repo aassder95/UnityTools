@@ -95,11 +95,11 @@ namespace UnityTools.Util.Core.Timer.Period
             _fsm.OnStateTransition += OnStateTransitionCallback;
 
             if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))
-                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {EPeriodTimerType.Reset}");
+                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {EPeriodTimerType.Reset}");
             if(!_fsm.Add(EPeriodTimerType.Open, new PeriodTimerStates.OpenState(this)))
-                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {EPeriodTimerType.Open}");
+                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {EPeriodTimerType.Open}");
             if(!_fsm.Add(EPeriodTimerType.Closed, new PeriodTimerStates.ClosedState(this)))
-                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {EPeriodTimerType.Closed}");
+                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {EPeriodTimerType.Closed}");
         }
 
         //============================================================
@@ -109,13 +109,13 @@ namespace UnityTools.Util.Core.Timer.Period
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning("À¯È¿ÇÏÁö ¾ÊÀº ID·Î ÃÊ±âÈ­¸¦ ¹«½ÃÇÕ´Ï´Ù.");
+                DebugLogger.LogWarning("ìœ íš¨í•˜ì§€ ì•Šì€ IDë¡œ ì´ˆê¸°í™”ë¥¼ ë¬´ì‹œí•©ë‹ˆë‹¤.");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("·¯³Ê ÂüÁ¶°¡ ºñ¾î ÀÖ¾î ÃÊ±âÈ­¸¦ ¹«½ÃÇÕ´Ï´Ù.");
+                DebugLogger.LogWarning("ëŸ¬ë„ˆ ì°¸ì¡°ê°€ ë¹„ì–´ ìˆì–´ ì´ˆê¸°í™”ë¥¼ ë¬´ì‹œí•©ë‹ˆë‹¤.");
                 return;
             }
 
@@ -441,7 +441,7 @@ namespace UnityTools.Util.Core.Timer.Period
             if(min > 0d && !double.IsNaN(min) && !double.IsInfinity(min))
                 return min;
 
-            DebugLogger.LogWarning($"À¯È¿ÇÏÁö ¾ÊÀº ÁÖ±â °ªÀÔ´Ï´Ù: {name}={min}, ±âº»°ª {DEFAULT_PERIOD_MIN}ºĞÀ» Àû¿ëÇÕ´Ï´Ù.");
+            DebugLogger.LogWarning($"ìœ íš¨í•˜ì§€ ì•Šì€ ì£¼ê¸° ê°’ì…ë‹ˆë‹¤: {name}={min}, ê¸°ë³¸ê°’ {DEFAULT_PERIOD_MIN}ë¶„ì„ ì ìš©í•©ë‹ˆë‹¤.");
             return DEFAULT_PERIOD_MIN;
         }
     }

@@ -37,8 +37,8 @@ namespace UnityTools.Util.Core.Logging
         //============================================================
         private static void ApplyClassOverrides()
         {
-            // ÇÊ¿ä ½Ã Æ¯Á¤ Å¬·¡½º ·Î±×¸¦ °³º° Á¦¾îÇÕ´Ï´Ù.
-            // ¿¹½Ã: DebugLogGate.SetEnabled("TaskTimer", false);
+            // í•„ìš” ì‹œ íŠ¹ì • í´ë˜ìŠ¤ ë¡œê·¸ë¥¼ ê°œë³„ ì œì–´í•©ë‹ˆë‹¤.
+            // ì˜ˆì‹œ: DebugLogGate.SetEnabled("TaskTimer", false);
         }
     }
 }

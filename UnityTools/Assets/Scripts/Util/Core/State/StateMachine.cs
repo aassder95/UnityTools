@@ -24,7 +24,7 @@ namespace UnityTools.Util.Core.State
         //============================================================
         //Constants
         //============================================================
-        private const string UNINITIALIZED_STATE = "¹ÌÃÊ±âÈ­";
+        private const string UNINITIALIZED_STATE = "ë¯¸ì´ˆê¸°í™”";
 
         //============================================================
         //Readonly
@@ -63,14 +63,14 @@ namespace UnityTools.Util.Core.State
             string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(state == null)
             {
-                DebugLogger.LogWarning($"ÀüÀÌ ½ÇÆĞ: ÀÌÀü={fromState}, ´ë»ó={type}, »çÀ¯=»óÅÂ°¡ nullÀÔ´Ï´Ù.");
+                DebugLogger.LogWarning($"ì „ì´ ì‹¤íŒ¨: ì´ì „={fromState}, ëŒ€ìƒ={type}, ì‚¬ìœ =ìƒíƒœê°€ nullì…ë‹ˆë‹¤.");
                 return false;
             }
 
             if(_states.TryAdd(type, state))
                 return true;
 
-            DebugLogger.LogWarning($"ÀüÀÌ ½ÇÆĞ: ÀÌÀü={fromState}, ´ë»ó={type}, »çÀ¯=»óÅÂ°¡ Áßº¹ÀÔ´Ï´Ù.");
+            DebugLogger.LogWarning($"ì „ì´ ì‹¤íŒ¨: ì´ì „={fromState}, ëŒ€ìƒ={type}, ì‚¬ìœ =ìƒíƒœê°€ ì¤‘ë³µì…ë‹ˆë‹¤.");
             return false;
         }
 
@@ -79,14 +79,14 @@ namespace UnityTools.Util.Core.State
             string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(!_states.TryGetValue(type, out IState newState))
             {
-                DebugLogger.LogWarning($"ÀüÀÌ ½ÇÆĞ: ÀÌÀü={fromState}, ´ë»ó={type}, »çÀ¯=»óÅÂ°¡ ¾ø½À´Ï´Ù.");
+                DebugLogger.LogWarning($"ì „ì´ ì‹¤íŒ¨: ì´ì „={fromState}, ëŒ€ìƒ={type}, ì‚¬ìœ =ìƒíƒœê°€ ì—†ìŠµë‹ˆë‹¤.");
                 return false;
             }
 
             bool isSameState = _hasCurrentState && EqualityComparer<TType>.Default.Equals(_curType, type);
             if(isSameState)
             {
-                DebugLogger.LogWarning($"ÀüÀÌ ½ÇÆĞ: ÀÌÀü={fromState}, ´ë»ó={type}, »çÀ¯=µ¿ÀÏ »óÅÂÀÔ´Ï´Ù.");
+                DebugLogger.LogWarning($"ì „ì´ ì‹¤íŒ¨: ì´ì „={fromState}, ëŒ€ìƒ={type}, ì‚¬ìœ =ë™ì¼ ìƒíƒœì…ë‹ˆë‹¤.");
                 return false;
             }
 
@@ -109,7 +109,7 @@ namespace UnityTools.Util.Core.State
         {
             if(_hasCurrentState)
             {
-                DebugLogger.LogWarning($"ÀüÀÌ ½ÇÆĞ: ÀÌÀü={_curType}, ´ë»ó={type}, »çÀ¯=ÃÊ±â »óÅÂ°¡ ÀÌ¹Ì ¼³Á¤µÇ¾ú½À´Ï´Ù.");
+                DebugLogger.LogWarning($"ì „ì´ ì‹¤íŒ¨: ì´ì „={_curType}, ëŒ€ìƒ={type}, ì‚¬ìœ =ì´ˆê¸° ìƒíƒœê°€ ì´ë¯¸ ì„¤ì •ë˜ì—ˆìŠµë‹ˆë‹¤.");
                 return false;
             }
 

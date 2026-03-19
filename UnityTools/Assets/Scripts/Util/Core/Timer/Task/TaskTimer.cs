@@ -85,11 +85,11 @@ namespace UnityTools.Util.Core.Timer.Task
             _fsm = new StateMachine<ETaskTimerType>();
 
             if(!_fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this)))
-                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {ETaskTimerType.None}");
+                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {ETaskTimerType.None}");
             if(!_fsm.Add(ETaskTimerType.Processing, new TaskTimerStates.ProcessingState(this)))
-                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {ETaskTimerType.Processing}");
+                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {ETaskTimerType.Processing}");
             if(!_fsm.Add(ETaskTimerType.Completed, new TaskTimerStates.CompletedState(this)))
-                DebugLogger.LogWarning($"»óÅÂ µî·Ï ½ÇÆĞ: {ETaskTimerType.Completed}");
+                DebugLogger.LogWarning($"ìƒíƒœ ë“±ë¡ ì‹¤íŒ¨: {ETaskTimerType.Completed}");
         }
 
         //============================================================
@@ -99,13 +99,13 @@ namespace UnityTools.Util.Core.Timer.Task
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning("À¯È¿ÇÏÁö ¾ÊÀº ID·Î ÃÊ±âÈ­¸¦ ¹«½ÃÇÕ´Ï´Ù.");
+                DebugLogger.LogWarning("ìœ íš¨í•˜ì§€ ì•Šì€ IDë¡œ ì´ˆê¸°í™”ë¥¼ ë¬´ì‹œí•©ë‹ˆë‹¤.");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("·¯³Ê ÂüÁ¶°¡ ºñ¾î ÀÖ¾î ÃÊ±âÈ­¸¦ ¹«½ÃÇÕ´Ï´Ù.");
+                DebugLogger.LogWarning("ëŸ¬ë„ˆ ì°¸ì¡°ê°€ ë¹„ì–´ ìˆì–´ ì´ˆê¸°í™”ë¥¼ ë¬´ì‹œí•©ë‹ˆë‹¤.");
                 return;
             }
 
@@ -388,7 +388,7 @@ namespace UnityTools.Util.Core.Timer.Task
                 return type;
 
             if(_savedStateType != 0)
-                DebugLogger.LogWarning($"À¯È¿ÇÏÁö ¾ÊÀº ÀúÀå »óÅÂ°ªÀÔ´Ï´Ù: {_savedStateType}");
+                DebugLogger.LogWarning($"ìœ íš¨í•˜ì§€ ì•Šì€ ì €ì¥ ìƒíƒœê°’ì…ë‹ˆë‹¤: {_savedStateType}");
             return ETaskTimerType.None;
         }
 
@@ -397,7 +397,7 @@ namespace UnityTools.Util.Core.Timer.Task
             if(durationSec > 0d && !double.IsNaN(durationSec) && !double.IsInfinity(durationSec))
                 return durationSec;
 
-            DebugLogger.LogWarning($"À¯È¿ÇÏÁö ¾ÊÀº Áö¼Ó½Ã°£ °ªÀÔ´Ï´Ù: durationSec={durationSec}, ±âº»°ª {DEFAULT_DURATION_SEC}ÃÊ¸¦ Àû¿ëÇÕ´Ï´Ù.");
+            DebugLogger.LogWarning($"ìœ íš¨í•˜ì§€ ì•Šì€ ì§€ì†ì‹œê°„ ê°’ì…ë‹ˆë‹¤: durationSec={durationSec}, ê¸°ë³¸ê°’ {DEFAULT_DURATION_SEC}ì´ˆë¥¼ ì ìš©í•©ë‹ˆë‹¤.");
             return DEFAULT_DURATION_SEC;
         }
 

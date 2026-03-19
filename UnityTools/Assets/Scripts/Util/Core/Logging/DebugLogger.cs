@@ -26,8 +26,8 @@ namespace UnityTools.Util.Core.Logging
         //============================================================
         //Constants
         //============================================================
-        private const string UNKNOWN_CLASS = "¾Ë¼ö¾ø´ÂÅ¬·¡½º";
-        private const string UNKNOWN_METHOD = "¾Ë¼ö¾ø´Â¸Ş¼­µå";
+        private const string UNKNOWN_CLASS = "ì•Œìˆ˜ì—†ëŠ”í´ë˜ìŠ¤";
+        private const string UNKNOWN_METHOD = "ì•Œìˆ˜ì—†ëŠ”ë©”ì„œë“œ";
 
         //============================================================
         //Logic
@@ -105,11 +105,11 @@ namespace UnityTools.Util.Core.Logging
         {
             if(ex == null)
             {
-                WriteLog(ELogLevel.Error, className, method, "¿¹¿Ü Á¤º¸°¡ ºñ¾î ÀÖ½À´Ï´Ù.", context);
+                WriteLog(ELogLevel.Error, className, method, "ì˜ˆì™¸ ì •ë³´ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.", context);
                 return;
             }
 
-            WriteLog(ELogLevel.Error, className, method, $"¿¹¿Ü ¹ß»ı: {ex.Message}", context);
+            WriteLog(ELogLevel.Error, className, method, $"ì˜ˆì™¸ ë°œìƒ: {ex.Message}", context);
             if(context == null)
                 Debug.LogException(ex);
             else

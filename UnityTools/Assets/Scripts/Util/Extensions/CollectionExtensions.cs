@@ -30,13 +30,13 @@ namespace UnityTools.Util.Extensions
         {
             if(list == null)
             {
-                DebugLogger.LogWarning("¸®½ºÆ®°¡ ºñ¾î ÀÖ½À´Ï´Ù.");
+                DebugLogger.LogWarning("ë¦¬ìŠ¤íŠ¸ê°€ ë¹„ì–´ ìˆìŠµë‹ˆë‹¤.");
                 return false;
             }
 
             if(0 > index || index >= list.Count)
             {
-                DebugLogger.LogWarning("ÀÎµ¦½º°¡ ¹üÀ§¸¦ ¹ş¾î³µ½À´Ï´Ù.");
+                DebugLogger.LogWarning("ì¸ë±ìŠ¤ê°€ ë²”ìœ„ë¥¼ ë²—ì–´ë‚¬ìŠµë‹ˆë‹¤.");
                 return false;
             }
 
