@@ -17,6 +17,7 @@ using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Extensions
 {
+    // Exception: stateless utility is kept as a static helper.
     //============================================================
     //Logic
     //============================================================

@@ -16,6 +16,7 @@ using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Timer.Task
 {
+    // Exception: stateless utility is kept as a static helper.
     public static class TaskTimerStorageKeys
     {
         //============================================================
