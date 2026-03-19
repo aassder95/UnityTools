@@ -1,3 +1,5 @@
+using System;
+
 namespace UnityTools.Util
 {
     // Exception: type-centric file uses Types section.
@@ -7,9 +9,25 @@ namespace UnityTools.Util
     public interface IPresenter
     {
         //============================================================
+        //Properties
+        //============================================================
+        bool IsInitialized { get; }
+        bool IsVisible { get; }
+
+        //============================================================
         //Init/Register
         //============================================================
         void Init();
+
+        //============================================================
+        //Logic
+        //============================================================
+        void Show();
+        void Hide();
+
+        //============================================================
+        //Release
+        //============================================================
         void Release();
     }
 
@@ -29,6 +47,7 @@ namespace UnityTools.Util
         //============================================================
         //Properties
         //============================================================
+        public bool IsInitialized => _isInit;
         public bool IsVisible => _view.IsVisible;
 
         //============================================================
@@ -36,10 +55,14 @@ namespace UnityTools.Util
         //============================================================
         protected BasePresenter(TModel model, TView view)
         {
+            if (model == null)
+                throw new ArgumentNullException(nameof(model));
+
+            if (view == null)
+                throw new ArgumentNullException(nameof(view));
+
             _model = model;
             _view = view;
-
-            Init();
         }
 
         //============================================================
@@ -61,8 +84,8 @@ namespace UnityTools.Util
                 return;
             
             _isInit = false;
-            _view.Release();
             UnbindEvents();
+            _view.Release();
         }
 
         //============================================================
@@ -80,6 +103,9 @@ namespace UnityTools.Util
         
         public virtual void Show()
         {
+            if (!_isInit)
+                Init();
+
             if (!_isInit)
                 return;
             

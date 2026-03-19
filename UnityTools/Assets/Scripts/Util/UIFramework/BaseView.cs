@@ -9,6 +9,12 @@ namespace UnityTools.Util
     public interface IView<TModel> where TModel : BaseModel
     {
         //============================================================
+        //Properties
+        //============================================================
+        bool IsInitialized { get; }
+        bool IsVisible { get; }
+
+        //============================================================
         //Init/Register
         //============================================================
         void Init();
@@ -25,8 +31,14 @@ namespace UnityTools.Util
     public abstract class BaseView<TModel> : MonoBehaviour, IView<TModel> where TModel : BaseModel
     {
         //============================================================
+        //Fields
+        //============================================================
+        private bool _isInitialized;
+
+        //============================================================
         //Properties
         //============================================================
+        public bool IsInitialized => _isInitialized;
         public bool IsVisible => gameObject.activeSelf;
 
         //============================================================
@@ -34,12 +46,18 @@ namespace UnityTools.Util
         //============================================================
         public virtual void Init()
         {
-            
+            if (_isInitialized)
+                return;
+
+            _isInitialized = true;
         }
 
         public virtual void Release()
         {
-            
+            if (!_isInitialized)
+                return;
+
+            _isInitialized = false;
         }
 
         //============================================================
