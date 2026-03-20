@@ -77,7 +77,7 @@ namespace UnityTools.Samples.Rank
             if(_view.ScrollView == null)
                 return;
 
-            _model.AddItemAndRandomize();
+            _model.AddItem();
             _view.ScrollView.InitView(_model.ItemCount);
             _view.ScrollView.RefreshItems();
         }
@@ -87,7 +87,11 @@ namespace UnityTools.Samples.Rank
             if(_view.ScrollView == null)
                 return;
 
-            _model.RemoveLastItemAndRandomize();
+            int prevCount = _model.ItemCount;
+            _model.RemoveLastItem();
+            if(_model.ItemCount == prevCount)
+                return;
+
             _view.ScrollView.InitView(_model.ItemCount);
             _view.ScrollView.RefreshItems();
         }

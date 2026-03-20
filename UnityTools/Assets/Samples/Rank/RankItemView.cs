@@ -9,6 +9,14 @@ namespace UnityTools.Samples.Rank
     public class RankItemView : BaseView<RankItemModel>, IDynamicScrollItem, IPoolable 
     {
         //============================================================
+        //Constants
+        //============================================================
+        private const float RANK_WIDTH = 112f;
+        private const float ID_WIDTH = 88f;
+        private const float SCORE_WIDTH = 120f;
+        private const float SCORE_RIGHT_PADDING = 14f;
+
+        //============================================================
         //Inspector Fields
         //============================================================
         [SerializeField] private TextMeshProUGUI _txtId;
@@ -26,6 +34,18 @@ namespace UnityTools.Samples.Rank
         //Properties
         //============================================================
         public int Index => _index;
+
+        //============================================================
+        //Init/Register
+        //============================================================
+        protected override void OnInit()
+        {
+            if(_rtView == null)
+                _rtView = transform as RectTransform;
+
+            ConfigureLayout();
+            ConfigureTextStyle();
+        }
 
         //============================================================
         //Logic
@@ -46,7 +66,7 @@ namespace UnityTools.Samples.Rank
 
             if(_txtScore != null)
             {
-                _txtScore.SetText("{0}", model.Score);
+                _txtScore.SetText("{0:0000}", model.Score);
                 _txtScore.color = ResolveScoreColor(model.Score);
             }
 
@@ -69,6 +89,9 @@ namespace UnityTools.Samples.Rank
 
         void IDynamicScrollItem.SetPosition(Vector2 pos)
         {
+            if(_rtView == null)
+                _rtView = transform as RectTransform;
+
             if(_rtView == null)
                 return;
 
@@ -93,6 +116,64 @@ namespace UnityTools.Samples.Rank
         {
             float normalized = Mathf.InverseLerp(1f, 5000f, score);
             return Color.Lerp(new Color(0.66f, 0.8f, 1f, 1f), new Color(1f, 0.4f, 0.46f, 1f), normalized);
+        }
+
+        private void ConfigureLayout()
+        {
+            SetColumnRect(_txtRank, 0f, RANK_WIDTH, true, false);
+            SetColumnRect(_txtId, RANK_WIDTH, ID_WIDTH, true, false);
+            SetColumnRect(_txtScore, SCORE_RIGHT_PADDING, SCORE_WIDTH, false, true);
+        }
+
+        private void ConfigureTextStyle()
+        {
+            ConfigureText(_txtRank, TextAlignmentOptions.MidlineLeft, 58f, 30f, 58f, FontStyles.Bold);
+            ConfigureText(_txtId, TextAlignmentOptions.Center, 34f, 18f, 34f, FontStyles.Bold);
+            ConfigureText(_txtScore, TextAlignmentOptions.MidlineRight, 44f, 24f, 44f, FontStyles.Bold);
+        }
+
+        private static void SetColumnRect(TextMeshProUGUI txtTarget, float startX, float width, bool isLeftAnchor, bool isRightAnchor)
+        {
+            if(txtTarget == null)
+                return;
+
+            RectTransform rt = txtTarget.rectTransform;
+            if(rt == null)
+                return;
+
+            if(isLeftAnchor)
+            {
+                rt.anchorMin = new Vector2(0f, 0f);
+                rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 0.5f);
+                rt.anchoredPosition = new Vector2(startX, 0f);
+                rt.sizeDelta = new Vector2(width, 0f);
+                return;
+            }
+
+            if(isRightAnchor)
+            {
+                rt.anchorMin = new Vector2(1f, 0f);
+                rt.anchorMax = new Vector2(1f, 1f);
+                rt.pivot = new Vector2(1f, 0.5f);
+                rt.anchoredPosition = new Vector2(-startX, 0f);
+                rt.sizeDelta = new Vector2(width, 0f);
+            }
+        }
+
+        private static void ConfigureText(TextMeshProUGUI txtTarget, TextAlignmentOptions alignment, float fontSizeMax, float fontSizeMin, float fontSize, FontStyles fontStyle)
+        {
+            if(txtTarget == null)
+                return;
+
+            txtTarget.alignment = alignment;
+            txtTarget.fontStyle = fontStyle;
+            txtTarget.enableAutoSizing = true;
+            txtTarget.fontSize = fontSize;
+            txtTarget.fontSizeMin = fontSizeMin;
+            txtTarget.fontSizeMax = fontSizeMax;
+            txtTarget.enableWordWrapping = false;
+            txtTarget.overflowMode = TextOverflowModes.Truncate;
         }
 
         void IPoolable.OnGet() { }

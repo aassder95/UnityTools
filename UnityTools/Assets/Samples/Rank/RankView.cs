@@ -108,7 +108,7 @@ namespace UnityTools.Samples.Rank
             if(_scrollView == null)
                 return;
 
-            SampleTestUiBuilder.Layout layout = SampleTestUiBuilder.Build(transform, "Rank Test Sample", "Random / Boost / Wave / List control");
+            SampleTestUiBuilder.Layout layout = SampleTestUiBuilder.Build(transform, "Rank Test Sample", "Random only rerolls all / Item +/- keeps existing scores");
             RectTransform rtScroll = _scrollView.GetComponent<RectTransform>();
             SampleTestUiBuilder.ReparentToContent(rtScroll, layout.RtContentViewport, Vector2.zero, Vector2.zero);
 

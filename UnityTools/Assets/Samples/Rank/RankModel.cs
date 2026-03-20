@@ -83,20 +83,24 @@ namespace UnityTools.Samples.Rank
             NotifyUpdated();
         }
 
-        public void AddItemAndRandomize()
+        public void AddItem()
         {
-            _itemModels.Add(new RankItemModel(_nextItemId));
+            RankItemModel itemModel = new(_nextItemId);
+            itemModel.SetScore(Random.Range(SCORE_MIN, SCORE_MAX));
+            _itemModels.Add(itemModel);
             _nextItemId++;
-            SetRandomScore();
+            SortByScoreAndUpdateRank();
+            NotifyUpdated();
         }
 
-        public void RemoveLastItemAndRandomize()
+        public void RemoveLastItem()
         {
             if(_itemModels.Count <= 1)
                 return;
 
             _itemModels.RemoveAt(_itemModels.Count - 1);
-            SetRandomScore();
+            SortByScoreAndUpdateRank();
+            NotifyUpdated();
         }
 
         private void SortByScoreAndUpdateRank()
