@@ -1,9 +1,10 @@
-using System.Collections;
+﻿using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Pooling;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -28,8 +29,11 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         [SerializeField] private TView _item;
         [SerializeField] private EDynamicScrollAxisType _axisType = EDynamicScrollAxisType.Vertical;
-        [SerializeField] private EDynamicScrollLayoutMode _layoutMode = EDynamicScrollLayoutMode.Single;
+        [SerializeField] private EDynamicScrollLayoutMode _layoutMode = EDynamicScrollLayoutMode.FixedCount;
+        [FormerlySerializedAs("_itemCntPerLine")]
         [SerializeField] private int _fixedCellsPerGroup = 1;
+        [FormerlySerializedAs("_visibleLineCnt")]
+        [SerializeField] private int _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
         [SerializeField] private EDynamicScrollMovementType _movementType = EDynamicScrollMovementType.Clamped;
         [SerializeField] private bool _isInertia = true;
         [SerializeField] [Range(0.001f, 0.3f)] private float _decelerationRate = 0.135f;
@@ -258,7 +262,7 @@ namespace UnityTools.Util.UIFramework
         {
             if(_padding == null)
             {
-                DebugLogger.LogWarning("Padding 참조가 비어 있어 기본값으로 보정합니다.");
+                DebugLogger.LogWarning("Padding 값이 비어 있어 기본값으로 보정합니다.");
                 _padding = new RectOffset();
             }
 
@@ -266,6 +270,12 @@ namespace UnityTools.Util.UIFramework
             {
                 DebugLogger.LogWarning($"고정 라인 아이템 수({_fixedCellsPerGroup})가 잘못되어 1로 보정합니다.");
                 _fixedCellsPerGroup = MIN_FIXED_CELLS_PER_GROUP;
+            }
+
+            if(_minVisibleLineCnt < MIN_VISIBLE_LINE_CNT)
+            {
+                DebugLogger.LogWarning($"최소 표시 라인 수({_minVisibleLineCnt})가 잘못되어 1로 보정합니다.");
+                _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
             }
 
             if(_scrollRect == null)
@@ -343,7 +353,8 @@ namespace UnityTools.Util.UIFramework
             if(_context == null)
                 return;
 
-            _visibleLineCnt = Mathf.Max(MIN_VISIBLE_LINE_CNT, _context.CalculateAutoVisibleLineCount(DEFAULT_EXTRA_VISIBLE_LINE_CNT));
+            int autoVisibleLineCnt = _context.CalculateAutoVisibleLineCount(DEFAULT_EXTRA_VISIBLE_LINE_CNT);
+            _visibleLineCnt = Mathf.Max(_minVisibleLineCnt, autoVisibleLineCnt);
         }
 
         private int ResolveItemCountPerLine()

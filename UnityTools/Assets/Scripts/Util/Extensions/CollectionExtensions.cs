@@ -1,19 +1,5 @@
-using System.Collections.Generic;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
+﻿using System.Collections.Generic;
 using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Extensions
 {
@@ -30,13 +16,13 @@ namespace UnityTools.Util.Extensions
         {
             if(list == null)
             {
-                DebugLogger.LogWarning("리스트가 비어 있습니다.");
+                DebugLogger.LogWarning("由ъ뒪?멸? 鍮꾩뼱 ?덉뒿?덈떎.");
                 return false;
             }
 
             if(0 > index || index >= list.Count)
             {
-                DebugLogger.LogWarning("인덱스가 범위를 벗어났습니다.");
+                DebugLogger.LogWarning("?몃뜳?ㅺ? 踰붿쐞瑜?踰쀬뼱?ъ뒿?덈떎.");
                 return false;
             }
 

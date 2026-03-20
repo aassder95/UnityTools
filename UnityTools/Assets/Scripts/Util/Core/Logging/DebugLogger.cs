@@ -1,21 +1,7 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Logging
@@ -26,8 +12,8 @@ namespace UnityTools.Util.Core.Logging
         //============================================================
         //Constants
         //============================================================
-        private const string UNKNOWN_CLASS = "알수없는클래스";
-        private const string UNKNOWN_METHOD = "알수없는메서드";
+        private const string UNKNOWN_CLASS = "UnknownClass";
+        private const string UNKNOWN_METHOD = "UnknownMethod";
 
         //============================================================
         //Logic
@@ -105,11 +91,11 @@ namespace UnityTools.Util.Core.Logging
         {
             if(ex == null)
             {
-                WriteLog(ELogLevel.Error, className, method, "예외 정보가 비어 있습니다.", context);
+                WriteLog(ELogLevel.Error, className, method, "?덉쇅 ?뺣낫媛 鍮꾩뼱 ?덉뒿?덈떎.", context);
                 return;
             }
 
-            WriteLog(ELogLevel.Error, className, method, $"예외 발생: {ex.Message}", context);
+            WriteLog(ELogLevel.Error, className, method, $"?덉쇅 諛쒖깮: {ex.Message}", context);
             if(context == null)
                 Debug.LogException(ex);
             else

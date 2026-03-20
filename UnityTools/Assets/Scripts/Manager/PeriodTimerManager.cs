@@ -1,23 +1,12 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
-using UnityTools.Util;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
 using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
+using UnityTools.Util.Core.Timer;
 using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Manager
 {
@@ -163,7 +152,7 @@ namespace UnityTools.Manager
         private void LogInvalidId(string method, string id)
         {
             string safeId = StringTokenUtils.ToLogSafe(id);
-            DebugLogger.LogWarning($"[{method}] 유효하지 않은 ID 입력: '{safeId}'");
+            DebugLogger.LogWarning($"[{method}] ?좏슚?섏? ?딆? ID ?낅젰: '{safeId}'");
         }
 
         private class PeriodTimerEventBinder

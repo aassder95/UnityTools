@@ -1,20 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
 using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Events
 {
@@ -95,7 +82,7 @@ namespace UnityTools.Util.Core.Events
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: 이벤트키={key}, 예외={ex}");
+                        DebugLogger.LogError($"?대깽??泥섎━ 以??덉쇅 諛쒖깮: ?대깽?명궎={key}, ?덉쇅={ex}");
                     }
                 }
             }
@@ -116,7 +103,7 @@ namespace UnityTools.Util.Core.Events
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: 이벤트키={key}, 예외={ex}");
+                        DebugLogger.LogError($"?대깽??泥섎━ 以??덉쇅 諛쒖깮: ?대깽?명궎={key}, ?덉쇅={ex}");
                     }
                 }
             }

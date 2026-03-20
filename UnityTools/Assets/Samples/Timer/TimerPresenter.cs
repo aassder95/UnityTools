@@ -1,0 +1,100 @@
+using UnityEngine.Events;
+using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Util.UIFramework;
+
+namespace UnityTools.Samples.Timer
+{
+    public class TimerPresenter : BasePresenter<TimerModel, TimerView>
+    {
+        //============================================================
+        //Readonly
+        //============================================================
+        private readonly UnityAction<int> _onTimerUpdated;
+
+        //============================================================
+        //Fields
+        //============================================================
+        private PeriodTimer _periodTimer;
+
+        //============================================================
+        //Constructors
+        //============================================================
+        public TimerPresenter(TimerModel model, TimerView view) : base(model, view)
+        {
+            _onTimerUpdated = remainMin =>
+            {
+                if(_periodTimer == null)
+                    return;
+
+                _model.SetLoop(remainMin, _periodTimer.OpenUpdatedTime);
+            };
+        }
+
+        //============================================================
+        //Init/Register
+        //============================================================
+        protected override void OnInit()
+        {
+            _periodTimer = new PeriodTimer("TIMER", _view);
+            _periodTimer.Init(1.0, 1.0);
+        }
+
+        protected override void OnRelease()
+        {
+            _periodTimer?.Release();
+            _periodTimer = null;
+        }
+
+        protected override void BindEvents()
+        {
+            base.BindEvents();
+
+            if(_periodTimer == null)
+                return;
+
+            _view.OnForceOpen += _periodTimer.ForceOpen;
+            _view.OnForceClosed += _periodTimer.ForceClosed;
+            _periodTimer.OnRemainMinUpdated += _onTimerUpdated;
+            _periodTimer.OnPeriodStateTransition += OnPeriodStateTransitionCallback;
+        }
+
+        protected override void UnbindEvents()
+        {
+            if(_periodTimer != null)
+            {
+                _view.OnForceOpen -= _periodTimer.ForceOpen;
+                _view.OnForceClosed -= _periodTimer.ForceClosed;
+                _periodTimer.OnRemainMinUpdated -= _onTimerUpdated;
+                _periodTimer.OnPeriodStateTransition -= OnPeriodStateTransitionCallback;
+            }
+
+            base.UnbindEvents();
+        }
+
+        //============================================================
+        //Callbacks
+        //============================================================
+        private void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)
+        {
+            if(prevType == nextType)
+                return;
+
+            if(_periodTimer == null)
+                return;
+
+            switch (nextType)
+            {
+                case EPeriodTimerType.Reset:
+                    _model.SetSnapshot(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime, "Reset", "Reset", true);
+                    break;
+                case EPeriodTimerType.Open:
+                    _model.SetSnapshot(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime, "Open", null, false);
+                    break;
+                case EPeriodTimerType.Closed:
+                    _model.SetSnapshot(_periodTimer.OpenUpdatedTime, _periodTimer.OpenEndTime, _periodTimer.ClosedEndTime, "Closed", "Closed", true);
+                    break;
+            }
+        }
+    }
+}
+

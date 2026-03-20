@@ -1,22 +1,11 @@
-using System;
+﻿using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
 using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Timer.Task
 {
@@ -85,11 +74,11 @@ namespace UnityTools.Util.Core.Timer.Task
             _fsm = new StateMachine<ETaskTimerType>();
 
             if(!_fsm.Add(ETaskTimerType.None, new TaskTimerStates.NoneState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.None}");
+                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {ETaskTimerType.None}");
             if(!_fsm.Add(ETaskTimerType.Processing, new TaskTimerStates.ProcessingState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.Processing}");
+                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {ETaskTimerType.Processing}");
             if(!_fsm.Add(ETaskTimerType.Completed, new TaskTimerStates.CompletedState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.Completed}");
+                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {ETaskTimerType.Completed}");
         }
 
         //============================================================
@@ -99,13 +88,13 @@ namespace UnityTools.Util.Core.Timer.Task
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning("유효하지 않은 ID로 초기화를 무시합니다.");
+                DebugLogger.LogWarning("?좏슚?섏? ?딆? ID濡?珥덇린?붾? 臾댁떆?⑸땲??");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("러너 참조가 비어 있어 초기화를 무시합니다.");
+                DebugLogger.LogWarning("?щ꼫 李몄“媛 鍮꾩뼱 ?덉뼱 珥덇린?붾? 臾댁떆?⑸땲??");
                 return;
             }
 
@@ -388,7 +377,7 @@ namespace UnityTools.Util.Core.Timer.Task
                 return type;
 
             if(_savedStateType != 0)
-                DebugLogger.LogWarning($"유효하지 않은 저장 상태값입니다: {_savedStateType}");
+                DebugLogger.LogWarning($"?좏슚?섏? ?딆? ????곹깭媛믪엯?덈떎: {_savedStateType}");
             return ETaskTimerType.None;
         }
 
@@ -397,7 +386,7 @@ namespace UnityTools.Util.Core.Timer.Task
             if(durationSec > 0d && !double.IsNaN(durationSec) && !double.IsInfinity(durationSec))
                 return durationSec;
 
-            DebugLogger.LogWarning($"유효하지 않은 지속시간 값입니다: durationSec={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초를 적용합니다.");
+            DebugLogger.LogWarning($"?좏슚?섏? ?딆? 吏?띿떆媛?媛믪엯?덈떎: durationSec={durationSec}, 湲곕낯媛?{DEFAULT_DURATION_SEC}珥덈? ?곸슜?⑸땲??");
             return DEFAULT_DURATION_SEC;
         }
 

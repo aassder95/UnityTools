@@ -1,20 +1,6 @@
-using System;
+﻿using System;
 using System.Runtime.CompilerServices;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
 using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.State
 {
@@ -30,7 +16,7 @@ namespace UnityTools.Util.Core.State
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] ?깅줉?섏? ?딆? ?곹깭 ?꾩씠 ?붿껌: {type}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] ?源낆쨯??? ??? ?怨밴묶 ?袁⑹뵠 ?遺욧퍕: {type}", null, memberName, filePath);
         }
 
         public static void LogInitialSetFailed<TType>(
@@ -39,7 +25,7 @@ namespace UnityTools.Util.Core.State
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] 珥덇린 ?곹깭 ?ㅼ젙 ?ㅽ뙣: {type}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] ?λ뜃由??怨밴묶 ??쇱젟 ??쎈솭: {type}", null, memberName, filePath);
         }
 
         public static void LogTransitionFailed<TType>(
@@ -49,7 +35,7 @@ namespace UnityTools.Util.Core.State
             [CallerMemberName] string memberName = "",
             [CallerFilePath] string filePath = "") where TType : Enum
         {
-            DebugLogger.LogWarning($"[{method}] ?곹깭 ?꾩씠 ?ㅽ뙣: {fromType} -> {toType}", null, memberName, filePath);
+            DebugLogger.LogWarning($"[{method}] ?怨밴묶 ?袁⑹뵠 ??쎈솭: {fromType} -> {toType}", null, memberName, filePath);
         }
     }
 }

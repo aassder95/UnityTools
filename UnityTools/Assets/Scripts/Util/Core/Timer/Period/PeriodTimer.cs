@@ -1,22 +1,10 @@
-using System;
+﻿using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
 using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Timer.Period
 {
@@ -95,11 +83,11 @@ namespace UnityTools.Util.Core.Timer.Period
             _fsm.OnStateTransition += OnStateTransitionCallback;
 
             if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Reset}");
+                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {EPeriodTimerType.Reset}");
             if(!_fsm.Add(EPeriodTimerType.Open, new PeriodTimerStates.OpenState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Open}");
+                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {EPeriodTimerType.Open}");
             if(!_fsm.Add(EPeriodTimerType.Closed, new PeriodTimerStates.ClosedState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Closed}");
+                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {EPeriodTimerType.Closed}");
         }
 
         //============================================================
@@ -109,13 +97,13 @@ namespace UnityTools.Util.Core.Timer.Period
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning("유효하지 않은 ID로 초기화를 무시합니다.");
+                DebugLogger.LogWarning("?좏슚?섏? ?딆? ID濡?珥덇린?붾? 臾댁떆?⑸땲??");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("러너 참조가 비어 있어 초기화를 무시합니다.");
+                DebugLogger.LogWarning("?щ꼫 李몄“媛 鍮꾩뼱 ?덉뼱 珥덇린?붾? 臾댁떆?⑸땲??");
                 return;
             }
 
@@ -441,7 +429,7 @@ namespace UnityTools.Util.Core.Timer.Period
             if(min > 0d && !double.IsNaN(min) && !double.IsInfinity(min))
                 return min;
 
-            DebugLogger.LogWarning($"유효하지 않은 주기 값입니다: {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분을 적용합니다.");
+            DebugLogger.LogWarning($"?좏슚?섏? ?딆? 二쇨린 媛믪엯?덈떎: {name}={min}, 湲곕낯媛?{DEFAULT_PERIOD_MIN}遺꾩쓣 ?곸슜?⑸땲??");
             return DEFAULT_PERIOD_MIN;
         }
     }

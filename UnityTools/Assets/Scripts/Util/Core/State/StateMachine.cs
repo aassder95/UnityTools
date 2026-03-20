@@ -1,21 +1,7 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
-using UnityTools.Util.Constants;
-using UnityTools.Util.Core.Collections;
-using UnityTools.Util.Core.Events;
 using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.State;
-using UnityTools.Util.Core.Timer.Period;
-using UnityTools.Util.Core.Timer.Shared;
-using UnityTools.Util.Core.Timer.Task;
-using UnityTools.Util.Coroutines;
-using UnityTools.Util.Extensions;
-using UnityTools.Util.UIFramework;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.State
 {
@@ -24,7 +10,7 @@ namespace UnityTools.Util.Core.State
         //============================================================
         //Constants
         //============================================================
-        private const string UNINITIALIZED_STATE = "미초기화";
+        private const string UNINITIALIZED_STATE = "誘몄큹湲고솕";
 
         //============================================================
         //Readonly
@@ -63,14 +49,14 @@ namespace UnityTools.Util.Core.State
             string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(state == null)
             {
-                DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 null입니다.");
+                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?곹깭媛 null?낅땲??");
                 return false;
             }
 
             if(_states.TryAdd(type, state))
                 return true;
 
-            DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 중복입니다.");
+            DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?곹깭媛 以묐났?낅땲??");
             return false;
         }
 
@@ -79,14 +65,14 @@ namespace UnityTools.Util.Core.State
             string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(!_states.TryGetValue(type, out IState newState))
             {
-                DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=상태가 없습니다.");
+                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?곹깭媛 ?놁뒿?덈떎.");
                 return false;
             }
 
             bool isSameState = _hasCurrentState && EqualityComparer<TType>.Default.Equals(_curType, type);
             if(isSameState)
             {
-                DebugLogger.LogWarning($"전이 실패: 이전={fromState}, 대상={type}, 사유=동일 상태입니다.");
+                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?숈씪 ?곹깭?낅땲??");
                 return false;
             }
 
@@ -109,7 +95,7 @@ namespace UnityTools.Util.Core.State
         {
             if(_hasCurrentState)
             {
-                DebugLogger.LogWarning($"전이 실패: 이전={_curType}, 대상={type}, 사유=초기 상태가 이미 설정되었습니다.");
+                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={_curType}, ???{type}, ?ъ쑀=珥덇린 ?곹깭媛 ?대? ?ㅼ젙?섏뿀?듬땲??");
                 return false;
             }
 

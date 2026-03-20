@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityTools.Util.Core.Logging;
@@ -21,7 +21,7 @@ namespace UnityTools.Util.Core.Pooling
         {
             if(prefab == null)
             {
-                DebugLogger.LogError("풀링 프리팹 참조가 비어 있습니다.");
+                DebugLogger.LogError("?留??꾨━??李몄“媛 鍮꾩뼱 ?덉뒿?덈떎.");
                 return;
             }
 
@@ -55,7 +55,7 @@ namespace UnityTools.Util.Core.Pooling
         {
             if(obj == null)
             {
-                DebugLogger.LogWarning("반환 대상 오브젝트가 비어 있습니다.");
+                DebugLogger.LogWarning("諛섑솚 ????ㅻ툕?앺듃媛 鍮꾩뼱 ?덉뒿?덈떎.");
                 return;
             }
 

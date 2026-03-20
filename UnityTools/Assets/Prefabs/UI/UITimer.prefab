@@ -1,4 +1,4 @@
-%YAML 1.1
+﻿%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &1238986600479774735
 GameObject:
@@ -1214,7 +1214,7 @@ RectTransform:
   m_GameObject: {fileID: 5856063721156839392}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 8426817675391600139}
@@ -1269,7 +1269,7 @@ MonoBehaviour:
   m_ScaleFactor: 1
   m_ReferenceResolution: {x: 720, y: 1280}
   m_ScreenMatchMode: 1
-  m_MatchWidthOrHeight: 0
+  m_MatchWidthOrHeight: 1
   m_PhysicalUnit: 3
   m_FallbackScreenDPI: 96
   m_DefaultSpriteDPI: 96
@@ -1434,7 +1434,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 3403166698857699309}
-        m_TargetAssemblyTypeName: UnityTools.UI.TimerView, Assembly-CSharp
+        m_TargetAssemblyTypeName: UnityTools.Samples.Timer.TimerView, UnityTools.Samples
         m_MethodName: OnForceOpenInspector
         m_Mode: 1
         m_Arguments:
@@ -1975,7 +1975,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 3403166698857699309}
-        m_TargetAssemblyTypeName: UnityTools.UI.TimerView, Assembly-CSharp
+        m_TargetAssemblyTypeName: UnityTools.Samples.Timer.TimerView, UnityTools.Samples
         m_MethodName: OnForceClosedInspector
         m_Mode: 1
         m_Arguments:
@@ -1986,3 +1986,4 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+
