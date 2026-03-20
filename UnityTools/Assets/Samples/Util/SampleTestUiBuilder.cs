@@ -43,6 +43,7 @@ namespace UnityTools.Samples.Util
         //============================================================
         public static Layout Build(Transform parent, string title, string subtitle)
         {
+            EnsureRootStretch(parent);
             EnsureCanvas(parent);
 
             Transform trExistingRoot = parent.Find(TEST_ROOT_NAME);
@@ -184,6 +185,25 @@ namespace UnityTools.Samples.Util
         //============================================================
         //Utilities
         //============================================================
+        private static void EnsureRootStretch(Transform root)
+        {
+            if(root is not RectTransform rtRoot)
+                return;
+
+            RectTransform rtParent = rtRoot.parent as RectTransform;
+            if(rtParent == null)
+                return;
+
+            rtRoot.anchorMin = Vector2.zero;
+            rtRoot.anchorMax = Vector2.one;
+            rtRoot.pivot = new Vector2(0.5f, 0.5f);
+            rtRoot.anchoredPosition = Vector2.zero;
+            rtRoot.sizeDelta = Vector2.zero;
+            rtRoot.offsetMin = Vector2.zero;
+            rtRoot.offsetMax = Vector2.zero;
+            rtRoot.localScale = Vector3.one;
+        }
+
         private static Layout ResolveExistingLayout(Transform trRoot)
         {
             RectTransform rtRoot = trRoot as RectTransform;
