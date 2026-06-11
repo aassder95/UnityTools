@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
@@ -14,20 +14,20 @@ namespace UnityTools.Manager
     public class PeriodTimerManager : MonoSingleton<PeriodTimerManager>
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly TimerHandleRegistry<PeriodTimerHandle> _handles = new();
         private readonly Dictionary<string, PeriodTimerEventBinder> _eventBinders = new();
         private readonly ITimerHandleFactory<PeriodTimerHandle> _handleFactory = new PeriodTimerHandleFactory();
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction<PeriodTimerData> OnAnyTimerRemainMinUpdated { add => _onAnyTimerRemainMinUpdated += value; remove => _onAnyTimerRemainMinUpdated -= value; }
         private event UnityAction<PeriodTimerData> _onAnyTimerRemainMinUpdated;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void OnDestroy()
         {
@@ -35,7 +35,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public PeriodTimerHandle CreatePeriodTimerHandle(string id)
         {
@@ -71,7 +71,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void DeletePeriodTimer(string id)
         {
@@ -125,7 +125,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnPeriodTimerRemainMinUpdatedCallback(string id, int remainMin)
         {
@@ -139,7 +139,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         public PeriodTimerHandle GetPeriodHandle(string id)
         {
@@ -152,19 +152,22 @@ namespace UnityTools.Manager
         private void LogInvalidId(string method, string id)
         {
             string safeId = StringTokenUtils.ToLogSafe(id);
-            DebugLogger.LogWarning($"[{method}] ?좏슚?섏? ?딆? ID ?낅젰: '{safeId}'");
+            DebugLogger.LogWarning($"[{method}] 유효하지 않은 ID 입력: '{safeId}'");
         }
 
+        //============================================================
+        // Nested Types
+        //============================================================
         private class PeriodTimerEventBinder
         {
             //============================================================
-            //Readonly
+            // Readonly
             //============================================================
             private readonly string _id;
             private readonly PeriodTimerManager _manager;
 
             //============================================================
-            //Constructors
+            // Constructors
             //============================================================
             public PeriodTimerEventBinder(PeriodTimerManager manager, string id)
             {
@@ -173,7 +176,7 @@ namespace UnityTools.Manager
             }
 
             //============================================================
-            //Callbacks
+            // Callbacks
             //============================================================
             public void OnRemainMinUpdatedCallback(int remainMin)
             {

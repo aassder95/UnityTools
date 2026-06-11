@@ -12,7 +12,7 @@ namespace UnityTools.Manager
     public class UIManager : MonoSingleton<UIManager>
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const string RUNTIME_ROOT_NAME = "SampleLobbyRuntimeRoot";
         private const string RUNTIME_CANVAS_NAME = "SampleLobbyCanvas";
@@ -21,25 +21,20 @@ namespace UnityTools.Manager
         private const string EMPTY_MODULE_LABEL = "No Samples";
         private const int LOBBY_SORTING_ORDER = 32000;
         private const int BACK_BUTTON_SORTING_ORDER = 32767;
-        private const float BACK_TAB_HEIGHT = 108f;
+        private const float BACK_TAB_HEIGHT = 108.0f;
 
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
-        [Header("Entry")]
-        [SerializeField] private string _entryModuleKey = SampleModuleKeys.ALL;
-
-        [Header("Modules")]
-        [SerializeField] private MonoBehaviour[] _sampleModuleBehaviours;
-
-        [Header("Launcher")]
-        [SerializeField] private GameObject _goSampleListPanel;
+        [Header("Entry")] [SerializeField] private string _entryModuleKey = SampleModuleKeys.ALL;
+        [Header("Modules")] [SerializeField] private MonoBehaviour[] _sampleModuleBehaviours;
+        [Header("Launcher")] [SerializeField] private GameObject _goSampleListPanel;
         [SerializeField] private Transform _trSampleTitleRoot;
         [SerializeField] private Button _btnSampleTitlePrefab;
         [SerializeField] private Button _btnBack;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private readonly List<ISampleModule> _modules = new();
         private readonly List<ISampleModule> _activeModules = new();
@@ -54,7 +49,7 @@ namespace UnityTools.Manager
         private bool _isLauncherReady;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void Awake()
         {
@@ -81,7 +76,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         private void RegisterModules()
         {
@@ -230,7 +225,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         private void TryCreateRuntimeLauncher()
         {
@@ -276,52 +271,52 @@ namespace UnityTools.Manager
             RectTransform runtimeRootRect = _goRuntimeLobbyRoot.GetComponent<RectTransform>();
             StretchToParent(runtimeRootRect);
 
-            _goSampleListPanel = CreatePanel(_goRuntimeLobbyRoot.transform, "GoSampleListPanel", new Color(0f, 0f, 0f, 0.65f));
+            _goSampleListPanel = CreatePanel(_goRuntimeLobbyRoot.transform, "GoSampleListPanel", new Color(0.0f, 0.0f, 0.0f, 0.65f));
 
             RectTransform panelRect = _goSampleListPanel.GetComponent<RectTransform>();
             StretchToParent(panelRect);
 
             GameObject goHeader = CreatePanel(_goSampleListPanel.transform, "GoHeader", new Color(0.06f, 0.11f, 0.2f, 0.96f));
             RectTransform headerRect = goHeader.GetComponent<RectTransform>();
-            headerRect.anchorMin = new Vector2(0f, 1f);
-            headerRect.anchorMax = new Vector2(1f, 1f);
-            headerRect.pivot = new Vector2(0.5f, 1f);
+            headerRect.anchorMin = new Vector2(0.0f, 1.0f);
+            headerRect.anchorMax = new Vector2(1.0f, 1.0f);
+            headerRect.pivot = new Vector2(0.5f, 1.0f);
             headerRect.anchoredPosition = Vector2.zero;
-            headerRect.sizeDelta = new Vector2(0f, 190f);
+            headerRect.sizeDelta = new Vector2(0.0f, 190.0f);
 
-            GameObject goTitle = CreateTextObject(goHeader.transform, "TxtLobbyTitle", "Sample Lobby", 52, FontStyle.Bold, new Color(0.95f, 0.97f, 1f, 1f));
+            GameObject goTitle = CreateTextObject(goHeader.transform, "TxtLobbyTitle", "Sample Lobby", 52, FontStyle.Bold, new Color(0.95f, 0.97f, 1.0f, 1.0f));
             RectTransform titleRect = goTitle.GetComponent<RectTransform>();
-            titleRect.anchorMin = new Vector2(0.5f, 1f);
-            titleRect.anchorMax = new Vector2(0.5f, 1f);
-            titleRect.pivot = new Vector2(0.5f, 1f);
-            titleRect.anchoredPosition = new Vector2(0f, -30f);
-            titleRect.sizeDelta = new Vector2(620f, 90f);
+            titleRect.anchorMin = new Vector2(0.5f, 1.0f);
+            titleRect.anchorMax = new Vector2(0.5f, 1.0f);
+            titleRect.pivot = new Vector2(0.5f, 1.0f);
+            titleRect.anchoredPosition = new Vector2(0.0f, -30.0f);
+            titleRect.sizeDelta = new Vector2(620.0f, 90.0f);
 
-            GameObject goSubTitle = CreateTextObject(goHeader.transform, "TxtLobbySubTitle", "Select a sample and test quickly", 28, FontStyle.Normal, new Color(0.74f, 0.82f, 0.95f, 1f));
+            GameObject goSubTitle = CreateTextObject(goHeader.transform, "TxtLobbySubTitle", "Select a sample and test quickly", 28, FontStyle.Normal, new Color(0.74f, 0.82f, 0.95f, 1.0f));
             RectTransform subTitleRect = goSubTitle.GetComponent<RectTransform>();
-            subTitleRect.anchorMin = new Vector2(0.5f, 1f);
-            subTitleRect.anchorMax = new Vector2(0.5f, 1f);
-            subTitleRect.pivot = new Vector2(0.5f, 1f);
-            subTitleRect.anchoredPosition = new Vector2(0f, -108f);
-            subTitleRect.sizeDelta = new Vector2(640f, 56f);
+            subTitleRect.anchorMin = new Vector2(0.5f, 1.0f);
+            subTitleRect.anchorMax = new Vector2(0.5f, 1.0f);
+            subTitleRect.pivot = new Vector2(0.5f, 1.0f);
+            subTitleRect.anchoredPosition = new Vector2(0.0f, -108.0f);
+            subTitleRect.sizeDelta = new Vector2(640.0f, 56.0f);
 
             GameObject goListCard = CreatePanel(_goSampleListPanel.transform, "GoListCard", new Color(0.11f, 0.17f, 0.29f, 0.97f));
             RectTransform listCardRect = goListCard.GetComponent<RectTransform>();
-            listCardRect.anchorMin = new Vector2(0.5f, 1f);
-            listCardRect.anchorMax = new Vector2(0.5f, 1f);
-            listCardRect.pivot = new Vector2(0.5f, 1f);
-            listCardRect.anchoredPosition = new Vector2(0f, -230f);
-            listCardRect.sizeDelta = new Vector2(660f, 880f);
+            listCardRect.anchorMin = new Vector2(0.5f, 1.0f);
+            listCardRect.anchorMax = new Vector2(0.5f, 1.0f);
+            listCardRect.pivot = new Vector2(0.5f, 1.0f);
+            listCardRect.anchoredPosition = new Vector2(0.0f, -230.0f);
+            listCardRect.sizeDelta = new Vector2(660.0f, 880.0f);
             Outline listCardOutline = goListCard.AddComponent<Outline>();
-            listCardOutline.effectColor = new Color(0f, 0f, 0f, 0.34f);
-            listCardOutline.effectDistance = new Vector2(0f, -4f);
+            listCardOutline.effectColor = new Color(0.0f, 0.0f, 0.0f, 0.34f);
+            listCardOutline.effectDistance = new Vector2(0.0f, -4.0f);
 
             GameObject goListRoot = CreateUiObject("TrSampleTitleRoot", goListCard.transform);
             RectTransform listRootRect = goListRoot.GetComponent<RectTransform>();
-            listRootRect.anchorMin = new Vector2(0f, 0f);
-            listRootRect.anchorMax = new Vector2(1f, 1f);
-            listRootRect.offsetMin = new Vector2(36f, 40f);
-            listRootRect.offsetMax = new Vector2(-36f, -36f);
+            listRootRect.anchorMin = new Vector2(0.0f, 0.0f);
+            listRootRect.anchorMax = new Vector2(1.0f, 1.0f);
+            listRootRect.offsetMin = new Vector2(36.0f, 40.0f);
+            listRootRect.offsetMax = new Vector2(-36.0f, -36.0f);
 
             VerticalLayoutGroup titleLayout = goListRoot.AddComponent<VerticalLayoutGroup>();
             titleLayout.childAlignment = TextAnchor.UpperCenter;
@@ -330,20 +325,20 @@ namespace UnityTools.Manager
             titleLayout.childForceExpandWidth = true;
             titleLayout.childForceExpandHeight = false;
             titleLayout.padding = new RectOffset(0, 0, 12, 12);
-            titleLayout.spacing = 16f;
+            titleLayout.spacing = 16.0f;
 
             _trSampleTitleRoot = goListRoot.transform;
-            _btnSampleTitlePrefab = CreateButton(_trSampleTitleRoot, "BtnSampleTitlePrefab", "Sample", new Vector2(0f, 96f), new Color(0.16f, 0.45f, 0.86f, 1f), 34);
+            _btnSampleTitlePrefab = CreateButton(_trSampleTitleRoot, "BtnSampleTitlePrefab", "Sample", new Vector2(0.0f, 96.0f), new Color(0.16f, 0.45f, 0.86f, 1.0f), 34);
             _btnSampleTitlePrefab.gameObject.SetActive(false);
 
             GameObject goBackLayer = CreateUiObject("GoBackLayer", _goRuntimeLobbyRoot.transform);
             _goBackLayer = goBackLayer;
             RectTransform backLayerRect = goBackLayer.GetComponent<RectTransform>();
-            backLayerRect.anchorMin = new Vector2(0f, 0f);
-            backLayerRect.anchorMax = new Vector2(1f, 0f);
-            backLayerRect.pivot = new Vector2(0.5f, 0f);
-            backLayerRect.offsetMin = new Vector2(0f, 0f);
-            backLayerRect.offsetMax = new Vector2(0f, BACK_TAB_HEIGHT);
+            backLayerRect.anchorMin = new Vector2(0.0f, 0.0f);
+            backLayerRect.anchorMax = new Vector2(1.0f, 0.0f);
+            backLayerRect.pivot = new Vector2(0.5f, 0.0f);
+            backLayerRect.offsetMin = new Vector2(0.0f, 0.0f);
+            backLayerRect.offsetMax = new Vector2(0.0f, BACK_TAB_HEIGHT);
 
             Image backLayerImage = goBackLayer.AddComponent<Image>();
             backLayerImage.color = new Color(0.04f, 0.1f, 0.2f, 0.94f);
@@ -353,7 +348,7 @@ namespace UnityTools.Manager
             backCanvas.sortingOrder = BACK_BUTTON_SORTING_ORDER;
             goBackLayer.AddComponent<GraphicRaycaster>();
 
-            _btnBack = CreateButton(goBackLayer.transform, "BtnBack", "<  Back To Lobby", new Vector2(640f, 72f), new Color(0.13f, 0.35f, 0.72f, 0.98f), 30);
+            _btnBack = CreateButton(goBackLayer.transform, "BtnBack", "<  Back To Lobby", new Vector2(640.0f, 72.0f), new Color(0.13f, 0.35f, 0.72f, 0.98f), 30);
             RectTransform backRect = _btnBack.GetComponent<RectTransform>();
             backRect.anchorMin = new Vector2(0.5f, 0.5f);
             backRect.anchorMax = new Vector2(0.5f, 0.5f);
@@ -425,9 +420,9 @@ namespace UnityTools.Manager
 
             CanvasScaler canvasScaler = goCanvas.GetComponent<CanvasScaler>();
             canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasScaler.referenceResolution = new Vector2(720f, 1280f);
+            canvasScaler.referenceResolution = new Vector2(720.0f, 1280.0f);
             canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            canvasScaler.matchWidthOrHeight = 1f;
+            canvasScaler.matchWidthOrHeight = 1.0f;
 
             return createdCanvas;
         }
@@ -485,9 +480,9 @@ namespace UnityTools.Manager
                 return;
 
             canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            canvasScaler.referenceResolution = new Vector2(720f, 1280f);
+            canvasScaler.referenceResolution = new Vector2(720.0f, 1280.0f);
             canvasScaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            canvasScaler.matchWidthOrHeight = 1f;
+            canvasScaler.matchWidthOrHeight = 1.0f;
         }
 
         private void EnsureEventSystem()
@@ -574,7 +569,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnSampleTitleButtonClicked()
         {
@@ -598,7 +593,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private void ClearSampleTitleButtons()
         {
@@ -636,8 +631,7 @@ namespace UnityTools.Manager
                     continue;
 
                 Type labelType = labelComponent.GetType();
-                bool isTmpType = string.Equals(labelType.FullName, "TMPro.TextMeshProUGUI", StringComparison.Ordinal) ||
-                                 string.Equals(labelType.FullName, "TMPro.TMP_Text", StringComparison.Ordinal);
+                bool isTmpType = string.Equals(labelType.FullName, "TMPro.TextMeshProUGUI", StringComparison.Ordinal) || string.Equals(labelType.FullName, "TMPro.TMP_Text", StringComparison.Ordinal);
                 if (!isTmpType)
                     continue;
 
@@ -678,25 +672,25 @@ namespace UnityTools.Manager
             Image buttonImage = goButton.AddComponent<Image>();
             buttonImage.color = buttonColor;
             Outline buttonOutline = goButton.AddComponent<Outline>();
-            buttonOutline.effectColor = new Color(0f, 0f, 0f, 0.22f);
-            buttonOutline.effectDistance = new Vector2(0f, -3f);
+            buttonOutline.effectColor = new Color(0.0f, 0.0f, 0.0f, 0.22f);
+            buttonOutline.effectDistance = new Vector2(0.0f, -3.0f);
             buttonImage.type = Image.Type.Sliced;
 
             Button button = goButton.AddComponent<Button>();
             LayoutElement layoutElement = goButton.AddComponent<LayoutElement>();
             layoutElement.minHeight = buttonSize.y;
             layoutElement.preferredHeight = buttonSize.y;
-            if (buttonSize.x > 0f)
+            if (buttonSize.x > 0.0f)
             {
                 layoutElement.minWidth = buttonSize.x;
                 layoutElement.preferredWidth = buttonSize.x;
-                layoutElement.flexibleWidth = 0f;
+                layoutElement.flexibleWidth = 0.0f;
             }
             else
             {
-                layoutElement.minWidth = 0f;
-                layoutElement.preferredWidth = 0f;
-                layoutElement.flexibleWidth = 1f;
+                layoutElement.minWidth = 0.0f;
+                layoutElement.preferredWidth = 0.0f;
+                layoutElement.flexibleWidth = 1.0f;
             }
 
             GameObject goLabel = CreateTextObject(goButton.transform, "TxtLabel", labelText, labelFontSize, FontStyle.Bold, Color.white);

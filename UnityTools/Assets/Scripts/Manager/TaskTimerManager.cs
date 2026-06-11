@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityTools.Util.Core.Singleton;
@@ -12,14 +12,14 @@ namespace UnityTools.Manager
     public class TaskTimerManager : MonoSingleton<TaskTimerManager>
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly TimerHandleRegistry<TaskTimerHandle> _handles = new();
         private readonly Dictionary<string, TaskTimerEventBinder> _eventBinders = new();
         private readonly ITimerHandleFactory<TaskTimerHandle> _handleFactory = new TaskTimerHandleFactory();
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction<TaskTimerData> OnAnyTimerRemainSecUpdated { add => _onAnyTimerRemainSecUpdated += value; remove => _onAnyTimerRemainSecUpdated -= value; }
         public event UnityAction<TaskTimerData> OnAnyTimerCompleted { add => _onAnyTimerCompleted += value; remove => _onAnyTimerCompleted -= value; }
@@ -29,7 +29,7 @@ namespace UnityTools.Manager
         private event UnityAction<TaskTimerData> _onAnyTimerClaimed;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void OnDestroy()
         {
@@ -37,7 +37,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public TaskTimerHandle CreateTaskTimerHandle(string id)
         {
@@ -73,7 +73,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void StartTaskTimer(string id, double durationSec)
         {
@@ -120,12 +120,7 @@ namespace UnityTools.Manager
 
         private void BindEvents(string id, TaskTimerHandle handle)
         {
-            TaskTimerEventBinder eventBinder = new(
-                id,
-                OnTaskTimerRemainSecUpdatedCallback,
-                OnTaskTimerCompletedCallback,
-                OnTaskTimerClaimedCallback,
-                OnTaskTimerStateTransitionCallback);
+            TaskTimerEventBinder eventBinder = new(id, OnTaskTimerRemainSecUpdatedCallback, OnTaskTimerCompletedCallback, OnTaskTimerClaimedCallback, OnTaskTimerStateTransitionCallback);
             _eventBinders[id] = eventBinder;
 
             handle.OnRemainSecUpdated += eventBinder.OnRemainSecUpdatedCallback;
@@ -161,7 +156,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnTaskTimerRemainSecUpdatedCallback(string id, int remainSec)
         {
@@ -205,7 +200,7 @@ namespace UnityTools.Manager
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         public TaskTimerHandle GetTaskHandle(string id)
         {
@@ -230,13 +225,16 @@ namespace UnityTools.Manager
         private void LogInvalidId(string method, string id)
         {
             string safeId = StringTokenUtils.ToLogSafe(id);
-            DebugLogger.LogWarning($"[{method}] ?좏슚?섏? ?딆? ID ?낅젰: '{safeId}'");
+            DebugLogger.LogWarning($"[{method}] 유효하지 않은 ID 입력: '{safeId}'");
         }
 
+        //============================================================
+        // Nested Types
+        //============================================================
         private class TaskTimerEventBinder
         {
             //============================================================
-            //Readonly
+            // Readonly
             //============================================================
             private readonly string _id;
             private readonly Action<string, int> _onRemainSecUpdated;
@@ -245,14 +243,9 @@ namespace UnityTools.Manager
             private readonly Action<string, ETaskTimerType, ETaskTimerType> _onStateTransition;
 
             //============================================================
-            //Constructors
+            // Constructors
             //============================================================
-            public TaskTimerEventBinder(
-                string id,
-                Action<string, int> onRemainSecUpdated,
-                Action<string> onCompleted,
-                Action<string> onClaimed,
-                Action<string, ETaskTimerType, ETaskTimerType> onStateTransition)
+            public TaskTimerEventBinder(string id, Action<string, int> onRemainSecUpdated, Action<string> onCompleted, Action<string> onClaimed, Action<string, ETaskTimerType, ETaskTimerType> onStateTransition)
             {
                 _id = id;
                 _onRemainSecUpdated = onRemainSecUpdated;
@@ -262,7 +255,7 @@ namespace UnityTools.Manager
             }
 
             //============================================================
-            //Callbacks
+            // Callbacks
             //============================================================
             public void OnRemainSecUpdatedCallback(int remainSec)
             {
