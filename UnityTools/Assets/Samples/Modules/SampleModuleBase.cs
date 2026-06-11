@@ -6,18 +6,18 @@ namespace UnityTools.Samples.Modules
     public abstract class SampleModuleBase : MonoBehaviour, ISampleModule
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isInitialized;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public abstract string ModuleKey { get; }
         public bool IsInit => _isInitialized;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void Init()
         {
@@ -58,7 +58,7 @@ namespace UnityTools.Samples.Modules
         protected abstract void OnReleaseModule();
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         protected bool TryResolveView<TView>(ref TView view) where TView : Component
         {

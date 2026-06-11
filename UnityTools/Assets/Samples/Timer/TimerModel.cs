@@ -7,7 +7,7 @@ namespace UnityTools.Samples.Timer
     public class TimerModel : BaseModel
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private string _state;
         private string _subState;
@@ -17,7 +17,7 @@ namespace UnityTools.Samples.Timer
         private DateTime _closedEnd;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public string State => _state;
         public string SubState => _subState;
@@ -27,7 +27,7 @@ namespace UnityTools.Samples.Timer
         public DateTime ClosedEnd => _closedEnd;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void SetState(string state)
         {

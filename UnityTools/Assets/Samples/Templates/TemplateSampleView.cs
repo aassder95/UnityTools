@@ -6,20 +6,20 @@ namespace UnityTools.Samples.Templates
     public class TemplateSampleView : BaseView<TemplateSampleModel>
     {
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event Action OnIncreaseClicked { add => _onIncreaseClicked += value; remove => _onIncreaseClicked -= value; }
         private event Action _onIncreaseClicked;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override void OnRefresh(TemplateSampleModel model)
         {
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         public void OnIncreaseClickedInspector()
         {

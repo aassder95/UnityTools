@@ -227,9 +227,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 10cb5a1123fec514d868fa8e13b5a91f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _colorTmp:
-  - {r: 1, g: 1, b: 1, a: 1}
-  - {r: 0.5849056, g: 0.5849056, b: 0.5849056, a: 1}
   _txtId: {fileID: 5265764136587440543}
   _txtRank: {fileID: 9024319488396618004}
   _txtScore: {fileID: 4793709653725167051}

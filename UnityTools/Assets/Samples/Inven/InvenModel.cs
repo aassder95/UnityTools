@@ -8,26 +8,28 @@ namespace UnityTools.Samples.Inven
     public class InvenModel : BaseModel
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly List<InvenItemModel> _itemModels = new();
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public int ItemCount => _itemModels.Count;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
-        public InvenModel(int cnt)
+        public InvenModel(int count)
         {
-            for(int i = 0; i < cnt; i++)
+            for(int i = 0; i < count; i++)
+            {
                 _itemModels.Add(new InvenItemModel(i));
+            }
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public InvenItemModel Get(int idx)
         {
@@ -70,7 +72,9 @@ namespace UnityTools.Samples.Inven
         public void RandomizeCounts()
         {
             for(int i = 0; i < _itemModels.Count; i++)
+            {
                 _itemModels[i].RandomizeGradeAndCount();
+            }
 
             NotifyUpdated();
         }

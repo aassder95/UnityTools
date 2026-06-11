@@ -1225,10 +1225,10 @@ RectTransform:
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &1836831859883379728
 Canvas:
   m_ObjectHideFlags: 0
@@ -1308,7 +1308,6 @@ MonoBehaviour:
   _txtSubState: {fileID: 2458333417871155817}
   _txtCur: {fileID: 4347015166771340805}
   _txtLoop: {fileID: 7178723850932621934}
-  _txtOpenStart: {fileID: 6670157781279013077}
   _txtOpenUpdated: {fileID: 3665210601988338317}
   _txtOpenEnd: {fileID: 5605797036803587849}
   _txtClosedEnd: {fileID: 2165028833060358838}

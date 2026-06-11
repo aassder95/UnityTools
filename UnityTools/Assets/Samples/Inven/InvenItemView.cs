@@ -8,23 +8,23 @@ namespace UnityTools.Samples.Inven
     public class InvenItemView : BaseView<InvenItemModel>, IDynamicScrollItem, IPoolable
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private RectTransform _rtView;
         [SerializeField] private TextMeshProUGUI _txtIndex;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private int _index;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public int Index => _index;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override void OnRefresh(InvenItemModel model)
         {
@@ -36,7 +36,7 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         void IDynamicScrollItem.SetIndex(int index)
         {
@@ -57,20 +57,20 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private static Color ResolveGradeColor(InvenItemModel.EInvenGrade grade)
         {
             switch(grade)
             {
                 case InvenItemModel.EInvenGrade.Common:
-                    return new Color(0.78f, 0.82f, 0.9f, 1f);
+                    return new Color(0.78f, 0.82f, 0.9f, 1.0f);
                 case InvenItemModel.EInvenGrade.Rare:
-                    return new Color(0.47f, 0.76f, 1f, 1f);
+                    return new Color(0.47f, 0.76f, 1.0f, 1.0f);
                 case InvenItemModel.EInvenGrade.Epic:
-                    return new Color(0.92f, 0.53f, 1f, 1f);
+                    return new Color(0.92f, 0.53f, 1.0f, 1.0f);
                 case InvenItemModel.EInvenGrade.Legendary:
-                    return new Color(1f, 0.78f, 0.38f, 1f);
+                    return new Color(1.0f, 0.78f, 0.38f, 1.0f);
             }
 
             return Color.white;

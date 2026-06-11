@@ -8,17 +8,17 @@ namespace UnityTools.Samples.Rank
     public class RankView : BaseView<RankModel>
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private RankScrollView _scrollView;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isTestLayoutBuilt;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction OnRandomScore { add => _onRandomScore += value; remove => _onRandomScore -= value; }
         public event UnityAction OnBoostTopScore { add => _onBoostTopScore += value; remove => _onBoostTopScore -= value; }
@@ -36,7 +36,7 @@ namespace UnityTools.Samples.Rank
         private event UnityAction _onDecreaseVisibleLine;
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void OnInit()
         {
@@ -44,12 +44,12 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public RankScrollView ScrollView => _scrollView;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override void OnRefresh(RankModel model)
         {
@@ -60,7 +60,7 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         public void OnRandomScoreInspector()
         {
@@ -98,7 +98,7 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private void BuildTestLayout()
         {
@@ -108,7 +108,7 @@ namespace UnityTools.Samples.Rank
             if(_scrollView == null)
                 return;
 
-            SampleTestUiBuilder.Layout layout = SampleTestUiBuilder.Build(transform, "Rank Test Sample", "Random only rerolls all / Item +/- keeps existing scores");
+            SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Rank Test Sample", "Random only rerolls all / Item +/- keeps existing scores");
             RectTransform rtScroll = _scrollView.GetComponent<RectTransform>();
             SampleTestUiBuilder.ReparentToContent(rtScroll, layout.RtContentViewport, Vector2.zero, Vector2.zero);
 

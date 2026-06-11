@@ -132,7 +132,6 @@ GameObject:
   m_Component:
   - component: {fileID: 99074261}
   - component: {fileID: 99074262}
-  - component: {fileID: 99074263}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -167,18 +166,6 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 4f6a61626e0e72844be3aa31f26121a8, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &99074263
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 99074260}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d4410e98aa0edb7449799d2679bd1fae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!1 &106806484
@@ -2256,8 +2243,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
-  _visibleLineCnt: 6
-  _itemCntPerLine: 1
+  _minVisibleLineCount: 6
+  _fixedCellsPerGroup: 1
   _padding:
     m_Left: 0
     m_Right: 0
@@ -2371,7 +2358,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rankView: {fileID: 3843420519324890191}
-  _rankModelCnt: 10
+  _rankModelCount: 10
 --- !u!1 &928572894153044434
 GameObject:
   m_ObjectHideFlags: 0
@@ -3073,7 +3060,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _rankOSAView: {fileID: 5415541418717526958}
-  _rankOSAModelCnt: 10
+  _rankOSAModelCount: 10
   _dividerIndices:
   - 3
   - 10
@@ -5199,8 +5186,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _item: {fileID: 8120307858875503894, guid: 8817176bafc9ab9448680153db2d0eda, type: 3}
-  _visibleLineCnt: 4
-  _itemCntPerLine: 4
+  _minVisibleLineCount: 4
+  _fixedCellsPerGroup: 4
   _padding:
     m_Left: 50
     m_Right: 50
@@ -5466,7 +5453,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _invenView: {fileID: 748329683886800929}
-  _invenModelCnt: 50
+  _invenModelCount: 50
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

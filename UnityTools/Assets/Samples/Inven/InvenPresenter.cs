@@ -6,7 +6,7 @@ namespace UnityTools.Samples.Inven
     public class InvenPresenter : BasePresenter<InvenModel, InvenView>
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly UnityAction<InvenItemView> _onItemViewUpdated;
         private readonly UnityAction _onRefreshItems;
@@ -15,7 +15,7 @@ namespace UnityTools.Samples.Inven
         private readonly UnityAction _onSortByGrade;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public InvenPresenter(InvenModel model, InvenView view) : base(model, view)
         {
@@ -27,7 +27,7 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void OnInit()
         {
@@ -66,7 +66,7 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnItemViewUpdatedCallback(InvenItemView itemView)
         {

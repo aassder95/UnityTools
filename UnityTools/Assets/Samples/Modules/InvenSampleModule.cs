@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityTools.Samples.Inven;
 using UnityTools.Util.Core;
 
@@ -7,31 +7,31 @@ namespace UnityTools.Samples.Modules
     public class InvenSampleModule : SampleModuleBase
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private InvenView _invenView;
-        [SerializeField] private int _invenModelCnt = 50;
+        [SerializeField] private int _invenModelCount = 50;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private InvenPresenter _invenPresenter;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public override string ModuleKey => SampleModuleKeys.INVEN;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override bool OnInitModule()
         {
             if(!TryResolveView(ref _invenView))
                 return false;
 
-            int invenModelCnt = Mathf.Max(0, _invenModelCnt);
-            _invenPresenter = new InvenPresenter(new InvenModel(invenModelCnt), _invenView);
+            int invenModelCount = Mathf.Max(0, _invenModelCount);
+            _invenPresenter = new InvenPresenter(new InvenModel(invenModelCount), _invenView);
             _invenPresenter.Init();
             return _invenPresenter.IsInit;
         }

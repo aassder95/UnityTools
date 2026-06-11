@@ -1594,8 +1594,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3384d25312bc420ca3fdaeaa92cd8434, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _duration: 5
-  _txtId: {fileID: 8929179444029973186}
+  _durationSec: 5
   _txtState: {fileID: 205125992288021052}
   _txtTimer: {fileID: 970198981629223052}
   _btnStart: {fileID: 5934449991557031096}

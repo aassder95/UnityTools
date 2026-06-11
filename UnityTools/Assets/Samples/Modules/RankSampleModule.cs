@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityTools.Samples.Rank;
 using UnityTools.Util.Core;
 
@@ -7,31 +7,31 @@ namespace UnityTools.Samples.Modules
     public class RankSampleModule : SampleModuleBase
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private RankView _rankView;
-        [SerializeField] private int _rankModelCnt = 10;
+        [SerializeField] private int _rankModelCount = 10;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private RankPresenter _rankPresenter;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public override string ModuleKey => SampleModuleKeys.RANK;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override bool OnInitModule()
         {
             if(!TryResolveView(ref _rankView))
                 return false;
 
-            int rankModelCnt = Mathf.Max(0, _rankModelCnt);
-            _rankPresenter = new RankPresenter(new RankModel(rankModelCnt), _rankView);
+            int rankModelCount = Mathf.Max(0, _rankModelCount);
+            _rankPresenter = new RankPresenter(new RankModel(rankModelCount), _rankView);
             _rankPresenter.Init();
             return _rankPresenter.IsInit;
         }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
 
@@ -7,19 +7,19 @@ namespace UnityTools.Samples.Rank
     public class RankItemModel : BaseModel
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly int _id;
         private readonly Color _bgColor;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private int _rank;
         private int _score;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public int Id => _id;
         public int Rank => _rank;
@@ -27,7 +27,7 @@ namespace UnityTools.Samples.Rank
         public Color BgColor => _bgColor;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public RankItemModel(int id)
         {
@@ -36,7 +36,7 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void SetRank(int rank)
         {

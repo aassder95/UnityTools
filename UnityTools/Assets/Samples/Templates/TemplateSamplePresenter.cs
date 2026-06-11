@@ -6,12 +6,12 @@ namespace UnityTools.Samples.Templates
     public class TemplateSamplePresenter : BasePresenter<TemplateSampleModel, TemplateSampleView>
     {
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public TemplateSamplePresenter(TemplateSampleModel model, TemplateSampleView view) : base(model, view) { }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void BindEvents()
         {

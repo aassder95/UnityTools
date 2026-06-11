@@ -6,30 +6,19 @@ namespace UnityTools.Samples.Inven
     public class InvenItemModel : BaseModel
     {
         //============================================================
-        //Types
-        //============================================================
-        public enum EInvenGrade
-        {
-            Common = 0,
-            Rare = 1,
-            Epic = 2,
-            Legendary = 3
-        }
-
-        //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly int _id;
         private readonly string _itemName;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private EInvenGrade _grade;
         private int _count;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public int Id => _id;
         public string ItemName => _itemName;
@@ -37,7 +26,7 @@ namespace UnityTools.Samples.Inven
         public int Count => _count;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public InvenItemModel(int id)
         {
@@ -48,7 +37,7 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void RandomizeGradeAndCount()
         {

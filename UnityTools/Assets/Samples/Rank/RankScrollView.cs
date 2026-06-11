@@ -4,12 +4,12 @@ using UnityTools.Util.UIFramework;
 namespace UnityTools.Samples.Rank
 {
     //============================================================
-    //Logic
+    // Logic
     //============================================================
     public class RankScrollView : DynamicScrollView<RankItemView>
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void RefreshItems()
         {

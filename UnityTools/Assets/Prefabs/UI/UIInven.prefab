@@ -1,4 +1,4 @@
-﻿%YAML 1.1
+%YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
 --- !u!1 &4028697014103123266
 GameObject:
@@ -121,8 +121,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _item: {fileID: 8120307858875503894, guid: 8817176bafc9ab9448680153db2d0eda, type: 3}
-  _visibleLineCnt: 4
-  _itemCntPerLine: 4
+  _minVisibleLineCount: 4
+  _fixedCellsPerGroup: 4
   _padding:
     m_Left: 50
     m_Right: 50
@@ -258,10 +258,10 @@ RectTransform:
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
-  m_Pivot: {x: 0, y: 0}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!223 &5151431651868890448
 Canvas:
   m_ObjectHideFlags: 0

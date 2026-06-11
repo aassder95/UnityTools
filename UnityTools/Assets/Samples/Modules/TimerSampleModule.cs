@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityTools.Samples.Timer;
 using UnityTools.Util.Core;
 
@@ -7,22 +7,22 @@ namespace UnityTools.Samples.Modules
     public class TimerSampleModule : SampleModuleBase
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private TimerView _timerView;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private TimerPresenter _timerPresenter;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public override string ModuleKey => SampleModuleKeys.TIMER;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override bool OnInitModule()
         {

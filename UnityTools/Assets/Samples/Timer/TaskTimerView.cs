@@ -8,22 +8,18 @@ namespace UnityTools.Samples.Timer
     public class TaskTimerView : MonoBehaviour
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
-        [SerializeField] private double _duration;
-
-        [Header("Info")]
-        [SerializeField] private TextMeshProUGUI _txtState;
+        [SerializeField] private double _durationSec;
+        [Header("Info")] [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtTimer;
-
-        [Header("Buttons")]
-        [SerializeField] private Button _btnStart;
+        [Header("Buttons")] [SerializeField] private Button _btnStart;
         [SerializeField] private Button _btnReduce1min;
         [SerializeField] private Button _btnComplete;
         [SerializeField] private Button _btnClaim;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event Action OnStartClicked { add => _onStartClicked += value; remove => _onStartClicked -= value; }
         public event Action OnCompleteClicked { add => _onCompleteClicked += value; remove => _onCompleteClicked -= value; }
@@ -35,12 +31,12 @@ namespace UnityTools.Samples.Timer
         private event Action _onReduce1MinClicked;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
-        public double Duration => _duration;
+        public double DurationSec => _durationSec;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void Awake()
         {
@@ -59,7 +55,7 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void SetState(string state)
         {
@@ -84,7 +80,7 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnStartButtonClicked()
         {

@@ -12,12 +12,12 @@ namespace UnityTools.Samples.Timer
     public class TimerView : BaseView<TimerModel>
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const string UTC_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtSubState;
@@ -28,12 +28,12 @@ namespace UnityTools.Samples.Timer
         [SerializeField] private TextMeshProUGUI _txtClosedEnd;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isTestLayoutBuilt;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction OnForceOpen { add => _onForceOpen += value; remove => _onForceOpen -= value; }
         public event UnityAction OnForceClosed { add => _onForceClosed += value; remove => _onForceClosed -= value; }
@@ -41,7 +41,7 @@ namespace UnityTools.Samples.Timer
         private event UnityAction _onForceClosed;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void Update()
         {
@@ -53,7 +53,7 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void OnInit()
         {
@@ -61,7 +61,7 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override void OnRefresh(TimerModel model)
         {
@@ -71,7 +71,7 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         public void OnForceOpenInspector()
         {
@@ -84,14 +84,14 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private void BuildTestLayout()
         {
             if(_isTestLayoutBuilt)
                 return;
 
-            SampleTestUiBuilder.Layout layout = SampleTestUiBuilder.Build(transform, "Timer Test Sample", "UTC state transition / force controls");
+            SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Timer Test Sample", "UTC state transition / force controls");
             SampleTestUiBuilder.DisableObjectsByName(transform, "BtnOpen", "BtnClosed", "ImgStateUpdated", "ImgState", "ImgTime");
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestOpen", "Force Open", OnForceOpenInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestClosed", "Force Closed", OnForceClosedInspector);
@@ -105,42 +105,42 @@ namespace UnityTools.Samples.Timer
         private void BuildStateCard(RectTransform rtContentViewport)
         {
             RectTransform rtStateCard = CreatePanel("GoTimerStateCard", rtContentViewport, new Color(0.12f, 0.23f, 0.41f, 0.96f));
-            Stretch(rtStateCard, new Vector2(0f, 1f), new Vector2(1f, 1f), new Vector2(0f, -208f), Vector2.zero);
+            Stretch(rtStateCard, new Vector2(0.0f, 1.0f), new Vector2(1.0f, 1.0f), new Vector2(0.0f, -208.0f), Vector2.zero);
 
             RectTransform rtStateRoot = CreateRect("GoTimerStateRoot", rtStateCard);
-            Stretch(rtStateRoot, Vector2.zero, Vector2.one, new Vector2(14f, 12f), new Vector2(-14f, -12f));
+            Stretch(rtStateRoot, Vector2.zero, Vector2.one, new Vector2(14.0f, 12.0f), new Vector2(-14.0f, -12.0f));
             VerticalLayoutGroup stateLayout = rtStateRoot.gameObject.AddComponent<VerticalLayoutGroup>();
             stateLayout.childAlignment = TextAnchor.MiddleCenter;
             stateLayout.childControlWidth = true;
             stateLayout.childControlHeight = true;
             stateLayout.childForceExpandWidth = true;
             stateLayout.childForceExpandHeight = false;
-            stateLayout.spacing = 10f;
+            stateLayout.spacing = 10.0f;
 
-            ReparentText(_txtState, rtStateRoot, 56, TextAlignmentOptions.Center, Color.white, 84f);
-            ReparentText(_txtSubState, rtStateRoot, 34, TextAlignmentOptions.Center, new Color(0.76f, 0.85f, 0.98f, 1f), 56f);
+            ReparentText(_txtState, rtStateRoot, 56, TextAlignmentOptions.Center, Color.white, 84.0f);
+            ReparentText(_txtSubState, rtStateRoot, 34, TextAlignmentOptions.Center, new Color(0.76f, 0.85f, 0.98f, 1.0f), 56.0f);
         }
 
         private void BuildInfoCard(RectTransform rtContentViewport)
         {
             RectTransform rtInfoCard = CreatePanel("GoTimerInfoCard", rtContentViewport, new Color(0.09f, 0.18f, 0.34f, 0.88f));
-            Stretch(rtInfoCard, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0f, -220f));
+            Stretch(rtInfoCard, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(0.0f, -220.0f));
 
             RectTransform rtInfoRoot = CreateRect("GoTimerInfoRoot", rtInfoCard);
-            Stretch(rtInfoRoot, Vector2.zero, Vector2.one, new Vector2(20f, 18f), new Vector2(-20f, -18f));
+            Stretch(rtInfoRoot, Vector2.zero, Vector2.one, new Vector2(20.0f, 18.0f), new Vector2(-20.0f, -18.0f));
             VerticalLayoutGroup infoLayout = rtInfoRoot.gameObject.AddComponent<VerticalLayoutGroup>();
             infoLayout.childAlignment = TextAnchor.UpperCenter;
             infoLayout.childControlWidth = true;
             infoLayout.childControlHeight = true;
             infoLayout.childForceExpandWidth = true;
             infoLayout.childForceExpandHeight = false;
-            infoLayout.spacing = 12f;
+            infoLayout.spacing = 12.0f;
 
-            ReparentText(_txtCur, rtInfoRoot, 30, TextAlignmentOptions.MidlineLeft, Color.white, 52f);
-            ReparentText(_txtLoop, rtInfoRoot, 34, TextAlignmentOptions.MidlineRight, new Color(0.86f, 0.9f, 0.98f, 1f), 56f);
-            ReparentText(_txtOpenUpdated, rtInfoRoot, 28, TextAlignmentOptions.MidlineLeft, new Color(0.85f, 0.89f, 0.97f, 1f), 48f);
-            ReparentText(_txtOpenEnd, rtInfoRoot, 28, TextAlignmentOptions.MidlineLeft, new Color(0.58f, 0.78f, 1f, 1f), 48f);
-            ReparentText(_txtClosedEnd, rtInfoRoot, 28, TextAlignmentOptions.MidlineLeft, new Color(1f, 0.66f, 0.66f, 1f), 48f);
+            ReparentText(_txtCur, rtInfoRoot, 30, TextAlignmentOptions.MidlineLeft, Color.white, 52.0f);
+            ReparentText(_txtLoop, rtInfoRoot, 34, TextAlignmentOptions.MidlineRight, new Color(0.86f, 0.9f, 0.98f, 1.0f), 56.0f);
+            ReparentText(_txtOpenUpdated, rtInfoRoot, 28, TextAlignmentOptions.MidlineLeft, new Color(0.85f, 0.89f, 0.97f, 1.0f), 48.0f);
+            ReparentText(_txtOpenEnd, rtInfoRoot, 28, TextAlignmentOptions.MidlineLeft, new Color(0.58f, 0.78f, 1.0f, 1.0f), 48.0f);
+            ReparentText(_txtClosedEnd, rtInfoRoot, 28, TextAlignmentOptions.MidlineLeft, new Color(1.0f, 0.66f, 0.66f, 1.0f), 48.0f);
         }
 
         private static void ReparentText(TextMeshProUGUI txtTarget, Transform trParent, int fontSize, TextAlignmentOptions alignment, Color textColor, float preferredHeight)
@@ -150,7 +150,7 @@ namespace UnityTools.Samples.Timer
 
             RectTransform rtText = txtTarget.rectTransform;
             rtText.SetParent(trParent, false);
-            Stretch(rtText, Vector2.zero, Vector2.one, new Vector2(4f, 0f), new Vector2(-4f, 0f));
+            Stretch(rtText, Vector2.zero, Vector2.one, new Vector2(4.0f, 0.0f), new Vector2(-4.0f, 0.0f));
 
             txtTarget.enableWordWrapping = false;
             txtTarget.overflowMode = TextOverflowModes.Truncate;
@@ -164,7 +164,7 @@ namespace UnityTools.Samples.Timer
 
             layoutElement.minHeight = preferredHeight;
             layoutElement.preferredHeight = preferredHeight;
-            layoutElement.flexibleHeight = 0f;
+            layoutElement.flexibleHeight = 0.0f;
         }
 
         private static RectTransform CreatePanel(string objectName, Transform parent, Color panelColor)

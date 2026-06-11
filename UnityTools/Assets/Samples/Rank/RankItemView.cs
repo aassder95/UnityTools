@@ -9,15 +9,15 @@ namespace UnityTools.Samples.Rank
     public class RankItemView : BaseView<RankItemModel>, IDynamicScrollItem, IPoolable 
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
-        private const float RANK_WIDTH = 112f;
-        private const float ID_WIDTH = 88f;
-        private const float SCORE_WIDTH = 120f;
-        private const float SCORE_RIGHT_PADDING = 14f;
+        private const float RANK_WIDTH = 112.0f;
+        private const float ID_WIDTH = 88.0f;
+        private const float SCORE_WIDTH = 120.0f;
+        private const float SCORE_RIGHT_PADDING = 14.0f;
 
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private TextMeshProUGUI _txtId;
         [SerializeField] private TextMeshProUGUI _txtRank;
@@ -26,17 +26,17 @@ namespace UnityTools.Samples.Rank
         [SerializeField] private RectTransform _rtView;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private int _index;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public int Index => _index;
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void OnInit()
         {
@@ -48,7 +48,7 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override void OnRefresh(RankItemModel model)
         {
@@ -75,7 +75,7 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         void IDynamicScrollItem.SetIndex(int index)
         {
@@ -99,37 +99,37 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private static Color ResolveRankColor(int rank)
         {
             if(rank <= 1)
-                return new Color(1f, 0.84f, 0.37f, 1f);
+                return new Color(1.0f, 0.84f, 0.37f, 1.0f);
 
             if(rank <= 3)
-                return new Color(0.56f, 0.89f, 1f, 1f);
+                return new Color(0.56f, 0.89f, 1.0f, 1.0f);
 
-            return new Color(0.88f, 0.92f, 1f, 1f);
+            return new Color(0.88f, 0.92f, 1.0f, 1.0f);
         }
 
         private static Color ResolveScoreColor(int score)
         {
-            float normalized = Mathf.InverseLerp(1f, 5000f, score);
-            return Color.Lerp(new Color(0.66f, 0.8f, 1f, 1f), new Color(1f, 0.4f, 0.46f, 1f), normalized);
+            float normalized = Mathf.InverseLerp(1.0f, 5000.0f, score);
+            return Color.Lerp(new Color(0.66f, 0.8f, 1.0f, 1.0f), new Color(1.0f, 0.4f, 0.46f, 1.0f), normalized);
         }
 
         private void ConfigureLayout()
         {
-            SetColumnRect(_txtRank, 0f, RANK_WIDTH, true, false);
+            SetColumnRect(_txtRank, 0.0f, RANK_WIDTH, true, false);
             SetColumnRect(_txtId, RANK_WIDTH, ID_WIDTH, true, false);
             SetColumnRect(_txtScore, SCORE_RIGHT_PADDING, SCORE_WIDTH, false, true);
         }
 
         private void ConfigureTextStyle()
         {
-            ConfigureText(_txtRank, TextAlignmentOptions.MidlineLeft, 58f, 30f, 58f, FontStyles.Bold);
-            ConfigureText(_txtId, TextAlignmentOptions.Center, 34f, 18f, 34f, FontStyles.Bold);
-            ConfigureText(_txtScore, TextAlignmentOptions.MidlineRight, 44f, 24f, 44f, FontStyles.Bold);
+            ConfigureText(_txtRank, TextAlignmentOptions.MidlineLeft, 58.0f, 30.0f, 58.0f, FontStyles.Bold);
+            ConfigureText(_txtId, TextAlignmentOptions.Center, 34.0f, 18.0f, 34.0f, FontStyles.Bold);
+            ConfigureText(_txtScore, TextAlignmentOptions.MidlineRight, 44.0f, 24.0f, 44.0f, FontStyles.Bold);
         }
 
         private static void SetColumnRect(TextMeshProUGUI txtTarget, float startX, float width, bool isLeftAnchor, bool isRightAnchor)
@@ -143,21 +143,21 @@ namespace UnityTools.Samples.Rank
 
             if(isLeftAnchor)
             {
-                rt.anchorMin = new Vector2(0f, 0f);
-                rt.anchorMax = new Vector2(0f, 1f);
-                rt.pivot = new Vector2(0f, 0.5f);
-                rt.anchoredPosition = new Vector2(startX, 0f);
-                rt.sizeDelta = new Vector2(width, 0f);
+                rt.anchorMin = new Vector2(0.0f, 0.0f);
+                rt.anchorMax = new Vector2(0.0f, 1.0f);
+                rt.pivot = new Vector2(0.0f, 0.5f);
+                rt.anchoredPosition = new Vector2(startX, 0.0f);
+                rt.sizeDelta = new Vector2(width, 0.0f);
                 return;
             }
 
             if(isRightAnchor)
             {
-                rt.anchorMin = new Vector2(1f, 0f);
-                rt.anchorMax = new Vector2(1f, 1f);
-                rt.pivot = new Vector2(1f, 0.5f);
-                rt.anchoredPosition = new Vector2(-startX, 0f);
-                rt.sizeDelta = new Vector2(width, 0f);
+                rt.anchorMin = new Vector2(1.0f, 0.0f);
+                rt.anchorMax = new Vector2(1.0f, 1.0f);
+                rt.pivot = new Vector2(1.0f, 0.5f);
+                rt.anchoredPosition = new Vector2(-startX, 0.0f);
+                rt.sizeDelta = new Vector2(width, 0.0f);
             }
         }
 

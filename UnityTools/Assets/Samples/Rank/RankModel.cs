@@ -8,40 +8,42 @@ namespace UnityTools.Samples.Rank
     public class RankModel : BaseModel
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const int SCORE_MIN = 1;
         private const int SCORE_MAX = 5001;
 
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly List<RankItemModel> _itemModels = new();
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private int _nextItemId;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public int ItemCount => _itemModels.Count;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
-        public RankModel(int cnt)
+        public RankModel(int count)
         {
-            for(int i = 0; i < cnt; i++)
+            for(int i = 0; i < count; i++)
+            {
                 _itemModels.Add(new RankItemModel(i));
+            }
 
-            _nextItemId = cnt;
+            _nextItemId = count;
             SetRandomScore();
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public RankItemModel Get(int idx)
         {
@@ -51,7 +53,9 @@ namespace UnityTools.Samples.Rank
         public void SetRandomScore()
         {
             for(int i = 0; i < _itemModels.Count; i++)
+            {
                 _itemModels[i].SetScore(Random.Range(SCORE_MIN, SCORE_MAX));
+            }
 
             SortByScoreAndUpdateRank();
             NotifyUpdated();
@@ -64,7 +68,9 @@ namespace UnityTools.Samples.Rank
                 return;
 
             for(int i = 0; i < topCount; i++)
+            {
                 _itemModels[i].SetScore(_itemModels[i].Score + Random.Range(10, 31));
+            }
 
             SortByScoreAndUpdateRank();
             NotifyUpdated();
@@ -74,8 +80,8 @@ namespace UnityTools.Samples.Rank
         {
             for(int i = 0; i < _itemModels.Count; i++)
             {
-                float normalized = _itemModels.Count <= 1 ? 0f : (float)i / (_itemModels.Count - 1);
-                int waveScore = Mathf.RoundToInt(Mathf.Lerp(4900f, 700f, normalized)) + Random.Range(-240, 241);
+                float normalized = _itemModels.Count <= 1 ? 0.0f : (float)i / (_itemModels.Count - 1);
+                int waveScore = Mathf.RoundToInt(Mathf.Lerp(4900.0f, 700.0f, normalized)) + Random.Range(-240, 241);
                 _itemModels[i].SetScore(Mathf.Clamp(waveScore, SCORE_MIN, SCORE_MAX - 1));
             }
 
@@ -107,7 +113,9 @@ namespace UnityTools.Samples.Rank
         {
             _itemModels.Sort((left, right) => right.Score.CompareTo(left.Score));
             for(int i = 0; i < _itemModels.Count; i++)
+            {
                 _itemModels[i].SetRank(i + 1);
+            }
         }
     }
 }

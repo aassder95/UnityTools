@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityTools.Samples.Modules;
 
 namespace UnityTools.Samples.Templates
@@ -6,25 +6,25 @@ namespace UnityTools.Samples.Templates
     public class TemplateSampleModule : SampleModuleBase
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private string _moduleKey = "Template";
         [SerializeField] private TemplateSampleView _view;
         [SerializeField] private int _startCount;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private TemplateSampleModel _model;
         private TemplateSamplePresenter _presenter;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public override string ModuleKey => _moduleKey;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override bool OnInitModule()
         {

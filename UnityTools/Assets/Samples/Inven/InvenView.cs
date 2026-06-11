@@ -8,17 +8,17 @@ namespace UnityTools.Samples.Inven
     public class InvenView : BaseView<InvenModel>
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private InvenScrollView _scrollView;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isTestLayoutBuilt;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction OnRefreshItems { add => _onRefreshItems += value; remove => _onRefreshItems -= value; }
         public event UnityAction OnShuffleItems { add => _onShuffleItems += value; remove => _onShuffleItems -= value; }
@@ -30,7 +30,7 @@ namespace UnityTools.Samples.Inven
         private event UnityAction _onSortByGrade;
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void OnInit()
         {
@@ -38,12 +38,12 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public InvenScrollView ScrollView => _scrollView;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected override void OnRefresh(InvenModel model)
         {
@@ -54,7 +54,7 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         public void OnRefreshItemsInspector()
         {
@@ -77,7 +77,7 @@ namespace UnityTools.Samples.Inven
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private void BuildTestLayout()
         {
@@ -87,7 +87,7 @@ namespace UnityTools.Samples.Inven
             if(_scrollView == null)
                 return;
 
-            SampleTestUiBuilder.Layout layout = SampleTestUiBuilder.Build(transform, "Inventory Test Sample", "Shuffle / Sort / Dynamic list refresh");
+            SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Inventory Test Sample", "Shuffle / Sort / Dynamic list refresh");
             RectTransform rtScroll = _scrollView.GetComponent<RectTransform>();
             SampleTestUiBuilder.ReparentToContent(rtScroll, layout.RtContentViewport, Vector2.zero, Vector2.zero);
 

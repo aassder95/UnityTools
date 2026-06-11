@@ -7,17 +7,17 @@ namespace UnityTools.Samples.Timer
     public class TimerPresenter : BasePresenter<TimerModel, TimerView>
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly UnityAction<int> _onTimerUpdated;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private PeriodTimer _periodTimer;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public TimerPresenter(TimerModel model, TimerView view) : base(model, view)
         {
@@ -31,7 +31,7 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void OnInit()
         {
@@ -87,7 +87,7 @@ namespace UnityTools.Samples.Timer
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)
         {

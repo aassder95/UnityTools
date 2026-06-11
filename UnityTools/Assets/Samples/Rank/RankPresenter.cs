@@ -6,7 +6,7 @@ namespace UnityTools.Samples.Rank
     public class RankPresenter : BasePresenter<RankModel, RankView>
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly UnityAction _onRandomScore;
         private readonly UnityAction _onBoostTopScore;
@@ -14,7 +14,7 @@ namespace UnityTools.Samples.Rank
         private readonly UnityAction<RankItemView> _onItemViewUpdated;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public RankPresenter(RankModel model, RankView view) : base(model, view)
         {
@@ -25,7 +25,7 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         protected override void OnInit()
         {
@@ -70,7 +70,7 @@ namespace UnityTools.Samples.Rank
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnIncreaseTotalItemCallback()
         {
