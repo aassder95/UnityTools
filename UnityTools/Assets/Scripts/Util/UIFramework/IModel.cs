@@ -1,14 +1,12 @@
-using UnityEngine;
+using System;
 
 namespace UnityTools.Util.UIFramework
 {
-    public interface IDynamicScrollItem
+    public interface IModel
     {
         //============================================================
-        // Logic
+        // Events
         //============================================================
-        int GetIndex();
-        void SetIndex(int index);
-        void SetPosition(Vector2 pos);
+        event Action OnUpdated;
     }
 }

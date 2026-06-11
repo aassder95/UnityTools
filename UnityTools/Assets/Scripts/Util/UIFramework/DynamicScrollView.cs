@@ -1,39 +1,32 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
-using UnityEngine.Serialization;
 using UnityEngine.UI;
 using UnityTools.Util.Core.Pooling;
 using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.UIFramework
 {
-    public abstract class DynamicScrollViewBase : MonoBehaviour
-    {
-    }
-
     [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : DynamicScrollViewBase where TView : Component, IDynamicScrollItem, IPoolable
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
-        private const int MIN_VISIBLE_LINE_CNT = 1;
+        private const int MIN_VISIBLE_LINE_COUNT = 1;
         private const int MIN_FIXED_CELLS_PER_GROUP = 1;
-        private const int DEFAULT_EXTRA_VISIBLE_LINE_CNT = 1;
+        private const int DEFAULT_EXTRA_VISIBLE_LINE_COUNT = 1;
         private const float SCROLL_REFRESH_EPSILON = 0.01f;
         private const float MIN_SCROLL_DURATION_SEC = 0.0001f;
 
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private TView _item;
         [SerializeField] private EDynamicScrollAxisType _axisType = EDynamicScrollAxisType.Vertical;
         [SerializeField] private EDynamicScrollLayoutMode _layoutMode = EDynamicScrollLayoutMode.FixedCount;
-        [FormerlySerializedAs("_itemCntPerLine")]
         [SerializeField] private int _fixedCellsPerGroup = 1;
-        [FormerlySerializedAs("_visibleLineCnt")]
-        [SerializeField] private int _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
+        [SerializeField] private int _minVisibleLineCount = MIN_VISIBLE_LINE_COUNT;
         [SerializeField] private EDynamicScrollMovementType _movementType = EDynamicScrollMovementType.Clamped;
         [SerializeField] private bool _isInertia = true;
         [SerializeField] [Range(0.001f, 0.3f)] private float _decelerationRate = 0.135f;
@@ -43,15 +36,15 @@ namespace UnityTools.Util.UIFramework
         [SerializeField] private RectOffset _padding;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private DynamicScrollContext _context;
         private DynamicScrollItemController<TView> _itemCtrl;
         private ObjectPool<TView> _pool;
-        private int _totalItemCnt;
-        private int _totalLineCnt;
-        private int _visibleLineCnt = MIN_VISIBLE_LINE_CNT;
-        private int _itemCntPerLine = MIN_FIXED_CELLS_PER_GROUP;
+        private int _totalItemCount;
+        private int _totalLineCount;
+        private int _visibleLineCount = MIN_VISIBLE_LINE_COUNT;
+        private int _itemCountPerLine = MIN_FIXED_CELLS_PER_GROUP;
         private RectTransform _rt;
         private RectTransform _rtContent;
         private RectTransform _rtItem;
@@ -63,27 +56,28 @@ namespace UnityTools.Util.UIFramework
         private Coroutine _coSmoothScroll;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated.AddListener(value); remove => _onItemUpdated.RemoveListener(value); }
         private readonly UnityEvent<TView> _onItemUpdated = new();
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         protected DynamicScrollContext Context => _context;
         protected DynamicScrollItemController<TView> ItemController => _itemCtrl;
-        protected int TotalLineCount => _totalLineCnt;
-        protected int VisibleLineCount => _visibleLineCnt;
-        protected int TotalItemCount => _totalItemCnt;
-        protected int ItemCountPerLine => _itemCntPerLine;
+        protected int TotalLineCount => _totalLineCount;
+        protected int VisibleLineCount => _visibleLineCount;
+        protected int TotalItemCount => _totalItemCount;
+        protected int ItemCountPerLine => _itemCountPerLine;
         protected RectTransform RectTransform => _rt;
         protected RectTransform RtContent => _rtContent;
         protected ScrollRect ScrollRect => _scrollRect;
         protected bool IsVertical => _axisType == EDynamicScrollAxisType.Vertical;
+        public override bool IsInitialized => _isInitialized;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void Awake()
         {
@@ -95,11 +89,11 @@ namespace UnityTools.Util.UIFramework
             if(!_isInitialized || !_isComponentReady || _context == null)
                 return;
 
-            int prevItemCntPerLine = _itemCntPerLine;
-            int prevVisibleLineCnt = _visibleLineCnt;
+            int prevItemCountPerLine = _itemCountPerLine;
+            int prevVisibleLineCount = _visibleLineCount;
 
             UpdateLayoutConfig();
-            if(prevItemCntPerLine == _itemCntPerLine && prevVisibleLineCnt == _visibleLineCnt)
+            if(prevItemCountPerLine == _itemCountPerLine && prevVisibleLineCount == _visibleLineCount)
                 return;
 
             UpdateContentLayout();
@@ -120,7 +114,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         private bool EnsureComponentReady()
         {
@@ -139,12 +133,12 @@ namespace UnityTools.Util.UIFramework
             ApplyScrollRectSettings();
             ApplyContentAlignment();
 
-            _itemCntPerLine = ResolveItemCountPerLine();
-            _context = new DynamicScrollContext(_itemCntPerLine, _spacing, _padding, _rtItem, _scrollRect);
+            _itemCountPerLine = ResolveItemCountPerLine();
+            _context = new DynamicScrollContext(_itemCountPerLine, _spacing, _padding, _rtItem, _scrollRect);
             UpdateAutoVisibleLineCount();
 
-            int initialItemCnt = Mathf.Max(_visibleLineCnt * _itemCntPerLine, _itemCntPerLine);
-            _pool = new ObjectPool<TView>(initialItemCnt, _item, _rtContent);
+            int initialItemCount = Mathf.Max(_visibleLineCount * _itemCountPerLine, _itemCountPerLine);
+            _pool = new ObjectPool<TView>(initialItemCount, _item, _rtContent);
             _itemCtrl = new DynamicScrollItemController<TView>(_context, _pool);
 
             if(_onControllerItemUpdated == null)
@@ -157,9 +151,9 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
-        public void InitView(int totalItemCnt)
+        public void InitView(int totalItemCount)
         {
             if(!EnsureComponentReady())
                 return;
@@ -167,10 +161,10 @@ namespace UnityTools.Util.UIFramework
             _isInitialized = true;
             UpdateLayoutConfig();
 
-            int nextTotalItemCnt = Mathf.Max(0, totalItemCnt);
-            bool isSameTotalItemCnt = nextTotalItemCnt == _totalItemCnt;
-            SetTotalItemCount(nextTotalItemCnt);
-            if(isSameTotalItemCnt)
+            int nextTotalItemCount = Mathf.Max(0, totalItemCount);
+            bool isSameTotalItemCount = nextTotalItemCount == _totalItemCount;
+            SetTotalItemCount(nextTotalItemCount);
+            if(isSameTotalItemCount)
                 RebuildVisibleItems();
         }
 
@@ -187,12 +181,12 @@ namespace UnityTools.Util.UIFramework
             if(!EnsureComponentReady())
                 return;
 
-            if(_context == null || _rtContent == null || _totalItemCnt <= 0)
+            if(_context == null || _rtContent == null || _totalItemCount <= 0)
                 return;
 
-            int targetIdx = Mathf.Clamp(itemIdx, 0, _totalItemCnt - 1);
+            int targetIdx = Mathf.Clamp(itemIdx, 0, _totalItemCount - 1);
             Vector2 targetPos = _context.CalculateContentPosition(targetIdx);
-            targetPos = _context.ClampContentPosition(targetPos, _totalLineCnt, _visibleLineCnt);
+            targetPos = _context.ClampContentPosition(targetPos, _totalLineCount, _visibleLineCount);
 
             if(isImmediate || durationSec <= MIN_SCROLL_DURATION_SEC)
             {
@@ -205,16 +199,16 @@ namespace UnityTools.Util.UIFramework
             StartSmoothScroll(targetPos, durationSec);
         }
 
-        protected void SetTotalItemCount(int totalItemCnt)
+        protected void SetTotalItemCount(int totalItemCount)
         {
             if(!EnsureComponentReady())
                 return;
 
-            int nextTotalItemCnt = Mathf.Max(0, totalItemCnt);
-            if(nextTotalItemCnt == _totalItemCnt)
+            int nextTotalItemCount = Mathf.Max(0, totalItemCount);
+            if(nextTotalItemCount == _totalItemCount)
                 return;
 
-            _totalItemCnt = nextTotalItemCnt;
+            _totalItemCount = nextTotalItemCount;
             UpdateContentLayout();
 
             if(_isInitialized)
@@ -226,16 +220,16 @@ namespace UnityTools.Util.UIFramework
             _itemCtrl?.UpdatePosition();
         }
 
-        protected void SetVisibleLineCount(int visibleLineCnt)
+        protected void SetVisibleLineCount(int visibleLineCount)
         {
             if(!EnsureComponentReady())
                 return;
 
-            int nextVisibleLineCnt = Mathf.Max(MIN_VISIBLE_LINE_CNT, visibleLineCnt);
-            if(nextVisibleLineCnt == _visibleLineCnt)
+            int nextVisibleLineCount = Mathf.Max(MIN_VISIBLE_LINE_COUNT, visibleLineCount);
+            if(nextVisibleLineCount == _visibleLineCount)
                 return;
 
-            _visibleLineCnt = nextVisibleLineCnt;
+            _visibleLineCount = nextVisibleLineCount;
             if(_isInitialized)
                 RebuildVisibleItems();
         }
@@ -245,12 +239,12 @@ namespace UnityTools.Util.UIFramework
             if(!EnsureComponentReady())
                 return;
 
-            if(_totalItemCnt <= 0 || _context == null || _rtContent == null)
+            if(_totalItemCount <= 0 || _context == null || _rtContent == null)
                 return;
 
-            int targetIdx = Mathf.Clamp(itemIdx, 0, _totalItemCnt - 1);
+            int targetIdx = Mathf.Clamp(itemIdx, 0, _totalItemCount - 1);
             Vector2 targetPos = _context.CalculateContentPosition(targetIdx, offset);
-            _rtContent.anchoredPosition = _context.ClampContentPosition(targetPos, _totalLineCnt, _visibleLineCnt);
+            _rtContent.anchoredPosition = _context.ClampContentPosition(targetPos, _totalLineCount, _visibleLineCount);
             OnScrollValueChanged(Vector2.zero);
         }
 
@@ -262,7 +256,7 @@ namespace UnityTools.Util.UIFramework
                 return;
             }
 
-            if(_totalItemCnt <= 0 || _itemCtrl.Count <= 0)
+            if(_totalItemCount <= 0 || _itemCtrl.Count <= 0)
             {
                 HandleScrollValueChanged(value);
                 return;
@@ -276,19 +270,19 @@ namespace UnityTools.Util.UIFramework
             }
 
             _lastScrollPos = currentScrollPos;
-            int currentLine = _itemCtrl.FirstIndex / _itemCntPerLine;
-            int visibleLine = _context.CalculateFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
+            int currentLine = _itemCtrl.FirstIndex / _itemCountPerLine;
+            int visibleLine = _context.CalculateFirstVisibleLine(Mathf.Max(0, _totalLineCount - _visibleLineCount));
             if(currentLine != visibleLine)
             {
                 bool isDown = visibleLine > currentLine;
-                int moveLineCnt = Mathf.Min(Mathf.Abs(currentLine - visibleLine), _visibleLineCnt);
-                for(int i = 0; i < moveLineCnt; i++)
+                int moveLineCount = Mathf.Min(Mathf.Abs(currentLine - visibleLine), _visibleLineCount);
+                for(int i = 0; i < moveLineCount; i++)
                 {
-                    int addLine = isDown ? visibleLine + _visibleLineCnt - moveLineCnt + i : visibleLine + moveLineCnt - i - 1;
-                    int removeLine = isDown ? currentLine + i : currentLine + _visibleLineCnt - i - 1;
+                    int addLine = isDown ? visibleLine + _visibleLineCount - moveLineCount + i : visibleLine + moveLineCount - i - 1;
+                    int removeLine = isDown ? currentLine + i : currentLine + _visibleLineCount - i - 1;
 
-                    _itemCtrl.AddRange(_context.GetItemCountForLine(addLine, _totalItemCnt), addLine * _itemCntPerLine, isDown);
-                    _itemCtrl.RemoveRange(_context.GetItemCountForLine(removeLine, _totalItemCnt), !isDown);
+                    _itemCtrl.AddRange(_context.GetItemCountForLine(addLine, _totalItemCount), addLine * _itemCountPerLine, isDown);
+                    _itemCtrl.RemoveRange(_context.GetItemCountForLine(removeLine, _totalItemCount), !isDown);
                 }
             }
 
@@ -309,10 +303,10 @@ namespace UnityTools.Util.UIFramework
                 _fixedCellsPerGroup = MIN_FIXED_CELLS_PER_GROUP;
             }
 
-            if(_minVisibleLineCnt < MIN_VISIBLE_LINE_CNT)
+            if(_minVisibleLineCount < MIN_VISIBLE_LINE_COUNT)
             {
-                DebugLogger.LogWarning($"최소 표시 라인 수({_minVisibleLineCnt})가 잘못되어 1로 보정합니다.");
-                _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
+                DebugLogger.LogWarning($"최소 표시 라인 수({_minVisibleLineCount})가 잘못되어 1로 보정합니다.");
+                _minVisibleLineCount = MIN_VISIBLE_LINE_COUNT;
             }
 
             if(_scrollRect == null)
@@ -378,11 +372,11 @@ namespace UnityTools.Util.UIFramework
             if(!_isComponentReady)
                 return;
 
-            int nextItemCntPerLine = ResolveItemCountPerLine();
-            if(nextItemCntPerLine != _itemCntPerLine)
+            int nextItemCountPerLine = ResolveItemCountPerLine();
+            if(nextItemCountPerLine != _itemCountPerLine)
             {
-                _itemCntPerLine = nextItemCntPerLine;
-                _context?.SetItemCountPerLine(_itemCntPerLine);
+                _itemCountPerLine = nextItemCountPerLine;
+                _context?.SetItemCountPerLine(_itemCountPerLine);
             }
 
             UpdateAutoVisibleLineCount();
@@ -393,8 +387,8 @@ namespace UnityTools.Util.UIFramework
             if(_context == null)
                 return;
 
-            int autoVisibleLineCnt = _context.CalculateAutoVisibleLineCount(DEFAULT_EXTRA_VISIBLE_LINE_CNT);
-            _visibleLineCnt = Mathf.Max(_minVisibleLineCnt, autoVisibleLineCnt);
+            int autoVisibleLineCount = _context.CalculateAutoVisibleLineCount(DEFAULT_EXTRA_VISIBLE_LINE_COUNT);
+            _visibleLineCount = Mathf.Max(_minVisibleLineCount, autoVisibleLineCount);
         }
 
         private int ResolveItemCountPerLine()
@@ -428,8 +422,8 @@ namespace UnityTools.Util.UIFramework
             if(cellSpan <= 0.0f)
                 return MIN_FIXED_CELLS_PER_GROUP;
 
-            int fitCnt = Mathf.FloorToInt((availableCrossSize + crossSpacingSize) / cellSpan);
-            return Mathf.Max(MIN_FIXED_CELLS_PER_GROUP, fitCnt);
+            int fitCount = Mathf.FloorToInt((availableCrossSize + crossSpacingSize) / cellSpan);
+            return Mathf.Max(MIN_FIXED_CELLS_PER_GROUP, fitCount);
         }
 
         private void UpdateContentLayout()
@@ -437,8 +431,8 @@ namespace UnityTools.Util.UIFramework
             if(_context == null || _rtContent == null)
                 return;
 
-            _totalLineCnt = _itemCntPerLine > 0 ? Mathf.CeilToInt((float)_totalItemCnt / _itemCntPerLine) : 0;
-            _rtContent.sizeDelta = _context.CalculateContentSize(_totalLineCnt);
+            _totalLineCount = _itemCountPerLine > 0 ? Mathf.CeilToInt((float)_totalItemCount / _itemCountPerLine) : 0;
+            _rtContent.sizeDelta = _context.CalculateContentSize(_totalLineCount);
         }
 
         private void RebuildVisibleItems()
@@ -448,20 +442,20 @@ namespace UnityTools.Util.UIFramework
 
             _lastScrollPos = float.MinValue;
             _itemCtrl.Clear();
-            if(_totalItemCnt <= 0)
+            if(_totalItemCount <= 0)
                 return;
 
-            _rtContent.anchoredPosition = _context.ClampContentPosition(_rtContent.anchoredPosition, _totalLineCnt, _visibleLineCnt);
-            int firstLine = _context.CalculateFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
-            int firstIdx = firstLine * _itemCntPerLine;
-            if(firstIdx >= _totalItemCnt)
+            _rtContent.anchoredPosition = _context.ClampContentPosition(_rtContent.anchoredPosition, _totalLineCount, _visibleLineCount);
+            int firstLine = _context.CalculateFirstVisibleLine(Mathf.Max(0, _totalLineCount - _visibleLineCount));
+            int firstIdx = firstLine * _itemCountPerLine;
+            if(firstIdx >= _totalItemCount)
                 return;
 
-            int visibleItemCnt = Mathf.Min(_visibleLineCnt * _itemCntPerLine, _totalItemCnt - firstIdx);
-            if(visibleItemCnt <= 0)
+            int visibleItemCount = Mathf.Min(_visibleLineCount * _itemCountPerLine, _totalItemCount - firstIdx);
+            if(visibleItemCount <= 0)
                 return;
 
-            _itemCtrl.AddRange(visibleItemCnt, firstIdx, true);
+            _itemCtrl.AddRange(visibleItemCount, firstIdx, true);
         }
 
         private void StartSmoothScroll(Vector2 targetPos, float durationSec)
@@ -480,7 +474,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Coroutines
+        // Coroutines
         //============================================================
         private IEnumerator CoSmoothScroll(Vector2 targetPos, float durationSec)
         {
@@ -503,7 +497,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private static ScrollRect.MovementType ConvertMovementType(EDynamicScrollMovementType movementType)
         {
@@ -563,7 +557,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         protected virtual void HandleScrollValueChanged(Vector2 value) { }
     }

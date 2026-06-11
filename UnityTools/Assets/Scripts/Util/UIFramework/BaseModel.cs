@@ -3,34 +3,22 @@ using System.Collections.Generic;
 
 namespace UnityTools.Util.UIFramework
 {
-    // Exception: type-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
-    public interface IModel
-    {
-        //============================================================
-        //Events
-        //============================================================
-        event Action OnUpdated;
-    }
-
     public abstract class BaseModel : IModel
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private int _updateDepth;
         private bool _hasPendingUpdate;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event Action OnUpdated { add => _onUpdated += value; remove => _onUpdated -= value; }
         private event Action _onUpdated;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected void BeginUpdate()
         {

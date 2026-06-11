@@ -9,7 +9,7 @@ namespace UnityTools.Util.Editor
     public class DynamicScrollViewInspector : UnityEditor.Editor
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const string ITEM_PROP = "_item";
         private const string AXIS_PROP = "_axisType";
@@ -24,7 +24,7 @@ namespace UnityTools.Util.Editor
         private const string PADDING_PROP = "_padding";
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public override void OnInspectorGUI()
         {
@@ -53,7 +53,7 @@ namespace UnityTools.Util.Editor
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private void DrawScriptField()
         {

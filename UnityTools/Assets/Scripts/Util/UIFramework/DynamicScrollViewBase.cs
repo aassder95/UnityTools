@@ -2,13 +2,11 @@ using UnityEngine;
 
 namespace UnityTools.Util.UIFramework
 {
-    public interface IDynamicScrollItem
+    public abstract class DynamicScrollViewBase : MonoBehaviour
     {
         //============================================================
-        // Logic
+        // Properties
         //============================================================
-        int GetIndex();
-        void SetIndex(int index);
-        void SetPosition(Vector2 pos);
+        public abstract bool IsInitialized { get; }
     }
 }

@@ -9,20 +9,20 @@ namespace UnityTools.Util.UIFramework
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly DynamicScrollContext _context;
         private readonly ObjectPool<TView> _pool;
         private readonly Deque<TView> _items = new();
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated += value; remove => _onItemUpdated -= value; }
         private event UnityAction<TView> _onItemUpdated;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public int FirstIndex
         {
@@ -36,7 +36,7 @@ namespace UnityTools.Util.UIFramework
         public int Count => _items.Count;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public DynamicScrollItemController(DynamicScrollContext context, ObjectPool<TView> pool)
         {
@@ -45,7 +45,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public TView Create(int idx)
         {
@@ -59,73 +59,91 @@ namespace UnityTools.Util.UIFramework
         public void Update()
         {
             foreach(TView item in _items)
+            {
                 _onItemUpdated?.Invoke(item);
+            }
         }
 
         public void UpdatePosition()
         {
             foreach(TView item in _items)
+            {
                 item.SetPosition(_context.CalculateItemPosition(item.GetIndex()));
+            }
         }
 
-        public void AddRange(int cnt, int totalCnt)
+        public void AddRange(int count, int totalCount)
         {
-            if(cnt <= 0)
+            if(count <= 0)
                 return;
 
-            bool isBack = FirstIndex + _items.Count < totalCnt;
+            bool isBack = FirstIndex + _items.Count < totalCount;
             if(isBack)
             {
                 int idx = FirstIndex + _items.Count;
-                for(int j = 0; j < cnt; j++)
+                for(int j = 0; j < count; j++)
+                {
                     Add(idx + j, true);
+                }
                 return;
             }
 
             int frontIdx = FirstIndex - 1;
-            for(int j = 0; j < cnt; j++)
+            for(int j = 0; j < count; j++)
+            {
                 Add(frontIdx - j, false);
+            }
         }
 
-        public void AddRange(int cnt, int idx, bool isBack)
+        public void AddRange(int count, int idx, bool isBack)
         {
-            if(cnt <= 0)
+            if(count <= 0)
                 return;
 
             if(isBack)
             {
-                for(int j = 0; j < cnt; j++)
+                for(int j = 0; j < count; j++)
+                {
                     Add(idx + j, true);
+                }
                 return;
             }
 
-            for(int j = cnt - 1; j >= 0; j--)
+            for(int j = count - 1; j >= 0; j--)
+            {
                 Add(idx + j, false);
+            }
         }
 
-        public void RemoveRange(int cnt, int lastLine)
+        public void RemoveRange(int count, int lastLine)
         {
-            if(cnt <= 0)
+            if(count <= 0)
                 return;
 
             bool isBack = FirstIndex >= _context.CalculateFirstVisibleItemIndex(lastLine);
-            for(int j = 0; j < cnt; j++)
+            for(int j = 0; j < count; j++)
+            {
                 Remove(isBack);
+            }
         }
 
-        public void RemoveRange(int cnt, bool isBack)
+        public void RemoveRange(int count, bool isBack)
         {
-            if(cnt <= 0)
+            if(count <= 0)
                 return;
 
-            for(int j = 0; j < cnt; j++)
+            for(int j = 0; j < count; j++)
+            {
                 Remove(isBack);
+            }
         }
 
         public void Clear()
         {
             while(_items.Count > 0)
+            {
                 _pool.Return(_items.Dequeue());
+            }
         }
 
         public TView Get(int idx)
@@ -154,7 +172,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private void Add(int idx, bool isBack)
         {

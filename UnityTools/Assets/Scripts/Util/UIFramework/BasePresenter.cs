@@ -2,52 +2,27 @@ using System;
 
 namespace UnityTools.Util.UIFramework
 {
-    // Exception: type-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
-    public interface IPresenter
-    {
-        //============================================================
-        //Properties
-        //============================================================
-        bool IsInit { get; }
-        bool IsVisible { get; }
-
-        //============================================================
-        //Init/Register
-        //============================================================
-        void Init();
-
-        //============================================================
-        //Logic
-        //============================================================
-        void Show();
-        void Hide();
-        void Release();
-    }
-
     public abstract class BasePresenter<TModel, TView> : IPresenter where TModel : IModel where TView : IView<TModel>
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         protected readonly TModel _model;
         protected readonly TView _view;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isInit;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public bool IsInit => _isInit;
         public bool IsVisible => _view.IsVisible;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         protected BasePresenter(TModel model, TView view)
         {
@@ -62,7 +37,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public void Init()
         {
@@ -127,7 +102,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         protected virtual void OnInit() { }
 
@@ -168,7 +143,7 @@ namespace UnityTools.Util.UIFramework
         protected virtual void OnRelease() { }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         protected virtual void OnModelUpdated()
         {
@@ -179,7 +154,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private static void TryExecuteAndCapture(Action action, ref Exception releaseException)
         {
@@ -204,7 +179,9 @@ namespace UnityTools.Util.UIFramework
                 Exception[] mergedExceptions = new Exception[prevCount + 1];
 
                 for(int i = 0; i < prevCount; i++)
+                {
                     mergedExceptions[i] = aggregateException.InnerExceptions[i];
+                }
 
                 mergedExceptions[prevCount] = nextException;
                 return new AggregateException(mergedExceptions);

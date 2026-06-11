@@ -2,47 +2,21 @@ using UnityEngine;
 
 namespace UnityTools.Util.UIFramework
 {
-    // Exception: type-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
-    public interface IView<TModel> where TModel : IModel
-    {
-        //============================================================
-        //Properties
-        //============================================================
-        bool IsInit { get; }
-        bool IsVisible { get; }
-
-        //============================================================
-        //Init/Register
-        //============================================================
-        void Init();
-        void Release();
-
-        //============================================================
-        //Logic
-        //============================================================
-        void Show();
-        void Hide();
-        void Refresh(TModel model);
-    }
-
     public abstract class BaseView<TModel> : MonoBehaviour, IView<TModel> where TModel : IModel
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isInit;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public bool IsInit => _isInit;
         public bool IsVisible => gameObject.activeSelf;
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public virtual void Init()
         {
@@ -66,7 +40,7 @@ namespace UnityTools.Util.UIFramework
         protected virtual void OnRelease() { }
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void OnDestroy()
         {
@@ -74,7 +48,7 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public virtual void Show()
         {

@@ -1,9 +1,5 @@
 namespace UnityTools.Util.UIFramework
 {
-    // Exception: enum-only file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
     public enum EDynamicScrollAxisType
     {
         Vertical = 0,

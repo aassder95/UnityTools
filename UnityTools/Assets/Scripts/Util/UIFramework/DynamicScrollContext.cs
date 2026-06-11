@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using UnityTools.Util.Utilities;
 
@@ -7,9 +7,9 @@ namespace UnityTools.Util.UIFramework
     public class DynamicScrollContext
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
-        private int _itemCntPerLine;
+        private int _itemCountPerLine;
         private readonly Vector2 _spacing;
         private readonly RectOffset _padding;
         private readonly RectTransform _rtContent;
@@ -18,19 +18,19 @@ namespace UnityTools.Util.UIFramework
         private readonly ScrollRect _scrollRect;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         private Vector2 ContentSize => new Vector2(_padding.left + LineSize.x + _padding.right, _padding.top + LineSize.y + _padding.bottom);
-        private Vector2 LineSize => new Vector2(ItemSize.x * _itemCntPerLine - _spacing.x, ItemSize.y * _itemCntPerLine - _spacing.y);
+        private Vector2 LineSize => new Vector2(ItemSize.x * _itemCountPerLine - _spacing.x, ItemSize.y * _itemCountPerLine - _spacing.y);
         private Vector2 ItemSize => new Vector2(_rtItem.sizeDelta.x + _spacing.x, _rtItem.sizeDelta.y + _spacing.y);
         private Vector2 CenterOffset => new Vector2((ContentSize.x - LineSize.x) / 2.0f, (ContentSize.y - LineSize.y) / 2.0f);
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
-        public DynamicScrollContext(int itemCntPerLine, Vector2 spacing, RectOffset padding, RectTransform rtItem, ScrollRect scrollRect)
+        public DynamicScrollContext(int itemCountPerLine, Vector2 spacing, RectOffset padding, RectTransform rtItem, ScrollRect scrollRect)
         {
-            _itemCntPerLine = Mathf.Max(1, itemCntPerLine);
+            _itemCountPerLine = Mathf.Max(1, itemCountPerLine);
             _spacing = spacing;
             _padding = padding;
             _rtContent = scrollRect.content;
@@ -40,24 +40,24 @@ namespace UnityTools.Util.UIFramework
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public Vector2 CalculateContentPosition(int itemIdx, float offset = 0.0f)
         {
-            int line = itemIdx / _itemCntPerLine;
+            int line = itemIdx / _itemCountPerLine;
             return _scrollRect.vertical
                 ? new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) + offset)
                 : new Vector2(-(_padding.left + (line * ItemSize.x) + offset), _rtContent.anchoredPosition.y);
         }
 
-        public void SetItemCountPerLine(int itemCntPerLine)
+        public void SetItemCountPerLine(int itemCountPerLine)
         {
-            _itemCntPerLine = Mathf.Max(1, itemCntPerLine);
+            _itemCountPerLine = Mathf.Max(1, itemCountPerLine);
         }
 
-        public Vector2 CalculateContentSize(int totalLineCnt)
+        public Vector2 CalculateContentSize(int totalLineCount)
         {
-            if(totalLineCnt <= 0)
+            if(totalLineCount <= 0)
             {
                 return _scrollRect.vertical
                     ? new Vector2(_rtContent.sizeDelta.x, _padding.top + _padding.bottom)
@@ -65,13 +65,13 @@ namespace UnityTools.Util.UIFramework
             }
 
             return _scrollRect.vertical
-                ? new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalLineCnt * ItemSize.y - _spacing.y) + _padding.bottom)
-                : new Vector2(_padding.left + (totalLineCnt * ItemSize.x - _spacing.x) + _padding.right, _rtContent.sizeDelta.y);
+                ? new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalLineCount * ItemSize.y - _spacing.y) + _padding.bottom)
+                : new Vector2(_padding.left + (totalLineCount * ItemSize.x - _spacing.x) + _padding.right, _rtContent.sizeDelta.y);
         }
 
-        public Vector2 ClampContentPosition(Vector2 contentPos, int totalLineCnt, int visibleLineCnt)
+        public Vector2 ClampContentPosition(Vector2 contentPos, int totalLineCount, int visibleLineCount)
         {
-            int maxLine = Mathf.Max(0, totalLineCnt - visibleLineCnt);
+            int maxLine = Mathf.Max(0, totalLineCount - visibleLineCount);
             if(_scrollRect.vertical)
             {
                 float minY = _padding.top;
@@ -84,7 +84,7 @@ namespace UnityTools.Util.UIFramework
             return new Vector2(Mathf.Clamp(contentPos.x, minX, maxX), contentPos.y);
         }
 
-        public int CalculateAutoVisibleLineCount(int extraLineCnt)
+        public int CalculateAutoVisibleLineCount(int extraLineCount)
         {
             float viewportSize = _scrollRect.vertical ? _rtViewport.rect.height : _rtViewport.rect.width;
             float paddingSize = _scrollRect.vertical ? _padding.top + _padding.bottom : _padding.left + _padding.right;
@@ -93,16 +93,16 @@ namespace UnityTools.Util.UIFramework
             float spacingMain = _scrollRect.vertical ? _spacing.y : _spacing.x;
 
             if(itemMainSize <= 0.0f)
-                return Mathf.Max(1, extraLineCnt + 1);
+                return Mathf.Max(1, extraLineCount + 1);
 
-            int visibleLineCnt = Mathf.CeilToInt((availableSize + spacingMain) / itemMainSize);
-            if(visibleLineCnt <= 0)
-                visibleLineCnt = 1;
+            int visibleLineCount = Mathf.CeilToInt((availableSize + spacingMain) / itemMainSize);
+            if(visibleLineCount <= 0)
+                visibleLineCount = 1;
 
-            return visibleLineCnt + Mathf.Max(0, extraLineCnt);
+            return visibleLineCount + Mathf.Max(0, extraLineCount);
         }
 
-        public int CalculateFirstVisibleItemIndex(int lastLine) => CalculateFirstVisibleLine(lastLine) * _itemCntPerLine;
+        public int CalculateFirstVisibleItemIndex(int lastLine) => CalculateFirstVisibleLine(lastLine) * _itemCountPerLine;
 
         public int CalculateFirstVisibleLine(int lastLine)
         {
@@ -115,35 +115,35 @@ namespace UnityTools.Util.UIFramework
         {
             if(_scrollRect.vertical)
             {
-                int x = itemIdx % _itemCntPerLine;
-                int y = itemIdx / _itemCntPerLine;
-                float posX = (x - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.x - CenterOffset.x;
+                int x = itemIdx % _itemCountPerLine;
+                int y = itemIdx / _itemCountPerLine;
+                float posX = (x - ((_itemCountPerLine - 1) / 2.0f)) * ItemSize.x - CenterOffset.x;
                 float posY = (_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (y * ItemSize.y);
                 return new Vector2(_padding.left + posX, posY - _padding.top);
             }
 
-            int col = itemIdx / _itemCntPerLine;
-            int row = itemIdx % _itemCntPerLine;
+            int col = itemIdx / _itemCountPerLine;
+            int row = itemIdx % _itemCountPerLine;
             float xPos = (_rtContent.sizeDelta.x - _rtItem.sizeDelta.x) * _rtItem.pivot.x + (col * ItemSize.x);
-            float yPos = (row - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.y - CenterOffset.y;
+            float yPos = (row - ((_itemCountPerLine - 1) / 2.0f)) * ItemSize.y - CenterOffset.y;
             return new Vector2(_padding.left + xPos - _rtContent.sizeDelta.x + _rtItem.sizeDelta.x, -yPos - _padding.top);
         }
 
-        public int GetItemCountForLine(int line, int totalItemCnt)
+        public int GetItemCountForLine(int line, int totalItemCount)
         {
-            if(line < 0 || _itemCntPerLine <= 0 || totalItemCnt <= 0)
+            if(line < 0 || _itemCountPerLine <= 0 || totalItemCount <= 0)
                 return 0;
 
-            int totalLineCnt = Mathf.CeilToInt((float)totalItemCnt / _itemCntPerLine);
-            if(line >= totalLineCnt)
+            int totalLineCount = Mathf.CeilToInt((float)totalItemCount / _itemCountPerLine);
+            if(line >= totalLineCount)
                 return 0;
 
-            int lastLineItemCnt = totalItemCnt % _itemCntPerLine;
-            bool isLastLine = line == totalLineCnt - 1;
-            if(isLastLine && lastLineItemCnt > 0)
-                return lastLineItemCnt;
+            int lastLineItemCount = totalItemCount % _itemCountPerLine;
+            bool isLastLine = line == totalLineCount - 1;
+            if(isLastLine && lastLineItemCount > 0)
+                return lastLineItemCount;
 
-            return _itemCntPerLine;
+            return _itemCountPerLine;
         }
     }
 }
