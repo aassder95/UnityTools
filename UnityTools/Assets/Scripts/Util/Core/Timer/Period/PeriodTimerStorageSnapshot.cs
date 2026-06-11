@@ -5,7 +5,7 @@ namespace UnityTools.Util.Core.Timer.Period
     public class PeriodTimerStorageSnapshot
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly DateTime _openEndTime;
         private readonly DateTime _closedEndTime;
@@ -13,7 +13,7 @@ namespace UnityTools.Util.Core.Timer.Period
         private readonly bool _isTamperedFlag;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public DateTime OpenEndTime => _openEndTime;
         public DateTime ClosedEndTime => _closedEndTime;
@@ -21,7 +21,7 @@ namespace UnityTools.Util.Core.Timer.Period
         public bool IsTamperedFlag => _isTamperedFlag;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public PeriodTimerStorageSnapshot(DateTime openEndTime, DateTime closedEndTime, DateTime openUpdatedTime, bool isTamperedFlag)
         {

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,12 +12,12 @@ namespace UnityTools.Util.Core.Timer.Period
     public class PeriodTimer : IPeriodTimer
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const double DEFAULT_PERIOD_MIN = 1d;
 
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly string _id;
         private readonly StateMachine<EPeriodTimerType> _fsm;
@@ -25,7 +25,7 @@ namespace UnityTools.Util.Core.Timer.Period
         private readonly PeriodTimerPersistence _persistence;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isInit;
         private bool _isTamperedFlag;
@@ -41,7 +41,7 @@ namespace UnityTools.Util.Core.Timer.Period
         private Coroutine _coUpdate;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction OnOpenPeriodPreparing { add => _onOpenPeriodPreparing += value; remove => _onOpenPeriodPreparing -= value; }
         public event UnityAction OnOpenPeriodStarted { add => _onOpenPeriodStarted += value; remove => _onOpenPeriodStarted -= value; }
@@ -55,7 +55,7 @@ namespace UnityTools.Util.Core.Timer.Period
         private event UnityAction<EPeriodTimerType, EPeriodTimerType> _onPeriodStateTransition;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public string Id => _id;
         public StateMachine<EPeriodTimerType> FSM => _fsm;
@@ -70,7 +70,7 @@ namespace UnityTools.Util.Core.Timer.Period
         public DateTime ClosedEndTime => _closedEndTime;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public PeriodTimer(string id, MonoBehaviour runner)
         {
@@ -82,28 +82,28 @@ namespace UnityTools.Util.Core.Timer.Period
             _fsm = new StateMachine<EPeriodTimerType>();
             _fsm.OnStateTransition += OnStateTransitionCallback;
 
-            if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerStates.ResetState(this)))
-                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {EPeriodTimerType.Reset}");
-            if(!_fsm.Add(EPeriodTimerType.Open, new PeriodTimerStates.OpenState(this)))
-                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {EPeriodTimerType.Open}");
-            if(!_fsm.Add(EPeriodTimerType.Closed, new PeriodTimerStates.ClosedState(this)))
-                DebugLogger.LogWarning($"?곹깭 ?깅줉 ?ㅽ뙣: {EPeriodTimerType.Closed}");
+            if(!_fsm.Add(EPeriodTimerType.Reset, new PeriodTimerResetState(this)))
+                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Reset}");
+            if(!_fsm.Add(EPeriodTimerType.Open, new PeriodTimerOpenState(this)))
+                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Open}");
+            if(!_fsm.Add(EPeriodTimerType.Closed, new PeriodTimerClosedState(this)))
+                DebugLogger.LogWarning($"상태 등록 실패: {EPeriodTimerType.Closed}");
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             if(string.IsNullOrEmpty(_id))
             {
-                DebugLogger.LogWarning("?좏슚?섏? ?딆? ID濡?珥덇린?붾? 臾댁떆?⑸땲??");
+                DebugLogger.LogWarning("유효하지 않은 ID로 초기화를 무시합니다.");
                 return;
             }
 
             if(_runner == null)
             {
-                DebugLogger.LogWarning("?щ꼫 李몄“媛 鍮꾩뼱 ?덉뼱 珥덇린?붾? 臾댁떆?⑸땲??");
+                DebugLogger.LogWarning("러너 참조가 비어 있어 초기화를 무시합니다.");
                 return;
             }
 
@@ -137,7 +137,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Persistence
+        // Persistence
         //============================================================
         private void Load()
         {
@@ -149,7 +149,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void Refresh()
         {
@@ -281,7 +281,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Coroutines
+        // Coroutines
         //============================================================
         private IEnumerator CoInit(Func<IEnumerator> initWaitFunc)
         {
@@ -356,7 +356,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         public void NotifyOpenPeriodPreparing()
         {
@@ -396,7 +396,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         public int GetRemainingMin()
         {
@@ -429,7 +429,7 @@ namespace UnityTools.Util.Core.Timer.Period
             if(min > 0d && !double.IsNaN(min) && !double.IsInfinity(min))
                 return min;
 
-            DebugLogger.LogWarning($"?좏슚?섏? ?딆? 二쇨린 媛믪엯?덈떎: {name}={min}, 湲곕낯媛?{DEFAULT_PERIOD_MIN}遺꾩쓣 ?곸슜?⑸땲??");
+            DebugLogger.LogWarning($"유효하지 않은 주기 값입니다: {name}={min}, 기본값 {DEFAULT_PERIOD_MIN}분을 적용합니다.");
             return DEFAULT_PERIOD_MIN;
         }
     }

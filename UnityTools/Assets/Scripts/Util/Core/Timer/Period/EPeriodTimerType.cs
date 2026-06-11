@@ -1,9 +1,5 @@
 namespace UnityTools.Util.Core.Timer.Period
 {
-    // Exception: enum-only file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
     public enum EPeriodTimerType
     {
         None = 0,

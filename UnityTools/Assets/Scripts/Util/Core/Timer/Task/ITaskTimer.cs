@@ -2,14 +2,10 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util.Core.Timer.Task
 {
-    // Exception: interface-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
     public interface ITaskTimer : ITimerLifecycle
     {
         //============================================================
-        //Events
+        // Events
         //============================================================
         event UnityAction OnProgressStarted;
         event UnityAction<int> OnRemainSecUpdated;
@@ -18,7 +14,7 @@ namespace UnityTools.Util.Core.Timer.Task
         event UnityAction<ETaskTimerType, ETaskTimerType> OnStateTransition;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         ETaskTimerType CurType { get; }
         bool IsClaimed { get; }
@@ -26,7 +22,7 @@ namespace UnityTools.Util.Core.Timer.Task
         int DurationSec { get; }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         void Init();
         bool Start(double durationSec);

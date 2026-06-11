@@ -7,13 +7,13 @@ namespace UnityTools.Util.Core.Timer.Task
     public class TaskTimerPersistence
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly string _id;
         private readonly IStorage _storage;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public TaskTimerPersistence(string id)
         {
@@ -25,7 +25,7 @@ namespace UnityTools.Util.Core.Timer.Task
         }
 
         //============================================================
-        //Persistence
+        // Persistence
         //============================================================
         public void Save(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
         {

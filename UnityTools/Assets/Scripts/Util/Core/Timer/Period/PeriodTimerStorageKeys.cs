@@ -1,4 +1,4 @@
-﻿using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Core.Persistence;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Timer.Period
@@ -7,7 +7,7 @@ namespace UnityTools.Util.Core.Timer.Period
     public static class PeriodTimerStorageKeys
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const string PREFIX = "PeriodTimer_";
         private const string OPEN_END_TIME_SUFFIX = "_OPEN_END";
@@ -16,7 +16,7 @@ namespace UnityTools.Util.Core.Timer.Period
         private const string TAMPERED_SUFFIX = "_TAMPERED";
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static bool TryNormalizeId(string rawId, out string normalizedId)
         {

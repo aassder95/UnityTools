@@ -3,19 +3,19 @@ namespace UnityTools.Util.Core.Timer.Period
     public class PeriodTimerData
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly string _id;
         private readonly EPeriodTimerType _curType;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public string Id => _id;
         public EPeriodTimerType CurType => _curType;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public PeriodTimerData(string id, EPeriodTimerType curType)
         {

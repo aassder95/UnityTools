@@ -1,9 +1,5 @@
 namespace UnityTools.Util.Core.Timer.Task
 {
-    // Exception: enum-only file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
     public enum ETaskTimerType
     {
         None = 0,

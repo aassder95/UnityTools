@@ -1,4 +1,4 @@
-﻿using UnityTools.Util.Utilities;
+using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Timer.Task
 {
@@ -6,7 +6,7 @@ namespace UnityTools.Util.Core.Timer.Task
     public static class TaskTimerStorageKeys
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const string PREFIX = "TaskTimer_";
         private const string START_TIME_SUFFIX = "_START";
@@ -15,7 +15,7 @@ namespace UnityTools.Util.Core.Timer.Task
         private const string STATE_SUFFIX = "_STATE";
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static bool TryNormalizeId(string rawId, out string normalizedId)
         {

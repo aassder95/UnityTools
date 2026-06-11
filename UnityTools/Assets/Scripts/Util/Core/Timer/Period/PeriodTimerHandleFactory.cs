@@ -5,7 +5,7 @@ namespace UnityTools.Util.Core.Timer.Period
     public class PeriodTimerHandleFactory : ITimerHandleFactory<PeriodTimerHandle>
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public PeriodTimerHandle Create(string normalizedId, MonoBehaviour runner)
         {

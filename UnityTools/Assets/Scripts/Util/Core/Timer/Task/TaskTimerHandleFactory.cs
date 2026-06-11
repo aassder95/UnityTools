@@ -5,7 +5,7 @@ namespace UnityTools.Util.Core.Timer.Task
     public class TaskTimerHandleFactory : ITimerHandleFactory<TaskTimerHandle>
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public TaskTimerHandle Create(string normalizedId, MonoBehaviour runner)
         {

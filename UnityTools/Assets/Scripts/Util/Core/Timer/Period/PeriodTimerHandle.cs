@@ -8,17 +8,17 @@ namespace UnityTools.Util.Core.Timer.Period
     public class PeriodTimerHandle : ITimerHandle
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         protected readonly IPeriodTimer _timer;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isRegistered;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction OnOpenPeriodPreparing { add => _onOpenPeriodPreparing += value; remove => _onOpenPeriodPreparing -= value; }
         public event UnityAction OnOpenPeriodStarted { add => _onOpenPeriodStarted += value; remove => _onOpenPeriodStarted -= value; }
@@ -32,7 +32,7 @@ namespace UnityTools.Util.Core.Timer.Period
         private event UnityAction<EPeriodTimerType, EPeriodTimerType> _onPeriodStateTransition;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public EPeriodTimerType CurType => _timer.CurType;
         public bool IsReady => _timer.IsReady;
@@ -41,7 +41,7 @@ namespace UnityTools.Util.Core.Timer.Period
         public string Id => _timer.Id;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public PeriodTimerHandle(IPeriodTimer timer)
         {
@@ -49,7 +49,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public virtual void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
@@ -90,7 +90,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void ForceOpen()
         {
@@ -117,7 +117,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnOpenPeriodPreparingCallback()
         {
@@ -145,7 +145,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         public int GetRemainingMin()
         {

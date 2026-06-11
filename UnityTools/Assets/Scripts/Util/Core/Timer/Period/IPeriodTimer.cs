@@ -5,14 +5,10 @@ using UnityEngine.Events;
 namespace UnityTools.Util.Core.Timer.Period
 {
     // Exception: Period timer domain uses minute-based period values by design.
-    // Exception: interface-centric file uses Types section.
-    //============================================================
-    //Types
-    //============================================================
     public interface IPeriodTimer : ITimerLifecycle
     {
         //============================================================
-        //Events
+        // Events
         //============================================================
         event UnityAction OnOpenPeriodPreparing;
         event UnityAction OnOpenPeriodStarted;
@@ -21,7 +17,7 @@ namespace UnityTools.Util.Core.Timer.Period
         event UnityAction<EPeriodTimerType, EPeriodTimerType> OnPeriodStateTransition;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         EPeriodTimerType CurType { get; }
         bool IsReady { get; }
@@ -29,7 +25,7 @@ namespace UnityTools.Util.Core.Timer.Period
         bool IsClosedPeriod { get; }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null);
         void ForceOpen();

@@ -1,16 +1,18 @@
-
-namespace UnityTools.Util.Core.Timer
+namespace UnityTools.Util.Core.Timer.Task
 {
-    public interface ITimerHandle
+    public class TaskTimerCompletedState : TaskTimerBaseState
     {
         //============================================================
-        // Properties
+        // Constructors
         //============================================================
-        string Id { get; }
+        public TaskTimerCompletedState(TaskTimer timer) : base(timer) { }
 
         //============================================================
         // Logic
         //============================================================
-        void Release();
+        public override void Enter()
+        {
+            _timer.NotifyCompleted();
+        }
     }
 }

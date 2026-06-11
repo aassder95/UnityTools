@@ -3,7 +3,7 @@ namespace UnityTools.Util.Core.Timer.Task
     public class TaskTimerData
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly string _id;
         private readonly ETaskTimerType _curType;
@@ -12,7 +12,7 @@ namespace UnityTools.Util.Core.Timer.Task
         private readonly float _progress;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public string Id => _id;
         public ETaskTimerType CurType => _curType;
@@ -21,7 +21,7 @@ namespace UnityTools.Util.Core.Timer.Task
         public float Progress => _progress;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public TaskTimerData(string id, ETaskTimerType curType, int remainingSec, int durationSec, float progress)
         {

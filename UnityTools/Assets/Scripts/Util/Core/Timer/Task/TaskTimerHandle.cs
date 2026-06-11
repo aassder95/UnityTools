@@ -6,17 +6,17 @@ namespace UnityTools.Util.Core.Timer.Task
     public class TaskTimerHandle : ITimerHandle
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         protected readonly ITaskTimer _timer;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private bool _isRegistered;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction OnProgressStarted { add => _onProgressStarted += value; remove => _onProgressStarted -= value; }
         public event UnityAction<int> OnRemainSecUpdated { add => _onRemainSecUpdated += value; remove => _onRemainSecUpdated -= value; }
@@ -30,7 +30,7 @@ namespace UnityTools.Util.Core.Timer.Task
         private event UnityAction<ETaskTimerType, ETaskTimerType> _onStateTransition;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public ETaskTimerType CurType => _timer.CurType;
         public bool IsClaimed => _timer.IsClaimed;
@@ -38,7 +38,7 @@ namespace UnityTools.Util.Core.Timer.Task
         public string Id => _timer.Id;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public TaskTimerHandle(ITaskTimer timer)
         {
@@ -46,7 +46,7 @@ namespace UnityTools.Util.Core.Timer.Task
         }
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public virtual void Init()
         {
@@ -87,7 +87,7 @@ namespace UnityTools.Util.Core.Timer.Task
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public bool Start(double durationSec)
         {
@@ -127,7 +127,7 @@ namespace UnityTools.Util.Core.Timer.Task
         }
 
         //============================================================
-        //Callbacks
+        // Callbacks
         //============================================================
         private void OnProgressStartedCallback()
         {
@@ -155,7 +155,7 @@ namespace UnityTools.Util.Core.Timer.Task
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         public virtual TaskTimerData ToData()
         {

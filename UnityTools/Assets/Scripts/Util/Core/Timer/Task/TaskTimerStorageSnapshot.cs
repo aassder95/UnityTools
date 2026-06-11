@@ -5,7 +5,7 @@ namespace UnityTools.Util.Core.Timer.Task
     public class TaskTimerStorageSnapshot
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly DateTime _startTime;
         private readonly double _durationSec;
@@ -13,7 +13,7 @@ namespace UnityTools.Util.Core.Timer.Task
         private readonly int _savedStateType;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public DateTime StartTime => _startTime;
         public double DurationSec => _durationSec;
@@ -21,7 +21,7 @@ namespace UnityTools.Util.Core.Timer.Task
         public int SavedStateType => _savedStateType;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public TaskTimerStorageSnapshot(DateTime startTime, double durationSec, DateTime updatedTime, int savedStateType)
         {

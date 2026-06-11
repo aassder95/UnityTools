@@ -6,13 +6,13 @@ namespace UnityTools.Util.Core.Timer.Period
     public class PeriodTimerPersistence
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly string _id;
         private readonly IStorage _storage;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public PeriodTimerPersistence(string id)
         {
@@ -24,7 +24,7 @@ namespace UnityTools.Util.Core.Timer.Period
         }
 
         //============================================================
-        //Persistence
+        // Persistence
         //============================================================
         public void Save(DateTime openEndTime, DateTime closedEndTime, DateTime openUpdatedTime, bool isTamperedFlag)
         {

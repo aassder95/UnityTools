@@ -5,12 +5,12 @@ namespace UnityTools.Util.Core.Timer
     public class TimerHandleRegistry<THandle> where THandle : ITimerHandle
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly Dictionary<string, THandle> _handles = new();
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public bool TryGet(string id, out THandle handle)
         {
