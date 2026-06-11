@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityTools.Util.Core.Singleton;
 using UnityTools.Util.Core.Logging;
@@ -7,25 +7,18 @@ namespace UnityTools.Util.Core.Events
 {
     public class EventDispatcher : MonoSingleton<EventDispatcher>
     {
-        // Exception: delegate declarations are grouped in Types section.
         //============================================================
-        //Types
-        //============================================================
-        public delegate void EventDelegate(object sender);
-        public delegate void EventDelegate<T>(object sender, T param);
-
-        //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const int DEFAULT_PRIORITY = 0;
 
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly Dictionary<EEventDispatcherType, SortedList<int, List<Delegate>>> _events = new();
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void Subscribe(EEventDispatcherType key, EventDelegate listener, int priority = DEFAULT_PRIORITY)
         {
@@ -55,7 +48,9 @@ namespace UnityTools.Util.Core.Events
                 return;
 
             foreach (List<Delegate> listeners in priorityList.Values)
+            {
                 listeners.Remove(listener);
+            }
         }
 
         public void Unsubscribe<T>(EEventDispatcherType key, EventDelegate<T> listener)
@@ -64,7 +59,9 @@ namespace UnityTools.Util.Core.Events
                 return;
 
             foreach (List<Delegate> listeners in priorityList.Values)
+            {
                 listeners.Remove(listener);
+            }
         }
 
         public void Dispatch(EEventDispatcherType key, object sender)
@@ -82,7 +79,7 @@ namespace UnityTools.Util.Core.Events
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"?대깽??泥섎━ 以??덉쇅 諛쒖깮: ?대깽?명궎={key}, ?덉쇅={ex}");
+                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: 이벤트키={key}, 예외={ex}");
                     }
                 }
             }
@@ -103,14 +100,14 @@ namespace UnityTools.Util.Core.Events
                     }
                     catch (Exception ex)
                     {
-                        DebugLogger.LogError($"?대깽??泥섎━ 以??덉쇅 諛쒖깮: ?대깽?명궎={key}, ?덉쇅={ex}");
+                        DebugLogger.LogError($"이벤트 처리 중 예외 발생: 이벤트키={key}, 예외={ex}");
                     }
                 }
             }
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private SortedList<int, List<Delegate>> GetPriorityList(EEventDispatcherType key)
         {

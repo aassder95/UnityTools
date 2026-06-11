@@ -7,7 +7,7 @@ namespace UnityTools.Util.Core.Persistence
     public static class StorageValueUtils
     {
         //============================================================
-        //Persistence
+        // Persistence
         //============================================================
         public static void SaveString(IStorage storage, string key, string value)
         {
@@ -34,7 +34,7 @@ namespace UnityTools.Util.Core.Persistence
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         public static DateTime TryLoadDate(IStorage storage, string key)
         {
@@ -53,8 +53,7 @@ namespace UnityTools.Util.Core.Persistence
         public static double TryLoadDouble(IStorage storage, string key)
         {
             string raw = LoadString(storage, key);
-            bool isSuccess = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
-                             double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            bool isSuccess = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) || double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
             if(!isSuccess || double.IsNaN(value) || double.IsInfinity(value))
                 return 0d;
 

@@ -4,17 +4,17 @@ using UnityEngine;
 namespace UnityTools.Util.Coroutines
 {
     //============================================================
-    //Logic
+    // Logic
     //============================================================
     public class CoroutineHelper : MonoBehaviour
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private static CoroutineHelper _instance;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void Awake()
         {
@@ -25,7 +25,7 @@ namespace UnityTools.Util.Coroutines
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static Coroutine Start(IEnumerator enumerator)
         {

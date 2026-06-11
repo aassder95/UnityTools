@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Singleton
@@ -6,12 +6,12 @@ namespace UnityTools.Util.Core.Singleton
     public class MonoSingleton<T> : MonoBehaviour where T : Component
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private static T _instance;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public static T Instance
         {
@@ -21,7 +21,7 @@ namespace UnityTools.Util.Core.Singleton
                     _instance = FindFirstObjectByType<T>();
 
                 if(_instance == null)
-                    DebugLogger.LogError($"{typeof(T).Name} ?몄뒪?댁뒪瑜?李얠쓣 ???놁뒿?덈떎.");
+                    DebugLogger.LogError($"{typeof(T).Name} 인스턴스를 찾을 수 없습니다.");
 
                 return _instance;
             }

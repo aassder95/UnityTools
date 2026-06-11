@@ -6,7 +6,7 @@ namespace UnityTools.Util.Core.Logging
     public static class DebugLogBootstrap
     {
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -18,7 +18,7 @@ namespace UnityTools.Util.Core.Logging
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         private static void ApplyClassOverrides()
         {

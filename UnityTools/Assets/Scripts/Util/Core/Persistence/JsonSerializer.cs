@@ -5,7 +5,7 @@ namespace UnityTools.Util.Core.Persistence
     public class JsonSerializer : ISerializer
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public string Serialize<T>(T data)
         {

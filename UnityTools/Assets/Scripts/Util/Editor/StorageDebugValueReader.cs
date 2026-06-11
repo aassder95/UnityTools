@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using UnityTools.Util.Core.Persistence;
 
@@ -7,12 +7,12 @@ namespace UnityTools.Util.Editor
     public class StorageDebugValueReader
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly IStorage _storage;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public StorageDebugValueReader(IStorage storage)
         {
@@ -20,7 +20,7 @@ namespace UnityTools.Util.Editor
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public string ReadDateKey(string key)
         {
@@ -46,8 +46,7 @@ namespace UnityTools.Util.Editor
                 return "(없음)";
 
             string raw = StorageValueUtils.LoadString(_storage, key);
-            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) ||
-                            double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
+            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) || double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
             if(!isParsed)
                 return $"잘못된 값: {raw}";
 

@@ -7,7 +7,7 @@ namespace UnityTools.Util.Editor
     public class DataMenuCommands
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         [MenuItem("Util/Data/Clear AllData")]
         private static void ClearAllData()

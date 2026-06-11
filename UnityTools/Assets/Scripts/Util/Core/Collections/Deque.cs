@@ -6,18 +6,18 @@ namespace UnityTools.Util.Core.Collections
     public class Deque<T> : IEnumerable<T>
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private LinkedList<T> _deque = new();
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public bool IsEmpty => Count == 0;
         public int Count => _deque.Count;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public void Enqueue(T item)
         {
@@ -72,12 +72,14 @@ namespace UnityTools.Util.Core.Collections
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         public IEnumerator<T> GetEnumerator()
         {
             foreach(T item in _deque)
+            {
                 yield return item;
+            }
         }
 
         IEnumerator IEnumerable.GetEnumerator()

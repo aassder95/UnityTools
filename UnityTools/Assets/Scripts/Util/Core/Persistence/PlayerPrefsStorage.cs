@@ -5,7 +5,7 @@ namespace UnityTools.Util.Core.Persistence
     public class PlayerPrefsStorage : IStorage
     {
         //============================================================
-        //Persistence
+        // Persistence
         //============================================================
         public void Save(string key, string data)
         {

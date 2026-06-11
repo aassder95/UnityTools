@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityTools.Util.Core.Logging;
@@ -8,20 +8,20 @@ namespace UnityTools.Util.Core.Pooling
     public class ObjectPool<T> where T : Component, IPoolable
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly T _originObj;
         private readonly Queue<T> _pool = new();
         private readonly Func<T, T> _generator;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public ObjectPool(int initialSize, T prefab, Transform parent)
         {
             if(prefab == null)
             {
-                DebugLogger.LogError("?留??꾨━??李몄“媛 鍮꾩뼱 ?덉뒿?덈떎.");
+                DebugLogger.LogError("프리팹 참조가 비어 있습니다.");
                 return;
             }
 
@@ -41,7 +41,7 @@ namespace UnityTools.Util.Core.Pooling
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public T Get()
         {
@@ -55,7 +55,7 @@ namespace UnityTools.Util.Core.Pooling
         {
             if(obj == null)
             {
-                DebugLogger.LogWarning("諛섑솚 ????ㅻ툕?앺듃媛 鍮꾩뼱 ?덉뒿?덈떎.");
+                DebugLogger.LogWarning("반환 대상 오브젝트가 비어 있습니다.");
                 return;
             }
 

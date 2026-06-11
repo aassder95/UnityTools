@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityTools.Util.Utilities
 {
@@ -6,16 +6,16 @@ namespace UnityTools.Util.Utilities
     public static class IndexUtils
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const float POSITION_EPSILON = 0.0001f;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static int CalculateClampedIndexFromPosition(float position, float itemSize, int lastIndex)
         {
-            if(itemSize <= 0f)
+            if(itemSize <= 0.0f)
                 return 0;
 
             int index = Mathf.FloorToInt((position / itemSize) + POSITION_EPSILON);

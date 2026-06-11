@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 namespace UnityTools.Util.Utilities
 {
@@ -6,12 +6,12 @@ namespace UnityTools.Util.Utilities
     public static class RandomUtils
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const float HALF = 0.5f;
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static Vector2 GetRandomPositionInRange(Vector2 center, Vector2 range)
         {

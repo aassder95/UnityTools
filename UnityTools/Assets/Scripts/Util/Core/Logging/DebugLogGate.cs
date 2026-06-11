@@ -4,28 +4,21 @@ using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Logging
 {
-    public enum ELogLevel
-    {
-        Log,
-        Warning,
-        Error
-    }
-
     // Exception: stateless utility is kept as a static helper.
     public static class DebugLogGate
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const string DEFAULT_CLASS = "__default__";
 
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private static readonly Dictionary<string, bool> _classEnabled = new(StringComparer.Ordinal);
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private static bool _isInitialized;
         private static bool _isDefaultEnabled = true;
@@ -34,12 +27,12 @@ namespace UnityTools.Util.Core.Logging
         private static bool _isErrorEnabled = true;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public static bool IsDefaultEnabled => _isDefaultEnabled;
 
         //============================================================
-        //Init/Register
+        // Init/Register
         //============================================================
         public static void Initialize()
         {
@@ -51,7 +44,7 @@ namespace UnityTools.Util.Core.Logging
         }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static void SetEnabled(string className, bool isEnabled)
         {
@@ -94,7 +87,7 @@ namespace UnityTools.Util.Core.Logging
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private static void ApplyDefaultBuildPreset()
         {
@@ -126,6 +119,5 @@ namespace UnityTools.Util.Core.Logging
             _isWarningEnabled = isWarningEnabled;
             _isErrorEnabled = isErrorEnabled;
         }
-
     }
 }

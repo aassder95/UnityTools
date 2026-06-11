@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using UnityEngine;
 using UnityTools.Util.Utilities;
 
@@ -7,36 +7,36 @@ namespace UnityTools.Util.Core.Pooling
     public class Spawner<T> : MonoBehaviour where T : Component, IPoolable
     {
         //============================================================
-        //Inspector Fields
+        // Inspector Fields
         //============================================================
         [SerializeField] private T _prefab;
-        [SerializeField] private int _cnt;
-        [SerializeField] private float _interval;
+        [SerializeField] private int _count;
+        [SerializeField] private float _intervalSec;
         [SerializeField] private Vector2 _range;
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private ObjectPool<T> _pool;
 
         //============================================================
-        //Unity Methods
+        // Unity Methods
         //============================================================
         private void Awake()
         {
-            _pool = new ObjectPool<T>(_cnt, _prefab, transform);
+            _pool = new ObjectPool<T>(_count, _prefab, transform);
         }
 
         private void Start()
         {
-            if(_pool == null || _cnt <= 0)
+            if(_pool == null || _count <= 0)
                 return;
 
             StartCoroutine(CoSpawn());
         }
 
         //============================================================
-        //Coroutines
+        // Coroutines
         //============================================================
         private IEnumerator CoSpawn()
         {
@@ -46,7 +46,7 @@ namespace UnityTools.Util.Core.Pooling
                 if (obj != null)
                     obj.transform.position = RandomUtils.GetRandomPositionInRange(transform.position, _range);
 
-                yield return new WaitForSeconds(_interval);
+                yield return new WaitForSeconds(_intervalSec);
             }
         }
     }

@@ -1,28 +1,28 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Extensions
 {
     // Exception: stateless utility is kept as a static helper.
     //============================================================
-    //Logic
+    // Logic
     //============================================================
     public static class CollectionExtensions
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static bool IsValidIndex<T>(this List<T> list, int index)
         {
             if(list == null)
             {
-                DebugLogger.LogWarning("由ъ뒪?멸? 鍮꾩뼱 ?덉뒿?덈떎.");
+                DebugLogger.LogWarning("리스트가 비어 있습니다.");
                 return false;
             }
 
             if(0 > index || index >= list.Count)
             {
-                DebugLogger.LogWarning("?몃뜳?ㅺ? 踰붿쐞瑜?踰쀬뼱?ъ뒿?덈떎.");
+                DebugLogger.LogWarning("인덱스가 범위를 벗어났습니다.");
                 return false;
             }
 

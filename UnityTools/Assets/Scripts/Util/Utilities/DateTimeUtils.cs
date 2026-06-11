@@ -7,7 +7,7 @@ namespace UnityTools.Util.Utilities
     public static class DateTimeUtils
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static DateTime RemoveMilliseconds(DateTime time)
         {

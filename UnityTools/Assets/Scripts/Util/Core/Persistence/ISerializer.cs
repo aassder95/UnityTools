@@ -4,7 +4,7 @@ namespace UnityTools.Util.Core.Persistence
     public interface ISerializer
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         string Serialize<T>(T data);
         T Deserialize<T>(string data);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityTools.Util.Core.Logging;
@@ -8,55 +8,55 @@ namespace UnityTools.Util.Core.State
     public class StateMachine<TType> where TType : Enum
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
-        private const string UNINITIALIZED_STATE = "誘몄큹湲고솕";
+        private const string UNINITIALIZED_STATE = "미초기화";
 
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly Dictionary<TType, IState> _states = new();
 
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private TType _curType;
         private IState _curState;
         private bool _hasCurrentState;
 
         //============================================================
-        //Events
+        // Events
         //============================================================
         public event UnityAction<TType, TType> OnStateTransition { add => _onStateTransition += value; remove => _onStateTransition -= value; }
         private event UnityAction<TType, TType> _onStateTransition;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public TType CurType => _curType;
         public bool HasCurrentState => _hasCurrentState;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public StateMachine() { }
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public bool Add(TType type, IState state)
         {
             string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(state == null)
             {
-                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?곹깭媛 null?낅땲??");
+                DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=상태가 null입니다.");
                 return false;
             }
 
             if(_states.TryAdd(type, state))
                 return true;
 
-            DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?곹깭媛 以묐났?낅땲??");
+            DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=상태가 중복입니다.");
             return false;
         }
 
@@ -65,14 +65,14 @@ namespace UnityTools.Util.Core.State
             string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(!_states.TryGetValue(type, out IState newState))
             {
-                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?곹깭媛 ?놁뒿?덈떎.");
+                DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=상태를 찾을 수 없습니다.");
                 return false;
             }
 
             bool isSameState = _hasCurrentState && EqualityComparer<TType>.Default.Equals(_curType, type);
             if(isSameState)
             {
-                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={fromState}, ???{type}, ?ъ쑀=?숈씪 ?곹깭?낅땲??");
+                DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=동일 상태입니다.");
                 return false;
             }
 
@@ -95,7 +95,7 @@ namespace UnityTools.Util.Core.State
         {
             if(_hasCurrentState)
             {
-                DebugLogger.LogWarning($"?꾩씠 ?ㅽ뙣: ?댁쟾={_curType}, ???{type}, ?ъ쑀=珥덇린 ?곹깭媛 ?대? ?ㅼ젙?섏뿀?듬땲??");
+                DebugLogger.LogWarning($"상태 전환 실패: 이전={_curType}, 대상={type}, 사유=초기 상태가 이미 설정되었습니다.");
                 return false;
             }
 

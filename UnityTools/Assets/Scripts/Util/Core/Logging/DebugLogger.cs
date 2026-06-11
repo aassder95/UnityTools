@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Runtime.CompilerServices;
 using UnityEngine;
@@ -10,13 +10,13 @@ namespace UnityTools.Util.Core.Logging
     public static class DebugLogger
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         private const string UNKNOWN_CLASS = "UnknownClass";
         private const string UNKNOWN_METHOD = "UnknownMethod";
 
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         public static void Log(string msg, UnityEngine.Object context = null, [CallerMemberName] string memberName = "", [CallerFilePath] string filePath = "")
         {
@@ -56,7 +56,7 @@ namespace UnityTools.Util.Core.Logging
         }
 
         //============================================================
-        //Utilities
+        // Utilities
         //============================================================
         private static void WriteLog(ELogLevel level, string className, string method, string msg, UnityEngine.Object context)
         {
@@ -91,11 +91,11 @@ namespace UnityTools.Util.Core.Logging
         {
             if(ex == null)
             {
-                WriteLog(ELogLevel.Error, className, method, "?덉쇅 ?뺣낫媛 鍮꾩뼱 ?덉뒿?덈떎.", context);
+                WriteLog(ELogLevel.Error, className, method, "예외 정보가 비어 있습니다.", context);
                 return;
             }
 
-            WriteLog(ELogLevel.Error, className, method, $"?덉쇅 諛쒖깮: {ex.Message}", context);
+            WriteLog(ELogLevel.Error, className, method, $"예외 발생: {ex.Message}", context);
             if(context == null)
                 Debug.LogException(ex);
             else
@@ -108,24 +108,17 @@ namespace UnityTools.Util.Core.Logging
                 return UNKNOWN_CLASS;
 
             string className = Path.GetFileNameWithoutExtension(filePath);
-            return StringTokenUtils.Normalize(className, UNKNOWN_CLASS);
+            return string.IsNullOrWhiteSpace(className) ? UNKNOWN_CLASS : className;
         }
 
         private static string ResolveMethod(string memberName)
         {
-            string method = StringTokenUtils.Normalize(memberName, UNKNOWN_METHOD);
-            if(method == ".ctor")
-                return "Ctor";
-
-            return method;
+            return string.IsNullOrWhiteSpace(memberName) ? UNKNOWN_METHOD : memberName;
         }
 
         private static string FormatMessage(string className, string method, string msg)
         {
-            string safeClassName = StringTokenUtils.Normalize(className, UNKNOWN_CLASS);
-            string safeMethod = StringTokenUtils.Normalize(method, UNKNOWN_METHOD);
-            string safeMsg = msg ?? string.Empty;
-            return $"[{safeClassName}:{safeMethod}] {safeMsg}";
+            return $"[{StringTokenUtils.ToLogSafe(className)}.{StringTokenUtils.ToLogSafe(method)}] {msg}";
         }
     }
 }

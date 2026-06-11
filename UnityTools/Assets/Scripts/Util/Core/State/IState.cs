@@ -4,7 +4,7 @@ namespace UnityTools.Util.Core.State
     public interface IState
     {
         //============================================================
-        //Logic
+        // Logic
         //============================================================
         void Enter();
         void Execute();

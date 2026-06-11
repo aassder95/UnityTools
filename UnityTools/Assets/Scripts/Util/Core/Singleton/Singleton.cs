@@ -4,17 +4,17 @@ namespace UnityTools.Util.Core.Singleton
     public class Singleton<T> where T : Singleton<T>, new()
     {
         //============================================================
-        //Fields
+        // Fields
         //============================================================
         private static T _instance;
 
         //============================================================
-        //Properties
+        // Properties
         //============================================================
         public static T Instance => _instance ??= new T();
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         protected Singleton()
         {

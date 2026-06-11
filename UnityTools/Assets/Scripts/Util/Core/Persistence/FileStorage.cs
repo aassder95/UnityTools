@@ -5,12 +5,12 @@ namespace UnityTools.Util.Core.Persistence
     public class FileStorage : IStorage
     {
         //============================================================
-        //Readonly
+        // Readonly
         //============================================================
         private readonly string _rootPath;
 
         //============================================================
-        //Constructors
+        // Constructors
         //============================================================
         public FileStorage(string rootPath)
         {
@@ -20,7 +20,7 @@ namespace UnityTools.Util.Core.Persistence
         }
 
         //============================================================
-        //Persistence
+        // Persistence
         //============================================================
         public void Save(string key, string data)
         {

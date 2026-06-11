@@ -4,7 +4,7 @@ namespace UnityTools.Util.Core.Persistence
     public interface IStorage
     {
         //============================================================
-        //Persistence
+        // Persistence
         //============================================================
         void Save(string key, string data);
         string Load(string key);

@@ -1,13 +1,9 @@
 namespace UnityTools.Util.Core
 {
-    // Exception: constants-only type uses Types section.
-    //============================================================
-    //Types
-    //============================================================
     public static class SampleModuleKeys
     {
         //============================================================
-        //Constants
+        // Constants
         //============================================================
         public const string ALL = "All";
         public const string RANK = "Rank";
