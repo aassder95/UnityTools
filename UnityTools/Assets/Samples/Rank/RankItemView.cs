@@ -1,6 +1,7 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityTools.Samples.Util;
 using UnityTools.Util.Core.Pooling;
 using UnityTools.Util.UIFramework;
 
@@ -55,23 +56,27 @@ namespace UnityTools.Samples.Rank
             if(model == null)
                 return;
 
+            Color scoreColor = RankItemPalette.ResolveScoreColor(model.Score);
             if(_txtId != null)
+            {
                 _txtId.SetText("ID {0:000}", model.Id);
+                _txtId.color = RankItemPalette.IdColor;
+            }
 
             if(_txtRank != null)
             {
                 _txtRank.SetText("#{0}", model.Rank);
-                _txtRank.color = ResolveRankColor(model.Rank);
+                _txtRank.color = RankItemPalette.ResolveRankColor(model.Rank);
             }
 
             if(_txtScore != null)
             {
                 _txtScore.SetText("{0:0000}", model.Score);
-                _txtScore.color = ResolveScoreColor(model.Score);
+                _txtScore.color = scoreColor;
             }
 
             if(_imgTmp != null)
-                _imgTmp.color = Color.Lerp(model.BgColor, ResolveScoreColor(model.Score), 0.32f);
+                _imgTmp.color = RankItemPalette.ResolveBgColor(model.BgColor);
         }
 
         //============================================================
@@ -101,23 +106,6 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Utilities
         //============================================================
-        private static Color ResolveRankColor(int rank)
-        {
-            if(rank <= 1)
-                return new Color(1.0f, 0.84f, 0.37f, 1.0f);
-
-            if(rank <= 3)
-                return new Color(0.56f, 0.89f, 1.0f, 1.0f);
-
-            return new Color(0.88f, 0.92f, 1.0f, 1.0f);
-        }
-
-        private static Color ResolveScoreColor(int score)
-        {
-            float normalized = Mathf.InverseLerp(1.0f, 5000.0f, score);
-            return Color.Lerp(new Color(0.66f, 0.8f, 1.0f, 1.0f), new Color(1.0f, 0.4f, 0.46f, 1.0f), normalized);
-        }
-
         private void ConfigureLayout()
         {
             SetColumnRect(_txtRank, 0.0f, RANK_WIDTH, true, false);
