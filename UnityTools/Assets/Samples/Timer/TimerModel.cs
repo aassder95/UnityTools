@@ -3,7 +3,6 @@ using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Timer
 {
-    // Exception: period sample UI displays minute-based remaining values by design.
     public class TimerModel : BaseModel
     {
         //============================================================

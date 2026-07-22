@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityTools.Samples.Util
 {
-    // Exception: shared rank sample colors are kept in a stateless utility.
     public static class RankItemPalette
     {
         //============================================================

@@ -2,6 +2,159 @@
 
 이 문서는 Unity 클라이언트 프로젝트에서 Codex가 따라야 할 공용 작업 지침이다.
 
+## Tool Execution Policy
+
+repo 파일 읽기 / 검색 중 `windows sandbox: helper_unknown_error: apply deny-read ACLs`가 한 번 발생하면, 같은 샌드박스 명령을 반복 재시도하지 않는다.
+
+AGENTS.md 확인, repo 파일 검색, 코드 읽기처럼 작업에 필요한 확인은 즉시 `require_escalated`로 전환해 진행한다.
+
+같은 ACL 오류가 발생한 명령을 다른 표현의 동일한 샌드박스 명령으로 다시 실행하지 않는다.
+
+메모리 파일 접근에서 같은 ACL 오류가 발생하면 재시도하지 않고, 현재 repo의 실제 파일과 사용자 제공 맥락을 기준으로 진행한다.
+
+ACL 반복 실패는 중간 보고로 길게 나열하지 않는다.
+
+필요한 경우 최종 응답에서만 AGENTS 확인 여부와 메모리 사용 여부를 짧게 보고한다.
+## Git Operation Policy
+
+git add / commit / push / stash / reset 등 Git 상태를 바꾸는 작업은 사용자의 현재 요청이 명확할 때만 수행한다.
+
+이전 대화에서 커밋 / 스테이지 / 푸시 요청이 있었더라도, 이후 사용자가 다른 작업 질문이나 새 요청으로 넘어간 경우 자동으로 이어서 실행하지 않는다.
+
+Git 작업 직전에는 최신 사용자 요청이 여전히 Git 작업 실행인지 확인한다.
+
+코드 설명, 검토, 다음 작업 상담, 컨벤션 논의에 답변하는 중에는 임의로 stage / commit / push 하지 않는다.
+
+커밋 또는 푸시가 필요한 경우에도 변경 범위와 포함 파일을 확인한 뒤 수행한다.
+
+pull / rebase / push 준비 과정에서 임시 stash를 남기지 않는다.
+
+stash가 꼭 필요한 경우 작업 전 stash list를 확인하고, Codex가 만든 stash임을 알 수 있는 메시지를 사용한다.
+
+Codex가 만든 임시 stash는 같은 작업 안에서 pop / apply 후 drop까지 완료한다.
+
+stash pop / apply 중 충돌이 나거나 복구가 끝나지 않으면 stash를 삭제하지 말고, 남은 stash 이름과 이유를 최종 응답에 명확히 보고한다.
+
+사용자가 만든 기존 stash는 명시 요청 없이 drop / clear 하지 않는다.
+
+작업 종료 전 stash list를 다시 확인해 Codex 임시 stash가 남아 있지 않은지 확인한다.
+
+커밋 메시지는 회사 프로젝트 기록으로 남는다고 보고 의미 있는 문장으로 작성한다.
+
+커밋 메시지의 type과 scope는 conventional commit 형식에 맞춰 영어를 사용할 수 있다.
+
+커밋 메시지 설명문은 기본적으로 한글로 작성한다.
+
+예시:
+
+```text
+feat(express): 오브젝트 변경 타입 활성화
+fix(conveyor): 수신 예약 해제 누락 수정
+refactor(rider): 라이더 대기열 갱신 로직 정리
+```
+
+영어 설명문은 외부 라이브러리명, API 이름, 프로토콜, 파일명처럼 한글로 바꾸면 의미가 흐려지는 기술 식별자에 한해 사용한다.
+
+금지 예시:
+
+```text
+feat(express): enable object change type
+feat(express): ????? ?? ?? ?? ??
+```
+
+커밋 메시지에 ???, 깨진 한글, mojibake, placeholder 텍스트가 들어간 상태로 커밋하거나 push 하지 않는다.
+
+커밋 생성 후 push 전에 git log -1 --format=%B로 커밋 메시지가 정상 표시되는지 확인한다.
+
+PowerShell 인코딩 문제로 한글 커밋 메시지가 깨질 수 있는 환경에서는 UTF-8 안전한 방식으로 커밋 메시지를 전달한다.
+
+커밋 메시지가 깨졌다면 push 전에 반드시 amend로 수정하고 다시 확인한다.
+
+깨진 커밋 메시지가 이미 원격에 올라간 경우, 원격 변경을 덮어쓰는 force push를 임의로 하지 않고 사용자에게 상황과 선택지를 보고한다.
+
+## Bug Fix Policy
+
+버그 수정 시 단순 방어 코드나 예외 회피용 가드를 먼저 추가하지 않는다.
+
+수정 전 반드시 다음을 확인한다:
+
+- 증상이 발생하는 실제 코드 경로
+- 잘못된 상태가 만들어지는 최초 원인
+- 기존 설계상 보장되어야 하는 invariant
+- 같은 원인으로 재발할 수 있는 인접 경로
+- 수정 후 검증 방법
+
+가드 코드는 다음 경우에만 추가한다:
+
+- 외부 입력, 저장 데이터, 네트워크 응답처럼 실제로 불신해야 하는 경계값일 때
+- 원인 제거와 별도로 사용자 데이터 보호가 필요한 때
+- 왜 가드가 필요한지 코드 또는 설명으로 근거가 명확할 때
+
+원인을 100% 확정하지 못한 상태에서는 동작 변경 수정을 먼저 하지 않는다.
+
+원인이 불확실하면 먼저 로그를 더 디테일하게 추가해 실제 상태를 관측한다.
+
+로그는 입력값, 분기 조건, 상태 전이, 외부 의존 결과, invariant 깨짐 지점처럼 원인 가설을 판별할 수 있는 위치에 심는다.
+
+로그 추가는 가능한 한 동작을 바꾸지 않는 관측 코드로 제한한다.
+
+더 이상 의미 있게 로그를 심을 지점이 없고 원인이 여전히 확정되지 않은 경우에만, 하나의 최소 가설 수정을 시도한다.
+
+가설 수정 후 새 로그 / 재현 결과로 원인이 아니라고 확인되면 해당 수정은 되돌린다.
+
+가설 수정이 실패했는데 그 위에 다른 수정을 덧대지 않는다.
+
+필요한 경우 로그는 유지한 채 실패한 동작 변경만 되돌리고 다음 원인 가설을 검증한다.
+
+각 진단 단계에서는 다음을 구분한다:
+
+- 현재 원인 가설
+- 추가한 로그와 확인하려는 신호
+- 수정하지 않고 로그를 먼저 선택한 이유
+- 가설 수정이 필요하다면 그 최소 범위
+- 결과가 가설과 맞지 않을 때 되돌릴 코드
+
+수정 후 문제가 해결되지 않으면, 실패한 수정 위에 계속 덧대지 않는다.
+
+해결되지 않은 수정은 원칙적으로 되돌리고, 새 원인 가설을 세운 뒤 다시 수정한다.
+
+단, 실패한 수정 중 별도 가치가 확인된 정리나 안전 개선은 유지할 수 있지만, 그 이유를 명확히 설명해야 한다.
+
+연속 수정이 필요한 경우 매 단계마다 다음을 구분한다:
+
+- 이전 수정이 해결하지 못한 이유
+- 되돌릴 코드
+- 유지할 코드와 유지 사유
+- 새로 확인한 원인
+- 다음 수정 범위
+
+원인 검증 없이 방어 코드, 우회 코드, 임시 예외 처리를 누적하지 않는다.
+
+최종 응답에는 원인, 수정 내용, 검증 결과를 구분해서 보고한다.
+
+## Pre-Commit Review Policy
+
+작업을 마무리하고 커밋하기 전, 변경 범위에 대해 자체 검수를 수행한다.
+
+검수 항목:
+
+- AGENTS.md 코딩 컨벤션 준수 여부
+- 중복 코드 / 중복 데이터 / 중복 serialized field 여부
+- 공통화하거나 상위 클래스로 승격할 만한 책임이 있는지
+- 상속, helper, data class 분리가 실제 책임 기준으로 적절한지
+- 사용되지 않는 필드, 메서드, 클래스, using, serialized YAML 잔재 여부
+- 임시 로그, 임시 가드, 디버그 코드, 테스트용 하드코딩 잔재 여부 확인
+- 실패한 수정이 누적되어 남아 있지 않은지
+- prefab / scene / asset의 serialized field 이름이 코드 변경과 일치하는지
+
+검수 중 발견한 문제는 현재 작업과 직접 관련된 범위에서 정리한다.
+
+현재 작업과 무관한 큰 리팩터링은 임의로 진행하지 않고 별도 이슈로 보고한다.
+
+상위 클래스로 승격하거나 공통화할 때는 단순 코드 줄 수가 아니라 책임과 변경 이유가 같은지 기준으로 판단한다.
+
+최종 응답에는 검수 결과와 남은 리스크를 간단히 보고한다.
+
 ## Coding Convention
 
 ============================================================
@@ -133,6 +286,10 @@ Member Naming
 
 멤버 변수는 _camelCase를 사용한다.
 
+static / readonly / static readonly 필드도 _camelCase를 사용한다.
+
+s_ 접두사는 사용하지 않는다.
+
 Unity 객체/컴포넌트 참조 필드는 의미에 맞는 접두사를 사용한다.
 
 Unity Prefix:
@@ -188,6 +345,24 @@ Collection Naming
 
 리스트 / 컬렉션은 복수형을 사용한다.
 
+컬렉션 이름은 원소의 의미를 기준으로 작성한다.
+
+실제 Dictionary / lookup 구조가 아닌 배열이나 리스트에 Map / Maps 이름을 붙이지 않는다.
+
+mapping 원소 배열은 Entries / Items처럼 원소 의미가 드러나는 이름을 사용한다.
+
+금지 예시:
+
+```csharp
+private static readonly ExpressRiderDataMap[] s_riderDataMaps;
+```
+
+권장 예시:
+
+```csharp
+private static readonly ExpressRiderDataEntry[] _riderDataEntries;
+```
+
 ------------------------------------------------------------
 Time Naming
 ------------------------------------------------------------
@@ -236,6 +411,135 @@ Naming Length
 의미가 유지되는 범위에서 단어 축약을 허용한다.
 
 축약어는 프로젝트에서 공통으로 사용하는 표현을 우선한다.
+
+모든 identifier는 의미 단어 수를 제한한다.
+
+변수 / 필드명은 의미 단어 4개 이하를 기본으로 한다.
+
+bool 변수명은 Is / Has / Can / Should 접두사를 포함해 의미 단어 4개 이하로 작성한다.
+
+메서드명은 의미 단어 5개 이하를 기본으로 하며, 복잡한 도메인 동작에서만 6개까지 허용한다.
+
+클래스 / struct / enum / interface 이름은 의미 단어 5개 이하를 기본으로 한다.
+
+이름에 On / For / With / From / To 같은 연결어가 2개 이상 필요하면 이름을 다시 검토한다.
+
+조건 전체를 이름에 설명하지 말고 결과 상태나 의도를 이름으로 표현한다.
+
+호출자가 몰라도 되는 구현 세부사항을 이름에 넣지 않는다.
+
+Queue, List, Dictionary, Map, Cache, Pool, Buffer 같은 저장 방식 / 알고리즘 이름은 외부 계약이 아닐 때 사용하지 않는다.
+
+자료구조가 바뀌어도 호출 의미가 같다면 자료구조 이름을 제거한다.
+
+금지 예시:
+
+```csharp
+bool canSpawnOnWaitingPathForPickupQueue;
+bool TryGetQueueFrontCar(out Car car);
+```
+
+권장 예시:
+
+```csharp
+bool canEnterPickupQueue;
+bool canSpawnWaitingRider;
+bool TryGetFrontCar(out Car car);
+```
+
+자료구조 자체를 조작하는 API처럼 호출자가 자료구조를 알아야 하는 경우에만 Queue / List / Cache 같은 이름을 허용한다.
+
+------------------------------------------------------------
+Common Abbreviations
+------------------------------------------------------------
+
+프로젝트 공통 축약어는 의미가 유지되는 범위에서 우선 사용한다.
+
+Position은 Pos로 축약한다.
+
+Index는 Idx로 축약한다.
+
+Rotation은 Rot으로 축약한다.
+
+Direction은 Dir로 축약한다.
+
+Distance는 Dist로 축약한다.
+
+Velocity는 Vel로 축약한다.
+
+Count는 Cnt로 축약한다.
+
+Current는 Cur로 축약한다.
+
+Previous는 Prev로 축약한다.
+
+Temporary는 Tmp로 축약한다.
+
+Minimum은 Min으로 축약한다.
+
+Maximum은 Max로 축약한다.
+
+Number는 Num으로 축약한다.
+
+Parameter는 Param으로 축약한다.
+
+Reference는 Ref로 축약한다.
+
+Original은 Origin으로 축약한다.
+
+Destination은 Dest로 축약한다.
+
+Unity / .NET API의 Count 프로퍼티명은 그대로 사용한다.
+
+Scale, Target, Duration은 축약하지 않는다.
+
+예시:
+
+```csharp
+private Vector3 _startPos;
+private Vector3 _targetPos;
+private int _selectedIdx;
+int roadStartIdx;
+Quaternion startRot;
+Vector3 moveDir;
+float moveDist;
+float moveVel;
+int itemCnt;
+int curStage;
+Vector3 prevPos;
+float tmpHeight;
+float minSpeed;
+float maxSpeed;
+int itemNum;
+float moveParam;
+Transform targetRef;
+Vector3 originPos;
+Vector3 destPos;
+```
+
+금지 예시:
+
+```csharp
+private Vector3 _startPosition;
+private Vector3 _targetPosition;
+private int _selectedIndex;
+int roadStartIndex;
+Quaternion startRotation;
+Vector3 moveDirection;
+float moveDistance;
+float moveVelocity;
+int itemCount;
+int currentStage;
+Vector3 previousPosition;
+float temporaryHeight;
+float minimumSpeed;
+float maximumSpeed;
+int itemNumber;
+float moveParameter;
+Transform targetReference;
+Vector3 originalPosition;
+Vector3 destinationPosition;
+```
 
 ============================================================
 3. Event Rules
@@ -314,6 +618,57 @@ Property는 기본적으로 외부 조회용으로만 사용한다.
 public string Name => _name;
 ```
 
+단순 읽기 전용 Property는 expression-bodied 형식으로 작성한다.
+
+예시:
+
+```csharp
+public Vector3 LocalRot => transform.localRotation.eulerAngles;
+```
+
+금지 예시:
+
+```csharp
+public Vector3 LocalRot
+{
+    get
+    {
+        return transform.localRotation.eulerAngles;
+    }
+}
+```
+
+------------------------------------------------------------
+Simple Getter
+------------------------------------------------------------
+
+상태 변경이나 부작용 없이 값만 조회하는 단순 GetXxx 메서드는 만들지 않는다.
+
+필드, Property, 다른 단순 getter를 그대로 반환하는 조회는 읽기 전용 Property로 작성한다.
+
+금지 예시:
+
+```csharp
+public float GetCameraSize()
+{
+    return _cameraSize;
+}
+
+public float GetSize()
+{
+    return _myCamera.GetCameraSize();
+}
+```
+
+권장 예시:
+
+```csharp
+public float CameraSize => _cameraSize;
+public float Size => _myCamera.CameraSize;
+```
+
+계산 비용이 크거나, 실패 가능성이 있거나, 호출 시 동작이 발생하는 경우에는 메서드를 사용한다.
+
 ------------------------------------------------------------
 Setter Rules
 ------------------------------------------------------------
@@ -370,6 +725,34 @@ Inspector 노출 순서는 아래 기준을 기본으로 한다.
 
 필요한 경우 [Header]를 사용해 그룹을 구분한다.
 
+Inspector 필드가 많아지면 역할 기준 [Header]로 그룹을 나눈다.
+
+같은 클래스 안에서도 Inspector 필드가 5개를 초과하거나 역할이 2개 이상으로 갈라지면 [Header]를 사용한다.
+
+Header는 필드 목록이 길게 이어져 보이지 않도록 기능 단위로 나눈다.
+
+------------------------------------------------------------
+Inherited Inspector Fields
+------------------------------------------------------------
+
+부모 클래스에 Inspector 노출 필드가 있고 자식 클래스에서 Inspector 필드를 추가하는 경우, 자식 클래스 필드는 반드시 [Header]로 구분한다.
+
+Header 이름은 자식 클래스의 역할을 기준으로 작성한다.
+
+상속 구조에서 Inspector 필드가 이어 붙어 보이지 않도록 소유 경계를 명확히 한다.
+
+Header는 너무 일반적인 "Settings", "Options" 단독 사용을 피한다.
+
+예시:
+
+```csharp
+[SerializeField] private Transform _trBaseRoot;
+
+[Header("Receiver Belt")]
+[SerializeField] private ConveyorItemReceiver _targetReceiver;
+[SerializeField] private float _moveSpeedPerSec = 1.2f;
+```
+
 ------------------------------------------------------------
 Exposure Target
 ------------------------------------------------------------
@@ -391,6 +774,52 @@ Unity 객체/컴포넌트 참조 필드는 Naming Rules의 Unity Prefix를 사�
 [SerializeField] private TextMeshProUGUI _txtTitle;
 [SerializeField] private Button _btnClose;
 ```
+
+------------------------------------------------------------
+Explicit Child References
+------------------------------------------------------------
+
+자식 오브젝트 / 하위 컴포넌트 참조는 자동 수집하지 않는다.
+
+필요한 자식 참조는 `[SerializeField] private` 필드로 만들고 Inspector에서 명시적으로 연결한다.
+
+아래 방식으로 하위 참조를 자동 구성하지 않는다.
+
+- GetComponentsInChildren / GetComponentInChildren / GetComponentsInParent
+- Transform.Find
+- 하위 Transform 순회
+- 이름 / 태그 / 계층 구조 기반 검색
+- OnValidate / Awake / Init에서 누락 참조를 자동 복구하는 fallback
+
+자기 자신에 붙은 컴포넌트를 GetComponent / TryGetComponent로 캐싱하는 것은 허용한다.
+
+단, 자기 자신이 아닌 자식 / 부모 / 외부 오브젝트 참조를 자동 검색으로 채우지 않는다.
+
+Inspector 연결이 누락된 경우 자동 fallback으로 숨기지 말고 설정 누락이 드러나게 처리한다.
+
+필수 Inspector 참조가 null인 상태는 정상 런타임 분기가 아니라 설정 오류로 본다.
+
+필수 Inspector 참조 null을 프로퍼티 / 메서드 / 조건식에서 false, null, 기본값으로 조용히 처리하지 않는다.
+
+누락된 필수 참조는 Awake / Init / 에디터 검증 등 명확한 검증 지점에서 에러로 드러나게 한다.
+
+금지 예시:
+
+```csharp
+[SerializeField] private RoadLane _pickupLane;
+public bool ShouldUseWaitingLine => _pickupLane != null && _pickupLane.Merge != null;
+```
+
+권장 예시:
+
+```csharp
+[SerializeField] private RoadLane _pickupLane;
+public bool ShouldUseWaitingLine => _pickupLane.Merge != null;
+```
+
+위 예시에서 `_pickupLane` 누락은 ShouldUseWaitingLine의 정상 false 조건이 아니라 Inspector 설정 오류다.
+
+UI 버튼, 이미지, 텍스트, 슬롯, 포인트, 이펙트, 자식 컴포넌트 배열은 명시 참조를 기본으로 한다.
 
 ------------------------------------------------------------
 Runtime Data
@@ -425,6 +854,39 @@ Serialized Field Rename
 ============================================================
 6. Coding Rules
 ============================================================
+
+------------------------------------------------------------
+Comment Usage
+------------------------------------------------------------
+
+코드가 특정 컨벤션의 예외임을 스스로 주장하거나 구현 선택을 변명하는 메타 주석을 작성하지 않는다.
+
+`Exception`, `Convention exception`, `kept as` 같은 표현으로 코드 구조, 접근 제한자, static 사용 등을 정당화하지 않는다.
+
+규칙 예외가 필요하면 주석을 추가해 우회하지 말고, 사용자에게 예외가 필요한 이유와 적용 범위를 먼저 보고하고 승인을 받는다.
+
+승인된 예외에 주석이 필요하더라도 규칙 예외라는 사실만 적지 않고, 코드만으로 알 수 없는 실제 기술적 제약이나 invariant를 설명한다.
+
+코드에서 바로 알 수 있는 타입 성격, 함수 동작, 구현 형태를 반복 설명하지 않는다.
+
+파일 위와 타입 위에 같은 설명 주석을 중복하지 않는다.
+
+금지 예시:
+
+```csharp
+// Exception: stateless utility is kept as a static helper.
+public static class RandomUtils
+{
+}
+```
+
+권장 예시:
+
+```csharp
+public static class RandomUtils
+{
+}
+```
 
 ------------------------------------------------------------
 Constant Usage
@@ -585,6 +1047,34 @@ Interface
 
 데이터 묶음이나 단순 편의 묶음을 위한 인터페이스는 만들지 않는다.
 
+------------------------------------------------------------
+Global Namespace Alias
+------------------------------------------------------------
+
+직접 작성하는 일반 로직 코드에서는 `global::` 사용을 금지한다.
+
+`global::`로 네임스페이스 충돌을 우회하지 않는다.
+
+타입 이름 충돌은 namespace 정리, using alias, 타입명 변경처럼 원인을 드러내는 방식으로 해결한다.
+
+generated code, source generator, designer, 외부 도구 생성 코드에서는 예외로 허용한다.
+
+직접 작성 코드에서 반드시 필요하다고 판단되는 경우, 충돌 원인과 `global::`가 필요한 이유를 코드 리뷰나 응답에 명확히 설명한다.
+
+금지 예시:
+
+```csharp
+private global::System.String _name;
+```
+
+권장 예시:
+
+```csharp
+using SystemString = System.String;
+
+private SystemString _name;
+```
+
 ============================================================
 7. Coroutine Rules
 ============================================================
@@ -681,7 +1171,50 @@ Logging
 
 로그 메시지는 한국어를 사용한다.
 
+Update / LateUpdate / FixedUpdate / Tick / Coroutine 반복 구간에서 매 프레임 또는 짧은 주기로 출력되는 로그를 남기지 않는다.
+
+반복 구간에서 상태 확인이 필요한 경우 조건부 1회 로그, 샘플링, 카운터, 디버그 UI 등으로 대체한다.
+
 동일 실패를 여러 계층에서 중복 로그로 남기지 않는다.
+
+------------------------------------------------------------
+Temporary Test Log
+------------------------------------------------------------
+
+임시 확인용 로그는 필터링하기 쉽게 `Debug.LogWarning`을 사용한다.
+
+임시 확인용 로그 메시지는 반드시 `[TEST][Owner:Method] Message` 형식을 사용한다.
+
+임시 로그가 여러 곳에 필요하면 아래 형태의 공용 helper를 사용한다.
+
+```csharp
+public static void LogTest(string owner, string method, string msg)
+{
+    Debug.LogWarning($"[TEST][{owner}:{method}] {msg}");
+}
+```
+
+호출 예시:
+
+```csharp
+LogTest(nameof(ExpressPickupZone), nameof(TryPickupBoxes), "픽업 수량 확인");
+```
+
+직접 로그를 작성해야 하는 경우에도 동일한 형식을 유지한다.
+
+```csharp
+Debug.LogWarning($"[TEST][{nameof(ExpressPickupZone)}:{nameof(TryPickupBoxes)}] 픽업 수량 확인");
+```
+
+`[TEST]` 로그는 Codex가 임의로 최종 수정이라고 판단해서 삭제하지 않는다.
+
+사용자가 로그 제거를 명시적으로 요청하기 전까지 `[TEST]` 로그를 유지한다.
+
+커밋 / push 전 검수에서는 `[TEST]` 로그 존재 여부를 확인하고 사용자에게 보고한다.
+
+사용자가 제거를 승인한 경우에만 `[TEST]` 로그를 삭제한다.
+
+운영 확인, 장애 추적, 사용자 환경에 남겨야 하는 로그에는 `[TEST]` 접두사를 사용하지 않는다.
 
 ============================================================
 10. MonoBehaviour Rules
@@ -703,6 +1236,50 @@ Awake / Start에서는 자기 필드 초기화와 자기 컴포넌트 캐싱만 
 Init가 있으면 Release도 반드시 작성한다.
 
 ------------------------------------------------------------
+OnValidate
+------------------------------------------------------------
+
+OnValidate는 에디터 전용 검증 / 보정 목적일 때만 사용한다.
+
+런타임에 필요한 초기화, 캐시 구성, 상태 변경을 OnValidate에 의존하지 않는다.
+
+Inspector 변경 즉시 사용자에게 의미 있는 검증, 경고, 프리뷰 갱신, serialized 데이터 보정이 없는 단순 런타임 캐시 갱신 용도라면 OnValidate를 사용하지 않는다.
+
+OnValidate에서 무거운 탐색, 하위 오브젝트 전체 검색, 오브젝트 생성 / 삭제, 런타임 상태 변경을 수행하지 않는다.
+
+런타임에 필요한 캐시는 Awake, Init, 실제 사용 시점 등 실행 경로에서 구성한다.
+
+------------------------------------------------------------
+Self Reference
+------------------------------------------------------------
+
+자기 자신의 transform / gameObject를 보관하기 위한 필드를 만들지 않는다.
+
+Unity 기본 property인 transform / gameObject를 직접 사용한다.
+
+_thisTransform, _thisGameObject처럼 자기 자신을 다시 가리키는 필드는 금지한다.
+
+transform / gameObject를 그대로 반환하는 단순 Property wrapper도 만들지 않는다.
+
+ThisTransform, ThisGameObject처럼 Unity 기본 property를 이름만 바꿔 노출하지 않는다.
+
+외부 호출 호환을 이유로 단순 wrapper Property를 남기지 않는다.
+프로젝트 내부 호출부를 함께 검색해 transform / gameObject 직접 사용으로 교체하고 wrapper Property를 제거한다.
+
+단, 해당 필드가 자기 자신이 아니라 다른 오브젝트를 참조하는 경우가 있으므로 삭제하거나 transform / gameObject로 바꾸기 전에 실제 할당과 prefab / scene serialized reference를 확인한다.
+
+자기 자신 참조가 확인된 경우에만 필드를 제거하고 transform / gameObject 직접 사용으로 바꾼다.
+
+금지 예시:
+
+```csharp
+private Transform _thisTransform;
+private GameObject _thisGameObject;
+public Transform ThisTransform => transform;
+public GameObject ThisGameObject => gameObject;
+```
+
+------------------------------------------------------------
 Cleanup
 ------------------------------------------------------------
 
@@ -718,6 +1295,12 @@ Scene Reference
 
 GameObject.Find 사용을 금지한다.
 
+Transform.Find 사용을 기본적으로 금지한다.
+
+불가피하게 소유 하위 오브젝트를 찾아야 하는 경우 Awake / Init에서 1회만 사용하고 결과를 필드에 캐싱한다.
+
+Update / Tick / Coroutine 반복 구간에서는 Transform.Find를 사용하지 않는다.
+
 씬 의존성은 Inspector 참조, Init 주입, 또는 명확한 소유 범위 내 캐싱으로 연결한다.
 
 런타임 중 불필요한 오브젝트 검색을 만들지 않는다.
@@ -728,10 +1311,15 @@ GameObject.Find 사용을 금지한다.
 
 기본 접근 제한자는 private로 둔다.
 
-public 멤버 변수는 금지한다.
+public 필드는 금지한다.
 
-internal 접근 제한자는 기본적으로 사용하지 않는다.
-asmdef 경계, 테스트 노출, 패키지 API 제한처럼 명확한 이유가 있는 경우에만 예외로 허용한다.
+internal 접근 제한자는 사용하지 않는다.
+
+기존 public Property / Event / Method를 컨벤션 준수를 이유로 internal로 변경하지 않는다.
+
+접근 제한자는 실제 호출 범위와 외부 API 계약을 기준으로 결정한다.
+
+접근 제한자를 축소하려면 전체 호출부와 상속 관계를 먼저 확인하고, 사용자가 해당 변경을 요청한 경우에만 진행한다.
 
 외부 공개는 아래 형태만 허용한다.
 
@@ -765,6 +1353,30 @@ Update / LateUpdate / FixedUpdate에서는 GC 할당을 금지한다.
 불필요한 검색과 할당을 금지 또는 최소화한다.
 
 GetComponent는 Awake / Init에서 캐싱한다.
+
+------------------------------------------------------------
+Unity Search / Allocation API
+------------------------------------------------------------
+
+아래 Unity API는 반복 구간에서 사용하지 않는다.
+
+GameObject.Find, FindWithTag, FindGameObjectWithTag, FindGameObjectsWithTag
+Transform.Find
+Object.FindObjectOfType, FindObjectsOfType, FindAnyObjectByType, FindFirstObjectByType
+Resources.FindObjectsOfTypeAll
+Camera.main
+GetComponent, TryGetComponent, GetComponents
+GetComponentInChildren, GetComponentsInChildren
+GetComponentInParent, GetComponentsInParent
+Renderer.material
+Input.touches
+Physics RaycastAll / Overlap 계열 allocation API
+
+필요한 참조는 Inspector, Init 주입, Awake 캐싱으로 확보한다.
+
+물리 검색은 가능한 NonAlloc API를 우선 검토한다.
+
+불가피하게 사용하는 경우 호출 위치와 이유를 명확히 남기고 반복 구간에서는 사용하지 않는다.
 
 초기화, 에디터 코드, 테스트 코드처럼 성능 영향이 낮은 구간에서는
 가독성을 위해 LINQ 사용을 허용한다.
@@ -972,7 +1584,11 @@ Expression Line Break
 
 단순 return expression과 조건식은 가능한 한 한 줄로 작성한다.
 
+단순 대입식과 삼항 연산식도 가능한 한 한 줄로 작성한다.
+
 논리 연산자(||, &&)만 나열하기 위한 줄바꿈을 하지 않는다.
+
+삼항 연산자의 ? / : 만 나열하기 위한 줄바꿈을 하지 않는다.
 
 예시:
 
@@ -990,6 +1606,20 @@ return _cachedPoints == null
     || !ReferenceEquals(_cachedStopPoint, _trStopPoint)
     || _cachedEntryPointCount != entryPointCount
     || _cachedRoadPointCount != roadPointCount;
+```
+
+예시:
+
+```csharp
+bool hasPackageTray = hasPackageItem ? conveyorSet.TryShowEmptyPackageOnboardingTray(out packageTray) : conveyorSet.TryShowPackageOnboardingItem(_spawnedPackageItem, out packageTray);
+```
+
+금지 예시:
+
+```csharp
+bool hasPackageTray = hasPackageItem
+    ? conveyorSet.TryShowEmptyPackageOnboardingTray(out packageTray)
+    : conveyorSet.TryShowPackageOnboardingItem(_spawnedPackageItem, out packageTray);
 ```
 
 복잡한 람다, LINQ, object initializer처럼 구조 자체가 여러 줄인 경우에만 줄바꿈을 허용한다.
