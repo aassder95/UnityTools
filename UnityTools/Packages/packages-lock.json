@@ -1,5 +1,15 @@
 ﻿{
     "dependencies":  {
+                         "com.aassder95.unitytools.ui":  {
+                                                                        "version":  "file:com.aassder95.unitytools.ui",
+                                                                        "depth":  0,
+                                                                        "source":  "embedded",
+                                                                        "dependencies":  {
+                                                                                             "com.unity.ugui":  "1.0.0",
+                                                                                             "com.unity.textmeshpro":  "3.0.7",
+                                                                                             "com.unity.inputsystem":  "1.14.0"
+                                                                                         }
+                                                                    },
                          "com.coplaydev.unity-mcp":  {
                                                          "version":  "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v10.1.0",
                                                          "depth":  0,

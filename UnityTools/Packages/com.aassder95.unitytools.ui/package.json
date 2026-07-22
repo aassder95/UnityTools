@@ -1,0 +1,27 @@
+{
+  "name": "com.aassder95.unitytools.ui",
+  "version": "1.0.0",
+  "displayName": "UnityTools UI Framework",
+  "description": "Reusable MVP UI lifecycle, virtualized dynamic scroll views, pooling, timers, and sample UI modules for Unity.",
+  "unity": "2022.3",
+  "documentationUrl": "https://github.com/aassder95/UnityTools/tree/develop/UnityTools/Packages/com.aassder95.unitytools.ui",
+  "changelogUrl": "https://github.com/aassder95/UnityTools/blob/develop/UnityTools/Packages/com.aassder95.unitytools.ui/CHANGELOG.md",
+  "licensesUrl": "https://github.com/aassder95/UnityTools",
+  "dependencies": {
+    "com.unity.ugui": "1.0.0",
+    "com.unity.textmeshpro": "3.0.7",
+    "com.unity.inputsystem": "1.14.0"
+  },
+  "samples": [
+    {
+      "displayName": "UI Sample Scene",
+      "description": "Inventory, dynamic rank, OSA rank, and timer UI samples. OSA.Core is required for the full sample scene.",
+      "path": "Samples~/UI Sample Scene"
+    }
+  ],
+  "keywords": ["ui", "mvp", "scroll", "pooling", "timer"],
+  "author": {
+    "name": "aassder95",
+    "url": "https://github.com/aassder95"
+  }
+}

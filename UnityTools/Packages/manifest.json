@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "com.aassder95.unitytools.ui": "file:Packages/com.aassder95.unitytools.ui",
     "com.coplaydev.unity-mcp": "https://github.com/CoplayDev/unity-mcp.git?path=/MCPForUnity#v10.1.0",
     "com.unity.collab-proxy": "2.7.1",
     "com.unity.device-simulator.devices": "1.0.0",
