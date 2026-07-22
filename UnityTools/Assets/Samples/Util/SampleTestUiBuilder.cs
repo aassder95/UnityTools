@@ -16,12 +16,11 @@ namespace UnityTools.Samples.Util
         private const float BOTTOM_TAB_SAFE_MARGIN = 128.0f;
         private const float DEFAULT_ROOT_WIDTH = 720.0f;
         private const float DEFAULT_ROOT_HEIGHT = 1280.0f;
-        private const float MIN_CONTENT_HEIGHT = 220.0f;
 
         //============================================================
         // Logic
         //============================================================
-        public static SampleTestLayout Build(Transform parent, string title, string subtitle)
+        public static SampleTestLayout Build(Transform parent, string title, string subtitle, int actionCount)
         {
             EnsureRootStretch(parent);
             EnsureCanvas(parent);
@@ -43,16 +42,20 @@ namespace UnityTools.Samples.Util
             float topPadding = Mathf.Clamp(rootHeight * 0.016f, 12.0f, 24.0f);
             float sectionSpacing = Mathf.Clamp(rootHeight * 0.012f, 8.0f, 16.0f);
             float headerHeight = Mathf.Clamp(rootHeight * 0.13f, 120.0f, 188.0f);
-            float controlsHeight = Mathf.Clamp(rootHeight * 0.14f, 96.0f, 188.0f);
-            float bottomSafeMargin = Mathf.Clamp(rootHeight * 0.06f, 36.0f, BOTTOM_TAB_SAFE_MARGIN);
-            float contentTopOffset = topPadding + headerHeight + sectionSpacing + controlsHeight + sectionSpacing;
-            float maxContentTopOffset = Mathf.Max(topPadding + sectionSpacing, rootHeight - bottomSafeMargin - MIN_CONTENT_HEIGHT);
-            if(contentTopOffset > maxContentTopOffset)
-                contentTopOffset = maxContentTopOffset;
+            float controlsWrapInset = 8.0f;
+            int controlsGridPadding = 8;
+            Vector2 controlsSpacing = new(10.0f, 8.0f);
+            float controlsCellHeight = Mathf.Clamp(rootHeight * 0.045f, 46.0f, 58.0f);
+            float controlsInnerWidth = Mathf.Max(1.0f, rootWidth - (sidePadding * 2.0f) - (controlsWrapInset * 2.0f) - (controlsGridPadding * 2.0f));
+            int controlsColumnCount = ResolveControlsColumnCount(controlsInnerWidth, controlsSpacing.x);
+            int controlsRowCount = Mathf.Max(1, Mathf.CeilToInt((float)actionCount / controlsColumnCount));
+            float controlsHeight = Mathf.Max(96.0f, (controlsWrapInset * 2.0f) + (controlsGridPadding * 2.0f) + (controlsCellHeight * controlsRowCount) + (controlsSpacing.y * (controlsRowCount - 1)));
+            float bottomSafeMargin = BOTTOM_TAB_SAFE_MARGIN;
 
             float headerBottomOffset = topPadding + headerHeight;
             float controlsTopOffset = headerBottomOffset + sectionSpacing;
             float controlsBottomOffset = controlsTopOffset + controlsHeight;
+            float contentTopOffset = controlsBottomOffset + sectionSpacing;
 
             RectTransform rtHeader = CreateRect("GoHeader", rtRoot);
             Stretch(rtHeader, new Vector2(0.0f, 1.0f), new Vector2(1.0f, 1.0f), new Vector2(sidePadding, -headerBottomOffset), new Vector2(-sidePadding, -topPadding));
@@ -75,13 +78,10 @@ namespace UnityTools.Samples.Util
             controlsImage.raycastTarget = false;
 
             RectTransform rtControlsWrap = CreateRect(CONTROLS_WRAP_NAME, rtControls);
-            Stretch(rtControlsWrap, Vector2.zero, Vector2.one, new Vector2(8.0f, 8.0f), new Vector2(-8.0f, -8.0f));
+            Stretch(rtControlsWrap, Vector2.zero, Vector2.one, new Vector2(controlsWrapInset, controlsWrapInset), new Vector2(-controlsWrapInset, -controlsWrapInset));
             GridLayoutGroup controlsLayout = rtControlsWrap.gameObject.AddComponent<GridLayoutGroup>();
-            controlsLayout.padding = new RectOffset(8, 8, 8, 8);
-            controlsLayout.spacing = new Vector2(10.0f, 8.0f);
-            float controlsCellHeight = Mathf.Clamp(rootHeight * 0.045f, 46.0f, 58.0f);
-            float controlsInnerWidth = Mathf.Max(240.0f, rootWidth - (sidePadding * 2.0f) - 16.0f - controlsLayout.padding.left - controlsLayout.padding.right);
-            int controlsColumnCount = ResolveControlsColumnCount(controlsInnerWidth);
+            controlsLayout.padding = new RectOffset(controlsGridPadding, controlsGridPadding, controlsGridPadding, controlsGridPadding);
+            controlsLayout.spacing = controlsSpacing;
             float controlsCellWidth = ResolveControlsCellWidth(controlsInnerWidth, controlsColumnCount, controlsLayout.spacing.x);
             controlsLayout.cellSize = new Vector2(controlsCellWidth, controlsCellHeight);
             controlsLayout.childAlignment = TextAnchor.UpperCenter;
@@ -272,24 +272,19 @@ namespace UnityTools.Samples.Util
             return Screen.height > 0 ? Screen.height : fallback;
         }
 
-        private static int ResolveControlsColumnCount(float controlsInnerWidth)
+        private static int ResolveControlsColumnCount(float controlsInnerWidth, float spacingX)
         {
-            if(controlsInnerWidth < 420.0f)
-                return 2;
-
-            if(controlsInnerWidth < 700.0f)
-                return 3;
-
-            return 4;
+            int fitColumnCount = Mathf.FloorToInt((controlsInnerWidth + spacingX) / (110.0f + spacingX));
+            return Mathf.Clamp(fitColumnCount, 1, 4);
         }
 
         private static float ResolveControlsCellWidth(float controlsInnerWidth, int columnCount, float spacingX)
         {
             int safeColumnCount = Mathf.Max(1, columnCount);
             float totalSpacing = spacingX * (safeColumnCount - 1);
-            float availableWidth = Mathf.Max(120.0f, controlsInnerWidth - totalSpacing);
+            float availableWidth = Mathf.Max(1.0f, controlsInnerWidth - totalSpacing);
             float rawCellWidth = availableWidth / safeColumnCount;
-            return Mathf.Clamp(rawCellWidth, 110.0f, 180.0f);
+            return Mathf.Min(Mathf.Clamp(rawCellWidth, 110.0f, 180.0f), availableWidth);
         }
 
         private static bool ShouldKeepChild(Transform child, Transform[] keepRoots)

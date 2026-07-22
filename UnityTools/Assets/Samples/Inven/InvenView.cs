@@ -87,7 +87,7 @@ namespace UnityTools.Samples.Inven
             if(_scrollView == null)
                 return;
 
-            SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Inventory Test Sample", "Shuffle / Sort / Dynamic list refresh");
+            SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Inventory Test Sample", "Shuffle / Sort / Dynamic list refresh", 4);
             RectTransform rtScroll = _scrollView.GetComponent<RectTransform>();
             SampleTestUiBuilder.ReparentToContent(rtScroll, layout.RtContentViewport, Vector2.zero, Vector2.zero);
 

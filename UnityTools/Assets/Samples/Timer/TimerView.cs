@@ -91,7 +91,7 @@ namespace UnityTools.Samples.Timer
             if(_isTestLayoutBuilt)
                 return;
 
-            SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Timer Test Sample", "UTC state transition / force controls");
+            SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Timer Test Sample", "UTC state transition / force controls", 2);
             SampleTestUiBuilder.DisableObjectsByName(transform, "BtnOpen", "BtnClosed", "ImgStateUpdated", "ImgState", "ImgTime");
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestOpen", "Force Open", OnForceOpenInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestClosed", "Force Closed", OnForceClosedInspector);
