@@ -3061,9 +3061,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _rankOSAView: {fileID: 5415541418717526958}
   _rankOSAModelCount: 10
-  _dividerIndices:
-  - 3
-  - 10
 --- !u!1 &1238986600479774735
 GameObject:
   m_ObjectHideFlags: 0

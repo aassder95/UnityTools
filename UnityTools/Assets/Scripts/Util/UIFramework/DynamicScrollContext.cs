@@ -60,13 +60,13 @@ namespace UnityTools.Util.UIFramework
             if(totalLineCount <= 0)
             {
                 return _scrollRect.vertical
-                    ? new Vector2(_rtContent.sizeDelta.x, _padding.top + _padding.bottom)
-                    : new Vector2(_padding.left + _padding.right, _rtContent.sizeDelta.y);
+                    ? new Vector2(ContentSize.x, _padding.top + _padding.bottom)
+                    : new Vector2(_padding.left + _padding.right, ContentSize.y);
             }
 
             return _scrollRect.vertical
-                ? new Vector2(_rtContent.sizeDelta.x, _padding.top + (totalLineCount * ItemSize.y - _spacing.y) + _padding.bottom)
-                : new Vector2(_padding.left + (totalLineCount * ItemSize.x - _spacing.x) + _padding.right, _rtContent.sizeDelta.y);
+                ? new Vector2(ContentSize.x, _padding.top + (totalLineCount * ItemSize.y - _spacing.y) + _padding.bottom)
+                : new Vector2(_padding.left + (totalLineCount * ItemSize.x - _spacing.x) + _padding.right, ContentSize.y);
         }
 
         public Vector2 ClampContentPosition(Vector2 contentPos, int totalLineCount, int visibleLineCount)
