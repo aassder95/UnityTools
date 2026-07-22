@@ -1,10 +1,12 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityTools.Util.Core.Pooling;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Inven
 {
+    [RequireComponent(typeof(Image))]
     public class InvenItemView : BaseView<InvenItemModel>, IDynamicScrollItem, IPoolable
     {
         //============================================================
@@ -16,12 +18,21 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Fields
         //============================================================
+        private Image _imgBg;
         private int _index;
 
         //============================================================
         // Properties
         //============================================================
         public int Index => _index;
+
+        //============================================================
+        // Init/Register
+        //============================================================
+        protected override void OnInit()
+        {
+            _imgBg = GetComponent<Image>();
+        }
 
         //============================================================
         // Logic
@@ -31,8 +42,9 @@ namespace UnityTools.Samples.Inven
             if(model == null || _txtIndex == null)
                 return;
 
-            _txtIndex.SetText($"#{model.Id:000} [{model.Grade}] x{model.Count}  {model.ItemName}");
-            _txtIndex.color = ResolveGradeColor(model.Grade);
+            _txtIndex.SetText($"{model.ItemName}\n{model.Grade}\nx{model.Count}");
+            _txtIndex.color = ResolveGradeTextColor(model.Grade);
+            _imgBg.color = ResolveGradeBgColor(model.Grade);
         }
 
         //============================================================
@@ -59,18 +71,35 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Utilities
         //============================================================
-        private static Color ResolveGradeColor(InvenItemModel.EInvenGrade grade)
+        private static Color ResolveGradeTextColor(EInvenGrade grade)
         {
             switch(grade)
             {
-                case InvenItemModel.EInvenGrade.Common:
-                    return new Color(0.78f, 0.82f, 0.9f, 1.0f);
-                case InvenItemModel.EInvenGrade.Rare:
-                    return new Color(0.47f, 0.76f, 1.0f, 1.0f);
-                case InvenItemModel.EInvenGrade.Epic:
-                    return new Color(0.92f, 0.53f, 1.0f, 1.0f);
-                case InvenItemModel.EInvenGrade.Legendary:
-                    return new Color(1.0f, 0.78f, 0.38f, 1.0f);
+                case EInvenGrade.Common:
+                    return new Color(0.24f, 0.31f, 0.43f, 1.0f);
+                case EInvenGrade.Rare:
+                    return new Color(0.02f, 0.34f, 0.64f, 1.0f);
+                case EInvenGrade.Epic:
+                    return new Color(0.48f, 0.12f, 0.62f, 1.0f);
+                case EInvenGrade.Legendary:
+                    return new Color(0.57f, 0.31f, 0.02f, 1.0f);
+            }
+
+            return new Color(0.16f, 0.2f, 0.28f, 1.0f);
+        }
+
+        private static Color ResolveGradeBgColor(EInvenGrade grade)
+        {
+            switch(grade)
+            {
+                case EInvenGrade.Common:
+                    return new Color(0.93f, 0.95f, 0.98f, 1.0f);
+                case EInvenGrade.Rare:
+                    return new Color(0.88f, 0.95f, 1.0f, 1.0f);
+                case EInvenGrade.Epic:
+                    return new Color(0.97f, 0.91f, 1.0f, 1.0f);
+                case EInvenGrade.Legendary:
+                    return new Color(1.0f, 0.95f, 0.84f, 1.0f);
             }
 
             return Color.white;
