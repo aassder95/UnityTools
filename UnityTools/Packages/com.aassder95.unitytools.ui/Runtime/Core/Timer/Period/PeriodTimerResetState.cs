@@ -19,8 +19,7 @@ namespace UnityTools.Util.Core.Timer.Period
 
         public override void Execute()
         {
-            if(!_timer.TryChangeState(EPeriodTimerType.Open, false, "PeriodTimerResetState.Execute"))
-                _timer.Release();
+            _timer.Fsm.Change(EPeriodTimerType.Open);
         }
     }
 }

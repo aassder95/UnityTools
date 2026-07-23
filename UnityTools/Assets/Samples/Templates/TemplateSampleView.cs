@@ -14,9 +14,8 @@ namespace UnityTools.Samples.Templates
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnRefresh(TemplateSampleModel model)
+        protected override void OnRefresh(TemplateSampleModel model)
         {
-            return true;
         }
 
         //============================================================

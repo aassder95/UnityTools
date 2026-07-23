@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityTools.Util.Extensions;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Rank
@@ -26,6 +25,7 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Properties
         //============================================================
+        public RankItemModel this[int idx] => _itemModels[idx];
         public int ItemCnt => _itemModels.Count;
 
         //============================================================
@@ -45,11 +45,6 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Logic
         //============================================================
-        public RankItemModel Get(int idx)
-        {
-            return _itemModels.IsValidIdx(idx) ? _itemModels[idx] : null;
-        }
-
         public void SetRandomScore()
         {
             for(int i = 0; i < _itemModels.Count; i++)

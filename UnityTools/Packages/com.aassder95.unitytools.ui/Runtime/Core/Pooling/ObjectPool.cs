@@ -28,12 +28,6 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         public static ObjectPool<T> Create(int initialSize, T prefab, Transform parent)
         {
-            if(initialSize < 0)
-            {
-                DebugLogger.LogError("오브젝트 풀 초기 크기는 0 이상이어야 합니다. 값=" + initialSize);
-                return null;
-            }
-
             ObjectPool<T> pool = new(prefab, parent);
             for(int i = 0; i < initialSize; i++)
             {
@@ -66,25 +60,24 @@ namespace UnityTools.Util.Core.Pooling
             return obj;
         }
 
-        public bool TryReturn(T obj)
+        public void Return(T obj)
         {
             if(obj == null)
             {
                 DebugLogger.LogError("오브젝트 풀에 반환할 객체가 비어 있습니다.");
-                return false;
+                return;
             }
 
             if(_pooledObjects.Contains(obj))
             {
                 DebugLogger.LogError("이미 풀에 들어 있는 객체를 중복 반환했습니다. 이름=" + obj.name);
-                return false;
+                return;
             }
 
             obj.OnReturn();
             obj.gameObject.SetActive(false);
             _objects.Enqueue(obj);
             _pooledObjects.Add(obj);
-            return true;
         }
 
         public void Clear()

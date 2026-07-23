@@ -43,18 +43,17 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
-            return BuildTestLayout();
+            BuildTestLayout();
         }
 
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnRefresh(RankModel model)
+        protected override void OnRefresh(RankModel model)
         {
             _scrollView.RefreshItems();
-            return true;
         }
 
         //============================================================
@@ -98,10 +97,10 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Utilities
         //============================================================
-        private bool BuildTestLayout()
+        private void BuildTestLayout()
         {
             if(_isTestLayoutBuilt)
-                return true;
+                return;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Rank Test Sample", "Random only rerolls all / Item +/- keeps existing scores", 7);
             RectTransform rtScroll = _scrollView.transform as RectTransform;
@@ -115,7 +114,6 @@ namespace UnityTools.Samples.Rank
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestMinusLine", "Line -", OnDecreaseVisibleLineInspector);
 
             _isTestLayoutBuilt = true;
-            return true;
         }
     }
 }

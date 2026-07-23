@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using UnityEngine.Events;
 
-
 namespace UnityTools.Util.Core.Timer.Period
 {
     public class PeriodTimerHandle : ITimerHandle
@@ -53,11 +52,16 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Init/Register
         //============================================================
-
-        public virtual bool Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+        public virtual void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             RegisterCallbacks();
-            if(_timer.Init(openMin, closedMin, initWaitFunc))
+            _timer.Init(openMin, closedMin, initWaitFunc);
+        }
+
+        public virtual bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+        {
+            RegisterCallbacks();
+            if(_timer.TryInit(openMin, closedMin, initWaitFunc))
                 return true;
 
             UnregisterCallbacks();
@@ -99,6 +103,16 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Logic
         //============================================================
+        public void ForceOpen()
+        {
+            _timer.ForceOpen();
+        }
+
+        public void ForceClosed()
+        {
+            _timer.ForceClosed();
+        }
+
         public bool TryForceOpen()
         {
             return _timer.TryForceOpen();

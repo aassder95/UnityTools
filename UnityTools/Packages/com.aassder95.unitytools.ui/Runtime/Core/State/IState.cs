@@ -1,4 +1,3 @@
-
 namespace UnityTools.Util.Core.State
 {
     public interface IState

@@ -37,18 +37,17 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
-            return BuildTestLayout();
+            BuildTestLayout();
         }
 
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnRefresh(InvenModel model)
+        protected override void OnRefresh(InvenModel model)
         {
             _scrollView.RefreshItems();
-            return true;
         }
 
         //============================================================
@@ -77,10 +76,10 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Utilities
         //============================================================
-        private bool BuildTestLayout()
+        private void BuildTestLayout()
         {
             if(_isTestLayoutBuilt)
-                return true;
+                return;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Inventory Test Sample", "Shuffle / Sort / Dynamic list refresh", 4);
             RectTransform rtScroll = _scrollView.transform as RectTransform;
@@ -91,7 +90,6 @@ namespace UnityTools.Samples.Inven
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestSortGrade", "Grade Sort", OnSortByGradeInspector);
 
             _isTestLayoutBuilt = true;
-            return true;
         }
     }
 }

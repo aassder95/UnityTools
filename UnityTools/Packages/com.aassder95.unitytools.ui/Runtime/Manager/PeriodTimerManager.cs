@@ -2,7 +2,6 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Singleton;
 using UnityTools.Util.Core.Timer;
 using UnityTools.Util.Core.Timer.Period;
@@ -17,7 +16,6 @@ namespace UnityTools.Manager
         //============================================================
         private readonly TimerHandleRegistry<PeriodTimerHandle> _handles = new();
         private readonly Dictionary<string, PeriodTimerEventBinder> _eventBinders = new();
-        private readonly ITimerHandleFactory<PeriodTimerHandle> _handleFactory = new PeriodTimerHandleFactory();
 
         //============================================================
         // Events
@@ -41,41 +39,26 @@ namespace UnityTools.Manager
         {
             handle = null;
             if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(TryCreatePeriodTimerHandle), id);
                 return false;
-            }
 
-            return _handleFactory.TryCreate(normalizedId, this, out handle);
+            handle = new PeriodTimerHandle(PeriodTimer.Create(normalizedId, this));
+            return true;
         }
 
-        public bool InitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+        public bool TryInitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
-            if(handle == null)
-            {
-                DebugLogger.LogError("초기화할 PeriodTimerHandle이 비어 있습니다.", this);
-                return false;
-            }
-
-            if(!StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
-            {
-                LogInvalidId(nameof(InitPeriodTimer), handle.Id);
-                return false;
-            }
-
-            if(!handle.Init(openMin, closedMin, initWaitFunc))
+            if(handle == null || !StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
                 return false;
 
-            if(_handles.TryGet(normalizedId, out PeriodTimerHandle oldHandle))
+            if(!handle.TryInit(openMin, closedMin, initWaitFunc))
+                return false;
+
+            PeriodTimerHandle oldHandle = _handles.SetOrReplace(normalizedId, handle);
+            if(oldHandle != null)
             {
                 UnbindEvents(normalizedId, oldHandle);
-                oldHandle.Release();
-            }
-
-            if(!_handles.TrySetOrReplace(normalizedId, handle, out _))
-            {
-                handle.Release();
-                return false;
+                if(oldHandle != handle)
+                    oldHandle.Release();
             }
 
             BindEvents(normalizedId, handle);
@@ -88,36 +71,28 @@ namespace UnityTools.Manager
         public bool TryDeletePeriodTimer(string id)
         {
             if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(TryDeletePeriodTimer), id);
                 return false;
-            }
 
             if(_handles.TryRemove(normalizedId, out PeriodTimerHandle handle))
             {
                 UnbindEvents(normalizedId, handle);
                 handle.Release();
             }
-            else
-            {
-                _eventBinders.Remove(normalizedId);
-            }
 
-            return PeriodTimerPersistence.TryDeleteAll(normalizedId);
+            PeriodTimerPersistence.DeleteAll(normalizedId);
+            return true;
         }
 
         private void BindEvents(string id, PeriodTimerHandle handle)
         {
-            PeriodTimerEventBinder eventBinder = new(this, id);
+            PeriodTimerEventBinder eventBinder = new(this, handle);
             _eventBinders[id] = eventBinder;
             handle.OnRemainMinUpdated += eventBinder.OnRemainMinUpdatedCallback;
         }
 
         private void UnbindEvents(string id, PeriodTimerHandle handle)
         {
-            if(!_eventBinders.TryGetValue(id, out PeriodTimerEventBinder eventBinder))
-                return;
-
+            PeriodTimerEventBinder eventBinder = _eventBinders[id];
             handle.OnRemainMinUpdated -= eventBinder.OnRemainMinUpdatedCallback;
             _eventBinders.Remove(id);
         }
@@ -128,8 +103,7 @@ namespace UnityTools.Manager
             _eventBinders.Keys.CopyTo(ids, 0);
             foreach(string id in ids)
             {
-                if(_handles.TryGet(id, out PeriodTimerHandle handle))
-                    UnbindEvents(id, handle);
+                UnbindEvents(id, _eventBinders[id].Handle);
             }
 
             _eventBinders.Clear();
@@ -139,14 +113,8 @@ namespace UnityTools.Manager
         //============================================================
         // Callbacks
         //============================================================
-        private void OnPeriodTimerRemainMinUpdatedCallback(string id, int remainMin)
+        private void OnPeriodTimerRemainMinUpdatedCallback(PeriodTimerHandle handle, int remainMin)
         {
-            if(!_handles.TryGet(id, out PeriodTimerHandle handle))
-            {
-                DebugLogger.LogError("PeriodTimer Callback 대상 Handle을 찾을 수 없습니다. ID=" + StringTokenUtils.ToLogSafe(id), this);
-                return;
-            }
-
             if(handle.RemainingMin != remainMin)
                 return;
 
@@ -159,23 +127,7 @@ namespace UnityTools.Manager
         public bool TryGetPeriodHandle(string id, out PeriodTimerHandle handle)
         {
             handle = null;
-            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
-            {
-                LogInvalidId(nameof(TryGetPeriodHandle), id);
-                return false;
-            }
-
-            if(_handles.TryGet(normalizedId, out handle))
-                return true;
-
-            DebugLogger.LogError("등록된 PeriodTimerHandle을 찾을 수 없습니다. ID=" + normalizedId, this);
-            return false;
-        }
-
-        private void LogInvalidId(string method, string id)
-        {
-            string safeId = StringTokenUtils.ToLogSafe(id);
-            DebugLogger.LogError($"[{method}] 유효하지 않은 ID 입력: '{safeId}'", this);
+            return StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId) && _handles.TryGet(normalizedId, out handle);
         }
 
         //============================================================
@@ -186,16 +138,21 @@ namespace UnityTools.Manager
             //============================================================
             // Readonly
             //============================================================
-            private readonly string _id;
             private readonly PeriodTimerManager _manager;
+            private readonly PeriodTimerHandle _handle;
+
+            //============================================================
+            // Properties
+            //============================================================
+            public PeriodTimerHandle Handle => _handle;
 
             //============================================================
             // Constructors
             //============================================================
-            public PeriodTimerEventBinder(PeriodTimerManager manager, string id)
+            public PeriodTimerEventBinder(PeriodTimerManager manager, PeriodTimerHandle handle)
             {
                 _manager = manager;
-                _id = id;
+                _handle = handle;
             }
 
             //============================================================
@@ -203,7 +160,7 @@ namespace UnityTools.Manager
             //============================================================
             public void OnRemainMinUpdatedCallback(int remainMin)
             {
-                _manager.OnPeriodTimerRemainMinUpdatedCallback(_id, remainMin);
+                _manager.OnPeriodTimerRemainMinUpdatedCallback(_handle, remainMin);
             }
         }
     }

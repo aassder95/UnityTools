@@ -12,20 +12,20 @@ namespace UnityTools.Samples.Rank
             ItemController.UpdateItems();
         }
 
-        public bool IncreaseVisibleLine()
+        public void IncreaseVisibleLine()
         {
             if(VisibleLineCnt >= TotalLineCnt)
-                return true;
+                return;
 
-            return TrySetVisibleLineCnt(VisibleLineCnt + 1);
+            SetVisibleLineCnt(VisibleLineCnt + 1);
         }
 
-        public bool DecreaseVisibleLine()
+        public void DecreaseVisibleLine()
         {
             if(VisibleLineCnt <= 1)
-                return true;
+                return;
 
-            return TrySetVisibleLineCnt(VisibleLineCnt - 1);
+            SetVisibleLineCnt(VisibleLineCnt - 1);
         }
     }
 }

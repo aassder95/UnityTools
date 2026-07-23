@@ -19,17 +19,13 @@ namespace UnityTools.Util.Core.Timer.Period
         {
             if(_timer.IsTampered)
             {
-                if(!_timer.HandleTampered())
-                    _timer.Release();
-
+                _timer.HandleTampered();
                 return;
             }
 
             if(!_timer.IsOpenPeriod)
             {
-                if(!_timer.TryChangeState(EPeriodTimerType.Closed, false, "PeriodTimerOpenState.Execute"))
-                    _timer.Release();
-
+                _timer.Fsm.Change(EPeriodTimerType.Closed);
                 return;
             }
 

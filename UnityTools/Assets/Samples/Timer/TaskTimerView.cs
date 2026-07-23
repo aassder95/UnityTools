@@ -11,18 +11,13 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Timer")] [SerializeField] private double _durationSec;
+        [Header("Timer")] [Min(0.0001f)] [SerializeField] private double _durationSec;
         [Header("Info")] [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtTimer;
         [Header("Buttons")] [SerializeField] private Button _btnStart;
         [SerializeField] private Button _btnReduce1Min;
         [SerializeField] private Button _btnComplete;
         [SerializeField] private Button _btnClaim;
-
-        //============================================================
-        // Fields
-        //============================================================
-        private bool _isListenerRegistered;
 
         //============================================================
         // Events
@@ -36,7 +31,6 @@ namespace UnityTools.Samples.Timer
         private event Action _onClaimClicked;
         private event Action _onReduce1MinClicked;
 
-
         //============================================================
         // Properties
         //============================================================
@@ -47,30 +41,18 @@ namespace UnityTools.Samples.Timer
         //============================================================
         private void Awake()
         {
-            if(_durationSec <= 0d || double.IsNaN(_durationSec) || double.IsInfinity(_durationSec))
-            {
-                DebugLogger.LogError("TaskTimerView의 지속시간은 0초보다 큰 유한값이어야 합니다.", this);
-                enabled = false;
-                return;
-            }
-
             _btnStart.onClick.AddListener(OnStartButtonClicked);
             _btnComplete.onClick.AddListener(OnCompleteButtonClicked);
             _btnClaim.onClick.AddListener(OnClaimButtonClicked);
             _btnReduce1Min.onClick.AddListener(OnReduceButtonClicked);
-            _isListenerRegistered = true;
         }
 
         private void OnDestroy()
         {
-            if(!_isListenerRegistered)
-                return;
-
             _btnStart.onClick.RemoveListener(OnStartButtonClicked);
             _btnComplete.onClick.RemoveListener(OnCompleteButtonClicked);
             _btnClaim.onClick.RemoveListener(OnClaimButtonClicked);
             _btnReduce1Min.onClick.RemoveListener(OnReduceButtonClicked);
-            _isListenerRegistered = false;
         }
 
         //============================================================

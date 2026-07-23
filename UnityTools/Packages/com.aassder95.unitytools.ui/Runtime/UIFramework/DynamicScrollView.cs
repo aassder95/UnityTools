@@ -2,8 +2,8 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using UnityTools.Util.Core.Pooling;
 using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Pooling;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -25,8 +25,8 @@ namespace UnityTools.Util.UIFramework
         [Header("Item")] [SerializeField] private TView _item;
         [Header("Layout")] [SerializeField] private EDynamicScrollAxisType _axisType = EDynamicScrollAxisType.Vertical;
         [SerializeField] private EDynamicScrollLayoutMode _layoutMode = EDynamicScrollLayoutMode.FixedCnt;
-        [SerializeField] private int _fixedCellsPerGroup = 1;
-        [SerializeField] private int _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
+        [Min(MIN_FIXED_CELLS_PER_GROUP)] [SerializeField] private int _fixedCellsPerGroup = MIN_FIXED_CELLS_PER_GROUP;
+        [Min(MIN_VISIBLE_LINE_CNT)] [SerializeField] private int _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
         [SerializeField] private EDynamicScrollContentAlignment _contentAlignment = EDynamicScrollContentAlignment.TopLeft;
         [SerializeField] private Vector2 _spacing;
         [SerializeField] private RectOffset _padding;
@@ -57,8 +57,8 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Events
         //============================================================
-        public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated.AddListener(value); remove => _onItemUpdated.RemoveListener(value); }
-        private readonly UnityEvent<TView> _onItemUpdated = new();
+        private event UnityAction<TView> _onItemUpdated;
+        public event UnityAction<TView> OnItemUpdated { add => _onItemUpdated += value; remove => _onItemUpdated -= value; }
 
         //============================================================
         // Properties
@@ -80,8 +80,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         private void Awake()
         {
-            if(!PrepareComponents())
-                enabled = false;
+            PrepareComponents();
         }
 
         private void OnRectTransformDimensionsChange()
@@ -96,33 +95,26 @@ namespace UnityTools.Util.UIFramework
                 return;
 
             UpdateContentLayout();
-            if(!RebuildVisibleItems())
-                enabled = false;
+            RebuildVisibleItems();
         }
 
         private void OnDestroy()
         {
-            if(!ReleaseView())
-                DebugLogger.LogError("DynamicScrollView 파괴 중 Item 정리를 완료하지 못했습니다.", this);
+            ReleaseView();
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        private bool PrepareComponents()
+        private void PrepareComponents()
         {
             if(_isComponentReady)
-                return true;
+                return;
 
             _rtView = GetComponent<RectTransform>();
             _scrollRect = GetComponent<ScrollRect>();
             _rtContent = _scrollRect.content;
             _rtItem = _item.transform as RectTransform;
-            if(!ValidateConfig())
-            {
-                enabled = false;
-                return false;
-            }
 
             ApplyScrollRectSettings();
             ApplyContentAlignment();
@@ -137,78 +129,54 @@ namespace UnityTools.Util.UIFramework
             _scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated += OnControllerItemUpdated;
             _isComponentReady = true;
-            return true;
         }
 
-        public bool InitView(int totalItemCnt)
+        public void InitView(int totalItemCnt)
         {
             if(totalItemCnt < 0)
             {
                 DebugLogger.LogError("동적 스크롤 전체 Item 수는 0 이상이어야 합니다. 값=" + totalItemCnt, this);
-                return false;
+                return;
             }
 
-            if(!PrepareComponents())
-                return false;
-
+            PrepareComponents();
             _isInitialized = true;
             UpdateLayoutConfig();
             bool isSameTotalItemCnt = totalItemCnt == _totalItemCnt;
-            if(!TrySetTotalItemCnt(totalItemCnt))
-            {
-                _isInitialized = false;
-                return false;
-            }
-
-            if(isSameTotalItemCnt && !RebuildVisibleItems())
-            {
-                _isInitialized = false;
-                return false;
-            }
-
-            return true;
+            SetTotalItemCnt(totalItemCnt);
+            if(isSameTotalItemCnt)
+                RebuildVisibleItems();
         }
 
-        public bool ReleaseView()
+        public void ReleaseView()
         {
-            StopSmoothScroll();
-            if(_scrollRect != null)
-                _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
-            if(_itemCtrl != null)
-                _itemCtrl.OnItemUpdated -= OnControllerItemUpdated;
+            if(!_isComponentReady)
+                return;
 
-            bool isSuccess = _itemCtrl == null || _itemCtrl.Clear();
-            _pool?.Clear();
+            StopSmoothScroll();
+            _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
+            _itemCtrl.OnItemUpdated -= OnControllerItemUpdated;
+            _itemCtrl.Clear();
+            _pool.Clear();
             _context = null;
             _itemCtrl = null;
             _pool = null;
             _isComponentReady = false;
             _isInitialized = false;
-            return isSuccess;
         }
 
         //============================================================
         // Logic
         //============================================================
-        public bool RefreshView()
+        public void RefreshView()
         {
-            if(!_isInitialized)
-                return false;
-
-            return RebuildVisibleItems();
+            RebuildVisibleItems();
         }
 
-        public bool TryScrollTo(int itemIdx, bool isImmediate = false, float durationSec = 0.3f)
+        public void ScrollTo(int itemIdx, bool isImmediate = false, float durationSec = 0.3f)
         {
-            if(!PrepareComponents())
-                return false;
             if(_totalItemCnt <= 0)
-                return false;
-            if(!isImmediate && durationSec <= 0.0f)
-            {
-                DebugLogger.LogError("동적 스크롤 이동 시간은 0초보다 커야 합니다. 값=" + durationSec, this);
-                return false;
-            }
+                return;
 
             int targetIdx = Mathf.Clamp(itemIdx, 0, _totalItemCnt - 1);
             Vector2 targetPos = _context.GetContentPos(targetIdx);
@@ -217,65 +185,52 @@ namespace UnityTools.Util.UIFramework
             {
                 StopSmoothScroll();
                 _rtContent.anchoredPosition = targetPos;
-                return ProcessScroll(Vector2.zero);
+                ProcessScroll(Vector2.zero);
+                return;
             }
 
             StartSmoothScroll(targetPos, durationSec);
-            return true;
         }
 
-        protected bool TrySetTotalItemCnt(int totalItemCnt)
+        protected void SetTotalItemCnt(int totalItemCnt)
         {
-            if(totalItemCnt < 0)
-            {
-                DebugLogger.LogError("동적 스크롤 전체 Item 수는 0 이상이어야 합니다. 값=" + totalItemCnt, this);
-                return false;
-            }
-
-            if(!PrepareComponents())
-                return false;
             if(totalItemCnt == _totalItemCnt)
-                return true;
+                return;
 
             _totalItemCnt = totalItemCnt;
             UpdateContentLayout();
             if(_isInitialized)
-                return RebuildVisibleItems();
-
-            _itemCtrl.UpdatePos();
-            return true;
-        }
-
-        protected bool TrySetVisibleLineCnt(int visibleLineCnt)
-        {
-            if(visibleLineCnt < MIN_VISIBLE_LINE_CNT)
             {
-                DebugLogger.LogError("동적 스크롤 표시 Line 수는 1 이상이어야 합니다. 값=" + visibleLineCnt, this);
-                return false;
+                RebuildVisibleItems();
+                return;
             }
 
-            if(!PrepareComponents())
-                return false;
-            if(visibleLineCnt == _visibleLineCnt)
-                return true;
-
-            _visibleLineCnt = visibleLineCnt;
-            return !_isInitialized || RebuildVisibleItems();
+            _itemCtrl.UpdatePos();
         }
 
-        private bool ProcessScroll(Vector2 value)
+        protected void SetVisibleLineCnt(int visibleLineCnt)
+        {
+            if(visibleLineCnt == _visibleLineCnt)
+                return;
+
+            _visibleLineCnt = visibleLineCnt;
+            if(_isInitialized)
+                RebuildVisibleItems();
+        }
+
+        private void ProcessScroll(Vector2 value)
         {
             if(!_isComponentReady || _totalItemCnt <= 0 || _itemCtrl.Cnt <= 0)
             {
-                NotifyScrollChanged(value);
-                return true;
+                HandleScrollValueChanged(value);
+                return;
             }
 
             float curScrollPos = IsVertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
             if(Mathf.Abs(curScrollPos - _lastScrollPos) <= SCROLL_REFRESH_EPSILON)
             {
-                NotifyScrollChanged(value);
-                return true;
+                HandleScrollValueChanged(value);
+                return;
             }
 
             _lastScrollPos = curScrollPos;
@@ -289,32 +244,12 @@ namespace UnityTools.Util.UIFramework
                 {
                     int addLine = isDown ? visibleLine + _visibleLineCnt - moveLineCnt + i : visibleLine + moveLineCnt - i - 1;
                     int removeLine = isDown ? curLine + i : curLine + _visibleLineCnt - i - 1;
-                    if(!_itemCtrl.TryAddRange(_context.GetItemCntForLine(addLine, _totalItemCnt), addLine * _itemCntPerLine, isDown))
-                        return false;
-                    if(!_itemCtrl.TryRemoveRange(_context.GetItemCntForLine(removeLine, _totalItemCnt), !isDown))
-                        return false;
+                    _itemCtrl.AddRange(_context.GetItemCntForLine(addLine, _totalItemCnt), addLine * _itemCntPerLine, isDown);
+                    _itemCtrl.RemoveRange(_context.GetItemCntForLine(removeLine, _totalItemCnt), !isDown);
                 }
             }
 
-            NotifyScrollChanged(value);
-            return true;
-        }
-
-        private bool ValidateConfig()
-        {
-            if(_fixedCellsPerGroup < MIN_FIXED_CELLS_PER_GROUP)
-            {
-                DebugLogger.LogError("DynamicScrollView의 고정 Line Item 수는 1 이상이어야 합니다. 값=" + _fixedCellsPerGroup, this);
-                return false;
-            }
-
-            if(_minVisibleLineCnt < MIN_VISIBLE_LINE_CNT)
-            {
-                DebugLogger.LogError("DynamicScrollView의 최소 표시 Line 수는 1 이상이어야 합니다. 값=" + _minVisibleLineCnt, this);
-                return false;
-            }
-
-            return true;
+            HandleScrollValueChanged(value);
         }
 
         private void ApplyScrollRectSettings()
@@ -375,7 +310,7 @@ namespace UnityTools.Util.UIFramework
                 case EDynamicScrollLayoutMode.Single:
                     return MIN_FIXED_CELLS_PER_GROUP;
                 case EDynamicScrollLayoutMode.FixedCnt:
-                    return Mathf.Max(MIN_FIXED_CELLS_PER_GROUP, _fixedCellsPerGroup);
+                    return _fixedCellsPerGroup;
                 case EDynamicScrollLayoutMode.AutoFit:
                     return GetAutoItemCntPerLine();
             }
@@ -394,38 +329,32 @@ namespace UnityTools.Util.UIFramework
 
             float availableCrossSize = Mathf.Max(0.0f, viewportCrossSize - crossPaddingSize);
             float cellSpan = cellCrossSize + crossSpacingSize;
-            if(cellSpan <= 0.0f)
-                return MIN_FIXED_CELLS_PER_GROUP;
-
             int fitCnt = Mathf.FloorToInt((availableCrossSize + crossSpacingSize) / cellSpan);
             return Mathf.Max(MIN_FIXED_CELLS_PER_GROUP, fitCnt);
         }
 
         private void UpdateContentLayout()
         {
-            _totalLineCnt = _itemCntPerLine > 0 ? Mathf.CeilToInt((float)_totalItemCnt / _itemCntPerLine) : 0;
+            _totalLineCnt = Mathf.CeilToInt((float)_totalItemCnt / _itemCntPerLine);
             _rtContent.sizeDelta = _context.GetContentSize(_totalLineCnt);
         }
 
-        private bool RebuildVisibleItems()
+        private void RebuildVisibleItems()
         {
-            if(!_isComponentReady)
-                return false;
-
             _lastScrollPos = float.MinValue;
-            if(!_itemCtrl.Clear())
-                return false;
+            _itemCtrl.Clear();
             if(_totalItemCnt <= 0)
-                return true;
+                return;
 
             _rtContent.anchoredPosition = _context.ClampContentPos(_rtContent.anchoredPosition, _totalLineCnt, _visibleLineCnt);
             int firstLine = _context.GetFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
             int firstIdx = firstLine * _itemCntPerLine;
             if(firstIdx >= _totalItemCnt)
-                return true;
+                return;
 
             int visibleItemCnt = Mathf.Min(_visibleLineCnt * _itemCntPerLine, _totalItemCnt - firstIdx);
-            return visibleItemCnt <= 0 || _itemCtrl.TryAddRange(visibleItemCnt, firstIdx, true);
+            if(visibleItemCnt > 0)
+                _itemCtrl.AddRange(visibleItemCnt, firstIdx, true);
         }
 
         private void StartSmoothScroll(Vector2 targetPos, float durationSec)
@@ -471,24 +400,19 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         private void OnScrollValueChanged(Vector2 value)
         {
-            if(!ProcessScroll(value))
-                enabled = false;
+            ProcessScroll(value);
         }
 
         private void OnControllerItemUpdated(TView itemView)
         {
-            _onItemUpdated.Invoke(itemView);
+            _onItemUpdated?.Invoke(itemView);
         }
 
         protected virtual void HandleScrollValueChanged(Vector2 value) { }
+
         //============================================================
         // Utilities
         //============================================================
-        private void NotifyScrollChanged(Vector2 value)
-        {
-            HandleScrollValueChanged(value);
-        }
-
         private static ScrollRect.MovementType ConvertMovementType(EDynamicScrollMovementType movementType)
         {
             switch(movementType)
@@ -545,6 +469,5 @@ namespace UnityTools.Util.UIFramework
 
             return 1.0f;
         }
-
     }
 }

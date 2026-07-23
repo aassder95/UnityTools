@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityTools.Util.Extensions;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Inven
@@ -15,6 +14,7 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Properties
         //============================================================
+        public InvenItemModel this[int idx] => _itemModels[idx];
         public int ItemCnt => _itemModels.Count;
 
         //============================================================
@@ -31,11 +31,6 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Logic
         //============================================================
-        public InvenItemModel Get(int idx)
-        {
-            return _itemModels.IsValidIdx(idx) ? _itemModels[idx] : null;
-        }
-
         public void ShuffleItems()
         {
             for(int i = _itemModels.Count - 1; i > 0; i--)

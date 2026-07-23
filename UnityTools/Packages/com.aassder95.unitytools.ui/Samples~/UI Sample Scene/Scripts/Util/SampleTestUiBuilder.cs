@@ -2,12 +2,10 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
-
 namespace UnityTools.Samples.Util
 {
     public static class SampleTestUiBuilder
     {
-
         //============================================================
         // Logic
         //============================================================
@@ -200,6 +198,5 @@ namespace UnityTools.Samples.Util
             float rawCellWidth = availableWidth / columnCnt;
             return Mathf.Min(Mathf.Clamp(rawCellWidth, 110.0f, 180.0f), availableWidth);
         }
-
     }
 }

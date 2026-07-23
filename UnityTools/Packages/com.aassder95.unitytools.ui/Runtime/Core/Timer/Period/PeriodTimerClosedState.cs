@@ -23,9 +23,7 @@ namespace UnityTools.Util.Core.Timer.Period
         {
             if(!_timer.IsClosedPeriod)
             {
-                if(!_timer.TryChangeState(EPeriodTimerType.Reset, true, "PeriodTimerClosedState.Execute"))
-                    _timer.Release();
-
+                _timer.Fsm.Change(EPeriodTimerType.Reset, true);
                 return;
             }
 

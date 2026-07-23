@@ -1,5 +1,4 @@
 using UnityEngine.Events;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Inven
@@ -30,18 +29,12 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
             InvenScrollView scrollView = _view.ScrollView;
             scrollView.OnItemUpdated += _onItemViewUpdated;
-            if(scrollView.InitView(_model.ItemCnt))
-            {
-                scrollView.RefreshItems();
-                return true;
-            }
-
-            scrollView.OnItemUpdated -= _onItemViewUpdated;
-            return false;
+            scrollView.InitView(_model.ItemCnt);
+            scrollView.RefreshItems();
         }
 
         protected override void BindEvents()
@@ -68,16 +61,7 @@ namespace UnityTools.Samples.Inven
         //============================================================
         private void OnItemViewUpdatedCallback(InvenItemView itemView)
         {
-            InvenItemModel itemModel = _model.Get(itemView.Idx);
-            if(itemModel == null)
-            {
-                DebugLogger.LogError("Inven Item 모델을 찾을 수 없습니다. 인덱스=" + itemView.Idx);
-                StopAfterFailure();
-                return;
-            }
-
-            if(!itemView.Refresh(itemModel))
-                StopAfterFailure();
+            itemView.Refresh(_model[itemView.Idx]);
         }
     }
 }

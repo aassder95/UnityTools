@@ -1,6 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Pooling
 {
@@ -10,8 +9,8 @@ namespace UnityTools.Util.Core.Pooling
         // Inspector Fields
         //============================================================
         [SerializeField] private T _prefab;
-        [SerializeField] private int _initialSize;
-        [SerializeField] private float _intervalSec;
+        [Min(0)] [SerializeField] private int _initialSize;
+        [Min(0.0001f)] [SerializeField] private float _intervalSec = 1.0f;
 
         //============================================================
         // Fields
@@ -19,7 +18,6 @@ namespace UnityTools.Util.Core.Pooling
         private ObjectPool<T> _pool;
         private WaitForSeconds _spawnWait;
         private Coroutine _coSpawn;
-        private bool _isConfigValid;
         private bool _isInit;
 
         //============================================================
@@ -27,19 +25,12 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         private void Awake()
         {
-            _isConfigValid = ValidateConfig();
-            if(!_isConfigValid)
-            {
-                enabled = false;
-                return;
-            }
-
             _spawnWait = new WaitForSeconds(_intervalSec);
         }
 
         private void OnEnable()
         {
-            if(!_isConfigValid || _coSpawn != null)
+            if(_coSpawn != null)
                 return;
 
             Init();
@@ -74,7 +65,10 @@ namespace UnityTools.Util.Core.Pooling
 
         private void Release()
         {
-            _pool?.Clear();
+            if(!_isInit)
+                return;
+
+            _pool.Clear();
             _pool = null;
             _isInit = false;
         }
@@ -95,28 +89,6 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         // Utilities
         //============================================================
-        private bool ValidateConfig()
-        {
-            if(_initialSize < 0)
-            {
-                DebugLogger.LogError("Spawner의 Initial Size는 0 이상이어야 합니다. 값=" + _initialSize, this);
-                return false;
-            }
-
-            if(_intervalSec <= 0.0f)
-            {
-                DebugLogger.LogError("Spawner의 Interval은 0초보다 커야 합니다. 값=" + _intervalSec, this);
-                return false;
-            }
-
-            return ValidateSpawnConfig();
-        }
-
-        protected virtual bool ValidateSpawnConfig()
-        {
-            return true;
-        }
-
         protected abstract Vector3 GetSpawnPos();
     }
 }

@@ -28,7 +28,6 @@ namespace UnityTools.Manager
         private GameObject _goBackLayer;
         private Button _btnBack;
 
-
         //============================================================
         // Constructors
         //============================================================

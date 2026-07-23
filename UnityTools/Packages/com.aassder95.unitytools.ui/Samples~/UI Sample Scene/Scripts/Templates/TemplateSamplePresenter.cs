@@ -1,4 +1,3 @@
-
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Templates

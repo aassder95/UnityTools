@@ -1,5 +1,4 @@
 using UnityEngine.Events;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Timer.Period;
 using UnityTools.Util.UIFramework;
 
@@ -32,16 +31,15 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
-            return PeriodTimer.TryCreate("TIMER", _view, out _periodTimer);
+            _periodTimer = PeriodTimer.Create("TIMER", _view);
         }
 
-        protected override bool OnRelease()
+        protected override void OnRelease()
         {
             _periodTimer.Release();
             _periodTimer = null;
-            return true;
         }
 
         protected override void BindEvents()
@@ -65,15 +63,14 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnShow()
+        protected override void OnShow()
         {
-            return _periodTimer.IsReady || _periodTimer.Init(1.0, 1.0);
+            _periodTimer.Init(1.0, 1.0);
         }
 
-        protected override bool OnHide()
+        protected override void OnHide()
         {
             _periodTimer.Release();
-            return true;
         }
 
         //============================================================
@@ -86,20 +83,12 @@ namespace UnityTools.Samples.Timer
 
         private void OnForceOpenCallback()
         {
-            if(_periodTimer.TryForceOpen())
-                return;
-
-            DebugLogger.LogError("PeriodTimer 강제 Open에 실패했습니다.");
-            StopAfterFailure();
+            _periodTimer.ForceOpen();
         }
 
         private void OnForceClosedCallback()
         {
-            if(_periodTimer.TryForceClosed())
-                return;
-
-            DebugLogger.LogError("PeriodTimer 강제 Closed에 실패했습니다.");
-            StopAfterFailure();
+            _periodTimer.ForceClosed();
         }
 
         private void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)

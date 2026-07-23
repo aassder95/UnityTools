@@ -26,66 +26,57 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Init/Register
         //============================================================
-        public bool Init()
+        public void Init()
         {
             if(_isInit)
-                return true;
+                return;
 
-            if(!OnInit())
-                return false;
-
+            OnInit();
             _isInit = true;
-            return true;
         }
 
-        public bool Release()
+        public void Release()
         {
             if(!_isInit)
-                return true;
+                return;
 
             _isInit = false;
-            return OnRelease();
+            OnRelease();
         }
 
-        protected virtual bool OnInit()
+        protected virtual void OnInit()
         {
-            return true;
         }
 
-        protected virtual bool OnRelease()
+        protected virtual void OnRelease()
         {
-            return true;
         }
 
         //============================================================
         // Logic
         //============================================================
-        public bool Show()
+        public void Show()
         {
-            if(!Init())
-                return false;
-
+            Init();
             if(gameObject.activeSelf)
-                return true;
+                return;
 
             gameObject.SetActive(true);
-            return true;
         }
 
-        public bool Hide()
+        public void Hide()
         {
             if(!gameObject.activeSelf)
-                return true;
+                return;
 
             gameObject.SetActive(false);
-            return true;
         }
 
-        public bool Refresh(TModel model)
+        public void Refresh(TModel model)
         {
-            return OnRefresh(model);
+            OnRefresh(model);
         }
 
-        protected abstract bool OnRefresh(TModel model);
+        protected abstract void OnRefresh(TModel model);
     }
 }

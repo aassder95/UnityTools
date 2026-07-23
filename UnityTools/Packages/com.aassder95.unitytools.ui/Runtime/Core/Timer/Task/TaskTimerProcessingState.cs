@@ -19,9 +19,7 @@ namespace UnityTools.Util.Core.Timer.Task
         {
             if(_timer.IsPeriodExpired)
             {
-                if(!_timer.UpdateCompletionTime())
-                    _timer.Release();
-
+                _timer.UpdateCompletionTime();
                 return;
             }
 

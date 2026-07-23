@@ -1,4 +1,3 @@
-
 namespace UnityTools.Util.Utilities
 {
     public static class StringTokenUtils

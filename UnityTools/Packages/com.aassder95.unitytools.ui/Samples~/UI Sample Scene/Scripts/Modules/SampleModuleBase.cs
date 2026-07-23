@@ -19,41 +19,42 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Init/Register
         //============================================================
-        public bool Init()
+        public void Init()
         {
             if(_isInit)
-                return true;
+                return;
 
-            _isInit = OnInitModule();
-            return _isInit;
+            OnInitModule();
+            _isInit = true;
         }
 
-        public bool Release()
+        public void Release()
         {
             if(!_isInit)
-                return true;
+                return;
 
-            bool isSuccess = OnReleaseModule();
+            OnReleaseModule();
             _isInit = false;
-            return isSuccess;
         }
 
         //============================================================
         // Logic
         //============================================================
-        public bool Show()
+        public void Show()
         {
-            return _isInit && OnShowModule();
+            Init();
+            OnShowModule();
         }
 
-        public bool Hide()
+        public void Hide()
         {
-            return !_isInit || OnHideModule();
+            if(_isInit)
+                OnHideModule();
         }
 
-        protected abstract bool OnInitModule();
-        protected abstract bool OnShowModule();
-        protected abstract bool OnHideModule();
-        protected abstract bool OnReleaseModule();
+        protected abstract void OnInitModule();
+        protected abstract void OnShowModule();
+        protected abstract void OnHideModule();
+        protected abstract void OnReleaseModule();
     }
 }

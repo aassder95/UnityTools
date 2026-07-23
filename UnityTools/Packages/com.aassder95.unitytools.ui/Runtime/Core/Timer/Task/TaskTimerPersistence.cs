@@ -13,6 +13,11 @@ namespace UnityTools.Util.Core.Timer.Task
         private readonly IStorage _storage;
 
         //============================================================
+        // Properties
+        //============================================================
+        public bool IsClaimed => LoadClaimed(_id, _storage);
+
+        //============================================================
         // Constructors
         //============================================================
         public TaskTimerPersistence(string normalizedId)
@@ -63,12 +68,13 @@ namespace UnityTools.Util.Core.Timer.Task
             _storage.Delete(TaskTimerStorageKeys.State(_id));
         }
 
-        public bool IsClaimed()
+        public static bool LoadClaimed(string normalizedId, IStorage storage = null)
         {
-            bool hasStart = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.Start(_id));
-            bool hasDuration = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.Duration(_id));
-            bool hasState = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.State(_id));
-            bool hasUpdated = StorageValueUtils.HasKey(_storage, TaskTimerStorageKeys.Updated(_id));
+            IStorage targetStorage = storage ?? new PlayerPrefsStorage();
+            bool hasStart = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.Start(normalizedId));
+            bool hasDuration = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.Duration(normalizedId));
+            bool hasState = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.State(normalizedId));
+            bool hasUpdated = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.Updated(normalizedId));
             return !hasStart && !hasDuration && !hasState && hasUpdated;
         }
     }

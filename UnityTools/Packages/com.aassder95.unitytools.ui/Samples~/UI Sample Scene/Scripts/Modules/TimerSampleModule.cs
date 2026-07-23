@@ -24,31 +24,26 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnInitModule()
+        protected override void OnInitModule()
         {
-            TimerPresenter presenter = new TimerPresenter(new TimerModel(), _timerView);
-            if(!presenter.Init())
-                return false;
-
-            _timerPresenter = presenter;
-            return true;
+            _timerPresenter = new TimerPresenter(new TimerModel(), _timerView);
+            _timerPresenter.Init();
         }
 
-        protected override bool OnShowModule()
+        protected override void OnShowModule()
         {
-            return _timerPresenter.Show();
+            _timerPresenter.Show();
         }
 
-        protected override bool OnHideModule()
+        protected override void OnHideModule()
         {
-            return _timerPresenter.Hide();
+            _timerPresenter.Hide();
         }
 
-        protected override bool OnReleaseModule()
+        protected override void OnReleaseModule()
         {
-            bool isSuccess = _timerPresenter.Release();
+            _timerPresenter.Release();
             _timerPresenter = null;
-            return isSuccess;
         }
     }
 }

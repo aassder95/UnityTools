@@ -1,5 +1,4 @@
 using UnityEngine.Events;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Rank
@@ -28,18 +27,12 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
             RankScrollView scrollView = _view.ScrollView;
             scrollView.OnItemUpdated += _onItemViewUpdated;
-            if(scrollView.InitView(_model.ItemCnt))
-            {
-                scrollView.RefreshItems();
-                return true;
-            }
-
-            scrollView.OnItemUpdated -= _onItemViewUpdated;
-            return false;
+            scrollView.InitView(_model.ItemCnt);
+            scrollView.RefreshItems();
         }
 
         protected override void BindEvents()
@@ -73,12 +66,7 @@ namespace UnityTools.Samples.Rank
         private void OnIncreaseTotalItemCallback()
         {
             _model.AddItem();
-            if(!_view.ScrollView.InitView(_model.ItemCnt))
-            {
-                StopAfterFailure();
-                return;
-            }
-
+            _view.ScrollView.InitView(_model.ItemCnt);
             _view.ScrollView.RefreshItems();
         }
 
@@ -89,39 +77,23 @@ namespace UnityTools.Samples.Rank
             if(_model.ItemCnt == prevCnt)
                 return;
 
-            if(!_view.ScrollView.InitView(_model.ItemCnt))
-            {
-                StopAfterFailure();
-                return;
-            }
-
+            _view.ScrollView.InitView(_model.ItemCnt);
             _view.ScrollView.RefreshItems();
         }
 
         private void OnIncreaseVisibleLineCallback()
         {
-            if(!_view.ScrollView.IncreaseVisibleLine())
-                StopAfterFailure();
+            _view.ScrollView.IncreaseVisibleLine();
         }
 
         private void OnDecreaseVisibleLineCallback()
         {
-            if(!_view.ScrollView.DecreaseVisibleLine())
-                StopAfterFailure();
+            _view.ScrollView.DecreaseVisibleLine();
         }
 
         private void OnItemViewUpdatedCallback(RankItemView itemView)
         {
-            RankItemModel itemModel = _model.Get(itemView.Idx);
-            if(itemModel == null)
-            {
-                DebugLogger.LogError("Rank Item 모델을 찾을 수 없습니다. 인덱스=" + itemView.Idx);
-                StopAfterFailure();
-                return;
-            }
-
-            if(!itemView.Refresh(itemModel))
-                StopAfterFailure();
+            itemView.Refresh(_model[itemView.Idx]);
         }
     }
 }

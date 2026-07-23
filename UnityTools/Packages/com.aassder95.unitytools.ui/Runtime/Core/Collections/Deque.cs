@@ -1,6 +1,5 @@
 using System.Collections;
 using System.Collections.Generic;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Collections
 {
@@ -32,12 +31,6 @@ namespace UnityTools.Util.Core.Collections
 
         public T Dequeue()
         {
-            if(IsEmpty)
-            {
-                DebugLogger.LogError("비어 있는 Deque에서 앞쪽 Item을 제거할 수 없습니다.");
-                return default;
-            }
-
             T value = _deque.First.Value;
             _deque.RemoveFirst();
             return value;
@@ -45,12 +38,6 @@ namespace UnityTools.Util.Core.Collections
 
         public T DequeueBack()
         {
-            if(IsEmpty)
-            {
-                DebugLogger.LogError("비어 있는 Deque에서 뒤쪽 Item을 제거할 수 없습니다.");
-                return default;
-            }
-
             T value = _deque.Last.Value;
             _deque.RemoveLast();
             return value;
@@ -58,30 +45,17 @@ namespace UnityTools.Util.Core.Collections
 
         public T Peek()
         {
-            if(IsEmpty)
-            {
-                DebugLogger.LogError("비어 있는 Deque의 앞쪽 Item을 조회할 수 없습니다.");
-                return default;
-            }
-
             return _deque.First.Value;
         }
 
         public T PeekBack()
         {
-            if(IsEmpty)
-            {
-                DebugLogger.LogError("비어 있는 Deque의 뒤쪽 Item을 조회할 수 없습니다.");
-                return default;
-            }
-
             return _deque.Last.Value;
         }
 
         public void Clear()
         {
-            if(!IsEmpty)
-                _deque.Clear();
+            _deque.Clear();
         }
 
         //============================================================

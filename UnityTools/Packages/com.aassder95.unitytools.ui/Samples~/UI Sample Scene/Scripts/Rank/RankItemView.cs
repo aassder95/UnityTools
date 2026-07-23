@@ -36,18 +36,17 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
             _rtView = transform as RectTransform;
             ConfigureLayout();
             ConfigureTextStyle();
-            return true;
         }
 
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnRefresh(RankItemModel model)
+        protected override void OnRefresh(RankItemModel model)
         {
             Color scoreColor = RankItemPalette.ResolveScoreColor(model.Score);
             _txtId.SetText("ID {0:000}", model.Id);
@@ -57,7 +56,6 @@ namespace UnityTools.Samples.Rank
             _txtScore.SetText("{0:0000}", model.Score);
             _txtScore.color = scoreColor;
             _imgTmp.color = RankItemPalette.ResolveBgColor(model.BgColor);
-            return true;
         }
 
         void IDynamicScrollItem.SetIdx(int idx)

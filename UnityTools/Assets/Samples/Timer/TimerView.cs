@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
@@ -17,14 +18,17 @@ namespace UnityTools.Samples.Timer
         private const string UTC_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
         //============================================================
+        // Readonly
+        //============================================================
+        private readonly WaitForSecondsRealtime _clockWait = new(1.0f);
+
+        //============================================================
         // Inspector Fields
         //============================================================
-        [Header("State")]
-        [SerializeField] private TextMeshProUGUI _txtState;
+        [Header("State")] [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtSubState;
 
-        [Header("Time")]
-        [SerializeField] private TextMeshProUGUI _txtCur;
+        [Header("Time")] [SerializeField] private TextMeshProUGUI _txtCur;
         [SerializeField] private TextMeshProUGUI _txtLoop;
         [SerializeField] private TextMeshProUGUI _txtOpenUpdated;
         [SerializeField] private TextMeshProUGUI _txtOpenEnd;
@@ -33,6 +37,7 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Fields
         //============================================================
+        private Coroutine _coClock;
         private bool _isTestLayoutBuilt;
 
         //============================================================
@@ -46,32 +51,53 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Unity Methods
         //============================================================
-        private void Update()
+        private void OnEnable()
         {
-            if(!IsInit)
-                return;
+            if(IsInit)
+                StartClock();
+        }
 
-            DateTime curUtcTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
-            _txtCur.SetText("cur: " + curUtcTime.ToString(UTC_TIME_FORMAT));
+        private void OnDisable()
+        {
+            StopClock();
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
-            return BuildTestLayout();
+            BuildTestLayout();
+            if(isActiveAndEnabled)
+                StartClock();
+        }
+
+        protected override void OnRelease()
+        {
+            StopClock();
         }
 
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnRefresh(TimerModel model)
+        protected override void OnRefresh(TimerModel model)
         {
             SetState(model.State, model.SubState);
             SetLoop(model.LoopMin);
             SetTimer(model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
-            return true;
+        }
+
+        //============================================================
+        // Coroutines
+        //============================================================
+        private IEnumerator CoClock()
+        {
+            while(true)
+            {
+                DateTime curUtcTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
+                _txtCur.SetText("cur: " + curUtcTime.ToString(UTC_TIME_FORMAT));
+                yield return _clockWait;
+            }
         }
 
         //============================================================
@@ -90,10 +116,27 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Utilities
         //============================================================
-        private bool BuildTestLayout()
+        private void StartClock()
+        {
+            if(_coClock != null)
+                return;
+
+            _coClock = StartCoroutine(CoClock());
+        }
+
+        private void StopClock()
+        {
+            if(_coClock == null)
+                return;
+
+            StopCoroutine(_coClock);
+            _coClock = null;
+        }
+
+        private void BuildTestLayout()
         {
             if(_isTestLayoutBuilt)
-                return true;
+                return;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Timer Test Sample", "UTC state transition / force controls", 2);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestOpen", "Force Open", OnForceOpenInspector);
@@ -102,7 +145,6 @@ namespace UnityTools.Samples.Timer
             BuildStateCard(layout.RtContentViewport);
             BuildInfoCard(layout.RtContentViewport);
             _isTestLayoutBuilt = true;
-            return true;
         }
 
         private void BuildStateCard(RectTransform rtContentViewport)

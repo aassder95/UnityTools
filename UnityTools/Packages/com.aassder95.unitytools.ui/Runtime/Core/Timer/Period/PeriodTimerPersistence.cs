@@ -1,7 +1,5 @@
 using System;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Persistence;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Timer.Period
 {
@@ -42,17 +40,10 @@ namespace UnityTools.Util.Core.Timer.Period
             return new PeriodTimerStorageSnapshot(openEndTime, closedEndTime, openUpdatedTime, isTamperedFlag);
         }
 
-        public static bool TryDeleteAll(string id, IStorage storage = null)
+        public static void DeleteAll(string normalizedId, IStorage storage = null)
         {
-            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
-            {
-                DebugLogger.LogError("PeriodTimer 저장 데이터 삭제 ID가 유효하지 않습니다. ID=" + StringTokenUtils.ToLogSafe(id));
-                return false;
-            }
-
             IStorage targetStorage = storage ?? new PlayerPrefsStorage();
             PeriodTimerStorageKeys.DeleteAll(normalizedId, targetStorage);
-            return true;
         }
     }
 }

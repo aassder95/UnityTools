@@ -11,14 +11,14 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Init/Register
         //============================================================
-        bool Init();
-        bool Release();
+        void Init();
+        void Release();
 
         //============================================================
         // Logic
         //============================================================
-        bool Show();
-        bool Hide();
-        bool Refresh(TModel model);
+        void Show();
+        void Hide();
+        void Refresh(TModel model);
     }
 }

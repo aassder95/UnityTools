@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
 
-
 namespace UnityTools.Util.Core.Timer.Task
 {
     public class TaskTimerHandle : ITimerHandle
@@ -49,11 +48,10 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Init/Register
         //============================================================
-
-        public virtual bool Init()
+        public virtual bool TryInit()
         {
             RegisterCallbacks();
-            if(_timer.Init())
+            if(_timer.TryInit())
                 return true;
 
             UnregisterCallbacks();

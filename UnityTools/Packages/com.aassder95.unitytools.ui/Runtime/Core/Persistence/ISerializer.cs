@@ -1,4 +1,3 @@
-
 namespace UnityTools.Util.Core.Persistence
 {
     public interface ISerializer

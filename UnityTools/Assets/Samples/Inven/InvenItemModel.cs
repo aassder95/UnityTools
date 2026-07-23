@@ -47,6 +47,5 @@ namespace UnityTools.Samples.Inven
                 SetField(ref _cnt, Random.Range(1, 100));
             });
         }
-
     }
 }

@@ -31,53 +31,36 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Init/Register
         //============================================================
-        public bool Init()
+        public void Init()
         {
             if(_isInit)
-                return true;
+                return;
 
-            bool shouldReleaseView = false;
             if(!_view.IsInit)
-            {
-                if(!_view.Init())
-                    return false;
+                _view.Init();
 
-                shouldReleaseView = true;
-            }
-
-            if(!OnInit())
-            {
-                if(shouldReleaseView)
-                    _view.Release();
-
-                return false;
-            }
-
+            OnInit();
             BindEvents();
             _isInit = true;
-            return true;
         }
 
-        public bool Release()
+        public void Release()
         {
             if(!_isInit)
-                return true;
+                return;
 
             _isInit = false;
             UnbindEvents();
-            bool isSuccess = OnRelease();
-            isSuccess &= _view.Release();
-            return isSuccess;
+            OnRelease();
+            _view.Release();
         }
 
-        protected virtual bool OnInit()
+        protected virtual void OnInit()
         {
-            return true;
         }
 
-        protected virtual bool OnRelease()
+        protected virtual void OnRelease()
         {
-            return true;
         }
 
         protected virtual void BindEvents()
@@ -93,48 +76,29 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Logic
         //============================================================
-        public bool Show()
+        public void Show()
         {
-            if(!Init() || !_view.Show())
-                return false;
-
-            if(!_view.Refresh(_model))
-            {
-                _view.Hide();
-                return false;
-            }
-
-            if(OnShow())
-                return true;
-
-            _view.Hide();
-            return false;
+            Init();
+            _view.Show();
+            _view.Refresh(_model);
+            OnShow();
         }
 
-        public bool Hide()
+        public void Hide()
         {
             if(!_isInit || !_view.IsVisible)
-                return true;
+                return;
 
-            if(!_view.Hide())
-                return false;
-
-            return OnHide();
+            _view.Hide();
+            OnHide();
         }
 
-        protected void StopAfterFailure()
+        protected virtual void OnShow()
         {
-            Release();
         }
 
-        protected virtual bool OnShow()
+        protected virtual void OnHide()
         {
-            return true;
-        }
-
-        protected virtual bool OnHide()
-        {
-            return true;
         }
 
         //============================================================
@@ -142,10 +106,10 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         protected virtual void OnModelUpdated()
         {
-            if(!_isInit || _view.Refresh(_model))
+            if(!_isInit)
                 return;
 
-            StopAfterFailure();
+            _view.Refresh(_model);
         }
     }
 }

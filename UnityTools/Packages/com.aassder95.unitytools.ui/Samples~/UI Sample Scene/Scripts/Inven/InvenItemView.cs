@@ -29,22 +29,20 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Init/Register
         //============================================================
-        protected override bool OnInit()
+        protected override void OnInit()
         {
             _rtView = transform as RectTransform;
             _imgBg = GetComponent<Image>();
-            return true;
         }
 
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnRefresh(InvenItemModel model)
+        protected override void OnRefresh(InvenItemModel model)
         {
             _txtIdx.SetText($"{model.ItemName}\n{model.Grade}\nx{model.Cnt}");
             _txtIdx.color = ResolveGradeTextColor(model.Grade);
             _imgBg.color = ResolveGradeBgColor(model.Grade);
-            return true;
         }
 
         void IDynamicScrollItem.SetIdx(int idx)

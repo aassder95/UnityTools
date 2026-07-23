@@ -34,7 +34,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         public DynamicScrollContext(int itemCntPerLine, Vector2 spacing, RectOffset padding, RectTransform rtItem, ScrollRect scrollRect)
         {
-            _itemCntPerLine = Mathf.Max(1, itemCntPerLine);
+            _itemCntPerLine = itemCntPerLine;
             _spacing = spacing;
             _padding = padding;
             _rtContent = scrollRect.content;
@@ -54,7 +54,7 @@ namespace UnityTools.Util.UIFramework
 
         public void SetItemCntPerLine(int itemCntPerLine)
         {
-            _itemCntPerLine = Mathf.Max(1, itemCntPerLine);
+            _itemCntPerLine = itemCntPerLine;
         }
 
         public Vector2 GetContentSize(int totalLineCnt)
@@ -87,9 +87,6 @@ namespace UnityTools.Util.UIFramework
             float availableSize = Mathf.Max(0.0f, viewportSize - paddingSize);
             float itemMainSize = _scrollRect.vertical ? ItemSize.y : ItemSize.x;
             float spacingMain = _scrollRect.vertical ? _spacing.y : _spacing.x;
-
-            if(itemMainSize <= 0.0f)
-                return Mathf.Max(1, extraLineCnt + 1);
 
             int visibleLineCnt = Mathf.Max(1, Mathf.CeilToInt((availableSize + spacingMain) / itemMainSize));
             return visibleLineCnt + Mathf.Max(0, extraLineCnt);

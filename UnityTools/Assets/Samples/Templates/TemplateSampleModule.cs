@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityTools.Samples.Modules;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Samples.Templates
 {
@@ -11,7 +10,7 @@ namespace UnityTools.Samples.Templates
         //============================================================
         [Header("Module")] [SerializeField] private string _moduleKey = "Template";
         [Header("Template View")] [SerializeField] private TemplateSampleView _view;
-        [Header("Sample Data")] [SerializeField] private int _startCnt;
+        [Header("Sample Data")] [Min(0)] [SerializeField] private int _startCnt;
 
         //============================================================
         // Fields
@@ -27,41 +26,29 @@ namespace UnityTools.Samples.Templates
         //============================================================
         // Logic
         //============================================================
-        protected override bool OnInitModule()
+        protected override void OnInitModule()
         {
-            if(string.IsNullOrWhiteSpace(_moduleKey))
-            {
-                DebugLogger.LogError("TemplateSampleModule의 Module Key가 필요합니다.", this);
-                return false;
-            }
-
-            TemplateSampleModel model = new();
-            model.SetCnt(_startCnt);
-            TemplateSamplePresenter presenter = new(model, _view);
-            if(!presenter.Init())
-                return false;
-
-            _model = model;
-            _presenter = presenter;
-            return true;
+            _model = new TemplateSampleModel();
+            _model.SetCnt(_startCnt);
+            _presenter = new TemplateSamplePresenter(_model, _view);
+            _presenter.Init();
         }
 
-        protected override bool OnShowModule()
+        protected override void OnShowModule()
         {
-            return _presenter.Show();
+            _presenter.Show();
         }
 
-        protected override bool OnHideModule()
+        protected override void OnHideModule()
         {
-            return _presenter.Hide();
+            _presenter.Hide();
         }
 
-        protected override bool OnReleaseModule()
+        protected override void OnReleaseModule()
         {
-            bool isSuccess = _presenter.Release();
+            _presenter.Release();
             _presenter = null;
             _model = null;
-            return isSuccess;
         }
     }
 }

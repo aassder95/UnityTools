@@ -24,14 +24,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Properties
         //============================================================
-        public int FirstIdx
-        {
-            get
-            {
-                return _items.IsEmpty ? 0 : _items.Peek().Idx;
-            }
-        }
-
+        public int FirstIdx => _items.IsEmpty ? 0 : _items.Peek().Idx;
         public int Cnt => _items.Count;
 
         //============================================================
@@ -46,36 +39,21 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Logic
         //============================================================
-        public bool TryCreate(int idx, out TView item)
+        private TView Create(int idx)
         {
-            item = null;
-            if(idx < 0)
-            {
-                DebugLogger.LogError("DynamicScroll Item 인덱스는 0 이상이어야 합니다. 인덱스=" + idx);
-                return false;
-            }
-
-            TView newItem = _pool.Get();
-            if(!newItem.Init())
-            {
-                if(!_pool.TryReturn(newItem))
-                    DebugLogger.LogError("초기화에 실패한 DynamicScroll Item을 풀로 반환하지 못했습니다. 인덱스=" + idx);
-
-                return false;
-            }
-
-            newItem.SetIdx(idx);
-            newItem.SetPos(_context.GetItemPos(idx));
-            NotifyUpdated(newItem);
-            item = newItem;
-            return true;
+            TView item = _pool.Get();
+            item.Init();
+            item.SetIdx(idx);
+            item.SetPos(_context.GetItemPos(idx));
+            _onItemUpdated?.Invoke(item);
+            return item;
         }
 
         public void UpdateItems()
         {
             foreach(TView item in _items)
             {
-                NotifyUpdated(item);
+                _onItemUpdated?.Invoke(item);
             }
         }
 
@@ -87,192 +65,138 @@ namespace UnityTools.Util.UIFramework
             }
         }
 
-        public bool TryAddRange(int cnt, int totalCnt)
+        public void AddRange(int cnt, int totalCnt)
         {
-            if(cnt < 0)
+            if(cnt < 0 || totalCnt < 0 || cnt > totalCnt)
             {
-                DebugLogger.LogError("추가할 DynamicScroll Item 수는 0 이상이어야 합니다. 개수=" + cnt);
-                return false;
+                DebugLogger.LogError("DynamicScroll Item 추가 범위가 유효하지 않습니다. 개수=" + cnt + ", 전체 개수=" + totalCnt);
+                return;
             }
+
             if(cnt == 0)
-                return true;
+                return;
 
             bool isBack = FirstIdx + _items.Count < totalCnt;
             if(isBack)
             {
                 int idx = FirstIdx + _items.Count;
-                for(int i = 0; i < cnt; i++)
+                if(idx + cnt > totalCnt)
                 {
-                    if(!TryAdd(idx + i, true))
-                    {
-                        if(!RollbackAdded(i, true))
-                            DebugLogger.LogError("DynamicScroll 뒤쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + i);
-                        return false;
-                    }
+                    DebugLogger.LogError("DynamicScroll 뒤쪽 Item 추가 범위가 전체 개수를 벗어났습니다. 시작 인덱스=" + idx + ", 개수=" + cnt + ", 전체 개수=" + totalCnt);
+                    return;
                 }
 
-                return true;
+                for(int i = 0; i < cnt; i++)
+                {
+                    Add(idx + i, true);
+                }
+
+                return;
             }
 
             int frontIdx = FirstIdx - 1;
-            for(int i = 0; i < cnt; i++)
+            if(frontIdx - cnt + 1 < 0)
             {
-                if(!TryAdd(frontIdx - i, false))
-                {
-                    if(!RollbackAdded(i, false))
-                        DebugLogger.LogError("DynamicScroll 앞쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + i);
-                    return false;
-                }
+                DebugLogger.LogError("DynamicScroll 앞쪽 Item 추가 범위가 0보다 작습니다. 시작 인덱스=" + frontIdx + ", 개수=" + cnt);
+                return;
             }
 
-            return true;
+            for(int i = 0; i < cnt; i++)
+            {
+                Add(frontIdx - i, false);
+            }
         }
 
-        public bool TryAddRange(int cnt, int idx, bool isBack)
+        public void AddRange(int cnt, int idx, bool isBack)
         {
             if(cnt < 0)
             {
                 DebugLogger.LogError("추가할 DynamicScroll Item 수는 0 이상이어야 합니다. 개수=" + cnt);
-                return false;
+                return;
             }
             if(cnt == 0)
-                return true;
+                return;
+            if(idx < 0)
+            {
+                DebugLogger.LogError("추가할 DynamicScroll Item 인덱스는 0 이상이어야 합니다. 인덱스=" + idx);
+                return;
+            }
 
             if(isBack)
             {
                 for(int i = 0; i < cnt; i++)
                 {
-                    if(!TryAdd(idx + i, true))
-                    {
-                        if(!RollbackAdded(i, true))
-                            DebugLogger.LogError("DynamicScroll 뒤쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + i);
-                        return false;
-                    }
+                    Add(idx + i, true);
                 }
 
-                return true;
+                return;
             }
 
-            int addedCnt = 0;
             for(int i = cnt - 1; i >= 0; i--)
             {
-                if(!TryAdd(idx + i, false))
-                {
-                    if(!RollbackAdded(addedCnt, false))
-                        DebugLogger.LogError("DynamicScroll 앞쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + addedCnt);
-                    return false;
-                }
-
-                addedCnt++;
+                Add(idx + i, false);
             }
-
-            return true;
         }
 
-        public bool TryRemoveRange(int cnt, int lastLine)
+        public void RemoveRange(int cnt, int lastLine)
         {
-            if(cnt < 0)
+            if(cnt < 0 || cnt > _items.Count || lastLine < 0)
             {
-                DebugLogger.LogError("제거할 DynamicScroll Item 수는 0 이상이어야 합니다. 개수=" + cnt);
-                return false;
+                DebugLogger.LogError("DynamicScroll Item 제거 범위가 유효하지 않습니다. 개수=" + cnt + ", 현재 개수=" + _items.Count + ", 마지막 Line=" + lastLine);
+                return;
             }
+
             if(cnt == 0)
-                return true;
+                return;
 
             bool isBack = FirstIdx >= _context.GetFirstVisibleItemIdx(lastLine);
             for(int i = 0; i < cnt; i++)
             {
-                if(!Remove(isBack))
-                    return false;
+                Remove(isBack);
             }
-
-            return true;
         }
 
-        public bool TryRemoveRange(int cnt, bool isBack)
+        public void RemoveRange(int cnt, bool isBack)
         {
-            if(cnt < 0)
+            if(cnt < 0 || cnt > _items.Count)
             {
-                DebugLogger.LogError("제거할 DynamicScroll Item 수는 0 이상이어야 합니다. 개수=" + cnt);
-                return false;
+                DebugLogger.LogError("제거할 DynamicScroll Item 수가 유효하지 않습니다. 개수=" + cnt + ", 현재 개수=" + _items.Count);
+                return;
             }
+
             if(cnt == 0)
-                return true;
+                return;
 
             for(int i = 0; i < cnt; i++)
             {
-                if(!Remove(isBack))
-                    return false;
+                Remove(isBack);
             }
-
-            return true;
         }
 
-        public bool Clear()
+        public void Clear()
         {
             while(_items.Count > 0)
             {
-                if(!Remove(false))
-                    return false;
+                Remove(false);
             }
-
-            return true;
         }
 
         //============================================================
         // Utilities
         //============================================================
-        private bool TryAdd(int idx, bool isBack)
+        private void Add(int idx, bool isBack)
         {
-            if(idx < 0)
-            {
-                DebugLogger.LogError("추가할 DynamicScroll Item 인덱스가 범위를 벗어났습니다. 인덱스=" + idx);
-                return false;
-            }
-
-            if(!TryCreate(idx, out TView item))
-                return false;
-
+            TView item = Create(idx);
             if(isBack)
                 _items.Enqueue(item);
             else
                 _items.EnqueueFront(item);
-
-            return true;
         }
 
-        private bool RollbackAdded(int addedCnt, bool isBack)
+        private void Remove(bool isBack)
         {
-            bool isSuccess = true;
-            for(int i = 0; i < addedCnt; i++)
-            {
-                if(!Remove(isBack))
-                    isSuccess = false;
-            }
-
-            return isSuccess;
-        }
-
-        private bool Remove(bool isBack)
-        {
-            if(_items.Count <= 0)
-                return true;
-
-            TView item = isBack ? _items.PeekBack() : _items.Peek();
-            if(!_pool.TryReturn(item))
-                return false;
-
-            if(isBack)
-                _items.DequeueBack();
-            else
-                _items.Dequeue();
-
-            return true;
-        }
-
-        private void NotifyUpdated(TView item)
-        {
-            _onItemUpdated?.Invoke(item);
+            TView item = isBack ? _items.DequeueBack() : _items.Dequeue();
+            _pool.Return(item);
         }
     }
 }
