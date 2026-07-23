@@ -38,7 +38,7 @@ namespace UnityTools.Samples.Templates
             TemplateSampleModel model = new();
             model.SetCnt(_startCnt);
             TemplateSamplePresenter presenter = new(model, _view);
-            if(!presenter.TryInit())
+            if(!presenter.Init())
                 return false;
 
             _model = model;
@@ -48,17 +48,17 @@ namespace UnityTools.Samples.Templates
 
         protected override bool OnShowModule()
         {
-            return _presenter.TryShow();
+            return _presenter.Show();
         }
 
         protected override bool OnHideModule()
         {
-            return _presenter.TryHide();
+            return _presenter.Hide();
         }
 
         protected override bool OnReleaseModule()
         {
-            bool isSuccess = _presenter.TryRelease();
+            bool isSuccess = _presenter.Release();
             _presenter = null;
             _model = null;
             return isSuccess;

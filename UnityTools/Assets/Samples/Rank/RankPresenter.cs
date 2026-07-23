@@ -108,7 +108,7 @@ namespace UnityTools.Samples.Rank
                 return;
             }
 
-            if(!itemView.TryRefresh(itemModel))
+            if(!itemView.Refresh(itemModel))
                 StopAfterFailure();
         }
     }

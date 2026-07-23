@@ -13,9 +13,6 @@ namespace UnityTools.Samples.Rank
         // Constants
         //============================================================
         private const float RANK_WIDTH = 112.0f;
-        private const float ID_WIDTH = 88.0f;
-        private const float SCORE_WIDTH = 120.0f;
-        private const float SCORE_RIGHT_PADDING = 14.0f;
 
         //============================================================
         // Inspector Fields
@@ -82,8 +79,8 @@ namespace UnityTools.Samples.Rank
         private void ConfigureLayout()
         {
             SetColumnRect(_txtRank, 0.0f, RANK_WIDTH, true, false);
-            SetColumnRect(_txtId, RANK_WIDTH, ID_WIDTH, true, false);
-            SetColumnRect(_txtScore, SCORE_RIGHT_PADDING, SCORE_WIDTH, false, true);
+            SetColumnRect(_txtId, RANK_WIDTH, 88.0f, true, false);
+            SetColumnRect(_txtScore, 14.0f, 120.0f, false, true);
         }
 
         private void ConfigureTextStyle()

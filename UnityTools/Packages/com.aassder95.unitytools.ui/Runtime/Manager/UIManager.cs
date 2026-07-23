@@ -42,21 +42,21 @@ namespace UnityTools.Manager
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            if(!TryRelease())
+            if(!Release())
                 DebugLogger.LogError("UIManager 파괴 중 Module 정리를 완료하지 못했습니다.", this);
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public bool TryInit()
+        public bool Init()
         {
             if(_isInit)
                 return true;
 
 
 
-            if(!TryRegisterModules() || !TryInitModules())
+            if(!RegisterModules() || !InitModules())
             {
                 if(!ReleaseModules())
                     DebugLogger.LogError("UIManager 초기화 실패 후 Module 정리를 완료하지 못했습니다.", this);
@@ -69,19 +69,19 @@ namespace UnityTools.Manager
             _launcher.Init(_activeModules);
 
             _isInit = true;
-            if(TryShowSampleList())
+            if(ShowSampleList())
                 return true;
 
-            if(!TryRelease())
+            if(!Release())
                 DebugLogger.LogError("UIManager 초기화 실패 후 정리를 완료하지 못했습니다.", this);
 
             enabled = false;
             return false;
         }
 
-        public bool TryRelease()
+        public bool Release()
         {
-            bool isSuccess = TryHideSelectedModule();
+            bool isSuccess = HideSelectedModule();
             _launcher?.Release();
             _launcher = null;
             isSuccess &= ReleaseModules();
@@ -89,7 +89,7 @@ namespace UnityTools.Manager
             return isSuccess;
         }
 
-        private bool TryRegisterModules()
+        private bool RegisterModules()
         {
             _modules.Clear();
 
@@ -122,7 +122,7 @@ namespace UnityTools.Manager
             return true;
         }
 
-        private bool TryInitModules()
+        private bool InitModules()
         {
             _activeModules.Clear();
             for(int i = 0; i < _modules.Count; i++)
@@ -131,11 +131,11 @@ namespace UnityTools.Manager
                 if(!IsTargetModule(module.ModuleKey))
                     continue;
 
-                if(!module.TryInit())
+                if(!module.Init())
                     return false;
 
                 _activeModules.Add(module);
-                if(!module.TryHide())
+                if(!module.Hide())
                     return false;
             }
 
@@ -151,7 +151,7 @@ namespace UnityTools.Manager
             bool isSuccess = true;
             for(int i = 0; i < _activeModules.Count; i++)
             {
-                isSuccess &= _activeModules[i].TryRelease();
+                isSuccess &= _activeModules[i].Release();
             }
 
             _activeModules.Clear();
@@ -162,7 +162,7 @@ namespace UnityTools.Manager
         //============================================================
         // Logic
         //============================================================
-        private bool TryOpenSample(int moduleIdx)
+        private bool OpenSample(int moduleIdx)
         {
             if(moduleIdx < 0 || moduleIdx >= _activeModules.Count)
             {
@@ -170,11 +170,11 @@ namespace UnityTools.Manager
                 return false;
             }
 
-            if(!TryHideSelectedModule())
+            if(!HideSelectedModule())
                 return false;
 
             ISampleModule module = _activeModules[moduleIdx];
-            if(!module.TryShow())
+            if(!module.Show())
                 return false;
 
             _launcher.ShowModule();
@@ -182,21 +182,21 @@ namespace UnityTools.Manager
             return true;
         }
 
-        private bool TryShowSampleList()
+        private bool ShowSampleList()
         {
-            if(!TryHideSelectedModule())
+            if(!HideSelectedModule())
                 return false;
 
             _launcher.ShowList();
             return true;
         }
 
-        private bool TryHideSelectedModule()
+        private bool HideSelectedModule()
         {
             if(_selectedModule == null)
                 return true;
 
-            if(!_selectedModule.TryHide())
+            if(!_selectedModule.Hide())
                 return false;
 
             _selectedModule = null;
@@ -216,11 +216,11 @@ namespace UnityTools.Manager
         //============================================================
         private void OnSampleSelected(int moduleIdx)
         {
-            if(TryOpenSample(moduleIdx))
+            if(OpenSample(moduleIdx))
                 return;
 
             DebugLogger.LogError("Sample Module 열기에 실패해 UIManager를 중단합니다. 인덱스=" + moduleIdx, this);
-            if(!TryRelease())
+            if(!Release())
                 DebugLogger.LogError("Sample Module 열기 실패 후 UIManager 정리를 완료하지 못했습니다.", this);
 
             enabled = false;
@@ -228,11 +228,11 @@ namespace UnityTools.Manager
 
         private void OnBackClicked()
         {
-            if(TryShowSampleList())
+            if(ShowSampleList())
                 return;
 
             DebugLogger.LogError("Sample 목록 복귀에 실패해 UIManager를 중단합니다.", this);
-            if(!TryRelease())
+            if(!Release())
                 DebugLogger.LogError("Sample 목록 복귀 실패 후 UIManager 정리를 완료하지 못했습니다.", this);
 
             enabled = false;

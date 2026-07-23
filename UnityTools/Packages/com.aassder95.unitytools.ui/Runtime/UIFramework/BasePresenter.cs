@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using UnityTools.Util.Core.Logging;
-
 namespace UnityTools.Util.UIFramework
 {
     public abstract class BasePresenter<TModel, TView> : IPresenter where TModel : IModel where TView : IView<TModel>
@@ -35,7 +31,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Init/Register
         //============================================================
-        public bool TryInit()
+        public bool Init()
         {
             if(_isInit)
                 return true;
@@ -43,7 +39,7 @@ namespace UnityTools.Util.UIFramework
             bool shouldReleaseView = false;
             if(!_view.IsInit)
             {
-                if(!_view.TryInit())
+                if(!_view.Init())
                     return false;
 
                 shouldReleaseView = true;
@@ -51,8 +47,9 @@ namespace UnityTools.Util.UIFramework
 
             if(!OnInit())
             {
-                RollbackInit(shouldReleaseView);
-                DebugLogger.LogError("Presenter 초기화에 실패했습니다. 타입=" + GetType().Name);
+                if(shouldReleaseView)
+                    _view.Release();
+
                 return false;
             }
 
@@ -61,21 +58,16 @@ namespace UnityTools.Util.UIFramework
             return true;
         }
 
-        public bool TryRelease()
+        public bool Release()
         {
             if(!_isInit)
                 return true;
 
             _isInit = false;
-            List<string> failures = new();
-            ExecuteCleanup(UnbindEvents, "이벤트 해제", failures);
-            ExecuteCleanup(OnRelease, "Presenter 해제", failures);
-            ExecuteCleanup(_view.TryRelease, "View 해제", failures);
-            if(failures.Count == 0)
-                return true;
-
-            LogFailures("Presenter 해제에 실패했습니다.", failures);
-            return false;
+            UnbindEvents();
+            bool isSuccess = OnRelease();
+            isSuccess &= _view.Release();
+            return isSuccess;
         }
 
         protected virtual bool OnInit()
@@ -101,48 +93,38 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Logic
         //============================================================
-        public bool TryShow()
+        public bool Show()
         {
-            if(!TryInit() || !_view.TryShow())
+            if(!Init() || !_view.Show())
                 return false;
 
-            if(!_view.TryRefresh(_model))
+            if(!_view.Refresh(_model))
             {
-                if(!_view.TryHide())
-                    DebugLogger.LogError("Presenter 표시 실패 후 View를 숨기지 못했습니다. 타입=" + GetType().Name);
-
+                _view.Hide();
                 return false;
             }
 
             if(OnShow())
                 return true;
 
-            if(!_view.TryHide())
-                DebugLogger.LogError("Presenter 후처리 실패 후 View를 숨기지 못했습니다. 타입=" + GetType().Name);
-
-            DebugLogger.LogError("Presenter 표시 후 처리에 실패했습니다. 타입=" + GetType().Name);
+            _view.Hide();
             return false;
         }
 
-        public bool TryHide()
+        public bool Hide()
         {
             if(!_isInit || !_view.IsVisible)
                 return true;
 
-            if(!_view.TryHide())
+            if(!_view.Hide())
                 return false;
 
-            if(OnHide())
-                return true;
-
-            DebugLogger.LogError("Presenter 숨김 후 처리에 실패했습니다. 타입=" + GetType().Name);
-            return false;
+            return OnHide();
         }
 
         protected void StopAfterFailure()
         {
-            if(!TryRelease())
-                DebugLogger.LogError("Presenter 실패 중단 후 해제를 완료하지 못했습니다. 타입=" + GetType().Name);
+            Release();
         }
 
         protected virtual bool OnShow()
@@ -160,53 +142,10 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         protected virtual void OnModelUpdated()
         {
-            if(!_isInit || _view.TryRefresh(_model))
+            if(!_isInit || _view.Refresh(_model))
                 return;
 
             StopAfterFailure();
-        }
-
-        //============================================================
-        // Utilities
-        //============================================================
-        private void RollbackInit(bool shouldReleaseView)
-        {
-            List<string> failures = new();
-            if(shouldReleaseView)
-                ExecuteCleanup(_view.TryRelease, "View 롤백", failures);
-
-            if(failures.Count > 0)
-                LogFailures("Presenter 초기화 롤백 중 오류가 발생했습니다.", failures);
-        }
-
-        private static void ExecuteCleanup(Action action, string step, List<string> failures)
-        {
-            try
-            {
-                action.Invoke();
-            }
-            catch(Exception exception)
-            {
-                failures.Add(step + ": " + exception.Message);
-            }
-        }
-
-        private static void ExecuteCleanup(Func<bool> action, string step, List<string> failures)
-        {
-            try
-            {
-                if(!action.Invoke())
-                    failures.Add(step + ": 실패 반환");
-            }
-            catch(Exception exception)
-            {
-                failures.Add(step + ": " + exception.Message);
-            }
-        }
-
-        private void LogFailures(string message, List<string> failures)
-        {
-            DebugLogger.LogError(message + " 타입=" + GetType().Name + ", 첫 오류=" + failures[0] + ", 오류 수=" + failures.Count);
         }
     }
 }

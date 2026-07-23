@@ -12,7 +12,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Logic
         //============================================================
-        bool TryInit();
+        bool Init();
         void SetIdx(int idx);
         void SetPos(Vector2 pos);
     }

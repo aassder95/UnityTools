@@ -11,13 +11,13 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Init/Register
         //============================================================
-        bool TryInit();
-        bool TryRelease();
+        bool Init();
+        bool Release();
 
         //============================================================
         // Logic
         //============================================================
-        bool TryShow();
-        bool TryHide();
+        bool Show();
+        bool Hide();
     }
 }

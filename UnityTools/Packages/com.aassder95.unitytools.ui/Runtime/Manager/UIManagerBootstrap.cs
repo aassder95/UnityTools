@@ -20,7 +20,7 @@ namespace UnityTools.Manager
         //============================================================
         private void OnEnable()
         {
-            _isManagerInit = _uiManager.TryInit();
+            _isManagerInit = _uiManager.Init();
             if(!_isManagerInit)
                 enabled = false;
         }
@@ -30,7 +30,7 @@ namespace UnityTools.Manager
             if(!_isManagerInit)
                 return;
 
-            if(!_uiManager.TryRelease())
+            if(!_uiManager.Release())
                 DebugLogger.LogError("UIManagerBootstrap이 UIManager를 정상적으로 해제하지 못했습니다.", this);
 
             _isManagerInit = false;

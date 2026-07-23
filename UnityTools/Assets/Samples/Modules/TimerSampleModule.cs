@@ -27,7 +27,7 @@ namespace UnityTools.Samples.Modules
         protected override bool OnInitModule()
         {
             TimerPresenter presenter = new TimerPresenter(new TimerModel(), _timerView);
-            if(!presenter.TryInit())
+            if(!presenter.Init())
                 return false;
 
             _timerPresenter = presenter;
@@ -36,17 +36,17 @@ namespace UnityTools.Samples.Modules
 
         protected override bool OnShowModule()
         {
-            return _timerPresenter.TryShow();
+            return _timerPresenter.Show();
         }
 
         protected override bool OnHideModule()
         {
-            return _timerPresenter.TryHide();
+            return _timerPresenter.Hide();
         }
 
         protected override bool OnReleaseModule()
         {
-            bool isSuccess = _timerPresenter.TryRelease();
+            bool isSuccess = _timerPresenter.Release();
             _timerPresenter = null;
             return isSuccess;
         }

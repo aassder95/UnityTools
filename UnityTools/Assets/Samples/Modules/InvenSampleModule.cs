@@ -38,7 +38,7 @@ namespace UnityTools.Samples.Modules
             }
 
             InvenPresenter presenter = new InvenPresenter(new InvenModel(_invenModelCnt), _invenView);
-            if(!presenter.TryInit())
+            if(!presenter.Init())
                 return false;
 
             _invenPresenter = presenter;
@@ -47,17 +47,17 @@ namespace UnityTools.Samples.Modules
 
         protected override bool OnShowModule()
         {
-            return _invenPresenter.TryShow();
+            return _invenPresenter.Show();
         }
 
         protected override bool OnHideModule()
         {
-            return _invenPresenter.TryHide();
+            return _invenPresenter.Hide();
         }
 
         protected override bool OnReleaseModule()
         {
-            bool isSuccess = _invenPresenter.TryRelease();
+            bool isSuccess = _invenPresenter.Release();
             _invenPresenter = null;
             return isSuccess;
         }

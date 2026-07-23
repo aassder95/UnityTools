@@ -38,7 +38,7 @@ namespace UnityTools.Samples.Modules
             }
 
             RankPresenter presenter = new RankPresenter(new RankModel(_rankModelCnt), _rankView);
-            if(!presenter.TryInit())
+            if(!presenter.Init())
                 return false;
 
             _rankPresenter = presenter;
@@ -47,17 +47,17 @@ namespace UnityTools.Samples.Modules
 
         protected override bool OnShowModule()
         {
-            return _rankPresenter.TryShow();
+            return _rankPresenter.Show();
         }
 
         protected override bool OnHideModule()
         {
-            return _rankPresenter.TryHide();
+            return _rankPresenter.Hide();
         }
 
         protected override bool OnReleaseModule()
         {
-            bool isSuccess = _rankPresenter.TryRelease();
+            bool isSuccess = _rankPresenter.Release();
             _rankPresenter = null;
             return isSuccess;
         }

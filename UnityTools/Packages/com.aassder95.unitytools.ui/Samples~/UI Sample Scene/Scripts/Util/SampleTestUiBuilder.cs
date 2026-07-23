@@ -7,16 +7,6 @@ namespace UnityTools.Samples.Util
 {
     public static class SampleTestUiBuilder
     {
-        //============================================================
-        // Constants
-        //============================================================
-        private const string TEST_ROOT_NAME = "GoSampleTestRoot";
-        private const string CONTROLS_WRAP_NAME = "GoControlsWrap";
-        private const string CONTENT_VIEWPORT_NAME = "GoContentViewport";
-        private const string TITLE_FONT_PATH = "LegacyRuntime.ttf";
-        private const float BOTTOM_TAB_SAFE_MARGIN = 128.0f;
-        private const float DEFAULT_ROOT_WIDTH = 720.0f;
-        private const float DEFAULT_ROOT_HEIGHT = 1280.0f;
 
         //============================================================
         // Logic
@@ -25,14 +15,14 @@ namespace UnityTools.Samples.Util
         {
             RectTransform rtParent = parent as RectTransform;
             EnsureRootStretch(rtParent);
-            RectTransform rtRoot = CreateRect(TEST_ROOT_NAME, parent);
+            RectTransform rtRoot = CreateRect("GoSampleTestRoot", parent);
             Stretch(rtRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             Image bgImage = rtRoot.gameObject.AddComponent<Image>();
             bgImage.color = new Color(0.07f, 0.16f, 0.33f, 1.0f);
             bgImage.raycastTarget = true;
 
-            float rootWidth = ResolveRectWidth(rtRoot, DEFAULT_ROOT_WIDTH);
-            float rootHeight = ResolveRectHeight(rtRoot, DEFAULT_ROOT_HEIGHT);
+            float rootWidth = ResolveRectWidth(rtRoot, 720.0f);
+            float rootHeight = ResolveRectHeight(rtRoot, 1280.0f);
 
             float sidePadding = Mathf.Clamp(rootWidth * 0.033f, 16.0f, 28.0f);
             float topPadding = Mathf.Clamp(rootHeight * 0.016f, 12.0f, 24.0f);
@@ -46,7 +36,7 @@ namespace UnityTools.Samples.Util
             int controlsColumnCnt = ResolveControlsColumnCnt(controlsInnerWidth, controlsSpacing.x);
             int controlsRowCnt = Mathf.Max(1, Mathf.CeilToInt((float)actionCnt / controlsColumnCnt));
             float controlsHeight = Mathf.Max(96.0f, (controlsWrapInset * 2.0f) + (controlsGridPadding * 2.0f) + (controlsCellHeight * controlsRowCnt) + (controlsSpacing.y * (controlsRowCnt - 1)));
-            float bottomSafeMargin = BOTTOM_TAB_SAFE_MARGIN;
+            float bottomSafeMargin = 128.0f;
 
             float headerBottomOffset = topPadding + headerHeight;
             float controlsTopOffset = headerBottomOffset + sectionSpacing;
@@ -73,7 +63,7 @@ namespace UnityTools.Samples.Util
             controlsImage.color = new Color(0.1f, 0.2f, 0.38f, 0.95f);
             controlsImage.raycastTarget = false;
 
-            RectTransform rtControlsWrap = CreateRect(CONTROLS_WRAP_NAME, rtControls);
+            RectTransform rtControlsWrap = CreateRect("GoControlsWrap", rtControls);
             Stretch(rtControlsWrap, Vector2.zero, Vector2.one, new Vector2(controlsWrapInset, controlsWrapInset), new Vector2(-controlsWrapInset, -controlsWrapInset));
             GridLayoutGroup controlsLayout = rtControlsWrap.gameObject.AddComponent<GridLayoutGroup>();
             controlsLayout.padding = new RectOffset(controlsGridPadding, controlsGridPadding, controlsGridPadding, controlsGridPadding);
@@ -90,7 +80,7 @@ namespace UnityTools.Samples.Util
             cardImage.color = new Color(0.47f, 0.57f, 0.71f, 0.72f);
             cardImage.raycastTarget = false;
 
-            RectTransform rtContentViewport = CreateRect(CONTENT_VIEWPORT_NAME, rtCard);
+            RectTransform rtContentViewport = CreateRect("GoContentViewport", rtCard);
             Stretch(rtContentViewport, new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f), new Vector2(18.0f, 18.0f), new Vector2(-18.0f, -18.0f));
 
             return new SampleTestLayout(rtRoot, rtControlsWrap, rtContentViewport);
@@ -168,7 +158,7 @@ namespace UnityTools.Samples.Util
             RectTransform rt = CreateRect(name, parent);
             Text txt = rt.gameObject.AddComponent<Text>();
             txt.text = textValue;
-            txt.font = Resources.GetBuiltinResource<Font>(TITLE_FONT_PATH);
+            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
             txt.fontSize = fontSize;
             txt.fontStyle = fontStyle;
             txt.alignment = TextAnchor.MiddleCenter;

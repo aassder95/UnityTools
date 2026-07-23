@@ -1,11 +1,10 @@
 using System.Collections;
 using UnityEngine;
 using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Pooling
 {
-    public class Spawner<T> : MonoBehaviour where T : Component, IPoolable
+    public abstract class Spawner<T> : MonoBehaviour where T : Component, IPoolable
     {
         //============================================================
         // Inspector Fields
@@ -13,7 +12,6 @@ namespace UnityTools.Util.Core.Pooling
         [SerializeField] private T _prefab;
         [SerializeField] private int _initialSize;
         [SerializeField] private float _intervalSec;
-        [SerializeField] private Vector2 _range;
 
         //============================================================
         // Fields
@@ -95,7 +93,7 @@ namespace UnityTools.Util.Core.Pooling
                     yield break;
                 }
 
-                obj.transform.position = RandomUtils.GetRandomPosInRange(transform.position, _range);
+                obj.transform.position = GetSpawnPos();
                 yield return _spawnWait;
             }
         }
@@ -117,13 +115,14 @@ namespace UnityTools.Util.Core.Pooling
                 return false;
             }
 
-            if(_range.x < 0.0f || _range.y < 0.0f)
-            {
-                DebugLogger.LogError("Spawner의 Range는 0 이상이어야 합니다. 값=" + _range, this);
-                return false;
-            }
+            return ValidateSpawnConfig();
+        }
 
+        protected virtual bool ValidateSpawnConfig()
+        {
             return true;
         }
+
+        protected abstract Vector3 GetSpawnPos();
     }
 }

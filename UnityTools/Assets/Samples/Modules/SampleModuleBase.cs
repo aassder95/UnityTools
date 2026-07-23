@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityTools.Util.Core;
 
-
 namespace UnityTools.Samples.Modules
 {
     public abstract class SampleModuleBase : MonoBehaviour, ISampleModule
@@ -20,21 +19,16 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Init/Register
         //============================================================
-        public bool TryInit()
+        public bool Init()
         {
             if(_isInit)
                 return true;
 
             _isInit = OnInitModule();
-            if(_isInit)
-                return true;
-
-
-            enabled = false;
-            return false;
+            return _isInit;
         }
 
-        public bool TryRelease()
+        public bool Release()
         {
             if(!_isInit)
                 return true;
@@ -47,12 +41,12 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Logic
         //============================================================
-        public bool TryShow()
+        public bool Show()
         {
             return _isInit && OnShowModule();
         }
 
-        public bool TryHide()
+        public bool Hide()
         {
             return !_isInit || OnHideModule();
         }

@@ -74,7 +74,7 @@ namespace UnityTools.Samples.Inven
                 return;
             }
 
-            if(!itemView.TryRefresh(itemModel))
+            if(!itemView.Refresh(itemModel))
                 StopAfterFailure();
         }
     }

@@ -59,7 +59,7 @@ namespace UnityTools.Util.UIFramework
             if(!_pool.TryGet(out TView newItem))
                 return false;
 
-            if(!newItem.TryInit())
+            if(!newItem.Init())
             {
                 if(!_pool.TryReturn(newItem))
                     DebugLogger.LogError("초기화에 실패한 DynamicScroll Item을 풀로 반환하지 못했습니다. 인덱스=" + idx);

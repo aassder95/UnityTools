@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -21,41 +20,31 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         private void OnDestroy()
         {
-            if(!TryRelease())
-                DebugLogger.LogError("View 파괴 중 해제를 완료하지 못했습니다. 타입=" + GetType().Name, this);
+            Release();
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public bool TryInit()
+        public bool Init()
         {
             if(_isInit)
                 return true;
 
             if(!OnInit())
-            {
-                DebugLogger.LogError("View 초기화에 실패했습니다. 타입=" + GetType().Name, this);
-                enabled = false;
                 return false;
-            }
 
             _isInit = true;
             return true;
         }
 
-        public bool TryRelease()
+        public bool Release()
         {
             if(!_isInit)
                 return true;
 
             _isInit = false;
-            if(OnRelease())
-                return true;
-
-            DebugLogger.LogError("View 해제에 실패했습니다. 타입=" + GetType().Name, this);
-            enabled = false;
-            return false;
+            return OnRelease();
         }
 
         protected virtual bool OnInit()
@@ -71,9 +60,9 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Logic
         //============================================================
-        public bool TryShow()
+        public bool Show()
         {
-            if(!TryInit())
+            if(!Init())
                 return false;
 
             if(gameObject.activeSelf)
@@ -83,7 +72,7 @@ namespace UnityTools.Util.UIFramework
             return true;
         }
 
-        public bool TryHide()
+        public bool Hide()
         {
             if(!gameObject.activeSelf)
                 return true;
@@ -92,15 +81,9 @@ namespace UnityTools.Util.UIFramework
             return true;
         }
 
-        public bool TryRefresh(TModel model)
+        public bool Refresh(TModel model)
         {
-
-            if(OnRefresh(model))
-                return true;
-
-            DebugLogger.LogError("View 갱신에 실패했습니다. 타입=" + GetType().Name, this);
-            enabled = false;
-            return false;
+            return OnRefresh(model);
         }
 
         protected abstract bool OnRefresh(TModel model);
