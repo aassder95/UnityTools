@@ -73,6 +73,7 @@ namespace UnityTools.Util.Core.Pooling
             _pool = ObjectPool<T>.Create(_initialSize, _prefab, transform);
             _isInit = true;
         }
+
         private void Release()
         {
             _pool?.Clear();

@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Samples.Util;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Rank

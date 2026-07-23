@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityTools.Samples.Util;
-using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
 

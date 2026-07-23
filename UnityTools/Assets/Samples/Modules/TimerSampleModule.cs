@@ -1,7 +1,6 @@
 using UnityEngine;
 using UnityTools.Samples.Timer;
 using UnityTools.Util.Core;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Samples.Modules
 {

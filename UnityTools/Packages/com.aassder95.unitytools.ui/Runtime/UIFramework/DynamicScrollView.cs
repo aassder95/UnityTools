@@ -294,6 +294,7 @@ namespace UnityTools.Util.UIFramework
 
             return TryNotifyScrollChanged(value);
         }
+
         private bool ValidateConfig()
         {
             if(_fixedCellsPerGroup < MIN_FIXED_CELLS_PER_GROUP)
@@ -310,6 +311,7 @@ namespace UnityTools.Util.UIFramework
 
             return true;
         }
+
         private void ApplyScrollRectSettings()
         {
             _scrollRect.vertical = IsVertical;
@@ -490,6 +492,7 @@ namespace UnityTools.Util.UIFramework
                 return false;
             }
         }
+
         private static ScrollRect.MovementType ConvertMovementType(EDynamicScrollMovementType movementType)
         {
             switch(movementType)

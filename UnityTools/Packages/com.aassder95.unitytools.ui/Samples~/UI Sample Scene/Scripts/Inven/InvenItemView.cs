@@ -35,6 +35,7 @@ namespace UnityTools.Samples.Inven
             _imgBg = GetComponent<Image>();
             return true;
         }
+
         //============================================================
         // Logic
         //============================================================

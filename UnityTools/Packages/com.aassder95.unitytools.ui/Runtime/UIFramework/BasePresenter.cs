@@ -60,6 +60,7 @@ namespace UnityTools.Util.UIFramework
             _isInit = true;
             return true;
         }
+
         public bool TryRelease()
         {
             if(!_isInit)
@@ -122,6 +123,7 @@ namespace UnityTools.Util.UIFramework
             DebugLogger.LogError("Presenter 표시 후 처리에 실패했습니다. 타입=" + GetType().Name);
             return false;
         }
+
         public bool TryHide()
         {
             if(!_isInit || !_view.IsVisible)
@@ -136,6 +138,7 @@ namespace UnityTools.Util.UIFramework
             DebugLogger.LogError("Presenter 숨김 후 처리에 실패했습니다. 타입=" + GetType().Name);
             return false;
         }
+
         protected void StopAfterFailure()
         {
             if(!TryRelease())
@@ -162,6 +165,7 @@ namespace UnityTools.Util.UIFramework
 
             StopAfterFailure();
         }
+
         //============================================================
         // Utilities
         //============================================================
