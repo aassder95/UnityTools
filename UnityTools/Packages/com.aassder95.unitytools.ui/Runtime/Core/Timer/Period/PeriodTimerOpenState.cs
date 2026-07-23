@@ -1,3 +1,5 @@
+using UnityTools.Util.Core.Logging;
+
 namespace UnityTools.Util.Core.Timer.Period
 {
     public class PeriodTimerOpenState : PeriodTimerBaseState
@@ -19,13 +21,19 @@ namespace UnityTools.Util.Core.Timer.Period
         {
             if(_timer.IsTampered)
             {
-                _timer.HandleTampered();
+                if(!_timer.TryHandleTampered())
+                    if(!_timer.TryRelease())
+                        DebugLogger.LogError("PeriodTimer Open 상태 실패 후 정리를 완료하지 못했습니다. ID=" + _timer.Id);
+
                 return;
             }
 
             if(!_timer.IsOpenPeriod)
             {
-                _timer.TryChangeState(EPeriodTimerType.Closed, false, "PeriodTimerOpenState.Execute");
+                if(!_timer.TryChangeState(EPeriodTimerType.Closed, false, "PeriodTimerOpenState.Execute"))
+                    if(!_timer.TryRelease())
+                        DebugLogger.LogError("PeriodTimer Open 상태 실패 후 정리를 완료하지 못했습니다. ID=" + _timer.Id);
+
                 return;
             }
 

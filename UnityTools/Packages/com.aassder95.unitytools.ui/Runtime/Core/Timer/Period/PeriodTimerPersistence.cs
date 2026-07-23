@@ -1,5 +1,7 @@
 using System;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Persistence;
+using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Timer.Period
 {
@@ -14,11 +16,8 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Constructors
         //============================================================
-        public PeriodTimerPersistence(string id)
+        public PeriodTimerPersistence(string normalizedId)
         {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-                normalizedId = string.Empty;
-
             _id = normalizedId;
             _storage = new PlayerPrefsStorage();
         }
@@ -36,17 +35,24 @@ namespace UnityTools.Util.Core.Timer.Period
 
         public PeriodTimerStorageSnapshot Load()
         {
-            DateTime openEndTime = StorageValueUtils.TryLoadDate(_storage, PeriodTimerStorageKeys.OpenEnd(_id));
-            DateTime closedEndTime = StorageValueUtils.TryLoadDate(_storage, PeriodTimerStorageKeys.ClosedEnd(_id));
-            DateTime openUpdatedTime = StorageValueUtils.TryLoadDate(_storage, PeriodTimerStorageKeys.OpenUpdated(_id));
+            DateTime openEndTime = StorageValueUtils.LoadDateOrDefault(_storage, PeriodTimerStorageKeys.OpenEnd(_id));
+            DateTime closedEndTime = StorageValueUtils.LoadDateOrDefault(_storage, PeriodTimerStorageKeys.ClosedEnd(_id));
+            DateTime openUpdatedTime = StorageValueUtils.LoadDateOrDefault(_storage, PeriodTimerStorageKeys.OpenUpdated(_id));
             bool isTamperedFlag = StorageValueUtils.LoadString(_storage, PeriodTimerStorageKeys.Tampered(_id)) == "1";
             return new PeriodTimerStorageSnapshot(openEndTime, closedEndTime, openUpdatedTime, isTamperedFlag);
         }
 
-        public static void DeleteAll(string id, IStorage storage = null)
+        public static bool TryDeleteAll(string id, IStorage storage = null)
         {
+            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            {
+                DebugLogger.LogError("PeriodTimer 저장 데이터 삭제 ID가 유효하지 않습니다. ID=" + StringTokenUtils.ToLogSafe(id));
+                return false;
+            }
+
             IStorage targetStorage = storage ?? new PlayerPrefsStorage();
-            PeriodTimerStorageKeys.DeleteAll(id, targetStorage);
+            PeriodTimerStorageKeys.DeleteAll(normalizedId, targetStorage);
+            return true;
         }
     }
 }

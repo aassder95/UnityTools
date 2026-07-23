@@ -15,14 +15,14 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Properties
         //============================================================
-        public int ItemCount => _itemModels.Count;
+        public int ItemCnt => _itemModels.Count;
 
         //============================================================
         // Constructors
         //============================================================
-        public InvenModel(int count)
+        public InvenModel(int cnt)
         {
-            for(int i = 0; i < count; i++)
+            for(int i = 0; i < cnt; i++)
             {
                 _itemModels.Add(new InvenItemModel(i));
             }
@@ -33,25 +33,25 @@ namespace UnityTools.Samples.Inven
         //============================================================
         public InvenItemModel Get(int idx)
         {
-            return _itemModels.IsValidIndex(idx) ? _itemModels[idx] : null;
+            return _itemModels.IsValidIdx(idx) ? _itemModels[idx] : null;
         }
 
         public void ShuffleItems()
         {
             for(int i = _itemModels.Count - 1; i > 0; i--)
             {
-                int swapIndex = Random.Range(0, i + 1);
+                int swapIdx = Random.Range(0, i + 1);
                 InvenItemModel tempItem = _itemModels[i];
-                _itemModels[i] = _itemModels[swapIndex];
-                _itemModels[swapIndex] = tempItem;
+                _itemModels[i] = _itemModels[swapIdx];
+                _itemModels[swapIdx] = tempItem;
             }
 
             NotifyUpdated();
         }
 
-        public void SortByCountDesc()
+        public void SortByCntDesc()
         {
-            _itemModels.Sort((left, right) => right.Count.CompareTo(left.Count));
+            _itemModels.Sort((left, right) => right.Cnt.CompareTo(left.Cnt));
             NotifyUpdated();
         }
 
@@ -63,17 +63,17 @@ namespace UnityTools.Samples.Inven
                 if(gradeCompare != 0)
                     return gradeCompare;
 
-                return right.Count.CompareTo(left.Count);
+                return right.Cnt.CompareTo(left.Cnt);
             });
 
             NotifyUpdated();
         }
 
-        public void RandomizeCounts()
+        public void RandomizeItemCnts()
         {
             for(int i = 0; i < _itemModels.Count; i++)
             {
-                _itemModels[i].RandomizeGradeAndCount();
+                _itemModels[i].RandomizeGradeAndCnt();
             }
 
             NotifyUpdated();

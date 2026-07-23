@@ -131,7 +131,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 99074261}
-  - component: {fileID: 99074262}
+  - component: {fileID: 99074263}
   m_Layer: 0
   m_Name: Manager
   m_TagString: Untagged
@@ -156,7 +156,7 @@ Transform:
   - {fileID: 524161749}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &99074262
+--- !u!114 &99074263
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -165,9 +165,10 @@ MonoBehaviour:
   m_GameObject: {fileID: 99074260}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4f6a61626e0e72844be3aa31f26121a8, type: 3}
+  m_Script: {fileID: 11500000, guid: 5ac587bb063342248ee1d06d5f8c4dd8, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  _uiManager: {fileID: 1101239374}
 --- !u!1 &106806484
 GameObject:
   m_ObjectHideFlags: 0
@@ -590,7 +591,13 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _entryModuleKey: All
+  _hostCanvas: {fileID: 106806487}
+  _eventSystem: {fileID: 813070449}
   _sampleModuleBehaviours:
+  - {fileID: 5838824614990744452}
+  - {fileID: 928572894153044435}
+  - {fileID: 5856063721156839393}
+  - {fileID: 5778237579399153516}
 --- !u!1 &412837774154833695
 GameObject:
   m_ObjectHideFlags: 0
@@ -2243,7 +2250,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
-  _minVisibleLineCount: 6
+  _minVisibleLineCnt: 6
   _fixedCellsPerGroup: 1
   _padding:
     m_Left: 0
@@ -2358,7 +2365,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _rankView: {fileID: 3843420519324890191}
-  _rankModelCount: 10
+  _rankModelCnt: 10
 --- !u!1 &928572894153044434
 GameObject:
   m_ObjectHideFlags: 0
@@ -2960,6 +2967,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: add29805241ae7d49932e1b771a48869, type: 3}
   m_Name:
   m_EditorClassIdentifier:
+  _parentCanvas: {fileID: 2575773027413236911}
   _Params:
     _Content: {fileID: 5655439744713906796}
     _Viewport: {fileID: 8956871939723493718}
@@ -3060,7 +3068,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _rankOSAView: {fileID: 5415541418717526958}
-  _rankOSAModelCount: 10
+  _rankOSAModelCnt: 10
 --- !u!1 &1238986600479774735
 GameObject:
   m_ObjectHideFlags: 0
@@ -4370,7 +4378,6 @@ MonoBehaviour:
   _txtSubState: {fileID: 2458333417871155817}
   _txtCur: {fileID: 4347015166771340805}
   _txtLoop: {fileID: 7178723850932621934}
-  _txtOpenStart: {fileID: 6670157781279013077}
   _txtOpenUpdated: {fileID: 3665210601988338317}
   _txtOpenEnd: {fileID: 5605797036803587849}
   _txtClosedEnd: {fileID: 2165028833060358838}
@@ -5183,7 +5190,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _item: {fileID: 8120307858875503894, guid: 8817176bafc9ab9448680153db2d0eda, type: 3}
-  _minVisibleLineCount: 4
+  _minVisibleLineCnt: 4
   _fixedCellsPerGroup: 4
   _padding:
     m_Left: 50
@@ -5450,7 +5457,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _invenView: {fileID: 748329683886800929}
-  _invenModelCount: 50
+  _invenModelCnt: 50
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

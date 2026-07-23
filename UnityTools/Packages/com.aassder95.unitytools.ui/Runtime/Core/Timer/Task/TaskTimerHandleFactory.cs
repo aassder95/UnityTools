@@ -7,9 +7,14 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Logic
         //============================================================
-        public TaskTimerHandle Create(string normalizedId, MonoBehaviour runner)
+        public bool TryCreate(string normalizedId, MonoBehaviour runner, out TaskTimerHandle handle)
         {
-            return new TaskTimerHandle(new TaskTimer(normalizedId, runner));
+            handle = null;
+            if(!TaskTimer.TryCreate(normalizedId, runner, out TaskTimer timer))
+                return false;
+
+            handle = new TaskTimerHandle(timer);
+            return true;
         }
     }
 }

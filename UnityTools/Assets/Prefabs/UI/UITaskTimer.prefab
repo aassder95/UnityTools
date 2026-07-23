@@ -1598,6 +1598,6 @@ MonoBehaviour:
   _txtState: {fileID: 205125992288021052}
   _txtTimer: {fileID: 970198981629223052}
   _btnStart: {fileID: 5934449991557031096}
-  _btnReduce1min: {fileID: 2988589968444800358}
+  _btnReduce1Min: {fileID: 2988589968444800358}
   _btnComplete: {fileID: 8534848147881023057}
   _btnClaim: {fileID: 1615548751245290791}

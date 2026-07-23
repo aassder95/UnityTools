@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 
+
 namespace UnityTools.Samples.Util
 {
     public static class SampleTestUiBuilder
@@ -20,20 +21,15 @@ namespace UnityTools.Samples.Util
         //============================================================
         // Logic
         //============================================================
-        public static SampleTestLayout Build(Transform parent, string title, string subtitle, int actionCount)
+        public static SampleTestLayout Build(Transform parent, string title, string subtitle, int actionCnt)
         {
-            EnsureRootStretch(parent);
-            EnsureCanvas(parent);
-
-            Transform trExistingRoot = parent.Find(TEST_ROOT_NAME);
-            if(trExistingRoot != null)
-                return ResolveExistingLayout(trExistingRoot);
-
+            RectTransform rtParent = parent as RectTransform;
+            EnsureRootStretch(rtParent);
             RectTransform rtRoot = CreateRect(TEST_ROOT_NAME, parent);
             Stretch(rtRoot, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
             Image bgImage = rtRoot.gameObject.AddComponent<Image>();
-            bgImage.color = new Color(0.07f, 0.16f, 0.33f, 0.92f);
-            bgImage.raycastTarget = false;
+            bgImage.color = new Color(0.07f, 0.16f, 0.33f, 1.0f);
+            bgImage.raycastTarget = true;
 
             float rootWidth = ResolveRectWidth(rtRoot, DEFAULT_ROOT_WIDTH);
             float rootHeight = ResolveRectHeight(rtRoot, DEFAULT_ROOT_HEIGHT);
@@ -47,9 +43,9 @@ namespace UnityTools.Samples.Util
             Vector2 controlsSpacing = new(10.0f, 8.0f);
             float controlsCellHeight = Mathf.Clamp(rootHeight * 0.045f, 46.0f, 58.0f);
             float controlsInnerWidth = Mathf.Max(1.0f, rootWidth - (sidePadding * 2.0f) - (controlsWrapInset * 2.0f) - (controlsGridPadding * 2.0f));
-            int controlsColumnCount = ResolveControlsColumnCount(controlsInnerWidth, controlsSpacing.x);
-            int controlsRowCount = Mathf.Max(1, Mathf.CeilToInt((float)actionCount / controlsColumnCount));
-            float controlsHeight = Mathf.Max(96.0f, (controlsWrapInset * 2.0f) + (controlsGridPadding * 2.0f) + (controlsCellHeight * controlsRowCount) + (controlsSpacing.y * (controlsRowCount - 1)));
+            int controlsColumnCnt = ResolveControlsColumnCnt(controlsInnerWidth, controlsSpacing.x);
+            int controlsRowCnt = Mathf.Max(1, Mathf.CeilToInt((float)actionCnt / controlsColumnCnt));
+            float controlsHeight = Mathf.Max(96.0f, (controlsWrapInset * 2.0f) + (controlsGridPadding * 2.0f) + (controlsCellHeight * controlsRowCnt) + (controlsSpacing.y * (controlsRowCnt - 1)));
             float bottomSafeMargin = BOTTOM_TAB_SAFE_MARGIN;
 
             float headerBottomOffset = topPadding + headerHeight;
@@ -64,11 +60,11 @@ namespace UnityTools.Samples.Util
             headerImage.raycastTarget = false;
 
             GameObject goTitle = CreateText(rtHeader, "TxtTitle", title, 42, FontStyle.Bold, Color.white);
-            RectTransform rtTitle = goTitle.GetComponent<RectTransform>();
+            RectTransform rtTitle = goTitle.transform as RectTransform;
             Stretch(rtTitle, new Vector2(0.0f, 0.48f), new Vector2(1.0f, 1.0f), new Vector2(16.0f, 8.0f), new Vector2(-16.0f, -10.0f));
 
             GameObject goSubtitle = CreateText(rtHeader, "TxtSubtitle", subtitle, 22, FontStyle.Normal, new Color(0.78f, 0.86f, 0.97f, 1.0f));
-            RectTransform rtSubtitle = goSubtitle.GetComponent<RectTransform>();
+            RectTransform rtSubtitle = goSubtitle.transform as RectTransform;
             Stretch(rtSubtitle, new Vector2(0.0f, 0.0f), new Vector2(1.0f, 0.52f), new Vector2(16.0f, 8.0f), new Vector2(-16.0f, -8.0f));
 
             RectTransform rtControls = CreateRect("GoControls", rtRoot);
@@ -82,11 +78,11 @@ namespace UnityTools.Samples.Util
             GridLayoutGroup controlsLayout = rtControlsWrap.gameObject.AddComponent<GridLayoutGroup>();
             controlsLayout.padding = new RectOffset(controlsGridPadding, controlsGridPadding, controlsGridPadding, controlsGridPadding);
             controlsLayout.spacing = controlsSpacing;
-            float controlsCellWidth = ResolveControlsCellWidth(controlsInnerWidth, controlsColumnCount, controlsLayout.spacing.x);
+            float controlsCellWidth = ResolveControlsCellWidth(controlsInnerWidth, controlsColumnCnt, controlsLayout.spacing.x);
             controlsLayout.cellSize = new Vector2(controlsCellWidth, controlsCellHeight);
             controlsLayout.childAlignment = TextAnchor.UpperCenter;
             controlsLayout.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
-            controlsLayout.constraintCount = controlsColumnCount;
+            controlsLayout.constraintCount = controlsColumnCnt;
 
             RectTransform rtCard = CreateRect("GoContentCard", rtRoot);
             Stretch(rtCard, new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f), new Vector2(sidePadding, bottomSafeMargin), new Vector2(-sidePadding, -contentTopOffset));
@@ -102,16 +98,13 @@ namespace UnityTools.Samples.Util
 
         public static void ReparentToContent(RectTransform rtTarget, RectTransform rtContentViewport, Vector2 offsetMin, Vector2 offsetMax)
         {
-            if(rtTarget == null || rtContentViewport == null)
-                return;
-
             rtTarget.SetParent(rtContentViewport, false);
             Stretch(rtTarget, new Vector2(0.0f, 0.0f), new Vector2(1.0f, 1.0f), offsetMin, offsetMax);
             rtTarget.localScale = Vector3.one;
             rtTarget.anchoredPosition3D = Vector3.zero;
         }
 
-        public static Button CreateActionButton(Transform parent, string buttonName, string labelText, UnityAction onClick)
+        public static void CreateActionButton(Transform parent, string buttonName, string labelText, UnityAction onClick)
         {
             RectTransform rtButton = CreateRect(buttonName, parent);
             rtButton.sizeDelta = new Vector2(0.0f, 0.0f);
@@ -124,8 +117,7 @@ namespace UnityTools.Samples.Util
 
             Button button = rtButton.gameObject.AddComponent<Button>();
             button.targetGraphic = buttonImage;
-            if(onClick != null)
-                button.onClick.AddListener(onClick);
+            button.onClick.AddListener(onClick);
 
             LayoutElement layoutElement = rtButton.gameObject.AddComponent<LayoutElement>();
             layoutElement.minWidth = 110.0f;
@@ -136,66 +128,15 @@ namespace UnityTools.Samples.Util
             layoutElement.flexibleHeight = 0.0f;
 
             GameObject goText = CreateText(rtButton, "TxtLabel", labelText, 24, FontStyle.Bold, Color.white);
-            RectTransform rtText = goText.GetComponent<RectTransform>();
+            RectTransform rtText = goText.transform as RectTransform;
             Stretch(rtText, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
-            return button;
-        }
-
-        public static void DisableObjectsByName(Transform root, params string[] objectNames)
-        {
-            if(root == null || objectNames == null)
-                return;
-
-            for(int i = 0; i < objectNames.Length; i++)
-            {
-                string objectName = objectNames[i];
-                if(string.IsNullOrWhiteSpace(objectName))
-                    continue;
-
-                Transform[] children = root.GetComponentsInChildren<Transform>(true);
-                for(int j = 0; j < children.Length; j++)
-                {
-                    Transform child = children[j];
-                    if(child == null || child.name != objectName)
-                        continue;
-
-                    child.gameObject.SetActive(false);
-                }
-            }
-        }
-
-        public static void DisableLegacyDirectChildren(Transform root, params Transform[] keepRoots)
-        {
-            if(root == null)
-                return;
-
-            Transform trTestRoot = root.Find(TEST_ROOT_NAME);
-            int childCount = root.childCount;
-            for(int i = 0; i < childCount; i++)
-            {
-                Transform child = root.GetChild(i);
-                if(child == null || child == trTestRoot)
-                    continue;
-
-                if(ShouldKeepChild(child, keepRoots))
-                    continue;
-
-                child.gameObject.SetActive(false);
-            }
         }
 
         //============================================================
         // Utilities
         //============================================================
-        private static void EnsureRootStretch(Transform root)
+        private static void EnsureRootStretch(RectTransform rtRoot)
         {
-            if(root is not RectTransform rtRoot)
-                return;
-
-            RectTransform rtParent = rtRoot.parent as RectTransform;
-            if(rtParent == null)
-                return;
-
             rtRoot.anchorMin = Vector2.zero;
             rtRoot.anchorMax = Vector2.one;
             rtRoot.pivot = new Vector2(0.5f, 0.5f);
@@ -206,25 +147,15 @@ namespace UnityTools.Samples.Util
             rtRoot.localScale = Vector3.one;
         }
 
-        private static SampleTestLayout ResolveExistingLayout(Transform trRoot)
-        {
-            RectTransform rtRoot = trRoot as RectTransform;
-            RectTransform rtControlsWrap = trRoot.Find("GoControls/" + CONTROLS_WRAP_NAME) as RectTransform;
-            RectTransform rtContentViewport = trRoot.Find("GoContentCard/" + CONTENT_VIEWPORT_NAME) as RectTransform;
-            return new SampleTestLayout(rtRoot, rtControlsWrap, rtContentViewport);
-        }
-
         private static RectTransform CreateRect(string name, Transform parent)
         {
             GameObject go = new(name, typeof(RectTransform));
             go.transform.SetParent(parent, false);
-            return go.GetComponent<RectTransform>();
+            return go.transform as RectTransform;
         }
 
         private static void Stretch(RectTransform rt, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
         {
-            if(rt == null)
-                return;
 
             rt.anchorMin = anchorMin;
             rt.anchorMax = anchorMax;
@@ -250,9 +181,6 @@ namespace UnityTools.Samples.Util
 
         private static float ResolveRectWidth(RectTransform rt, float fallback)
         {
-            if(rt == null)
-                return fallback;
-
             float width = rt.rect.width;
             if(width > 0.0f)
                 return width;
@@ -262,9 +190,6 @@ namespace UnityTools.Samples.Util
 
         private static float ResolveRectHeight(RectTransform rt, float fallback)
         {
-            if(rt == null)
-                return fallback;
-
             float height = rt.rect.height;
             if(height > 0.0f)
                 return height;
@@ -272,67 +197,19 @@ namespace UnityTools.Samples.Util
             return Screen.height > 0 ? Screen.height : fallback;
         }
 
-        private static int ResolveControlsColumnCount(float controlsInnerWidth, float spacingX)
+        private static int ResolveControlsColumnCnt(float controlsInnerWidth, float spacingX)
         {
-            int fitColumnCount = Mathf.FloorToInt((controlsInnerWidth + spacingX) / (110.0f + spacingX));
-            return Mathf.Clamp(fitColumnCount, 1, 4);
+            int fitColumnCnt = Mathf.FloorToInt((controlsInnerWidth + spacingX) / (110.0f + spacingX));
+            return Mathf.Clamp(fitColumnCnt, 1, 4);
         }
 
-        private static float ResolveControlsCellWidth(float controlsInnerWidth, int columnCount, float spacingX)
+        private static float ResolveControlsCellWidth(float controlsInnerWidth, int columnCnt, float spacingX)
         {
-            int safeColumnCount = Mathf.Max(1, columnCount);
-            float totalSpacing = spacingX * (safeColumnCount - 1);
+            float totalSpacing = spacingX * (columnCnt - 1);
             float availableWidth = Mathf.Max(1.0f, controlsInnerWidth - totalSpacing);
-            float rawCellWidth = availableWidth / safeColumnCount;
+            float rawCellWidth = availableWidth / columnCnt;
             return Mathf.Min(Mathf.Clamp(rawCellWidth, 110.0f, 180.0f), availableWidth);
         }
 
-        private static bool ShouldKeepChild(Transform child, Transform[] keepRoots)
-        {
-            if(child == null || keepRoots == null)
-                return false;
-
-            for(int i = 0; i < keepRoots.Length; i++)
-            {
-                Transform keepRoot = keepRoots[i];
-                if(keepRoot == null)
-                    continue;
-
-                if(child == keepRoot || keepRoot.IsChildOf(child))
-                    return true;
-            }
-
-            return false;
-        }
-
-        private static void EnsureCanvas(Transform root)
-        {
-            if(root == null)
-                return;
-
-            Canvas canvas = root.GetComponent<Canvas>();
-            if(canvas == null)
-                canvas = root.GetComponentInParent<Canvas>();
-
-            if(canvas == null)
-                canvas = root.GetComponentInChildren<Canvas>(true);
-
-            if(canvas == null)
-                return;
-
-            Transform trCanvas = canvas.transform;
-            CanvasScaler scaler = trCanvas.GetComponent<CanvasScaler>();
-            if(scaler == null)
-                scaler = trCanvas.gameObject.AddComponent<CanvasScaler>();
-
-            GraphicRaycaster raycaster = trCanvas.GetComponent<GraphicRaycaster>();
-            if(raycaster == null)
-                trCanvas.gameObject.AddComponent<GraphicRaycaster>();
-
-            scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
-            scaler.referenceResolution = new Vector2(720.0f, 1280.0f);
-            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.MatchWidthOrHeight;
-            scaler.matchWidthOrHeight = 0.5f;
-        }
     }
 }

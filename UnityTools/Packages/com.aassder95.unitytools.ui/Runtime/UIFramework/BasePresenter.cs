@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -26,12 +28,6 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         protected BasePresenter(TModel model, TView view)
         {
-            if(model == null)
-                throw new ArgumentNullException(nameof(model));
-
-            if(view == null)
-                throw new ArgumentNullException(nameof(view));
-
             _model = model;
             _view = view;
         }
@@ -39,72 +35,57 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Init/Register
         //============================================================
-        public void Init()
+        public bool TryInit()
         {
             if(_isInit)
-                return;
+                return true;
 
-            bool isViewInitializedByPresenter = false;
-            bool isPresenterInitialized = false;
-            bool isEventsBound = false;
-
-            try
+            bool shouldReleaseView = false;
+            if(!_view.IsInit)
             {
-                if(!_view.IsInit)
-                {
-                    _view.Init();
-                    isViewInitializedByPresenter = true;
-                }
+                if(!_view.TryInit())
+                    return false;
 
-                OnInit();
-                isPresenterInitialized = true;
-
-                BindEvents();
-                isEventsBound = true;
-
-                _isInit = true;
+                shouldReleaseView = true;
             }
-            catch(Exception initException)
+
+            if(!OnInit())
             {
-                _isInit = false;
-                Exception rollbackException = null;
-
-                if(isEventsBound)
-                    TryExecuteAndCapture(UnbindEvents, ref rollbackException);
-
-                if(isPresenterInitialized)
-                    TryExecuteAndCapture(OnRelease, ref rollbackException);
-
-                if(isViewInitializedByPresenter)
-                    TryExecuteAndCapture(_view.Release, ref rollbackException);
-
-                if(rollbackException != null)
-                    throw MergeException(initException, rollbackException);
-
-                throw;
+                RollbackInit(shouldReleaseView);
+                DebugLogger.LogError("Presenter 초기화에 실패했습니다. 타입=" + GetType().Name);
+                return false;
             }
+
+            BindEvents();
+            _isInit = true;
+            return true;
         }
-
-        public void Release()
+        public bool TryRelease()
         {
             if(!_isInit)
-                return;
+                return true;
 
             _isInit = false;
+            List<string> failures = new();
+            ExecuteCleanup(UnbindEvents, "이벤트 해제", failures);
+            ExecuteCleanup(OnRelease, "Presenter 해제", failures);
+            ExecuteCleanup(_view.TryRelease, "View 해제", failures);
+            if(failures.Count == 0)
+                return true;
 
-            Exception releaseException = null;
-            TryExecuteAndCapture(UnbindEvents, ref releaseException);
-            TryExecuteAndCapture(OnRelease, ref releaseException);
-            TryExecuteAndCapture(_view.Release, ref releaseException);
-
-            if(releaseException != null)
-                throw releaseException;
+            LogFailures("Presenter 해제에 실패했습니다.", failures);
+            return false;
         }
 
-        //============================================================
-        // Logic
-        //============================================================
-        protected virtual void OnInit() { }
+        protected virtual bool OnInit()
+        {
+            return true;
+        }
+
+        protected virtual bool OnRelease()
+        {
+            return true;
+        }
 
         protected virtual void BindEvents()
         {
@@ -116,78 +97,112 @@ namespace UnityTools.Util.UIFramework
             _model.OnUpdated -= OnModelUpdated;
         }
 
-        public void Show()
+        //============================================================
+        // Logic
+        //============================================================
+        public bool TryShow()
         {
-            if(!_isInit)
-                Init();
+            if(!TryInit() || !_view.TryShow())
+                return false;
 
-            if(!_isInit)
-                return;
+            if(!_view.TryRefresh(_model))
+            {
+                if(!_view.TryHide())
+                    DebugLogger.LogError("Presenter 표시 실패 후 View를 숨기지 못했습니다. 타입=" + GetType().Name);
 
-            _view.Show();
-            _view.Refresh(_model);
-            OnShow();
+                return false;
+            }
+
+            if(OnShow())
+                return true;
+
+            if(!_view.TryHide())
+                DebugLogger.LogError("Presenter 후처리 실패 후 View를 숨기지 못했습니다. 타입=" + GetType().Name);
+
+            DebugLogger.LogError("Presenter 표시 후 처리에 실패했습니다. 타입=" + GetType().Name);
+            return false;
         }
-
-        public void Hide()
+        public bool TryHide()
         {
             if(!_isInit || !_view.IsVisible)
-                return;
+                return true;
 
-            _view.Hide();
-            OnHide();
+            if(!_view.TryHide())
+                return false;
+
+            if(OnHide())
+                return true;
+
+            DebugLogger.LogError("Presenter 숨김 후 처리에 실패했습니다. 타입=" + GetType().Name);
+            return false;
+        }
+        protected void StopAfterFailure()
+        {
+            if(!TryRelease())
+                DebugLogger.LogError("Presenter 실패 중단 후 해제를 완료하지 못했습니다. 타입=" + GetType().Name);
         }
 
-        protected virtual void OnShow() { }
-        protected virtual void OnHide() { }
-        protected virtual void OnRelease() { }
+        protected virtual bool OnShow()
+        {
+            return true;
+        }
+
+        protected virtual bool OnHide()
+        {
+            return true;
+        }
 
         //============================================================
         // Callbacks
         //============================================================
         protected virtual void OnModelUpdated()
         {
-            if(!_isInit)
+            if(!_isInit || _view.TryRefresh(_model))
                 return;
 
-            _view.Refresh(_model);
+            StopAfterFailure();
         }
-
         //============================================================
         // Utilities
         //============================================================
-        private static void TryExecuteAndCapture(Action action, ref Exception releaseException)
+        private void RollbackInit(bool shouldReleaseView)
+        {
+            List<string> failures = new();
+            if(shouldReleaseView)
+                ExecuteCleanup(_view.TryRelease, "View 롤백", failures);
+
+            if(failures.Count > 0)
+                LogFailures("Presenter 초기화 롤백 중 오류가 발생했습니다.", failures);
+        }
+
+        private static void ExecuteCleanup(Action action, string step, List<string> failures)
         {
             try
             {
-                action?.Invoke();
+                action.Invoke();
             }
             catch(Exception exception)
             {
-                releaseException = MergeException(releaseException, exception);
+                failures.Add(step + ": " + exception.Message);
             }
         }
 
-        private static Exception MergeException(Exception currentException, Exception nextException)
+        private static void ExecuteCleanup(Func<bool> action, string step, List<string> failures)
         {
-            if(currentException == null)
-                return nextException;
-
-            if(currentException is AggregateException aggregateException)
+            try
             {
-                int prevCount = aggregateException.InnerExceptions.Count;
-                Exception[] mergedExceptions = new Exception[prevCount + 1];
-
-                for(int i = 0; i < prevCount; i++)
-                {
-                    mergedExceptions[i] = aggregateException.InnerExceptions[i];
-                }
-
-                mergedExceptions[prevCount] = nextException;
-                return new AggregateException(mergedExceptions);
+                if(!action.Invoke())
+                    failures.Add(step + ": 실패 반환");
             }
+            catch(Exception exception)
+            {
+                failures.Add(step + ": " + exception.Message);
+            }
+        }
 
-            return new AggregateException(currentException, nextException);
+        private void LogFailures(string message, List<string> failures)
+        {
+            DebugLogger.LogError(message + " 타입=" + GetType().Name + ", 첫 오류=" + failures[0] + ", 오류 수=" + failures.Count);
         }
     }
 }

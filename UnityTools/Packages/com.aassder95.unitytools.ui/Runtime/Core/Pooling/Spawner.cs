@@ -1,5 +1,6 @@
 using System.Collections;
 using UnityEngine;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Pooling
@@ -10,7 +11,7 @@ namespace UnityTools.Util.Core.Pooling
         // Inspector Fields
         //============================================================
         [SerializeField] private T _prefab;
-        [SerializeField] private int _count;
+        [SerializeField] private int _initialSize;
         [SerializeField] private float _intervalSec;
         [SerializeField] private Vector2 _range;
 
@@ -18,21 +19,65 @@ namespace UnityTools.Util.Core.Pooling
         // Fields
         //============================================================
         private ObjectPool<T> _pool;
+        private WaitForSeconds _spawnWait;
+        private Coroutine _coSpawn;
+        private bool _isConfigValid;
+        private bool _isInit;
 
         //============================================================
         // Unity Methods
         //============================================================
         private void Awake()
         {
-            _pool = new ObjectPool<T>(_count, _prefab, transform);
+            _isConfigValid = ValidateConfig();
+            if(!_isConfigValid)
+            {
+                enabled = false;
+                return;
+            }
+
+            _spawnWait = new WaitForSeconds(_intervalSec);
         }
 
-        private void Start()
+        private void OnEnable()
         {
-            if(_pool == null || _count <= 0)
+            if(!_isConfigValid || _coSpawn != null)
                 return;
 
-            StartCoroutine(CoSpawn());
+            Init();
+            _coSpawn = StartCoroutine(CoSpawn());
+        }
+
+        private void OnDisable()
+        {
+            if(_coSpawn == null)
+                return;
+
+            StopCoroutine(_coSpawn);
+            _coSpawn = null;
+        }
+
+        private void OnDestroy()
+        {
+            Release();
+        }
+
+        //============================================================
+        // Init/Register
+        //============================================================
+        private void Init()
+        {
+            if(_isInit)
+                return;
+
+            _pool = ObjectPool<T>.Create(_initialSize, _prefab, transform);
+            _isInit = true;
+        }
+        private void Release()
+        {
+            _pool?.Clear();
+            _pool = null;
+            _isInit = false;
         }
 
         //============================================================
@@ -40,14 +85,44 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         private IEnumerator CoSpawn()
         {
-            while (true)
+            while(true)
             {
-                T obj = _pool.Get();
-                if (obj != null)
-                    obj.transform.position = RandomUtils.GetRandomPositionInRange(transform.position, _range);
+                if(!_pool.TryGet(out T obj))
+                {
+                    _coSpawn = null;
+                    enabled = false;
+                    yield break;
+                }
 
-                yield return new WaitForSeconds(_intervalSec);
+                obj.transform.position = RandomUtils.GetRandomPosInRange(transform.position, _range);
+                yield return _spawnWait;
             }
+        }
+
+        //============================================================
+        // Utilities
+        //============================================================
+        private bool ValidateConfig()
+        {
+            if(_initialSize < 0)
+            {
+                DebugLogger.LogError("Spawner의 Initial Size는 0 이상이어야 합니다. 값=" + _initialSize, this);
+                return false;
+            }
+
+            if(_intervalSec <= 0.0f)
+            {
+                DebugLogger.LogError("Spawner의 Interval은 0초보다 커야 합니다. 값=" + _intervalSec, this);
+                return false;
+            }
+
+            if(_range.x < 0.0f || _range.y < 0.0f)
+            {
+                DebugLogger.LogError("Spawner의 Range는 0 이상이어야 합니다. 값=" + _range, this);
+                return false;
+            }
+
+            return true;
         }
     }
 }

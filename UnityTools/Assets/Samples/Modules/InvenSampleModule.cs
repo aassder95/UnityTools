@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityTools.Samples.Inven;
 using UnityTools.Util.Core;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Samples.Modules
 {
@@ -9,8 +10,11 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Inspector Fields
         //============================================================
+        [Header("Inventory View")]
         [SerializeField] private InvenView _invenView;
-        [SerializeField] private int _invenModelCount = 50;
+
+        [Header("Inventory Data")]
+        [SerializeField] private int _invenModelCnt = 50;
 
         //============================================================
         // Fields
@@ -20,37 +24,42 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Properties
         //============================================================
-        public override string ModuleKey => SampleModuleKeys.INVEN;
+        public override string ModuleKey => SampleModuleKeys.Inven;
 
         //============================================================
         // Logic
         //============================================================
         protected override bool OnInitModule()
         {
-            if(!TryResolveView(ref _invenView))
+            if(_invenModelCnt < 0)
+            {
+                DebugLogger.LogError("InvenSampleModule의 Model Count는 0 이상이어야 합니다. 값=" + _invenModelCnt, this);
+                return false;
+            }
+
+            InvenPresenter presenter = new InvenPresenter(new InvenModel(_invenModelCnt), _invenView);
+            if(!presenter.TryInit())
                 return false;
 
-            int invenModelCount = Mathf.Max(0, _invenModelCount);
-            _invenPresenter = new InvenPresenter(new InvenModel(invenModelCount), _invenView);
-            _invenPresenter.Init();
-            return _invenPresenter.IsInit;
+            _invenPresenter = presenter;
+            return true;
         }
 
-        protected override void OnShowModule()
+        protected override bool OnShowModule()
         {
-            _invenPresenter?.Show();
+            return _invenPresenter.TryShow();
         }
 
-        protected override void OnHideModule()
+        protected override bool OnHideModule()
         {
-            _invenPresenter?.Hide();
+            return _invenPresenter.TryHide();
         }
 
-        protected override void OnReleaseModule()
+        protected override bool OnReleaseModule()
         {
-            _invenPresenter?.Release();
+            bool isSuccess = _invenPresenter.TryRelease();
             _invenPresenter = null;
+            return isSuccess;
         }
     }
 }
-

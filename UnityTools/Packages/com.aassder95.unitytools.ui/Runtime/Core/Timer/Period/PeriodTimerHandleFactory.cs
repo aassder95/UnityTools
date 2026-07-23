@@ -7,9 +7,14 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Logic
         //============================================================
-        public PeriodTimerHandle Create(string normalizedId, MonoBehaviour runner)
+        public bool TryCreate(string normalizedId, MonoBehaviour runner, out PeriodTimerHandle handle)
         {
-            return new PeriodTimerHandle(new PeriodTimer(normalizedId, runner));
+            handle = null;
+            if(!PeriodTimer.TryCreate(normalizedId, runner, out PeriodTimer timer))
+                return false;
+
+            handle = new PeriodTimerHandle(timer);
+            return true;
         }
     }
 }

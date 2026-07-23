@@ -10,7 +10,7 @@ namespace UnityTools.Samples.Timer
         //============================================================
         private string _state;
         private string _subState;
-        private int _loopMinutes;
+        private int _loopMin;
         private DateTime _openUpdated;
         private DateTime _openEnd;
         private DateTime _closedEnd;
@@ -20,7 +20,7 @@ namespace UnityTools.Samples.Timer
         //============================================================
         public string State => _state;
         public string SubState => _subState;
-        public int LoopMinutes => _loopMinutes;
+        public int LoopMin => _loopMin;
         public DateTime OpenUpdated => _openUpdated;
         public DateTime OpenEnd => _openEnd;
         public DateTime ClosedEnd => _closedEnd;
@@ -51,7 +51,7 @@ namespace UnityTools.Samples.Timer
         {
             RunBatchUpdate(() =>
             {
-                SetField(ref _loopMinutes, min);
+                SetField(ref _loopMin, min);
                 SetField(ref _openUpdated, openUpdated);
             });
         }
@@ -75,7 +75,7 @@ namespace UnityTools.Samples.Timer
                 SetField(ref _closedEnd, closedEnd);
                 SetField(ref _state, state);
 
-                if (shouldUpdateSubState)
+                if(shouldUpdateSubState)
                     SetField(ref _subState, subState);
             });
         }

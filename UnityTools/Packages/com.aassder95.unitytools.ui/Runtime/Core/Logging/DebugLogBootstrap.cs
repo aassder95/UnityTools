@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityTools.Util.Core.Logging
 {
-    // Exception: stateless utility is kept as a static helper.
     public static class DebugLogBootstrap
     {
         //============================================================

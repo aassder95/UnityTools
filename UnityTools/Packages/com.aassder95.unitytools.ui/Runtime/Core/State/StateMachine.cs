@@ -22,7 +22,7 @@ namespace UnityTools.Util.Core.State
         //============================================================
         private TType _curType;
         private IState _curState;
-        private bool _hasCurrentState;
+        private bool _hasCurState;
 
         //============================================================
         // Events
@@ -34,72 +34,64 @@ namespace UnityTools.Util.Core.State
         // Properties
         //============================================================
         public TType CurType => _curType;
-        public bool HasCurrentState => _hasCurrentState;
+        public bool HasCurState => _hasCurState;
 
         //============================================================
-        // Constructors
+        // Init/Register
         //============================================================
-        public StateMachine() { }
-
-        //============================================================
-        // Logic
-        //============================================================
-        public bool Add(TType type, IState state)
+        public bool TryAdd(TType type, IState state)
         {
-            string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
+            string fromState = _hasCurState ? _curType.ToString() : UNINITIALIZED_STATE;
             if(state == null)
             {
-                DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=상태가 null입니다.");
+                DebugLogger.LogError($"상태 등록 실패: 이전={fromState}, 대상={type}, 사유=상태가 비어 있습니다.");
                 return false;
             }
 
             if(_states.TryAdd(type, state))
                 return true;
 
-            DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=상태가 중복입니다.");
+            DebugLogger.LogError($"상태 등록 실패: 이전={fromState}, 대상={type}, 사유=상태가 중복입니다.");
             return false;
         }
 
-        public bool Change(TType type, bool isUpdate = false)
+        //============================================================
+        // Logic
+        //============================================================
+        public bool TryChange(TType type, bool shouldTick = false)
         {
-            string fromState = _hasCurrentState ? _curType.ToString() : UNINITIALIZED_STATE;
-            if(!_states.TryGetValue(type, out IState newState))
+            string fromState = _hasCurState ? _curType.ToString() : UNINITIALIZED_STATE;
+            if(!_states.TryGetValue(type, out IState nextState))
             {
-                DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=상태를 찾을 수 없습니다.");
+                DebugLogger.LogError($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=상태를 찾을 수 없습니다.");
                 return false;
             }
 
-            bool isSameState = _hasCurrentState && EqualityComparer<TType>.Default.Equals(_curType, type);
-            if(isSameState)
-            {
-                DebugLogger.LogWarning($"상태 전환 실패: 이전={fromState}, 대상={type}, 사유=동일 상태입니다.");
-                return false;
-            }
+            if(_hasCurState && EqualityComparer<TType>.Default.Equals(_curType, type))
+                return true;
 
             TType prevType = _curType;
-            _onStateTransition?.Invoke(prevType, type);
-
             _curState?.Exit();
             _curType = type;
-            _curState = newState;
-            _hasCurrentState = true;
-
+            _curState = nextState;
+            _hasCurState = true;
             _curState.Enter();
-            if(isUpdate)
-                Update();
+            if(!TryNotifyTransition(prevType, type))
+                return false;
+
+            if(shouldTick)
+                Tick();
 
             return true;
         }
 
-        public bool SetInitialState(TType type, bool isUpdate = false)
+        public bool TrySetInitialState(TType type, bool shouldTick = false)
         {
-            if(_hasCurrentState)
-            {
-                DebugLogger.LogWarning($"상태 전환 실패: 이전={_curType}, 대상={type}, 사유=초기 상태가 이미 설정되었습니다.");
-                return false;
-            }
+            if(!_hasCurState)
+                return TryChange(type, shouldTick);
 
-            return Change(type, isUpdate);
+            DebugLogger.LogError($"초기 상태 설정 실패: 현재={_curType}, 대상={type}, 사유=초기 상태가 이미 설정되었습니다.");
+            return false;
         }
 
         public bool HasState(TType type)
@@ -107,9 +99,34 @@ namespace UnityTools.Util.Core.State
             return _states.ContainsKey(type);
         }
 
-        public void Update()
+        public void Tick()
         {
             _curState?.Execute();
+        }
+
+        //============================================================
+        // Utilities
+        //============================================================
+        private bool TryNotifyTransition(TType prevType, TType nextType)
+        {
+            if(_onStateTransition == null)
+                return true;
+
+            Delegate[] listeners = _onStateTransition.GetInvocationList();
+            for(int i = 0; i < listeners.Length; i++)
+            {
+                try
+                {
+                    ((UnityAction<TType, TType>)listeners[i]).Invoke(prevType, nextType);
+                }
+                catch(Exception exception)
+                {
+                    DebugLogger.LogError("상태 전환 Listener 실행에 실패했습니다. 원인=" + exception.Message);
+                    return false;
+                }
+            }
+
+            return true;
         }
     }
 }

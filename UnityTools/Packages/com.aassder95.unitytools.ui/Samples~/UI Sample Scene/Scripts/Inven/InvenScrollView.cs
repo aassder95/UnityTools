@@ -3,25 +3,14 @@ using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Inven
 {
-    //============================================================
-    // Logic
-    //============================================================
     public class InvenScrollView : DynamicScrollView<InvenItemView>
     {
         //============================================================
         // Logic
         //============================================================
-        public void RefreshItems()
+        public bool TryRefreshItems()
         {
-            if(ItemController == null)
-                return;
-
-            ItemController.Update();
-        }
-
-        public void UpdateItemView()
-        {
-            RefreshItems();
+            return ItemController.TryUpdateItems();
         }
     }
 }

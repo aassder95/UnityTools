@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityTools.Util.Core;
 
+
 namespace UnityTools.Samples.Modules
 {
     public abstract class SampleModuleBase : MonoBehaviour, ISampleModule
@@ -8,65 +9,57 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Fields
         //============================================================
-        private bool _isInitialized;
+        private bool _isInit;
 
         //============================================================
         // Properties
         //============================================================
         public abstract string ModuleKey { get; }
-        public bool IsInit => _isInitialized;
+        public bool IsInit => _isInit;
+
+        //============================================================
+        // Init/Register
+        //============================================================
+        public bool TryInit()
+        {
+            if(_isInit)
+                return true;
+
+            _isInit = OnInitModule();
+            if(_isInit)
+                return true;
+
+
+            enabled = false;
+            return false;
+        }
+
+        public bool TryRelease()
+        {
+            if(!_isInit)
+                return true;
+
+            bool isSuccess = OnReleaseModule();
+            _isInit = false;
+            return isSuccess;
+        }
 
         //============================================================
         // Logic
         //============================================================
-        public void Init()
+        public bool TryShow()
         {
-            if(_isInitialized)
-                return;
-
-            _isInitialized = OnInitModule();
+            return _isInit && OnShowModule();
         }
 
-        public void Show()
+        public bool TryHide()
         {
-            if(!_isInitialized)
-                return;
-
-            OnShowModule();
-        }
-
-        public void Hide()
-        {
-            if(!_isInitialized)
-                return;
-
-            OnHideModule();
-        }
-
-        public void Release()
-        {
-            if(!_isInitialized)
-                return;
-
-            OnReleaseModule();
-            _isInitialized = false;
+            return !_isInit || OnHideModule();
         }
 
         protected abstract bool OnInitModule();
-        protected abstract void OnShowModule();
-        protected abstract void OnHideModule();
-        protected abstract void OnReleaseModule();
-
-        //============================================================
-        // Utilities
-        //============================================================
-        protected bool TryResolveView<TView>(ref TView view) where TView : Component
-        {
-            if(view != null)
-                return true;
-
-            view = GetComponentInChildren<TView>(true);
-            return view != null;
-        }
+        protected abstract bool OnShowModule();
+        protected abstract bool OnHideModule();
+        protected abstract bool OnReleaseModule();
     }
 }

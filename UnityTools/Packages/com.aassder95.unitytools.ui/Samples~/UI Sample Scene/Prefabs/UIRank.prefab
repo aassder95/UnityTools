@@ -1651,7 +1651,7 @@ MonoBehaviour:
   m_Name:
   m_EditorClassIdentifier:
   _item: {fileID: 2440886612394852592, guid: 7707378f20dc4c44eb4a641fc97a473f, type: 3}
-  _minVisibleLineCount: 6
+  _minVisibleLineCnt: 6
   _fixedCellsPerGroup: 1
   _padding:
     m_Left: 0

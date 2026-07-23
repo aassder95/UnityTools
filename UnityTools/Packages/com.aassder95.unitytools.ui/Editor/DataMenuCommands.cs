@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace UnityTools.Util.Editor
 {
-    public class DataMenuCommands
+    public static class DataMenuCommands
     {
         //============================================================
         // Logic

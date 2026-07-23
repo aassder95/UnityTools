@@ -2,20 +2,15 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Persistence;
 using UnityTools.Util.Core.State;
 using UnityTools.Util.Utilities;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Timer.Task
 {
     public class TaskTimer : ITaskTimer
     {
-        //============================================================
-        // Constants
-        //============================================================
-        private const double DEFAULT_DURATION_SEC = 1d;
-
         //============================================================
         // Readonly
         //============================================================
@@ -51,68 +46,72 @@ namespace UnityTools.Util.Core.Timer.Task
         // Properties
         //============================================================
         public string Id => _id;
-        public StateMachine<ETaskTimerType> FSM => _fsm;
+        public StateMachine<ETaskTimerType> Fsm => _fsm;
         public ETaskTimerType CurType => _fsm.CurType;
-        public int RemainingSec => DateTimeUtils.GetRemainingSeconds(EndTime);
+        public int RemainingSec => DateTimeUtils.GetRemainingSec(EndTime);
         public int DurationSec => (int)_durationSec;
+        public float Progress => CalculateProgress();
         public bool IsClaimed => _persistence.IsClaimed();
-        public bool IsPeriodExpired => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, EndTime) >= 0;
+        public bool IsPeriodExpired => DateTimeUtils.CompareWithoutMs(DateTime.UtcNow, EndTime) >= 0;
         public DateTime EndTime => _startTime.AddSeconds(_durationSec);
-        private bool IsTampered => DateTimeUtils.CompareWithoutMilliseconds(DateTime.UtcNow, _updatedTime) < 0;
+        private bool IsTampered => DateTimeUtils.CompareWithoutMs(DateTime.UtcNow, _updatedTime) < 0;
 
         //============================================================
         // Constructors
         //============================================================
-        public TaskTimer(string id, MonoBehaviour runner)
+        private TaskTimer(string normalizedId, MonoBehaviour runner)
         {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-                normalizedId = string.Empty;
-
             _id = normalizedId;
             _runner = runner;
             _persistence = new TaskTimerPersistence(_id);
             _fsm = new StateMachine<ETaskTimerType>();
-
-            if(!_fsm.Add(ETaskTimerType.None, new TaskTimerBaseState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.None}");
-            if(!_fsm.Add(ETaskTimerType.Processing, new TaskTimerProcessingState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.Processing}");
-            if(!_fsm.Add(ETaskTimerType.Completed, new TaskTimerCompletedState(this)))
-                DebugLogger.LogWarning($"상태 등록 실패: {ETaskTimerType.Completed}");
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public void Init()
+        public static bool TryCreate(string id, MonoBehaviour runner, out TaskTimer timer)
         {
-            if(string.IsNullOrEmpty(_id))
+            timer = null;
+            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
             {
-                DebugLogger.LogWarning("유효하지 않은 ID로 초기화를 무시합니다.");
-                return;
+                DebugLogger.LogError("TaskTimer ID가 유효하지 않습니다. ID=" + StringTokenUtils.ToLogSafe(id));
+                return false;
             }
 
-            if(_runner == null)
+            if(runner == null)
             {
-                DebugLogger.LogWarning("러너 참조가 비어 있어 초기화를 무시합니다.");
-                return;
+                DebugLogger.LogError("TaskTimer Runner 참조가 비어 있습니다.");
+                return false;
             }
 
+            TaskTimer createdTimer = new(normalizedId, runner);
+            if(!createdTimer._fsm.TryAdd(ETaskTimerType.None, new TaskTimerBaseState(createdTimer)) || !createdTimer._fsm.TryAdd(ETaskTimerType.Processing, new TaskTimerProcessingState(createdTimer)) || !createdTimer._fsm.TryAdd(ETaskTimerType.Completed, new TaskTimerCompletedState(createdTimer)))
+                return false;
+
+            timer = createdTimer;
+            return true;
+        }
+
+        public bool TryInit()
+        {
             if(_isInit)
-                return;
+                return true;
 
             Load();
             _isInit = true;
-            Refresh();
+            if(TryRefresh())
+                return true;
+
+            _isInit = false;
+            return false;
         }
 
-        public void Release()
+        public bool TryRelease()
         {
-            if(!_isInit)
-                return;
-
-            StopUpdate();
+            bool isSuccess = TryStopUpdate();
             _isInit = false;
+            return isSuccess;
         }
 
         //============================================================
@@ -120,7 +119,7 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         private void Save()
         {
-            _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            _updatedTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
             _persistence.Save(_startTime, _durationSec, _fsm.CurType, _updatedTime);
         }
 
@@ -144,19 +143,26 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Logic
         //============================================================
-        public void Refresh()
+        public bool TryRefresh()
         {
-            ETaskTimerType type = LoadStateType();
-            if(_startTime == DateTime.MinValue || type == ETaskTimerType.None)
+            if(!_isInit)
             {
-                StopUpdate();
-                if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.None)
-                    TryChangeState(ETaskTimerType.None, false, "Refresh");
-
-                return;
+                DebugLogger.LogError("초기화되지 않은 TaskTimer를 갱신할 수 없습니다. ID=" + _id);
+                return false;
             }
 
-            switch (type)
+            if(!TryLoadStateType(out ETaskTimerType type))
+                return false;
+
+            if(_startTime == DateTime.MinValue || type == ETaskTimerType.None)
+            {
+                if(!TryStopUpdate())
+                    return false;
+
+                return _fsm.HasCurState && _fsm.CurType == ETaskTimerType.None || TryChangeState(ETaskTimerType.None, false, "TryRefresh");
+            }
+
+            switch(type)
             {
                 case ETaskTimerType.Processing:
                     if(IsTampered)
@@ -167,114 +173,115 @@ namespace UnityTools.Util.Core.Timer.Task
                     }
 
                     if(IsPeriodExpired)
-                    {
-                        UpdateCompletionTime();
-                        return;
-                    }
+                        return TryUpdateCompletionTime();
 
-                    if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.Processing)
-                        TryChangeState(ETaskTimerType.Processing, false, "Refresh");
+                    if((!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Processing) && !TryChangeState(ETaskTimerType.Processing, false, "TryRefresh"))
+                        return false;
 
-                    StartUpdate();
-                    break;
+                    return TryStartUpdate();
 
                 case ETaskTimerType.Completed:
-                    StopUpdate();
-                    if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.Completed)
-                        TryChangeState(ETaskTimerType.Completed, false, "Refresh");
-                    break;
+                    if(!TryStopUpdate())
+                        return false;
+
+                    return _fsm.HasCurState && _fsm.CurType == ETaskTimerType.Completed || TryChangeState(ETaskTimerType.Completed, false, "TryRefresh");
 
                 default:
-                    StopUpdate();
-                    if(!_fsm.HasCurrentState || _fsm.CurType != ETaskTimerType.None)
-                        TryChangeState(ETaskTimerType.None, false, "Refresh");
-                    break;
+                    DebugLogger.LogError("지원하지 않는 TaskTimer 상태입니다. 상태=" + type);
+                    return false;
             }
         }
 
-        public bool Start(double durationSec)
+        public bool TryStart(double durationSec)
         {
             if(!_isInit || _fsm.CurType == ETaskTimerType.Processing)
+            {
+                DebugLogger.LogError("TaskTimer를 시작할 수 없는 상태입니다. ID=" + _id + ", 상태=" + _fsm.CurType);
                 return false;
+            }
 
-            _startTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
-            double safeDurationSec = SanitizeDuration(durationSec);
+            if(!IsPositiveFinite(durationSec))
+            {
+                DebugLogger.LogError("TaskTimer 지속시간은 0초보다 큰 유한값이어야 합니다. 값=" + durationSec);
+                return false;
+            }
+
+            _startTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
+            _durationSec = durationSec;
             if(_updatedTime != DateTime.MinValue && IsTampered)
-            {
-                double adjustSec = (_updatedTime - DateTime.UtcNow).TotalSeconds;
-                _durationSec = safeDurationSec + adjustSec;
-            }
-            else
-            {
-                _durationSec = safeDurationSec;
-            }
+                _durationSec += (_updatedTime - DateTime.UtcNow).TotalSeconds;
 
-            if(!TryChangeState(ETaskTimerType.Processing, false, "Start"))
+            if(!TryChangeState(ETaskTimerType.Processing, false, "TryStart"))
                 return false;
 
             Save();
-            StartUpdate();
-            return true;
+            return TryStartUpdate();
         }
 
-        public bool Reduce(double reduceSec)
+        public bool TryReduce(double reduceSec)
         {
             if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
+            {
+                DebugLogger.LogError("TaskTimer 시간을 단축할 수 없는 상태입니다. ID=" + _id + ", 상태=" + _fsm.CurType);
                 return false;
+            }
 
-            if(reduceSec <= 0d || double.IsNaN(reduceSec) || double.IsInfinity(reduceSec))
+            if(!IsPositiveFinite(reduceSec))
+            {
+                DebugLogger.LogError("TaskTimer 단축 시간은 0초보다 큰 유한값이어야 합니다. 값=" + reduceSec);
                 return false;
+            }
 
             double remainSec = (EndTime - DateTime.UtcNow).TotalSeconds;
             double actualReduceSec = Math.Min(reduceSec, remainSec);
             if(actualReduceSec <= 0d)
+            {
+                DebugLogger.LogError("TaskTimer에 단축할 남은 시간이 없습니다. ID=" + _id);
                 return false;
+            }
 
             _startTime = _startTime.AddSeconds(-actualReduceSec);
             Save();
-
             _onRemainSecUpdated?.Invoke(RemainingSec);
-
-            if(IsPeriodExpired)
-                UpdateCompletionTime();
-
-            return true;
+            return !IsPeriodExpired || TryUpdateCompletionTime();
         }
 
-        public bool CompleteImmediately()
+        public bool TryComplete()
         {
             if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
+            {
+                DebugLogger.LogError("TaskTimer를 즉시 완료할 수 없는 상태입니다. ID=" + _id + ", 상태=" + _fsm.CurType);
                 return false;
+            }
 
-            UpdateCompletionTime();
-            return true;
+            return TryUpdateCompletionTime();
         }
 
-        public bool Claim()
+        public bool TryClaim()
         {
             if(!_isInit || _fsm.CurType != ETaskTimerType.Completed)
+            {
+                DebugLogger.LogError("TaskTimer 보상을 수령할 수 없는 상태입니다. ID=" + _id + ", 상태=" + _fsm.CurType);
+                return false;
+            }
+
+            if(!TryChangeState(ETaskTimerType.None, false, "TryClaim"))
                 return false;
 
             Clear();
-            if(!TryChangeState(ETaskTimerType.None, false, "Claim"))
-                return false;
-
             _onClaimed?.Invoke();
             return true;
         }
 
-        public void UpdateCompletionTime()
+        public bool TryUpdateCompletionTime()
         {
-            _updatedTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
+            _updatedTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
             _persistence.SaveUpdated(_updatedTime);
-
-            if(_fsm.CurType != ETaskTimerType.Completed)
-            {
-                if(!TryChangeState(ETaskTimerType.Completed, false, "UpdateCompletion"))
-                    return;
-            }
+            if(_fsm.CurType != ETaskTimerType.Completed && !TryChangeState(ETaskTimerType.Completed, false, "TryUpdateCompletionTime"))
+                return false;
 
             _persistence.SaveState(ETaskTimerType.Completed);
+            return true;
         }
 
         //============================================================
@@ -282,9 +289,9 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         private IEnumerator CoUpdate()
         {
-            while (_isInit && _fsm.CurType == ETaskTimerType.Processing)
+            while(_isInit && _fsm.CurType == ETaskTimerType.Processing)
             {
-                _fsm.Update();
+                _fsm.Tick();
                 if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
                     yield break;
 
@@ -292,19 +299,41 @@ namespace UnityTools.Util.Core.Timer.Task
             }
         }
 
-        private void StartUpdate()
+        private bool TryStartUpdate()
         {
-            StopUpdate();
-            _coUpdate = _runner.StartCoroutine(CoUpdate());
+            if(!TryStopUpdate())
+                return false;
+
+            try
+            {
+                _coUpdate = _runner.StartCoroutine(CoUpdate());
+                return true;
+            }
+            catch(Exception exception)
+            {
+                DebugLogger.LogError("TaskTimer Coroutine 시작에 실패했습니다. ID=" + _id + ", 원인=" + exception.Message);
+                _coUpdate = null;
+                return false;
+            }
         }
 
-        private void StopUpdate()
+        private bool TryStopUpdate()
         {
             if(_coUpdate == null)
-                return;
+                return true;
 
-            _runner.StopCoroutine(_coUpdate);
-            _coUpdate = null;
+            try
+            {
+                _runner.StopCoroutine(_coUpdate);
+                _coUpdate = null;
+                return true;
+            }
+            catch(Exception exception)
+            {
+                DebugLogger.LogError("TaskTimer Coroutine 중단에 실패했습니다. ID=" + _id + ", 원인=" + exception.Message);
+                _coUpdate = null;
+                return false;
+            }
         }
 
         //============================================================
@@ -323,13 +352,13 @@ namespace UnityTools.Util.Core.Timer.Task
 
         public void NotifyCompleted()
         {
-            StopUpdate();
-            _onCompleted?.Invoke();
+            if(TryStopUpdate())
+                _onCompleted?.Invoke();
         }
 
         public void NotifyCurType()
         {
-            switch (_fsm.CurType)
+            switch(_fsm.CurType)
             {
                 case ETaskTimerType.Processing:
                     NotifyProcessingStarted();
@@ -344,7 +373,7 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Utilities
         //============================================================
-        public float GetProgress()
+        private float CalculateProgress()
         {
             if(_startTime == DateTime.MinValue)
                 return 0.0f;
@@ -357,37 +386,37 @@ namespace UnityTools.Util.Core.Timer.Task
             return totalSec <= 0 ? 0.0f : Mathf.Clamp01((float)elapsedSec / totalSec);
         }
 
-        public static bool IsClaimedStatic(string id)
+        public static bool TryGetClaimed(string id, out bool isClaimed)
         {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            isClaimed = false;
+            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            {
+                DebugLogger.LogError("TaskTimer 수령 상태 조회 ID가 유효하지 않습니다. ID=" + StringTokenUtils.ToLogSafe(id));
                 return false;
+            }
 
             IStorage storage = new PlayerPrefsStorage();
             bool hasStart = storage.HasKey(TaskTimerStorageKeys.Start(normalizedId));
             bool hasDuration = storage.HasKey(TaskTimerStorageKeys.Duration(normalizedId));
             bool hasState = storage.HasKey(TaskTimerStorageKeys.State(normalizedId));
             bool hasUpdated = storage.HasKey(TaskTimerStorageKeys.Updated(normalizedId));
-            return !hasStart && !hasDuration && !hasState && hasUpdated;
+            isClaimed = !hasStart && !hasDuration && !hasState && hasUpdated;
+            return true;
         }
 
-        private ETaskTimerType LoadStateType()
+        private bool TryLoadStateType(out ETaskTimerType type)
         {
-            ETaskTimerType type = (ETaskTimerType)_savedStateType;
+            type = (ETaskTimerType)_savedStateType;
             if(_fsm.HasState(type))
-                return type;
+                return true;
 
-            if(_savedStateType != 0)
-                DebugLogger.LogWarning($"유효하지 않은 저장 상태값입니다: {_savedStateType}");
-            return ETaskTimerType.None;
+            DebugLogger.LogError("유효하지 않은 TaskTimer 저장 상태값입니다. 값=" + _savedStateType + ", ID=" + _id);
+            return false;
         }
 
-        private double SanitizeDuration(double durationSec)
+        private static bool IsPositiveFinite(double value)
         {
-            if(durationSec > 0d && !double.IsNaN(durationSec) && !double.IsInfinity(durationSec))
-                return durationSec;
-
-            DebugLogger.LogWarning($"유효하지 않은 지속시간 값입니다: durationSec={durationSec}, 기본값 {DEFAULT_DURATION_SEC}초를 적용합니다.");
-            return DEFAULT_DURATION_SEC;
+            return value > 0d && !double.IsNaN(value) && !double.IsInfinity(value);
         }
 
         private bool TryChangeState(ETaskTimerType type, bool isUpdate = false, string method = "TryChangeState")
@@ -398,21 +427,20 @@ namespace UnityTools.Util.Core.Timer.Task
                 return false;
             }
 
-            if(!_fsm.HasCurrentState)
+            if(!_fsm.HasCurState)
             {
-                if(_fsm.SetInitialState(type, isUpdate))
+                if(_fsm.TrySetInitialState(type, isUpdate))
                     return true;
 
                 StateTransitionLogUtils.LogInitialSetFailed(method, type);
                 return false;
             }
 
-            if(_fsm.Change(type, isUpdate))
+            if(_fsm.TryChange(type, isUpdate))
                 return true;
 
             StateTransitionLogUtils.LogTransitionFailed(method, _fsm.CurType, type);
             return false;
         }
     }
-
 }

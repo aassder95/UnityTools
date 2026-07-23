@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 
+
 namespace UnityTools.Util.Core.Timer.Task
 {
     public class TaskTimerHandle : ITimerHandle
@@ -48,16 +49,22 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Init/Register
         //============================================================
-        public virtual void Init()
+
+        public virtual bool TryInit()
         {
             RegisterCallbacks();
-            _timer.Init();
+            if(_timer.TryInit())
+                return true;
+
+            UnregisterCallbacks();
+            return false;
         }
 
-        public virtual void Release()
+        public virtual bool TryRelease()
         {
-            _timer.Release();
+            bool isSuccess = _timer.TryRelease();
             UnregisterCallbacks();
+            return isSuccess;
         }
 
         private void RegisterCallbacks()
@@ -89,36 +96,24 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Logic
         //============================================================
-        public bool Start(double durationSec)
+        public bool TryStart(double durationSec)
         {
-            if(durationSec <= 0d || double.IsNaN(durationSec) || double.IsInfinity(durationSec))
-                return false;
-
-            return _timer.Start(durationSec);
+            return _timer.TryStart(durationSec);
         }
 
-        public virtual bool Reduce(double reduceSec)
+        public virtual bool TryReduce(double reduceSec)
         {
-            if(reduceSec <= 0d || double.IsNaN(reduceSec) || double.IsInfinity(reduceSec))
-                return false;
-
-            return _timer.Reduce(reduceSec);
+            return _timer.TryReduce(reduceSec);
         }
 
-        public bool CompleteImmediately()
+        public bool TryComplete()
         {
-            if(CurType != ETaskTimerType.Processing)
-                return false;
-
-            return _timer.CompleteImmediately();
+            return _timer.TryComplete();
         }
 
-        public virtual bool Claim()
+        public virtual bool TryClaim()
         {
-            if(CurType != ETaskTimerType.Completed)
-                return false;
-
-            return _timer.Claim();
+            return _timer.TryClaim();
         }
 
         public void NotifyCurType()
@@ -159,7 +154,7 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         public virtual TaskTimerData ToData()
         {
-            return new TaskTimerData(_timer.Id, _timer.CurType, Mathf.Max(_timer.RemainingSec, 0), _timer.DurationSec, _timer.GetProgress());
+            return new TaskTimerData(_timer.Id, _timer.CurType, Mathf.Max(_timer.RemainingSec, 0), _timer.DurationSec, _timer.Progress);
         }
     }
 }

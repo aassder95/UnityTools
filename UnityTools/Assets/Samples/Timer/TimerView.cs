@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityTools.Samples.Util;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 using UnityTools.Util.Utilities;
 
@@ -19,8 +20,11 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Inspector Fields
         //============================================================
+        [Header("State")]
         [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtSubState;
+
+        [Header("Time")]
         [SerializeField] private TextMeshProUGUI _txtCur;
         [SerializeField] private TextMeshProUGUI _txtLoop;
         [SerializeField] private TextMeshProUGUI _txtOpenUpdated;
@@ -45,29 +49,30 @@ namespace UnityTools.Samples.Timer
         //============================================================
         private void Update()
         {
-            if(_txtCur == null)
+            if(!IsInit)
                 return;
 
-            DateTime currentUtcTime = DateTimeUtils.RemoveMilliseconds(DateTime.UtcNow);
-            _txtCur.SetText($"cur: {currentUtcTime.ToString(UTC_TIME_FORMAT)}");
+            DateTime curUtcTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
+            _txtCur.SetText("cur: " + curUtcTime.ToString(UTC_TIME_FORMAT));
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        protected override void OnInit()
+        protected override bool OnInit()
         {
-            BuildTestLayout();
+            return BuildTestLayout();
         }
 
         //============================================================
         // Logic
         //============================================================
-        protected override void OnRefresh(TimerModel model)
+        protected override bool OnRefresh(TimerModel model)
         {
             SetState(model.State, model.SubState);
-            SetLoop(model.LoopMinutes);
+            SetLoop(model.LoopMin);
             SetTimer(model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
+            return true;
         }
 
         //============================================================
@@ -86,20 +91,19 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Utilities
         //============================================================
-        private void BuildTestLayout()
+        private bool BuildTestLayout()
         {
             if(_isTestLayoutBuilt)
-                return;
+                return true;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Timer Test Sample", "UTC state transition / force controls", 2);
-            SampleTestUiBuilder.DisableObjectsByName(transform, "BtnOpen", "BtnClosed", "ImgStateUpdated", "ImgState", "ImgTime");
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestOpen", "Force Open", OnForceOpenInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestClosed", "Force Closed", OnForceClosedInspector);
 
             BuildStateCard(layout.RtContentViewport);
             BuildInfoCard(layout.RtContentViewport);
-            SampleTestUiBuilder.DisableLegacyDirectChildren(transform, _txtState?.transform, _txtSubState?.transform, _txtCur?.transform, _txtLoop?.transform, _txtOpenUpdated?.transform, _txtOpenEnd?.transform, _txtClosedEnd?.transform);
             _isTestLayoutBuilt = true;
+            return true;
         }
 
         private void BuildStateCard(RectTransform rtContentViewport)
@@ -145,9 +149,6 @@ namespace UnityTools.Samples.Timer
 
         private static void ReparentText(TextMeshProUGUI txtTarget, Transform trParent, int fontSize, TextAlignmentOptions alignment, Color textColor, float preferredHeight)
         {
-            if(txtTarget == null || trParent == null)
-                return;
-
             RectTransform rtText = txtTarget.rectTransform;
             rtText.SetParent(trParent, false);
             Stretch(rtText, Vector2.zero, Vector2.one, new Vector2(4.0f, 0.0f), new Vector2(-4.0f, 0.0f));
@@ -179,14 +180,11 @@ namespace UnityTools.Samples.Timer
         {
             GameObject goObject = new(objectName, typeof(RectTransform));
             goObject.transform.SetParent(parent, false);
-            return goObject.GetComponent<RectTransform>();
+            return goObject.transform as RectTransform;
         }
 
         private static void Stretch(RectTransform rtTarget, Vector2 anchorMin, Vector2 anchorMax, Vector2 offsetMin, Vector2 offsetMax)
         {
-            if(rtTarget == null)
-                return;
-
             rtTarget.anchorMin = anchorMin;
             rtTarget.anchorMax = anchorMax;
             rtTarget.offsetMin = offsetMin;
@@ -206,16 +204,13 @@ namespace UnityTools.Samples.Timer
 
         private void SetTimer(DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
         {
-            SetText(_txtOpenUpdated, $"updated: {openUpdated.ToString(UTC_TIME_FORMAT)}");
-            SetText(_txtOpenEnd, $"open: {openEnd.ToString(UTC_TIME_FORMAT)}");
-            SetText(_txtClosedEnd, $"closed: {closedEnd.ToString(UTC_TIME_FORMAT)}");
+            SetText(_txtOpenUpdated, "updated: " + openUpdated.ToString(UTC_TIME_FORMAT));
+            SetText(_txtOpenEnd, "open: " + openEnd.ToString(UTC_TIME_FORMAT));
+            SetText(_txtClosedEnd, "closed: " + closedEnd.ToString(UTC_TIME_FORMAT));
         }
 
         private static void SetText(TextMeshProUGUI txtTarget, string textValue)
         {
-            if(txtTarget == null)
-                return;
-
             txtTarget.SetText(string.IsNullOrWhiteSpace(textValue) ? "-" : textValue);
         }
     }

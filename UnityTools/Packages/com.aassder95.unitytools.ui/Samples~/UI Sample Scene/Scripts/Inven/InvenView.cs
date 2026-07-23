@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Samples.Util;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Inven
@@ -22,20 +23,12 @@ namespace UnityTools.Samples.Inven
         //============================================================
         public event UnityAction OnRefreshItems { add => _onRefreshItems += value; remove => _onRefreshItems -= value; }
         public event UnityAction OnShuffleItems { add => _onShuffleItems += value; remove => _onShuffleItems -= value; }
-        public event UnityAction OnSortByCount { add => _onSortByCount += value; remove => _onSortByCount -= value; }
+        public event UnityAction OnSortByCnt { add => _onSortByCnt += value; remove => _onSortByCnt -= value; }
         public event UnityAction OnSortByGrade { add => _onSortByGrade += value; remove => _onSortByGrade -= value; }
         private event UnityAction _onRefreshItems;
         private event UnityAction _onShuffleItems;
-        private event UnityAction _onSortByCount;
+        private event UnityAction _onSortByCnt;
         private event UnityAction _onSortByGrade;
-
-        //============================================================
-        // Init/Register
-        //============================================================
-        protected override void OnInit()
-        {
-            BuildTestLayout();
-        }
 
         //============================================================
         // Properties
@@ -43,14 +36,19 @@ namespace UnityTools.Samples.Inven
         public InvenScrollView ScrollView => _scrollView;
 
         //============================================================
+        // Init/Register
+        //============================================================
+        protected override bool OnInit()
+        {
+            return BuildTestLayout();
+        }
+
+        //============================================================
         // Logic
         //============================================================
-        protected override void OnRefresh(InvenModel model)
+        protected override bool OnRefresh(InvenModel model)
         {
-            if(_scrollView == null)
-                return;
-
-            _scrollView.RefreshItems();
+            return _scrollView.TryRefreshItems();
         }
 
         //============================================================
@@ -66,9 +64,9 @@ namespace UnityTools.Samples.Inven
             _onShuffleItems?.Invoke();
         }
 
-        public void OnSortByCountInspector()
+        public void OnSortByCntInspector()
         {
-            _onSortByCount?.Invoke();
+            _onSortByCnt?.Invoke();
         }
 
         public void OnSortByGradeInspector()
@@ -79,24 +77,21 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Utilities
         //============================================================
-        private void BuildTestLayout()
+        private bool BuildTestLayout()
         {
             if(_isTestLayoutBuilt)
-                return;
-
-            if(_scrollView == null)
-                return;
+                return true;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Inventory Test Sample", "Shuffle / Sort / Dynamic list refresh", 4);
-            RectTransform rtScroll = _scrollView.GetComponent<RectTransform>();
+            RectTransform rtScroll = _scrollView.transform as RectTransform;
             SampleTestUiBuilder.ReparentToContent(rtScroll, layout.RtContentViewport, Vector2.zero, Vector2.zero);
-
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestRefresh", "Refresh", OnRefreshItemsInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestShuffle", "Shuffle", OnShuffleItemsInspector);
-            SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestSortCount", "Count Sort", OnSortByCountInspector);
+            SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestSortCount", "Count Sort", OnSortByCntInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestSortGrade", "Grade Sort", OnSortByGradeInspector);
-            SampleTestUiBuilder.DisableLegacyDirectChildren(transform, rtScroll);
+
             _isTestLayoutBuilt = true;
+            return true;
         }
     }
 }

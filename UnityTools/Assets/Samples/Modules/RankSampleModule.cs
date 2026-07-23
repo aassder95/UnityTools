@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityTools.Samples.Rank;
 using UnityTools.Util.Core;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Samples.Modules
 {
@@ -9,8 +10,11 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Inspector Fields
         //============================================================
+        [Header("Rank View")]
         [SerializeField] private RankView _rankView;
-        [SerializeField] private int _rankModelCount = 10;
+
+        [Header("Rank Data")]
+        [SerializeField] private int _rankModelCnt = 10;
 
         //============================================================
         // Fields
@@ -20,37 +24,42 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Properties
         //============================================================
-        public override string ModuleKey => SampleModuleKeys.RANK;
+        public override string ModuleKey => SampleModuleKeys.Rank;
 
         //============================================================
         // Logic
         //============================================================
         protected override bool OnInitModule()
         {
-            if(!TryResolveView(ref _rankView))
+            if(_rankModelCnt < 0)
+            {
+                DebugLogger.LogError("RankSampleModule의 Model Count는 0 이상이어야 합니다. 값=" + _rankModelCnt, this);
+                return false;
+            }
+
+            RankPresenter presenter = new RankPresenter(new RankModel(_rankModelCnt), _rankView);
+            if(!presenter.TryInit())
                 return false;
 
-            int rankModelCount = Mathf.Max(0, _rankModelCount);
-            _rankPresenter = new RankPresenter(new RankModel(rankModelCount), _rankView);
-            _rankPresenter.Init();
-            return _rankPresenter.IsInit;
+            _rankPresenter = presenter;
+            return true;
         }
 
-        protected override void OnShowModule()
+        protected override bool OnShowModule()
         {
-            _rankPresenter?.Show();
+            return _rankPresenter.TryShow();
         }
 
-        protected override void OnHideModule()
+        protected override bool OnHideModule()
         {
-            _rankPresenter?.Hide();
+            return _rankPresenter.TryHide();
         }
 
-        protected override void OnReleaseModule()
+        protected override bool OnReleaseModule()
         {
-            _rankPresenter?.Release();
+            bool isSuccess = _rankPresenter.TryRelease();
             _rankPresenter = null;
+            return isSuccess;
         }
     }
 }
-

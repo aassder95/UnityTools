@@ -16,7 +16,7 @@ namespace UnityTools.Util.UIFramework
     public enum EDynamicScrollLayoutMode
     {
         Single = 0,
-        FixedCount,
+        FixedCnt,
         AutoFit
     }
 

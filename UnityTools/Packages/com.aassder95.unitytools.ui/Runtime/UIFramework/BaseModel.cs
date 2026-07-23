@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -28,7 +29,10 @@ namespace UnityTools.Util.UIFramework
         protected void EndUpdate()
         {
             if(_updateDepth <= 0)
+            {
+                DebugLogger.LogError("Model Update 범위가 시작되지 않은 상태에서 종료되었습니다. 타입=" + GetType().Name);
                 return;
+            }
 
             _updateDepth--;
             if(_updateDepth > 0 || !_hasPendingUpdate)
@@ -41,7 +45,10 @@ namespace UnityTools.Util.UIFramework
         protected void RunBatchUpdate(Action updateAction)
         {
             if(updateAction == null)
+            {
+                DebugLogger.LogError("Model Batch Update 작업이 비어 있습니다. 타입=" + GetType().Name);
                 return;
+            }
 
             BeginUpdate();
             try
@@ -54,14 +61,13 @@ namespace UnityTools.Util.UIFramework
             }
         }
 
-        protected bool SetField<TValue>(ref TValue field, TValue value)
+        protected void SetField<TValue>(ref TValue field, TValue value)
         {
             if(EqualityComparer<TValue>.Default.Equals(field, value))
-                return false;
+                return;
 
             field = value;
             NotifyUpdated();
-            return true;
         }
 
         protected void NotifyUpdated()

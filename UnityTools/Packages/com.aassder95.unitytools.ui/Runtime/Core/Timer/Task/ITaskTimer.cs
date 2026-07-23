@@ -20,16 +20,16 @@ namespace UnityTools.Util.Core.Timer.Task
         bool IsClaimed { get; }
         int RemainingSec { get; }
         int DurationSec { get; }
+        float Progress { get; }
 
         //============================================================
         // Logic
         //============================================================
-        void Init();
-        bool Start(double durationSec);
-        bool Reduce(double reduceSec);
-        bool CompleteImmediately();
-        bool Claim();
+        bool TryInit();
+        bool TryStart(double durationSec);
+        bool TryReduce(double reduceSec);
+        bool TryComplete();
+        bool TryClaim();
         void NotifyCurType();
-        float GetProgress();
     }
 }

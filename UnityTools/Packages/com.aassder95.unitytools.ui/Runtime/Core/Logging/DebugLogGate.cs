@@ -4,7 +4,6 @@ using UnityTools.Util.Utilities;
 
 namespace UnityTools.Util.Core.Logging
 {
-    // Exception: stateless utility is kept as a static helper.
     public static class DebugLogGate
     {
         //============================================================
@@ -50,11 +49,6 @@ namespace UnityTools.Util.Core.Logging
         {
             string key = StringTokenUtils.Normalize(className, DEFAULT_CLASS);
             _classEnabled[key] = isEnabled;
-        }
-
-        public static bool IsEnabled(string className)
-        {
-            return IsEnabled(className, ELogLevel.Log);
         }
 
         public static bool IsLevelEnabled(ELogLevel level)

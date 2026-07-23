@@ -2,7 +2,6 @@ using UnityEngine;
 
 namespace UnityTools.Util.Utilities
 {
-    // Exception: stateless utility is kept as a static helper.
     public static class RandomUtils
     {
         //============================================================
@@ -13,7 +12,7 @@ namespace UnityTools.Util.Utilities
         //============================================================
         // Logic
         //============================================================
-        public static Vector2 GetRandomPositionInRange(Vector2 center, Vector2 range)
+        public static Vector2 GetRandomPosInRange(Vector2 center, Vector2 range)
         {
             float x = UnityEngine.Random.Range(center.x - range.x * HALF, center.x + range.x * HALF);
             float y = UnityEngine.Random.Range(center.y - range.y * HALF, center.y + range.y * HALF);

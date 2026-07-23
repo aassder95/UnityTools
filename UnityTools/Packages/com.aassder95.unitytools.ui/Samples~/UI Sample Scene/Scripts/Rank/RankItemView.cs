@@ -24,84 +24,56 @@ namespace UnityTools.Samples.Rank
         [SerializeField] private TextMeshProUGUI _txtRank;
         [SerializeField] private TextMeshProUGUI _txtScore;
         [SerializeField] private Image _imgTmp;
-        [SerializeField] private RectTransform _rtView;
 
         //============================================================
         // Fields
         //============================================================
-        private int _index;
+        private RectTransform _rtView;
+        private int _idx;
 
         //============================================================
         // Properties
         //============================================================
-        public int Index => _index;
+        public int Idx => _idx;
 
         //============================================================
         // Init/Register
         //============================================================
-        protected override void OnInit()
+        protected override bool OnInit()
         {
-            if(_rtView == null)
-                _rtView = transform as RectTransform;
-
+            _rtView = transform as RectTransform;
             ConfigureLayout();
             ConfigureTextStyle();
+            return true;
         }
-
         //============================================================
         // Logic
         //============================================================
-        protected override void OnRefresh(RankItemModel model)
+        protected override bool OnRefresh(RankItemModel model)
         {
-            if(model == null)
-                return;
-
             Color scoreColor = RankItemPalette.ResolveScoreColor(model.Score);
-            if(_txtId != null)
-            {
-                _txtId.SetText("ID {0:000}", model.Id);
-                _txtId.color = RankItemPalette.IdColor;
-            }
-
-            if(_txtRank != null)
-            {
-                _txtRank.SetText("#{0}", model.Rank);
-                _txtRank.color = RankItemPalette.ResolveRankColor(model.Rank);
-            }
-
-            if(_txtScore != null)
-            {
-                _txtScore.SetText("{0:0000}", model.Score);
-                _txtScore.color = scoreColor;
-            }
-
-            if(_imgTmp != null)
-                _imgTmp.color = RankItemPalette.ResolveBgColor(model.BgColor);
+            _txtId.SetText("ID {0:000}", model.Id);
+            _txtId.color = RankItemPalette.IdColor;
+            _txtRank.SetText("#{0}", model.Rank);
+            _txtRank.color = RankItemPalette.ResolveRankColor(model.Rank);
+            _txtScore.SetText("{0:0000}", model.Score);
+            _txtScore.color = scoreColor;
+            _imgTmp.color = RankItemPalette.ResolveBgColor(model.BgColor);
+            return true;
         }
 
-        //============================================================
-        // Callbacks
-        //============================================================
-        void IDynamicScrollItem.SetIndex(int index)
+        void IDynamicScrollItem.SetIdx(int idx)
         {
-            _index = index;
+            _idx = idx;
         }
 
-        int IDynamicScrollItem.GetIndex()
+        void IDynamicScrollItem.SetPos(Vector2 pos)
         {
-            return _index;
-        }
-
-        void IDynamicScrollItem.SetPosition(Vector2 pos)
-        {
-            if(_rtView == null)
-                _rtView = transform as RectTransform;
-
-            if(_rtView == null)
-                return;
-
             _rtView.anchoredPosition = pos;
         }
+
+        void IPoolable.OnGet() { }
+        void IPoolable.OnReturn() { }
 
         //============================================================
         // Utilities
@@ -122,13 +94,7 @@ namespace UnityTools.Samples.Rank
 
         private static void SetColumnRect(TextMeshProUGUI txtTarget, float startX, float width, bool isLeftAnchor, bool isRightAnchor)
         {
-            if(txtTarget == null)
-                return;
-
             RectTransform rt = txtTarget.rectTransform;
-            if(rt == null)
-                return;
-
             if(isLeftAnchor)
             {
                 rt.anchorMin = new Vector2(0.0f, 0.0f);
@@ -151,9 +117,6 @@ namespace UnityTools.Samples.Rank
 
         private static void ConfigureText(TextMeshProUGUI txtTarget, TextAlignmentOptions alignment, float fontSizeMax, float fontSizeMin, float fontSize, FontStyles fontStyle)
         {
-            if(txtTarget == null)
-                return;
-
             txtTarget.alignment = alignment;
             txtTarget.fontStyle = fontStyle;
             txtTarget.enableAutoSizing = true;
@@ -163,8 +126,5 @@ namespace UnityTools.Samples.Rank
             txtTarget.enableWordWrapping = false;
             txtTarget.overflowMode = TextOverflowModes.Truncate;
         }
-
-        void IPoolable.OnGet() { }
-        void IPoolable.OnReturn() { }
     }
 }

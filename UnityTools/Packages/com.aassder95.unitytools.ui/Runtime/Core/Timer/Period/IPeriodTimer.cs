@@ -4,7 +4,6 @@ using UnityEngine.Events;
 
 namespace UnityTools.Util.Core.Timer.Period
 {
-    // Exception: Period timer domain uses minute-based period values by design.
     public interface IPeriodTimer : ITimerLifecycle
     {
         //============================================================
@@ -23,15 +22,15 @@ namespace UnityTools.Util.Core.Timer.Period
         bool IsReady { get; }
         bool IsOpenPeriod { get; }
         bool IsClosedPeriod { get; }
+        int RemainingMin { get; }
+        int RemainingSec { get; }
 
         //============================================================
         // Logic
         //============================================================
-        void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null);
-        void ForceOpen();
-        void ForceClosed();
-        void SetPeriods(double openMin, double closedMin);
-        int GetRemainingMin();
-        int GetRemainingSec();
+        bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null);
+        bool TryForceOpen();
+        bool TryForceClosed();
+        bool TrySetPeriods(double openMin, double closedMin);
     }
 }

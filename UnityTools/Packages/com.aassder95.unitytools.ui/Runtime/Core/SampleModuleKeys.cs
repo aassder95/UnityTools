@@ -5,10 +5,19 @@ namespace UnityTools.Util.Core
         //============================================================
         // Constants
         //============================================================
-        public const string ALL = "All";
-        public const string RANK = "Rank";
-        public const string RANK_OSA = "RankOSA";
-        public const string TIMER = "Timer";
-        public const string INVEN = "Inven";
+        private const string ALL = "All";
+        private const string RANK = "Rank";
+        private const string RANK_OSA = "RankOSA";
+        private const string TIMER = "Timer";
+        private const string INVEN = "Inven";
+
+        //============================================================
+        // Properties
+        //============================================================
+        public static string All => ALL;
+        public static string Rank => RANK;
+        public static string RankOsa => RANK_OSA;
+        public static string Timer => TIMER;
+        public static string Inven => INVEN;
     }
 }

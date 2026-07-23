@@ -3,58 +3,30 @@ using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Rank
 {
-    //============================================================
-    // Logic
-    //============================================================
     public class RankScrollView : DynamicScrollView<RankItemView>
     {
         //============================================================
         // Logic
         //============================================================
-        public void RefreshItems()
+        public bool TryRefreshItems()
         {
-            if(ItemController == null)
-                return;
-
-            ItemController.Update();
+            return ItemController.TryUpdateItems();
         }
 
-        public void UpdateItemView()
+        public bool TryIncreaseVisibleLine()
         {
-            RefreshItems();
+            if(VisibleLineCnt >= TotalLineCnt)
+                return true;
+
+            return TrySetVisibleLineCnt(VisibleLineCnt + 1);
         }
 
-        public void IncreaseTotalItem()
+        public bool TryDecreaseVisibleLine()
         {
-            int nextTotalItemCount = TotalItemCount + 1;
-            if(nextTotalItemCount <= TotalItemCount)
-                return;
+            if(VisibleLineCnt <= 1)
+                return true;
 
-            SetTotalItemCount(nextTotalItemCount);
-        }
-
-        public void DecreaseTotalItem()
-        {
-            if(TotalItemCount <= 0)
-                return;
-
-            SetTotalItemCount(TotalItemCount - 1);
-        }
-
-        public void IncreaseVisibleLine()
-        {
-            if(VisibleLineCount >= TotalLineCount)
-                return;
-
-            SetVisibleLineCount(VisibleLineCount + 1);
-        }
-
-        public void DecreaseVisibleLine()
-        {
-            if(VisibleLineCount <= 1)
-                return;
-
-            SetVisibleLineCount(VisibleLineCount - 1);
+            return TrySetVisibleLineCnt(VisibleLineCnt - 1);
         }
     }
 }

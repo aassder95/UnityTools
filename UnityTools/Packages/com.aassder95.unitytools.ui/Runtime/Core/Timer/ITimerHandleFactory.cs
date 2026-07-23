@@ -7,6 +7,6 @@ namespace UnityTools.Util.Core.Timer
         //============================================================
         // Logic
         //============================================================
-        THandle Create(string normalizedId, MonoBehaviour runner);
+        bool TryCreate(string normalizedId, MonoBehaviour runner, out THandle handle);
     }
 }

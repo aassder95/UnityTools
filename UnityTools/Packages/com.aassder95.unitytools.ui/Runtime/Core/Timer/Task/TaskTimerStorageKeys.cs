@@ -1,8 +1,5 @@
-using UnityTools.Util.Utilities;
-
 namespace UnityTools.Util.Core.Timer.Task
 {
-    // Exception: stateless utility is kept as a static helper.
     public static class TaskTimerStorageKeys
     {
         //============================================================
@@ -17,34 +14,24 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Logic
         //============================================================
-        public static bool TryNormalizeId(string rawId, out string normalizedId)
+        public static string Start(string normalizedId)
         {
-            return StringTokenUtils.TryNormalizeNonEmpty(rawId, out normalizedId);
+            return $"{PREFIX}{normalizedId}{START_TIME_SUFFIX}";
         }
 
-        public static string Start(string id)
+        public static string Updated(string normalizedId)
         {
-            TryNormalizeId(id, out string normalizedId);
-            return $"{PREFIX}{normalizedId ?? string.Empty}{START_TIME_SUFFIX}";
+            return $"{PREFIX}{normalizedId}{UPDATED_TIME_SUFFIX}";
         }
 
-        public static string Updated(string id)
+        public static string Duration(string normalizedId)
         {
-            TryNormalizeId(id, out string normalizedId);
-            return $"{PREFIX}{normalizedId ?? string.Empty}{UPDATED_TIME_SUFFIX}";
+            return $"{PREFIX}{normalizedId}{DURATION_SUFFIX}";
         }
 
-        public static string Duration(string id)
+        public static string State(string normalizedId)
         {
-            TryNormalizeId(id, out string normalizedId);
-            return $"{PREFIX}{normalizedId ?? string.Empty}{DURATION_SUFFIX}";
-        }
-
-        public static string State(string id)
-        {
-            TryNormalizeId(id, out string normalizedId);
-            return $"{PREFIX}{normalizedId ?? string.Empty}{STATE_SUFFIX}";
+            return $"{PREFIX}{normalizedId}{STATE_SUFFIX}";
         }
     }
 }
-

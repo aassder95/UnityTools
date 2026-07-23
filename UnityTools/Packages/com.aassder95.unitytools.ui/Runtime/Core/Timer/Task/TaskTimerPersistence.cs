@@ -15,11 +15,8 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Constructors
         //============================================================
-        public TaskTimerPersistence(string id)
+        public TaskTimerPersistence(string normalizedId)
         {
-            if(!TaskTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-                normalizedId = string.Empty;
-
             _id = normalizedId;
             _storage = new PlayerPrefsStorage();
         }
@@ -52,10 +49,10 @@ namespace UnityTools.Util.Core.Timer.Task
 
         public TaskTimerStorageSnapshot Load()
         {
-            DateTime startTime = StorageValueUtils.TryLoadDate(_storage, TaskTimerStorageKeys.Start(_id));
-            double durationSec = StorageValueUtils.TryLoadDouble(_storage, TaskTimerStorageKeys.Duration(_id));
-            DateTime updatedTime = StorageValueUtils.TryLoadDate(_storage, TaskTimerStorageKeys.Updated(_id));
-            int savedStateType = StorageValueUtils.TryLoadInt(_storage, TaskTimerStorageKeys.State(_id));
+            DateTime startTime = StorageValueUtils.LoadDateOrDefault(_storage, TaskTimerStorageKeys.Start(_id));
+            double durationSec = StorageValueUtils.LoadDoubleOrDefault(_storage, TaskTimerStorageKeys.Duration(_id));
+            DateTime updatedTime = StorageValueUtils.LoadDateOrDefault(_storage, TaskTimerStorageKeys.Updated(_id));
+            int savedStateType = StorageValueUtils.LoadIntOrDefault(_storage, TaskTimerStorageKeys.State(_id));
             return new TaskTimerStorageSnapshot(startTime, durationSec, updatedTime, savedStateType);
         }
 

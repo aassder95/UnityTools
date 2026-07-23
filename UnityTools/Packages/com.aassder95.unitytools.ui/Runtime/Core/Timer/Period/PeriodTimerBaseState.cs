@@ -2,7 +2,7 @@ using UnityTools.Util.Core.State;
 
 namespace UnityTools.Util.Core.Timer.Period
 {
-    public class PeriodTimerBaseState : IState
+    public abstract class PeriodTimerBaseState : IState
     {
         //============================================================
         // Readonly

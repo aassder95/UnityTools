@@ -1,4 +1,3 @@
-
 namespace UnityTools.Util.Core
 {
     public interface ISampleModule
@@ -10,11 +9,15 @@ namespace UnityTools.Util.Core
         bool IsInit { get; }
 
         //============================================================
+        // Init/Register
+        //============================================================
+        bool TryInit();
+        bool TryRelease();
+
+        //============================================================
         // Logic
         //============================================================
-        void Init();
-        void Show();
-        void Hide();
-        void Release();
+        bool TryShow();
+        bool TryHide();
     }
 }

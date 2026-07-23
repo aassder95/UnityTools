@@ -1,4 +1,3 @@
-
 namespace UnityTools.Util.Core.Timer
 {
     public interface ITimerLifecycle
@@ -11,7 +10,7 @@ namespace UnityTools.Util.Core.Timer
         //============================================================
         // Logic
         //============================================================
-        void Refresh();
-        void Release();
+        bool TryRefresh();
+        bool TryRelease();
     }
 }

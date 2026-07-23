@@ -1,14 +1,15 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Collections
 {
     public class Deque<T> : IEnumerable<T>
     {
         //============================================================
-        // Fields
+        // Readonly
         //============================================================
-        private LinkedList<T> _deque = new();
+        private readonly LinkedList<T> _deque = new();
 
         //============================================================
         // Properties
@@ -21,24 +22,21 @@ namespace UnityTools.Util.Core.Collections
         //============================================================
         public void Enqueue(T item)
         {
-            if(_deque == null)
-                _deque = new LinkedList<T>();
-
             _deque.AddLast(item);
         }
 
         public void EnqueueFront(T item)
         {
-            if(_deque == null)
-                _deque = new LinkedList<T>();
-
             _deque.AddFirst(item);
         }
 
         public T Dequeue()
         {
             if(IsEmpty)
+            {
+                DebugLogger.LogError("비어 있는 Deque에서 앞쪽 Item을 제거할 수 없습니다.");
                 return default;
+            }
 
             T value = _deque.First.Value;
             _deque.RemoveFirst();
@@ -48,7 +46,10 @@ namespace UnityTools.Util.Core.Collections
         public T DequeueBack()
         {
             if(IsEmpty)
+            {
+                DebugLogger.LogError("비어 있는 Deque에서 뒤쪽 Item을 제거할 수 없습니다.");
                 return default;
+            }
 
             T value = _deque.Last.Value;
             _deque.RemoveLast();
@@ -58,17 +59,29 @@ namespace UnityTools.Util.Core.Collections
         public T Peek()
         {
             if(IsEmpty)
+            {
+                DebugLogger.LogError("비어 있는 Deque의 앞쪽 Item을 조회할 수 없습니다.");
                 return default;
+            }
 
             return _deque.First.Value;
         }
 
-        public void Clear()
+        public T PeekBack()
         {
             if(IsEmpty)
-                return;
+            {
+                DebugLogger.LogError("비어 있는 Deque의 뒤쪽 Item을 조회할 수 없습니다.");
+                return default;
+            }
 
-            _deque.Clear();
+            return _deque.Last.Value;
+        }
+
+        public void Clear()
+        {
+            if(!IsEmpty)
+                _deque.Clear();
         }
 
         //============================================================

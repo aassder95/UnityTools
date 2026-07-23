@@ -26,19 +26,19 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Properties
         //============================================================
-        public int ItemCount => _itemModels.Count;
+        public int ItemCnt => _itemModels.Count;
 
         //============================================================
         // Constructors
         //============================================================
-        public RankModel(int count)
+        public RankModel(int cnt)
         {
-            for(int i = 0; i < count; i++)
+            for(int i = 0; i < cnt; i++)
             {
                 _itemModels.Add(new RankItemModel(i));
             }
 
-            _nextItemId = count;
+            _nextItemId = cnt;
             SetRandomScore();
         }
 
@@ -47,7 +47,7 @@ namespace UnityTools.Samples.Rank
         //============================================================
         public RankItemModel Get(int idx)
         {
-            return _itemModels.IsValidIndex(idx) ? _itemModels[idx] : null;
+            return _itemModels.IsValidIdx(idx) ? _itemModels[idx] : null;
         }
 
         public void SetRandomScore()
@@ -63,11 +63,11 @@ namespace UnityTools.Samples.Rank
 
         public void BoostTopScores()
         {
-            int topCount = Mathf.Min(3, _itemModels.Count);
-            if(topCount <= 0)
+            int topCnt = Mathf.Min(3, _itemModels.Count);
+            if(topCnt <= 0)
                 return;
 
-            for(int i = 0; i < topCount; i++)
+            for(int i = 0; i < topCnt; i++)
             {
                 _itemModels[i].SetScore(_itemModels[i].Score + Random.Range(10, 31));
             }

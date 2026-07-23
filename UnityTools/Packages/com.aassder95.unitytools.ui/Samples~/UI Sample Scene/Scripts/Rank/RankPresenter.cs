@@ -1,4 +1,5 @@
 using UnityEngine.Events;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Rank
@@ -27,12 +28,15 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Init/Register
         //============================================================
-        protected override void OnInit()
+        protected override bool OnInit()
         {
-            if(_view.ScrollView == null)
-                return;
+            RankScrollView scrollView = _view.ScrollView;
+            scrollView.OnItemUpdated += _onItemViewUpdated;
+            if(scrollView.TryInitView(_model.ItemCnt) && scrollView.TryRefreshItems())
+                return true;
 
-            _view.ScrollView.InitView(_model.ItemCount);
+            scrollView.OnItemUpdated -= _onItemViewUpdated;
+            return false;
         }
 
         protected override void BindEvents()
@@ -45,12 +49,6 @@ namespace UnityTools.Samples.Rank
             _view.OnDecreaseTotalItem += OnDecreaseTotalItemCallback;
             _view.OnIncreaseVisibleLine += OnIncreaseVisibleLineCallback;
             _view.OnDecreaseVisibleLine += OnDecreaseVisibleLineCallback;
-
-            if(_view.ScrollView == null)
-                return;
-
-            _view.ScrollView.OnItemUpdated += _onItemViewUpdated;
-            _view.ScrollView.RefreshItems();
         }
 
         protected override void UnbindEvents()
@@ -62,10 +60,7 @@ namespace UnityTools.Samples.Rank
             _view.OnDecreaseTotalItem -= OnDecreaseTotalItemCallback;
             _view.OnIncreaseVisibleLine -= OnIncreaseVisibleLineCallback;
             _view.OnDecreaseVisibleLine -= OnDecreaseVisibleLineCallback;
-
-            if(_view.ScrollView != null)
-                _view.ScrollView.OnItemUpdated -= _onItemViewUpdated;
-
+            _view.ScrollView.OnItemUpdated -= _onItemViewUpdated;
             base.UnbindEvents();
         }
 
@@ -74,51 +69,47 @@ namespace UnityTools.Samples.Rank
         //============================================================
         private void OnIncreaseTotalItemCallback()
         {
-            if(_view.ScrollView == null)
-                return;
-
             _model.AddItem();
-            _view.ScrollView.InitView(_model.ItemCount);
-            _view.ScrollView.RefreshItems();
+            if(!_view.ScrollView.TryInitView(_model.ItemCnt) || !_view.ScrollView.TryRefreshItems())
+                StopAfterFailure();
         }
 
         private void OnDecreaseTotalItemCallback()
         {
-            if(_view.ScrollView == null)
-                return;
-
-            int prevCount = _model.ItemCount;
+            int prevCnt = _model.ItemCnt;
             _model.RemoveLastItem();
-            if(_model.ItemCount == prevCount)
+            if(_model.ItemCnt == prevCnt)
                 return;
 
-            _view.ScrollView.InitView(_model.ItemCount);
-            _view.ScrollView.RefreshItems();
+            if(!_view.ScrollView.TryInitView(_model.ItemCnt) || !_view.ScrollView.TryRefreshItems())
+                StopAfterFailure();
         }
 
         private void OnIncreaseVisibleLineCallback()
         {
-            _view.ScrollView?.IncreaseVisibleLine();
+            if(!_view.ScrollView.TryIncreaseVisibleLine())
+                StopAfterFailure();
         }
 
         private void OnDecreaseVisibleLineCallback()
         {
-            _view.ScrollView?.DecreaseVisibleLine();
+            if(!_view.ScrollView.TryDecreaseVisibleLine())
+                StopAfterFailure();
         }
 
         private void OnItemViewUpdatedCallback(RankItemView itemView)
         {
-            if(itemView == null)
-                return;
 
-            if(!itemView.IsInit)
-                itemView.Init();
-
-            RankItemModel itemModel = _model.Get(itemView.Index);
+            RankItemModel itemModel = _model.Get(itemView.Idx);
             if(itemModel == null)
+            {
+                DebugLogger.LogError("Rank Item 모델을 찾을 수 없습니다. 인덱스=" + itemView.Idx);
+                StopAfterFailure();
                 return;
+            }
 
-            itemView.Refresh(itemModel);
+            if(!itemView.TryRefresh(itemModel))
+                StopAfterFailure();
         }
     }
 }

@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.UIFramework
 {
@@ -16,67 +17,92 @@ namespace UnityTools.Util.UIFramework
         public bool IsVisible => gameObject.activeSelf;
 
         //============================================================
-        // Init/Register
-        //============================================================
-        public virtual void Init()
-        {
-            if(_isInit)
-                return;
-
-            OnInit();
-            _isInit = true;
-        }
-
-        public virtual void Release()
-        {
-            if(!_isInit)
-                return;
-
-            OnRelease();
-            _isInit = false;
-        }
-
-        protected virtual void OnInit() { }
-        protected virtual void OnRelease() { }
-
-        //============================================================
         // Unity Methods
         //============================================================
         private void OnDestroy()
         {
-            Release();
+            if(!TryRelease())
+                DebugLogger.LogError("View 파괴 중 해제를 완료하지 못했습니다. 타입=" + GetType().Name, this);
+        }
+
+        //============================================================
+        // Init/Register
+        //============================================================
+        public bool TryInit()
+        {
+            if(_isInit)
+                return true;
+
+            if(!OnInit())
+            {
+                DebugLogger.LogError("View 초기화에 실패했습니다. 타입=" + GetType().Name, this);
+                enabled = false;
+                return false;
+            }
+
+            _isInit = true;
+            return true;
+        }
+
+        public bool TryRelease()
+        {
+            if(!_isInit)
+                return true;
+
+            _isInit = false;
+            if(OnRelease())
+                return true;
+
+            DebugLogger.LogError("View 해제에 실패했습니다. 타입=" + GetType().Name, this);
+            enabled = false;
+            return false;
+        }
+
+        protected virtual bool OnInit()
+        {
+            return true;
+        }
+
+        protected virtual bool OnRelease()
+        {
+            return true;
         }
 
         //============================================================
         // Logic
         //============================================================
-        public virtual void Show()
+        public bool TryShow()
         {
-            if(!_isInit)
-                Init();
+            if(!TryInit())
+                return false;
 
             if(gameObject.activeSelf)
-                return;
+                return true;
 
             gameObject.SetActive(true);
+            return true;
         }
 
-        public virtual void Hide()
+        public bool TryHide()
         {
             if(!gameObject.activeSelf)
-                return;
+                return true;
 
             gameObject.SetActive(false);
+            return true;
         }
 
-        public void Refresh(TModel model)
+        public bool TryRefresh(TModel model)
         {
-            if(!_isInit || model == null)
-                return;
 
-            OnRefresh(model);
+            if(OnRefresh(model))
+                return true;
+
+            DebugLogger.LogError("View 갱신에 실패했습니다. 타입=" + GetType().Name, this);
+            enabled = false;
+            return false;
         }
 
-        protected abstract void OnRefresh(TModel model);
+        protected abstract bool OnRefresh(TModel model);
     }
 }

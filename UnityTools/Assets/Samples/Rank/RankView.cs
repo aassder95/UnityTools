@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Samples.Util;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Rank
@@ -36,27 +37,24 @@ namespace UnityTools.Samples.Rank
         private event UnityAction _onDecreaseVisibleLine;
 
         //============================================================
-        // Init/Register
-        //============================================================
-        protected override void OnInit()
-        {
-            BuildTestLayout();
-        }
-
-        //============================================================
         // Properties
         //============================================================
         public RankScrollView ScrollView => _scrollView;
 
         //============================================================
+        // Init/Register
+        //============================================================
+        protected override bool OnInit()
+        {
+            return BuildTestLayout();
+        }
+
+        //============================================================
         // Logic
         //============================================================
-        protected override void OnRefresh(RankModel model)
+        protected override bool OnRefresh(RankModel model)
         {
-            if(_scrollView == null)
-                return;
-
-            _scrollView.RefreshItems();
+            return _scrollView.TryRefreshItems();
         }
 
         //============================================================
@@ -100,19 +98,14 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Utilities
         //============================================================
-        private void BuildTestLayout()
+        private bool BuildTestLayout()
         {
             if(_isTestLayoutBuilt)
-                return;
-
-            if(_scrollView == null)
-                return;
+                return true;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Rank Test Sample", "Random only rerolls all / Item +/- keeps existing scores", 7);
-            RectTransform rtScroll = _scrollView.GetComponent<RectTransform>();
+            RectTransform rtScroll = _scrollView.transform as RectTransform;
             SampleTestUiBuilder.ReparentToContent(rtScroll, layout.RtContentViewport, Vector2.zero, Vector2.zero);
-
-            SampleTestUiBuilder.DisableObjectsByName(transform, "BtnRandScore", "BtnIncreaseTotal", "BtnDecreaseTotal", "BtnIncreaseVisible", "BtnDecreaseVisible");
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestRandom", "Random", OnRandomScoreInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestBoostTop", "Top+Boost", OnBoostTopScoreInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestWave", "Wave", OnWaveScoreInspector);
@@ -120,8 +113,9 @@ namespace UnityTools.Samples.Rank
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestMinusItem", "Item -", OnDecreaseTotalItemInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestPlusLine", "Line +", OnIncreaseVisibleLineInspector);
             SampleTestUiBuilder.CreateActionButton(layout.RtControls, "BtnTestMinusLine", "Line -", OnDecreaseVisibleLineInspector);
-            SampleTestUiBuilder.DisableLegacyDirectChildren(transform, rtScroll);
+
             _isTestLayoutBuilt = true;
+            return true;
         }
     }
 }

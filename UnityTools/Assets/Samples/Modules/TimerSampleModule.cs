@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityTools.Samples.Timer;
 using UnityTools.Util.Core;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Samples.Modules
 {
@@ -9,7 +10,7 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Inspector Fields
         //============================================================
-        [SerializeField] private TimerView _timerView;
+        [Header("Timer View")] [SerializeField] private TimerView _timerView;
 
         //============================================================
         // Fields
@@ -19,36 +20,36 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Properties
         //============================================================
-        public override string ModuleKey => SampleModuleKeys.TIMER;
+        public override string ModuleKey => SampleModuleKeys.Timer;
 
         //============================================================
         // Logic
         //============================================================
         protected override bool OnInitModule()
         {
-            if(!TryResolveView(ref _timerView))
+            TimerPresenter presenter = new TimerPresenter(new TimerModel(), _timerView);
+            if(!presenter.TryInit())
                 return false;
 
-            _timerPresenter = new TimerPresenter(new TimerModel(), _timerView);
-            _timerPresenter.Init();
-            return _timerPresenter.IsInit;
+            _timerPresenter = presenter;
+            return true;
         }
 
-        protected override void OnShowModule()
+        protected override bool OnShowModule()
         {
-            _timerPresenter?.Show();
+            return _timerPresenter.TryShow();
         }
 
-        protected override void OnHideModule()
+        protected override bool OnHideModule()
         {
-            _timerPresenter?.Hide();
+            return _timerPresenter.TryHide();
         }
 
-        protected override void OnReleaseModule()
+        protected override bool OnReleaseModule()
         {
-            _timerPresenter?.Release();
+            bool isSuccess = _timerPresenter.TryRelease();
             _timerPresenter = null;
+            return isSuccess;
         }
     }
 }
-

@@ -38,7 +38,7 @@ namespace UnityTools.Util.Editor
             {
                 EditorGUILayout.PropertyField(layoutProperty);
                 EDynamicScrollLayoutMode layoutMode = (EDynamicScrollLayoutMode)layoutProperty.enumValueIndex;
-                if(layoutMode == EDynamicScrollLayoutMode.FixedCount)
+                if(layoutMode == EDynamicScrollLayoutMode.FixedCnt)
                     DrawProperty(FIXED_CELLS_PROP);
             }
 

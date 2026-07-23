@@ -8,24 +8,24 @@ namespace UnityTools.Samples.Templates
         //============================================================
         // Fields
         //============================================================
-        private int _count;
+        private int _cnt;
 
         //============================================================
         // Properties
         //============================================================
-        public int Count => _count;
+        public int Cnt => _cnt;
 
         //============================================================
         // Logic
         //============================================================
-        public void SetCount(int count)
+        public void SetCnt(int cnt)
         {
-            SetField(ref _count, count);
+            SetField(ref _cnt, cnt);
         }
 
         public void Increase()
         {
-            SetCount(_count + 1);
+            SetCnt(_cnt + 1);
         }
     }
 }

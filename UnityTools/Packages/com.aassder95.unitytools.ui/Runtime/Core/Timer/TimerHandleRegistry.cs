@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Timer
 {
@@ -14,38 +15,48 @@ namespace UnityTools.Util.Core.Timer
         //============================================================
         public bool TryGet(string id, out THandle handle)
         {
-            return _handles.TryGetValue(id, out handle);
+            handle = default;
+            return !string.IsNullOrWhiteSpace(id) && _handles.TryGetValue(id, out handle);
         }
 
-        public THandle GetOrDefault(string id)
+        public bool TrySetOrReplace(string id, THandle handle, out THandle oldHandle)
         {
-            return _handles.GetValueOrDefault(id);
-        }
-
-        public THandle SetOrReplace(string id, THandle handle)
-        {
-            THandle oldHandle = _handles.GetValueOrDefault(id);
-            _handles[id] = handle;
-            return oldHandle;
-        }
-
-        public bool Remove(string id, out THandle removedHandle)
-        {
-            removedHandle = _handles.GetValueOrDefault(id);
-            if(removedHandle == null)
-                return false;
-
-            return _handles.Remove(id);
-        }
-
-        public void ClearAll()
-        {
-            foreach (THandle handle in _handles.Values)
+            oldHandle = default;
+            if(string.IsNullOrWhiteSpace(id) || handle == null)
             {
-                handle?.Release();
+                DebugLogger.LogError("Timer Handle 등록 인자가 유효하지 않습니다.");
+                return false;
+            }
+
+            if(_handles.TryGetValue(id, out THandle registeredHandle))
+                oldHandle = registeredHandle;
+            _handles[id] = handle;
+            return true;
+        }
+
+        public bool TryRemove(string id, out THandle removedHandle)
+        {
+            removedHandle = default;
+            if(string.IsNullOrWhiteSpace(id))
+            {
+                DebugLogger.LogError("제거할 Timer Handle ID가 비어 있습니다.");
+                return false;
+            }
+
+            return _handles.Remove(id, out removedHandle);
+        }
+
+        public bool TryClear()
+        {
+            bool isSuccess = true;
+            foreach(THandle handle in _handles.Values)
+            {
+                if(!handle.TryRelease())
+                    isSuccess = false;
             }
 
             _handles.Clear();
+            return isSuccess;
         }
     }
 }

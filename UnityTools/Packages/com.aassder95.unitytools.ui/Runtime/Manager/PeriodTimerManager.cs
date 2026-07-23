@@ -2,15 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
+using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Singleton;
 using UnityTools.Util.Core.Timer;
 using UnityTools.Util.Core.Timer.Period;
 using UnityTools.Util.Utilities;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Manager
 {
-    // Exception: Period timer values are minute-based by product requirement.
     public class PeriodTimerManager : MonoSingleton<PeriodTimerManager>
     {
         //============================================================
@@ -29,69 +28,92 @@ namespace UnityTools.Manager
         //============================================================
         // Unity Methods
         //============================================================
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
-            ClearHandles();
+            base.OnDestroy();
+            if(!TryClearHandles())
+                DebugLogger.LogError("PeriodTimerManager Handle 해제에 실패했습니다.", this);
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public PeriodTimerHandle CreatePeriodTimerHandle(string id)
+        public bool TryCreatePeriodTimerHandle(string id, out PeriodTimerHandle handle)
         {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            handle = null;
+            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
             {
-                LogInvalidId(nameof(CreatePeriodTimerHandle), id);
-                return null;
+                LogInvalidId(nameof(TryCreatePeriodTimerHandle), id);
+                return false;
             }
 
-            return _handleFactory.Create(normalizedId, this);
+            return _handleFactory.TryCreate(normalizedId, this, out handle);
         }
 
-        public void InitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+        public bool TryInitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             if(handle == null)
-                return;
-
-            if(!PeriodTimerStorageKeys.TryNormalizeId(handle.Id, out string normalizedId))
             {
-                LogInvalidId(nameof(InitPeriodTimer), handle.Id);
-                return;
+                DebugLogger.LogError("초기화할 PeriodTimerHandle이 비어 있습니다.", this);
+                return false;
             }
 
-            PeriodTimerHandle oldHandle = _handles.SetOrReplace(normalizedId, handle);
-            if(oldHandle != null)
+            if(!StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
+            {
+                LogInvalidId(nameof(TryInitPeriodTimer), handle.Id);
+                return false;
+            }
+
+            if(!handle.TryInit(openMin, closedMin, initWaitFunc))
+                return false;
+
+            if(_handles.TryGet(normalizedId, out PeriodTimerHandle oldHandle))
             {
                 UnbindEvents(normalizedId, oldHandle);
-                oldHandle.Release();
+                if(!oldHandle.TryRelease())
+                {
+                    if(!handle.TryRelease())
+                        DebugLogger.LogError("PeriodTimer 기존 Handle 교체 실패 후 새 Handle도 해제하지 못했습니다. ID=" + normalizedId, this);
+
+                    return false;
+                }
+            }
+
+            if(!_handles.TrySetOrReplace(normalizedId, handle, out _))
+            {
+                if(!handle.TryRelease())
+                    DebugLogger.LogError("PeriodTimer Handle 등록 실패 후 새 Handle을 해제하지 못했습니다. ID=" + normalizedId, this);
+
+                return false;
             }
 
             BindEvents(normalizedId, handle);
-            handle.Init(openMin, closedMin, initWaitFunc);
+            return true;
         }
 
         //============================================================
         // Logic
         //============================================================
-        public void DeletePeriodTimer(string id)
+        public bool TryDeletePeriodTimer(string id)
         {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
+            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
             {
-                LogInvalidId(nameof(DeletePeriodTimer), id);
-                return;
+                LogInvalidId(nameof(TryDeletePeriodTimer), id);
+                return false;
             }
 
-            if(_handles.Remove(normalizedId, out PeriodTimerHandle handle))
+            bool isSuccess = true;
+            if(_handles.TryRemove(normalizedId, out PeriodTimerHandle handle))
             {
                 UnbindEvents(normalizedId, handle);
-                handle.Release();
+                isSuccess = handle.TryRelease();
             }
             else
             {
                 _eventBinders.Remove(normalizedId);
             }
 
-            PeriodTimerPersistence.DeleteAll(normalizedId);
+            return PeriodTimerPersistence.TryDeleteAll(normalizedId) && isSuccess;
         }
 
         private void BindEvents(string id, PeriodTimerHandle handle)
@@ -110,18 +132,18 @@ namespace UnityTools.Manager
             _eventBinders.Remove(id);
         }
 
-        private void ClearHandles()
+        private bool TryClearHandles()
         {
             string[] ids = new string[_eventBinders.Count];
             _eventBinders.Keys.CopyTo(ids, 0);
-            foreach (string id in ids)
+            foreach(string id in ids)
             {
                 if(_handles.TryGet(id, out PeriodTimerHandle handle))
                     UnbindEvents(id, handle);
             }
 
             _eventBinders.Clear();
-            _handles.ClearAll();
+            return _handles.TryClear();
         }
 
         //============================================================
@@ -130,9 +152,12 @@ namespace UnityTools.Manager
         private void OnPeriodTimerRemainMinUpdatedCallback(string id, int remainMin)
         {
             if(!_handles.TryGet(id, out PeriodTimerHandle handle))
+            {
+                DebugLogger.LogError("PeriodTimer Callback 대상 Handle을 찾을 수 없습니다. ID=" + StringTokenUtils.ToLogSafe(id), this);
                 return;
+            }
 
-            if(handle.GetRemainingMin() != remainMin)
+            if(handle.RemainingMin != remainMin)
                 return;
 
             _onAnyTimerRemainMinUpdated?.Invoke(handle.ToData());
@@ -141,18 +166,26 @@ namespace UnityTools.Manager
         //============================================================
         // Utilities
         //============================================================
-        public PeriodTimerHandle GetPeriodHandle(string id)
+        public bool TryGetPeriodHandle(string id, out PeriodTimerHandle handle)
         {
-            if(!PeriodTimerStorageKeys.TryNormalizeId(id, out string normalizedId))
-                return null;
+            handle = null;
+            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            {
+                LogInvalidId(nameof(TryGetPeriodHandle), id);
+                return false;
+            }
 
-            return _handles.GetOrDefault(normalizedId);
+            if(_handles.TryGet(normalizedId, out handle))
+                return true;
+
+            DebugLogger.LogError("등록된 PeriodTimerHandle을 찾을 수 없습니다. ID=" + normalizedId, this);
+            return false;
         }
 
         private void LogInvalidId(string method, string id)
         {
             string safeId = StringTokenUtils.ToLogSafe(id);
-            DebugLogger.LogWarning($"[{method}] 유효하지 않은 ID 입력: '{safeId}'");
+            DebugLogger.LogError($"[{method}] 유효하지 않은 ID 입력: '{safeId}'", this);
         }
 
         //============================================================
@@ -180,9 +213,6 @@ namespace UnityTools.Manager
             //============================================================
             public void OnRemainMinUpdatedCallback(int remainMin)
             {
-                if(_manager == null)
-                    return;
-
                 _manager.OnPeriodTimerRemainMinUpdatedCallback(_id, remainMin);
             }
         }

@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using UnityEngine.Events;
 
+
 namespace UnityTools.Util.Core.Timer.Period
 {
-    // Exception: Period timer values are minute-based by product requirement.
     public class PeriodTimerHandle : ITimerHandle
     {
         //============================================================
@@ -38,6 +38,8 @@ namespace UnityTools.Util.Core.Timer.Period
         public bool IsReady => _timer.IsReady;
         public bool IsOpenPeriod => _timer.IsOpenPeriod;
         public bool IsClosedPeriod => _timer.IsClosedPeriod;
+        public int RemainingMin => _timer.RemainingMin;
+        public int RemainingSec => _timer.RemainingSec;
         public string Id => _timer.Id;
 
         //============================================================
@@ -51,16 +53,22 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Init/Register
         //============================================================
-        public virtual void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+
+        public virtual bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             RegisterCallbacks();
-            _timer.Init(openMin, closedMin, initWaitFunc);
+            if(_timer.TryInit(openMin, closedMin, initWaitFunc))
+                return true;
+
+            UnregisterCallbacks();
+            return false;
         }
 
-        public virtual void Release()
+        public virtual bool TryRelease()
         {
-            _timer.Release();
+            bool isSuccess = _timer.TryRelease();
             UnregisterCallbacks();
+            return isSuccess;
         }
 
         private void RegisterCallbacks()
@@ -92,28 +100,19 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Logic
         //============================================================
-        public void ForceOpen()
+        public bool TryForceOpen()
         {
-            if(!IsReady)
-                return;
-
-            _timer.ForceOpen();
+            return _timer.TryForceOpen();
         }
 
-        public void ForceClosed()
+        public bool TryForceClosed()
         {
-            if(!IsReady)
-                return;
-
-            _timer.ForceClosed();
+            return _timer.TryForceClosed();
         }
 
-        public void SetPeriods(double openMin, double closedMin)
+        public bool TrySetPeriods(double openMin, double closedMin)
         {
-            if(!IsReady)
-                return;
-
-            _timer.SetPeriods(openMin, closedMin);
+            return _timer.TrySetPeriods(openMin, closedMin);
         }
 
         //============================================================
@@ -147,16 +146,6 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Utilities
         //============================================================
-        public int GetRemainingMin()
-        {
-            return !IsReady ? 0 : _timer.GetRemainingMin();
-        }
-
-        public int GetRemainingSec()
-        {
-            return !IsReady ? 0 : _timer.GetRemainingSec();
-        }
-
         public virtual PeriodTimerData ToData()
         {
             return new PeriodTimerData(_timer.Id, _timer.CurType);

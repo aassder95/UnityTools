@@ -12,61 +12,52 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Inspector Fields
         //============================================================
-        [SerializeField] private RectTransform _rtView;
-        [SerializeField] private TextMeshProUGUI _txtIndex;
+        [SerializeField] private TextMeshProUGUI _txtIdx;
 
         //============================================================
         // Fields
         //============================================================
+        private RectTransform _rtView;
         private Image _imgBg;
-        private int _index;
+        private int _idx;
 
         //============================================================
         // Properties
         //============================================================
-        public int Index => _index;
+        public int Idx => _idx;
 
         //============================================================
         // Init/Register
         //============================================================
-        protected override void OnInit()
+        protected override bool OnInit()
         {
+            _rtView = transform as RectTransform;
             _imgBg = GetComponent<Image>();
+            return true;
         }
-
         //============================================================
         // Logic
         //============================================================
-        protected override void OnRefresh(InvenItemModel model)
+        protected override bool OnRefresh(InvenItemModel model)
         {
-            if(model == null || _txtIndex == null)
-                return;
-
-            _txtIndex.SetText($"{model.ItemName}\n{model.Grade}\nx{model.Count}");
-            _txtIndex.color = ResolveGradeTextColor(model.Grade);
+            _txtIdx.SetText($"{model.ItemName}\n{model.Grade}\nx{model.Cnt}");
+            _txtIdx.color = ResolveGradeTextColor(model.Grade);
             _imgBg.color = ResolveGradeBgColor(model.Grade);
+            return true;
         }
 
-        //============================================================
-        // Callbacks
-        //============================================================
-        void IDynamicScrollItem.SetIndex(int index)
+        void IDynamicScrollItem.SetIdx(int idx)
         {
-            _index = index;
+            _idx = idx;
         }
 
-        int IDynamicScrollItem.GetIndex()
+        void IDynamicScrollItem.SetPos(Vector2 pos)
         {
-            return _index;
-        }
-
-        void IDynamicScrollItem.SetPosition(Vector2 pos)
-        {
-            if(_rtView == null)
-                return;
-
             _rtView.anchoredPosition = pos;
         }
+
+        void IPoolable.OnGet() { }
+        void IPoolable.OnReturn() { }
 
         //============================================================
         // Utilities
@@ -104,8 +95,5 @@ namespace UnityTools.Samples.Inven
 
             return Color.white;
         }
-
-        void IPoolable.OnGet() { }
-        void IPoolable.OnReturn() { }
     }
 }
