@@ -86,13 +86,7 @@ namespace UnityTools.Util.Core.Pooling
         {
             while(true)
             {
-                if(!_pool.TryGet(out T obj))
-                {
-                    _coSpawn = null;
-                    enabled = false;
-                    yield break;
-                }
-
+                T obj = _pool.Get();
                 obj.transform.position = GetSpawnPos();
                 yield return _spawnWait;
             }

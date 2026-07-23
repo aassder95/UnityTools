@@ -10,7 +10,7 @@ namespace UnityTools.Util.Core.Timer
         //============================================================
         // Logic
         //============================================================
-        bool TryRefresh();
-        bool TryRelease();
+        bool Refresh();
+        void Release();
     }
 }

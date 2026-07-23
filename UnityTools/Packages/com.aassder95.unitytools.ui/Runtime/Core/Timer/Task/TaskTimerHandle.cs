@@ -50,21 +50,20 @@ namespace UnityTools.Util.Core.Timer.Task
         // Init/Register
         //============================================================
 
-        public virtual bool TryInit()
+        public virtual bool Init()
         {
             RegisterCallbacks();
-            if(_timer.TryInit())
+            if(_timer.Init())
                 return true;
 
             UnregisterCallbacks();
             return false;
         }
 
-        public virtual bool TryRelease()
+        public virtual void Release()
         {
-            bool isSuccess = _timer.TryRelease();
+            _timer.Release();
             UnregisterCallbacks();
-            return isSuccess;
         }
 
         private void RegisterCallbacks()

@@ -34,8 +34,7 @@ namespace UnityTools.Manager
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            if(!TryClearHandles())
-                DebugLogger.LogError("TaskTimerManager Handle 해제에 실패했습니다.", this);
+            ClearHandles();
         }
 
         //============================================================
@@ -53,7 +52,7 @@ namespace UnityTools.Manager
             return _handleFactory.TryCreate(normalizedId, this, out handle);
         }
 
-        public bool TryInitTaskTimer(TaskTimerHandle handle)
+        public bool InitTaskTimer(TaskTimerHandle handle)
         {
             if(handle == null)
             {
@@ -63,30 +62,22 @@ namespace UnityTools.Manager
 
             if(!StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
             {
-                LogInvalidId(nameof(TryInitTaskTimer), handle.Id);
+                LogInvalidId(nameof(InitTaskTimer), handle.Id);
                 return false;
             }
 
-            if(!handle.TryInit())
+            if(!handle.Init())
                 return false;
 
             if(_handles.TryGet(normalizedId, out TaskTimerHandle oldHandle))
             {
                 UnbindEvents(normalizedId, oldHandle);
-                if(!oldHandle.TryRelease())
-                {
-                    if(!handle.TryRelease())
-                        DebugLogger.LogError("TaskTimer 기존 Handle 교체 실패 후 새 Handle도 해제하지 못했습니다. ID=" + normalizedId, this);
-
-                    return false;
-                }
+                oldHandle.Release();
             }
 
             if(!_handles.TrySetOrReplace(normalizedId, handle, out _))
             {
-                if(!handle.TryRelease())
-                    DebugLogger.LogError("TaskTimer Handle 등록 실패 후 새 Handle을 해제하지 못했습니다. ID=" + normalizedId, this);
-
+                handle.Release();
                 return false;
             }
 
@@ -157,7 +148,7 @@ namespace UnityTools.Manager
             _eventBinders.Remove(id);
         }
 
-        private bool TryClearHandles()
+        private void ClearHandles()
         {
             string[] ids = new string[_eventBinders.Count];
             _eventBinders.Keys.CopyTo(ids, 0);
@@ -168,7 +159,7 @@ namespace UnityTools.Manager
             }
 
             _eventBinders.Clear();
-            return _handles.TryClear();
+            _handles.Clear();
         }
 
         //============================================================

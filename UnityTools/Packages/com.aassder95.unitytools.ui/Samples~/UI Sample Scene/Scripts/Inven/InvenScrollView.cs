@@ -1,4 +1,3 @@
-
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Inven
@@ -8,9 +7,9 @@ namespace UnityTools.Samples.Inven
         //============================================================
         // Logic
         //============================================================
-        public bool TryRefreshItems()
+        public void RefreshItems()
         {
-            return ItemController.TryUpdateItems();
+            ItemController.UpdateItems();
         }
     }
 }

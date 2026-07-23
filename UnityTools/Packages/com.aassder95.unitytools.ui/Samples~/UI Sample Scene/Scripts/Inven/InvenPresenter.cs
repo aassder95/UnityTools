@@ -34,8 +34,11 @@ namespace UnityTools.Samples.Inven
         {
             InvenScrollView scrollView = _view.ScrollView;
             scrollView.OnItemUpdated += _onItemViewUpdated;
-            if(scrollView.TryInitView(_model.ItemCnt) && scrollView.TryRefreshItems())
+            if(scrollView.InitView(_model.ItemCnt))
+            {
+                scrollView.RefreshItems();
                 return true;
+            }
 
             scrollView.OnItemUpdated -= _onItemViewUpdated;
             return false;
@@ -65,7 +68,6 @@ namespace UnityTools.Samples.Inven
         //============================================================
         private void OnItemViewUpdatedCallback(InvenItemView itemView)
         {
-
             InvenItemModel itemModel = _model.Get(itemView.Idx);
             if(itemModel == null)
             {

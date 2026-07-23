@@ -107,15 +107,7 @@ namespace UnityTools.Util.Core.Events
                         return false;
                     }
 
-                    try
-                    {
-                        listener();
-                    }
-                    catch(Exception exception)
-                    {
-                        DebugLogger.LogError("이벤트 Listener 실행에 실패했습니다. 키=" + key + ", 원인=" + exception.Message);
-                        return false;
-                    }
+                    listener();
                 }
             }
 
@@ -141,15 +133,7 @@ namespace UnityTools.Util.Core.Events
                         return false;
                     }
 
-                    try
-                    {
-                        listener(param);
-                    }
-                    catch(Exception exception)
-                    {
-                        DebugLogger.LogError("이벤트 Listener 실행에 실패했습니다. 키=" + key + ", 원인=" + exception.Message);
-                        return false;
-                    }
+                    listener(param);
                 }
             }
 

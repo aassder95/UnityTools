@@ -39,9 +39,9 @@ namespace UnityTools.Samples.Timer
 
         protected override bool OnRelease()
         {
-            bool isSuccess = _periodTimer.TryRelease();
+            _periodTimer.Release();
             _periodTimer = null;
-            return isSuccess;
+            return true;
         }
 
         protected override void BindEvents()
@@ -67,12 +67,13 @@ namespace UnityTools.Samples.Timer
         //============================================================
         protected override bool OnShow()
         {
-            return _periodTimer.IsReady || _periodTimer.TryInit(1.0, 1.0);
+            return _periodTimer.IsReady || _periodTimer.Init(1.0, 1.0);
         }
 
         protected override bool OnHide()
         {
-            return _periodTimer.TryRelease();
+            _periodTimer.Release();
+            return true;
         }
 
         //============================================================

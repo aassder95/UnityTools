@@ -1,4 +1,3 @@
-using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
@@ -97,13 +96,13 @@ namespace UnityTools.Util.UIFramework
                 return;
 
             UpdateContentLayout();
-            if(!TryRebuildVisibleItems())
+            if(!RebuildVisibleItems())
                 enabled = false;
         }
 
         private void OnDestroy()
         {
-            if(!TryReleaseView())
+            if(!ReleaseView())
                 DebugLogger.LogError("DynamicScrollView 파괴 중 Item 정리를 완료하지 못했습니다.", this);
         }
 
@@ -141,7 +140,7 @@ namespace UnityTools.Util.UIFramework
             return true;
         }
 
-        public bool TryInitView(int totalItemCnt)
+        public bool InitView(int totalItemCnt)
         {
             if(totalItemCnt < 0)
             {
@@ -161,7 +160,7 @@ namespace UnityTools.Util.UIFramework
                 return false;
             }
 
-            if(isSameTotalItemCnt && !TryRebuildVisibleItems())
+            if(isSameTotalItemCnt && !RebuildVisibleItems())
             {
                 _isInitialized = false;
                 return false;
@@ -170,7 +169,7 @@ namespace UnityTools.Util.UIFramework
             return true;
         }
 
-        public bool TryReleaseView()
+        public bool ReleaseView()
         {
             StopSmoothScroll();
             if(_scrollRect != null)
@@ -178,7 +177,7 @@ namespace UnityTools.Util.UIFramework
             if(_itemCtrl != null)
                 _itemCtrl.OnItemUpdated -= OnControllerItemUpdated;
 
-            bool isSuccess = _itemCtrl == null || _itemCtrl.TryClear();
+            bool isSuccess = _itemCtrl == null || _itemCtrl.Clear();
             _pool?.Clear();
             _context = null;
             _itemCtrl = null;
@@ -191,12 +190,12 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Logic
         //============================================================
-        public bool TryRefreshView()
+        public bool RefreshView()
         {
             if(!_isInitialized)
                 return false;
 
-            return TryRebuildVisibleItems();
+            return RebuildVisibleItems();
         }
 
         public bool TryScrollTo(int itemIdx, bool isImmediate = false, float durationSec = 0.3f)
@@ -218,7 +217,7 @@ namespace UnityTools.Util.UIFramework
             {
                 StopSmoothScroll();
                 _rtContent.anchoredPosition = targetPos;
-                return TryProcessScroll(Vector2.zero);
+                return ProcessScroll(Vector2.zero);
             }
 
             StartSmoothScroll(targetPos, durationSec);
@@ -241,7 +240,7 @@ namespace UnityTools.Util.UIFramework
             _totalItemCnt = totalItemCnt;
             UpdateContentLayout();
             if(_isInitialized)
-                return TryRebuildVisibleItems();
+                return RebuildVisibleItems();
 
             _itemCtrl.UpdatePos();
             return true;
@@ -261,18 +260,23 @@ namespace UnityTools.Util.UIFramework
                 return true;
 
             _visibleLineCnt = visibleLineCnt;
-            return !_isInitialized || TryRebuildVisibleItems();
+            return !_isInitialized || RebuildVisibleItems();
         }
 
-
-        private bool TryProcessScroll(Vector2 value)
+        private bool ProcessScroll(Vector2 value)
         {
             if(!_isComponentReady || _totalItemCnt <= 0 || _itemCtrl.Cnt <= 0)
-                return TryNotifyScrollChanged(value);
+            {
+                NotifyScrollChanged(value);
+                return true;
+            }
 
             float curScrollPos = IsVertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
             if(Mathf.Abs(curScrollPos - _lastScrollPos) <= SCROLL_REFRESH_EPSILON)
-                return TryNotifyScrollChanged(value);
+            {
+                NotifyScrollChanged(value);
+                return true;
+            }
 
             _lastScrollPos = curScrollPos;
             int curLine = _itemCtrl.FirstIdx / _itemCntPerLine;
@@ -292,7 +296,8 @@ namespace UnityTools.Util.UIFramework
                 }
             }
 
-            return TryNotifyScrollChanged(value);
+            NotifyScrollChanged(value);
+            return true;
         }
 
         private bool ValidateConfig()
@@ -402,13 +407,13 @@ namespace UnityTools.Util.UIFramework
             _rtContent.sizeDelta = _context.GetContentSize(_totalLineCnt);
         }
 
-        private bool TryRebuildVisibleItems()
+        private bool RebuildVisibleItems()
         {
             if(!_isComponentReady)
                 return false;
 
             _lastScrollPos = float.MinValue;
-            if(!_itemCtrl.TryClear())
+            if(!_itemCtrl.Clear())
                 return false;
             if(_totalItemCnt <= 0)
                 return true;
@@ -466,7 +471,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         private void OnScrollValueChanged(Vector2 value)
         {
-            if(!TryProcessScroll(value))
+            if(!ProcessScroll(value))
                 enabled = false;
         }
 
@@ -479,18 +484,9 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Utilities
         //============================================================
-        private bool TryNotifyScrollChanged(Vector2 value)
+        private void NotifyScrollChanged(Vector2 value)
         {
-            try
-            {
-                HandleScrollValueChanged(value);
-                return true;
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("DynamicScrollView 값 변경 Callback 실행에 실패했습니다. 원인=" + exception.Message, this);
-                return false;
-            }
+            HandleScrollValueChanged(value);
         }
 
         private static ScrollRect.MovementType ConvertMovementType(EDynamicScrollMovementType movementType)

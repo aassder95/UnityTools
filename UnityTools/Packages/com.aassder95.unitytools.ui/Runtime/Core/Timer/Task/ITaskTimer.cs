@@ -25,7 +25,7 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Logic
         //============================================================
-        bool TryInit();
+        bool Init();
         bool TryStart(double durationSec);
         bool TryReduce(double reduceSec);
         bool TryComplete();

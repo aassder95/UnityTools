@@ -28,7 +28,7 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Logic
         //============================================================
-        bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null);
+        bool Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null);
         bool TryForceOpen();
         bool TryForceClosed();
         bool TrySetPeriods(double openMin, double closedMin);

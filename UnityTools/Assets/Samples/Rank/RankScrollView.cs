@@ -1,4 +1,3 @@
-
 using UnityTools.Util.UIFramework;
 
 namespace UnityTools.Samples.Rank
@@ -8,12 +7,12 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Logic
         //============================================================
-        public bool TryRefreshItems()
+        public void RefreshItems()
         {
-            return ItemController.TryUpdateItems();
+            ItemController.UpdateItems();
         }
 
-        public bool TryIncreaseVisibleLine()
+        public bool IncreaseVisibleLine()
         {
             if(VisibleLineCnt >= TotalLineCnt)
                 return true;
@@ -21,7 +20,7 @@ namespace UnityTools.Samples.Rank
             return TrySetVisibleLineCnt(VisibleLineCnt + 1);
         }
 
-        public bool TryDecreaseVisibleLine()
+        public bool DecreaseVisibleLine()
         {
             if(VisibleLineCnt <= 1)
                 return true;

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityTools.Util.Core.Logging;
@@ -49,37 +48,22 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         // Logic
         //============================================================
-        public bool TryGet(out T obj)
+        public T Get()
         {
-            obj = null;
+            T obj;
             if(_objects.Count > 0)
             {
                 obj = _objects.Dequeue();
                 _pooledObjects.Remove(obj);
-                if(obj == null)
-                {
-                    DebugLogger.LogError("오브젝트 풀에 파기된 객체가 남아 있습니다.");
-                    return false;
-                }
             }
             else
             {
                 obj = CreateObject();
             }
 
-            try
-            {
-                obj.gameObject.SetActive(true);
-                obj.OnGet();
-                return true;
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("오브젝트 풀에서 객체를 꺼내지 못했습니다. 원인=" + exception.Message);
-                DestroyObject(obj);
-                obj = null;
-                return false;
-            }
+            obj.gameObject.SetActive(true);
+            obj.OnGet();
+            return obj;
         }
 
         public bool TryReturn(T obj)
@@ -96,20 +80,11 @@ namespace UnityTools.Util.Core.Pooling
                 return false;
             }
 
-            try
-            {
-                obj.OnReturn();
-                obj.gameObject.SetActive(false);
-                _objects.Enqueue(obj);
-                _pooledObjects.Add(obj);
-                return true;
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("오브젝트 풀 객체 반환에 실패했습니다. 이름=" + obj.name + ", 원인=" + exception.Message);
-                DestroyObject(obj);
-                return false;
-            }
+            obj.OnReturn();
+            obj.gameObject.SetActive(false);
+            _objects.Enqueue(obj);
+            _pooledObjects.Add(obj);
+            return true;
         }
 
         public void Clear()

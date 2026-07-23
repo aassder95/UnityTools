@@ -93,25 +93,24 @@ namespace UnityTools.Util.Core.Timer.Task
             return true;
         }
 
-        public bool TryInit()
+        public bool Init()
         {
             if(_isInit)
                 return true;
 
             Load();
             _isInit = true;
-            if(TryRefresh())
+            if(Refresh())
                 return true;
 
             _isInit = false;
             return false;
         }
 
-        public bool TryRelease()
+        public void Release()
         {
-            bool isSuccess = TryStopUpdate();
+            StopUpdate();
             _isInit = false;
-            return isSuccess;
         }
 
         //============================================================
@@ -143,7 +142,7 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Logic
         //============================================================
-        public bool TryRefresh()
+        public bool Refresh()
         {
             if(!_isInit)
             {
@@ -156,10 +155,8 @@ namespace UnityTools.Util.Core.Timer.Task
 
             if(_startTime == DateTime.MinValue || type == ETaskTimerType.None)
             {
-                if(!TryStopUpdate())
-                    return false;
-
-                return _fsm.HasCurState && _fsm.CurType == ETaskTimerType.None || TryChangeState(ETaskTimerType.None, false, "TryRefresh");
+                StopUpdate();
+                return _fsm.HasCurState && _fsm.CurType == ETaskTimerType.None || TryChangeState(ETaskTimerType.None, false, "Refresh");
             }
 
             switch(type)
@@ -173,18 +170,17 @@ namespace UnityTools.Util.Core.Timer.Task
                     }
 
                     if(IsPeriodExpired)
-                        return TryUpdateCompletionTime();
+                        return UpdateCompletionTime();
 
-                    if((!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Processing) && !TryChangeState(ETaskTimerType.Processing, false, "TryRefresh"))
+                    if((!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Processing) && !TryChangeState(ETaskTimerType.Processing, false, "Refresh"))
                         return false;
 
-                    return TryStartUpdate();
+                    StartUpdate();
+                    return true;
 
                 case ETaskTimerType.Completed:
-                    if(!TryStopUpdate())
-                        return false;
-
-                    return _fsm.HasCurState && _fsm.CurType == ETaskTimerType.Completed || TryChangeState(ETaskTimerType.Completed, false, "TryRefresh");
+                    StopUpdate();
+                    return _fsm.HasCurState && _fsm.CurType == ETaskTimerType.Completed || TryChangeState(ETaskTimerType.Completed, false, "Refresh");
 
                 default:
                     DebugLogger.LogError("지원하지 않는 TaskTimer 상태입니다. 상태=" + type);
@@ -215,7 +211,8 @@ namespace UnityTools.Util.Core.Timer.Task
                 return false;
 
             Save();
-            return TryStartUpdate();
+            StartUpdate();
+            return true;
         }
 
         public bool TryReduce(double reduceSec)
@@ -243,7 +240,7 @@ namespace UnityTools.Util.Core.Timer.Task
             _startTime = _startTime.AddSeconds(-actualReduceSec);
             Save();
             _onRemainSecUpdated?.Invoke(RemainingSec);
-            return !IsPeriodExpired || TryUpdateCompletionTime();
+            return !IsPeriodExpired || UpdateCompletionTime();
         }
 
         public bool TryComplete()
@@ -254,7 +251,7 @@ namespace UnityTools.Util.Core.Timer.Task
                 return false;
             }
 
-            return TryUpdateCompletionTime();
+            return UpdateCompletionTime();
         }
 
         public bool TryClaim()
@@ -273,11 +270,11 @@ namespace UnityTools.Util.Core.Timer.Task
             return true;
         }
 
-        public bool TryUpdateCompletionTime()
+        public bool UpdateCompletionTime()
         {
             _updatedTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
             _persistence.SaveUpdated(_updatedTime);
-            if(_fsm.CurType != ETaskTimerType.Completed && !TryChangeState(ETaskTimerType.Completed, false, "TryUpdateCompletionTime"))
+            if(_fsm.CurType != ETaskTimerType.Completed && !TryChangeState(ETaskTimerType.Completed, false, "UpdateCompletionTime"))
                 return false;
 
             _persistence.SaveState(ETaskTimerType.Completed);
@@ -299,41 +296,19 @@ namespace UnityTools.Util.Core.Timer.Task
             }
         }
 
-        private bool TryStartUpdate()
+        private void StartUpdate()
         {
-            if(!TryStopUpdate())
-                return false;
-
-            try
-            {
-                _coUpdate = _runner.StartCoroutine(CoUpdate());
-                return true;
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("TaskTimer Coroutine 시작에 실패했습니다. ID=" + _id + ", 원인=" + exception.Message);
-                _coUpdate = null;
-                return false;
-            }
+            StopUpdate();
+            _coUpdate = _runner.StartCoroutine(CoUpdate());
         }
 
-        private bool TryStopUpdate()
+        private void StopUpdate()
         {
             if(_coUpdate == null)
-                return true;
+                return;
 
-            try
-            {
-                _runner.StopCoroutine(_coUpdate);
-                _coUpdate = null;
-                return true;
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("TaskTimer Coroutine 중단에 실패했습니다. ID=" + _id + ", 원인=" + exception.Message);
-                _coUpdate = null;
-                return false;
-            }
+            _runner.StopCoroutine(_coUpdate);
+            _coUpdate = null;
         }
 
         //============================================================
@@ -352,8 +327,8 @@ namespace UnityTools.Util.Core.Timer.Task
 
         public void NotifyCompleted()
         {
-            if(TryStopUpdate())
-                _onCompleted?.Invoke();
+            StopUpdate();
+            _onCompleted?.Invoke();
         }
 
         public void NotifyCurType()

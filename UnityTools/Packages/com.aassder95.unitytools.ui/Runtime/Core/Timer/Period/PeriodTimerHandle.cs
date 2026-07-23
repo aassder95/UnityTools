@@ -54,21 +54,20 @@ namespace UnityTools.Util.Core.Timer.Period
         // Init/Register
         //============================================================
 
-        public virtual bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+        public virtual bool Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             RegisterCallbacks();
-            if(_timer.TryInit(openMin, closedMin, initWaitFunc))
+            if(_timer.Init(openMin, closedMin, initWaitFunc))
                 return true;
 
             UnregisterCallbacks();
             return false;
         }
 
-        public virtual bool TryRelease()
+        public virtual void Release()
         {
-            bool isSuccess = _timer.TryRelease();
+            _timer.Release();
             UnregisterCallbacks();
-            return isSuccess;
         }
 
         private void RegisterCallbacks()

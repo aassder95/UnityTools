@@ -32,8 +32,11 @@ namespace UnityTools.Samples.Rank
         {
             RankScrollView scrollView = _view.ScrollView;
             scrollView.OnItemUpdated += _onItemViewUpdated;
-            if(scrollView.TryInitView(_model.ItemCnt) && scrollView.TryRefreshItems())
+            if(scrollView.InitView(_model.ItemCnt))
+            {
+                scrollView.RefreshItems();
                 return true;
+            }
 
             scrollView.OnItemUpdated -= _onItemViewUpdated;
             return false;
@@ -70,8 +73,13 @@ namespace UnityTools.Samples.Rank
         private void OnIncreaseTotalItemCallback()
         {
             _model.AddItem();
-            if(!_view.ScrollView.TryInitView(_model.ItemCnt) || !_view.ScrollView.TryRefreshItems())
+            if(!_view.ScrollView.InitView(_model.ItemCnt))
+            {
                 StopAfterFailure();
+                return;
+            }
+
+            _view.ScrollView.RefreshItems();
         }
 
         private void OnDecreaseTotalItemCallback()
@@ -81,25 +89,29 @@ namespace UnityTools.Samples.Rank
             if(_model.ItemCnt == prevCnt)
                 return;
 
-            if(!_view.ScrollView.TryInitView(_model.ItemCnt) || !_view.ScrollView.TryRefreshItems())
+            if(!_view.ScrollView.InitView(_model.ItemCnt))
+            {
                 StopAfterFailure();
+                return;
+            }
+
+            _view.ScrollView.RefreshItems();
         }
 
         private void OnIncreaseVisibleLineCallback()
         {
-            if(!_view.ScrollView.TryIncreaseVisibleLine())
+            if(!_view.ScrollView.IncreaseVisibleLine())
                 StopAfterFailure();
         }
 
         private void OnDecreaseVisibleLineCallback()
         {
-            if(!_view.ScrollView.TryDecreaseVisibleLine())
+            if(!_view.ScrollView.DecreaseVisibleLine())
                 StopAfterFailure();
         }
 
         private void OnItemViewUpdatedCallback(RankItemView itemView)
         {
-
             RankItemModel itemModel = _model.Get(itemView.Idx);
             if(itemModel == null)
             {

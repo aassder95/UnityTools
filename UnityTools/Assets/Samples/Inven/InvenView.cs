@@ -47,7 +47,8 @@ namespace UnityTools.Samples.Inven
         //============================================================
         protected override bool OnRefresh(InvenModel model)
         {
-            return _scrollView.TryRefreshItems();
+            _scrollView.RefreshItems();
+            return true;
         }
 
         //============================================================

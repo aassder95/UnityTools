@@ -53,7 +53,8 @@ namespace UnityTools.Samples.Rank
         //============================================================
         protected override bool OnRefresh(RankModel model)
         {
-            return _scrollView.TryRefreshItems();
+            _scrollView.RefreshItems();
+            return true;
         }
 
         //============================================================

@@ -46,17 +46,14 @@ namespace UnityTools.Util.Core.Timer
             return _handles.Remove(id, out removedHandle);
         }
 
-        public bool TryClear()
+        public void Clear()
         {
-            bool isSuccess = true;
             foreach(THandle handle in _handles.Values)
             {
-                if(!handle.TryRelease())
-                    isSuccess = false;
+                handle.Release();
             }
 
             _handles.Clear();
-            return isSuccess;
         }
     }
 }

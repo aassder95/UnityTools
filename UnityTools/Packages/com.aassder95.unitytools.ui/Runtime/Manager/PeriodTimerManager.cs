@@ -31,8 +31,7 @@ namespace UnityTools.Manager
         protected override void OnDestroy()
         {
             base.OnDestroy();
-            if(!TryClearHandles())
-                DebugLogger.LogError("PeriodTimerManager Handle 해제에 실패했습니다.", this);
+            ClearHandles();
         }
 
         //============================================================
@@ -50,7 +49,7 @@ namespace UnityTools.Manager
             return _handleFactory.TryCreate(normalizedId, this, out handle);
         }
 
-        public bool TryInitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+        public bool InitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             if(handle == null)
             {
@@ -60,30 +59,22 @@ namespace UnityTools.Manager
 
             if(!StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
             {
-                LogInvalidId(nameof(TryInitPeriodTimer), handle.Id);
+                LogInvalidId(nameof(InitPeriodTimer), handle.Id);
                 return false;
             }
 
-            if(!handle.TryInit(openMin, closedMin, initWaitFunc))
+            if(!handle.Init(openMin, closedMin, initWaitFunc))
                 return false;
 
             if(_handles.TryGet(normalizedId, out PeriodTimerHandle oldHandle))
             {
                 UnbindEvents(normalizedId, oldHandle);
-                if(!oldHandle.TryRelease())
-                {
-                    if(!handle.TryRelease())
-                        DebugLogger.LogError("PeriodTimer 기존 Handle 교체 실패 후 새 Handle도 해제하지 못했습니다. ID=" + normalizedId, this);
-
-                    return false;
-                }
+                oldHandle.Release();
             }
 
             if(!_handles.TrySetOrReplace(normalizedId, handle, out _))
             {
-                if(!handle.TryRelease())
-                    DebugLogger.LogError("PeriodTimer Handle 등록 실패 후 새 Handle을 해제하지 못했습니다. ID=" + normalizedId, this);
-
+                handle.Release();
                 return false;
             }
 
@@ -102,18 +93,17 @@ namespace UnityTools.Manager
                 return false;
             }
 
-            bool isSuccess = true;
             if(_handles.TryRemove(normalizedId, out PeriodTimerHandle handle))
             {
                 UnbindEvents(normalizedId, handle);
-                isSuccess = handle.TryRelease();
+                handle.Release();
             }
             else
             {
                 _eventBinders.Remove(normalizedId);
             }
 
-            return PeriodTimerPersistence.TryDeleteAll(normalizedId) && isSuccess;
+            return PeriodTimerPersistence.TryDeleteAll(normalizedId);
         }
 
         private void BindEvents(string id, PeriodTimerHandle handle)
@@ -132,7 +122,7 @@ namespace UnityTools.Manager
             _eventBinders.Remove(id);
         }
 
-        private bool TryClearHandles()
+        private void ClearHandles()
         {
             string[] ids = new string[_eventBinders.Count];
             _eventBinders.Keys.CopyTo(ids, 0);
@@ -143,7 +133,7 @@ namespace UnityTools.Manager
             }
 
             _eventBinders.Clear();
-            return _handles.TryClear();
+            _handles.Clear();
         }
 
         //============================================================

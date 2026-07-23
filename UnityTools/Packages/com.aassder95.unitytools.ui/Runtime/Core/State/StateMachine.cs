@@ -76,8 +76,7 @@ namespace UnityTools.Util.Core.State
             _curState = nextState;
             _hasCurState = true;
             _curState.Enter();
-            if(!TryNotifyTransition(prevType, type))
-                return false;
+            _onStateTransition?.Invoke(prevType, type);
 
             if(shouldTick)
                 Tick();
@@ -102,31 +101,6 @@ namespace UnityTools.Util.Core.State
         public void Tick()
         {
             _curState?.Execute();
-        }
-
-        //============================================================
-        // Utilities
-        //============================================================
-        private bool TryNotifyTransition(TType prevType, TType nextType)
-        {
-            if(_onStateTransition == null)
-                return true;
-
-            Delegate[] listeners = _onStateTransition.GetInvocationList();
-            for(int i = 0; i < listeners.Length; i++)
-            {
-                try
-                {
-                    ((UnityAction<TType, TType>)listeners[i]).Invoke(prevType, nextType);
-                }
-                catch(Exception exception)
-                {
-                    DebugLogger.LogError("상태 전환 Listener 실행에 실패했습니다. 원인=" + exception.Message);
-                    return false;
-                }
-            }
-
-            return true;
         }
     }
 }

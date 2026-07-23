@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Util.Core.Collections;
@@ -56,9 +55,7 @@ namespace UnityTools.Util.UIFramework
                 return false;
             }
 
-            if(!_pool.TryGet(out TView newItem))
-                return false;
-
+            TView newItem = _pool.Get();
             if(!newItem.Init())
             {
                 if(!_pool.TryReturn(newItem))
@@ -69,27 +66,17 @@ namespace UnityTools.Util.UIFramework
 
             newItem.SetIdx(idx);
             newItem.SetPos(_context.GetItemPos(idx));
-            if(TryNotifyUpdated(newItem))
-            {
-                item = newItem;
-                return true;
-            }
-
-            if(!_pool.TryReturn(newItem))
-                DebugLogger.LogError("갱신에 실패한 DynamicScroll Item을 풀로 반환하지 못했습니다. 인덱스=" + idx);
-
-            return false;
+            NotifyUpdated(newItem);
+            item = newItem;
+            return true;
         }
 
-        public bool TryUpdateItems()
+        public void UpdateItems()
         {
             foreach(TView item in _items)
             {
-                if(!TryNotifyUpdated(item))
-                    return false;
+                NotifyUpdated(item);
             }
-
-            return true;
         }
 
         public void UpdatePos()
@@ -118,7 +105,7 @@ namespace UnityTools.Util.UIFramework
                 {
                     if(!TryAdd(idx + i, true))
                     {
-                        if(!TryRollbackAdded(i, true))
+                        if(!RollbackAdded(i, true))
                             DebugLogger.LogError("DynamicScroll 뒤쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + i);
                         return false;
                     }
@@ -132,7 +119,7 @@ namespace UnityTools.Util.UIFramework
             {
                 if(!TryAdd(frontIdx - i, false))
                 {
-                    if(!TryRollbackAdded(i, false))
+                    if(!RollbackAdded(i, false))
                         DebugLogger.LogError("DynamicScroll 앞쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + i);
                     return false;
                 }
@@ -157,7 +144,7 @@ namespace UnityTools.Util.UIFramework
                 {
                     if(!TryAdd(idx + i, true))
                     {
-                        if(!TryRollbackAdded(i, true))
+                        if(!RollbackAdded(i, true))
                             DebugLogger.LogError("DynamicScroll 뒤쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + i);
                         return false;
                     }
@@ -171,7 +158,7 @@ namespace UnityTools.Util.UIFramework
             {
                 if(!TryAdd(idx + i, false))
                 {
-                    if(!TryRollbackAdded(addedCnt, false))
+                    if(!RollbackAdded(addedCnt, false))
                         DebugLogger.LogError("DynamicScroll 앞쪽 Item 추가 롤백에 실패했습니다. 추가 수=" + addedCnt);
                     return false;
                 }
@@ -195,7 +182,7 @@ namespace UnityTools.Util.UIFramework
             bool isBack = FirstIdx >= _context.GetFirstVisibleItemIdx(lastLine);
             for(int i = 0; i < cnt; i++)
             {
-                if(!TryRemove(isBack))
+                if(!Remove(isBack))
                     return false;
             }
 
@@ -214,18 +201,18 @@ namespace UnityTools.Util.UIFramework
 
             for(int i = 0; i < cnt; i++)
             {
-                if(!TryRemove(isBack))
+                if(!Remove(isBack))
                     return false;
             }
 
             return true;
         }
 
-        public bool TryClear()
+        public bool Clear()
         {
             while(_items.Count > 0)
             {
-                if(!TryRemove(false))
+                if(!Remove(false))
                     return false;
             }
 
@@ -254,19 +241,19 @@ namespace UnityTools.Util.UIFramework
             return true;
         }
 
-        private bool TryRollbackAdded(int addedCnt, bool isBack)
+        private bool RollbackAdded(int addedCnt, bool isBack)
         {
             bool isSuccess = true;
             for(int i = 0; i < addedCnt; i++)
             {
-                if(!TryRemove(isBack))
+                if(!Remove(isBack))
                     isSuccess = false;
             }
 
             return isSuccess;
         }
 
-        private bool TryRemove(bool isBack)
+        private bool Remove(bool isBack)
         {
             if(_items.Count <= 0)
                 return true;
@@ -283,26 +270,9 @@ namespace UnityTools.Util.UIFramework
             return true;
         }
 
-        private bool TryNotifyUpdated(TView item)
+        private void NotifyUpdated(TView item)
         {
-            if(_onItemUpdated == null)
-                return true;
-
-            Delegate[] listeners = _onItemUpdated.GetInvocationList();
-            for(int i = 0; i < listeners.Length; i++)
-            {
-                try
-                {
-                    ((UnityAction<TView>)listeners[i]).Invoke(item);
-                }
-                catch(Exception exception)
-                {
-                    DebugLogger.LogError("DynamicScroll Item 갱신 Listener 실행에 실패했습니다. 원인=" + exception.Message);
-                    return false;
-                }
-            }
-
-            return true;
+            _onItemUpdated?.Invoke(item);
         }
     }
 }
