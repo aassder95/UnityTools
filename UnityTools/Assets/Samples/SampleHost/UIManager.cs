@@ -3,11 +3,10 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityTools.Util.Core;
-using UnityTools.Util.Core.Singleton;
 
 namespace UnityTools.Manager
 {
-    public class UIManager : MonoSingleton<UIManager>
+    public class UIManager : MonoBehaviour
     {
         //============================================================
         // Readonly
@@ -38,9 +37,8 @@ namespace UnityTools.Manager
         //============================================================
         // Unity Methods
         //============================================================
-        protected override void OnDestroy()
+        private void OnDestroy()
         {
-            base.OnDestroy();
             Release();
         }
 

@@ -7,7 +7,6 @@ namespace UnityTools.Util.Core
         //============================================================
         private const string ALL = "All";
         private const string RANK = "Rank";
-        private const string RANK_OSA = "RankOSA";
         private const string TIMER = "Timer";
         private const string INVEN = "Inven";
 
@@ -16,7 +15,6 @@ namespace UnityTools.Util.Core
         //============================================================
         public static string All => ALL;
         public static string Rank => RANK;
-        public static string RankOsa => RANK_OSA;
         public static string Timer => TIMER;
         public static string Inven => INVEN;
     }
