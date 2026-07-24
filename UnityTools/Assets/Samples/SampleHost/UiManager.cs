@@ -7,7 +7,7 @@ using UnityTools.Util.Core;
 
 namespace UnityTools.Manager
 {
-    public class UIManager : MonoBehaviour
+    public class UiManager : MonoBehaviour
     {
         //============================================================
         // Readonly

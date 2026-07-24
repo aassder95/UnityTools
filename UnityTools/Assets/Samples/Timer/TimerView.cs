@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
 using UnityTools.Samples.Util;
-using UnityTools.Util.UIFramework;
+using UnityTools.Util.UiFramework;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Samples.Timer

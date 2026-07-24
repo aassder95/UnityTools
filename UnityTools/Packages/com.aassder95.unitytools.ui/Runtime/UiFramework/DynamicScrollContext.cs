@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     public class DynamicScrollContext
     {

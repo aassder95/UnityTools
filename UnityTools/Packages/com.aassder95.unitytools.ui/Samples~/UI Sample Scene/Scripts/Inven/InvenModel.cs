@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityTools.Util.UIFramework;
+using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Samples.Inven
 {

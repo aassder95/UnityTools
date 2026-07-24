@@ -1,4 +1,4 @@
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     public abstract class BasePresenter<TModel, TView> : IPresenter where TModel : IModel where TView : IView<TModel>
     {

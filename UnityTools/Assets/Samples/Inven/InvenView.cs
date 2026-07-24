@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Samples.Util;
-using UnityTools.Util.UIFramework;
+using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Samples.Inven
 {

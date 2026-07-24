@@ -1,4 +1,4 @@
-using UnityTools.Util.UIFramework;
+using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Samples.Rank
 {

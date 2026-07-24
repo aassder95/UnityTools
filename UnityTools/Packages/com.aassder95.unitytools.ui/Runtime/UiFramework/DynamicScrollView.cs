@@ -5,7 +5,7 @@ using UnityEngine.UI;
 using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Pooling;
 
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     [RequireComponent(typeof(ScrollRect))]
     public class DynamicScrollView<TView> : DynamicScrollViewBase where TView : Component, IDynamicScrollItem, IPoolable

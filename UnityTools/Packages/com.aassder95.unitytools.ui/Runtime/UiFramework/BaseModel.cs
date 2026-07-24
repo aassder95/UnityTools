@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityTools.Util.Core.Logging;
 
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     public abstract class BaseModel : IModel
     {

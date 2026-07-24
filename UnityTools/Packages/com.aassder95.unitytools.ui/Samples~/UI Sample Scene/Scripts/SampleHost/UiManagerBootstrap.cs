@@ -2,12 +2,12 @@ using UnityEngine;
 
 namespace UnityTools.Manager
 {
-    public class UIManagerBootstrap : MonoBehaviour
+    public class UiManagerBootstrap : MonoBehaviour
     {
         //============================================================
         // Inspector Fields
         //============================================================
-        [SerializeField] private UIManager _uiManager;
+        [SerializeField] private UiManager _uiManager;
 
         //============================================================
         // Unity Methods

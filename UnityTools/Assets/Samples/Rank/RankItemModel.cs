@@ -1,5 +1,5 @@
 using UnityEngine;
-using UnityTools.Util.UIFramework;
+using UnityTools.Util.UiFramework;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Samples.Rank

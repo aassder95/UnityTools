@@ -4,7 +4,7 @@ using UnityTools.Util.Core.Collections;
 using UnityTools.Util.Core.Logging;
 using UnityTools.Util.Core.Pooling;
 
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     public class DynamicScrollItemController<TView> where TView : Component, IDynamicScrollItem, IPoolable
     {

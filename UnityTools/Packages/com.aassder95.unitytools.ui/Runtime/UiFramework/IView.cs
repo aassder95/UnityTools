@@ -1,6 +1,6 @@
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
-    public interface IPresenter
+    public interface IView<TModel> where TModel : IModel
     {
         //============================================================
         // Properties
@@ -19,5 +19,6 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         void Show();
         void Hide();
+        void Refresh(TModel model);
     }
 }

@@ -11,7 +11,8 @@
 - Period Timer 삭제도 영속 데이터 삭제 성공 후에만 런타임 handle을 해제하도록 순서를 보장
 - `Deque`의 제거·조회 API를 빈 컬렉션에서도 예외가 발생하지 않는 `TryDequeue`, `TryDequeueBack`, `TryPeek`, `TryPeekBack` 계약으로 변경
 - `TaskTimer`와 `PeriodTimer`의 상태 구현과 `Fsm` 노출을 제거하고 상태 전이를 Timer 내부 책임으로 제한
-- 샘플 전용 UIManager, SampleLauncher, SampleModule 타입을 Runtime 어셈블리에서 Samples 전용 영역으로 이동
+- `UnityTools.Util.UiFramework` namespace를 `UnityTools.Util.UiFramework`로 변경
+- 샘플 전용 `UiManager`, `SampleLauncher`, `SampleModule` 타입을 Runtime 어셈블리에서 Samples 전용 영역으로 이동
 - `MonoSingleton`이 누락 인스턴스를 씬 검색으로 자동 복구하지 않고 `Awake` 등록만 사용하도록 변경
 - FileStorage 키를 단일 파일명으로 제한하고 루트 경로 이탈을 차단
 - `ObjectPool.TryReturn` 소유권 검증과 Spawner 활성 객체 상한·반환 수명주기를 추가

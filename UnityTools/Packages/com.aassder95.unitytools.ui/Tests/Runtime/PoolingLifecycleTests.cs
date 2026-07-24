@@ -6,7 +6,7 @@ using UnityEngine;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
 using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.UIFramework;
+using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Util.Tests.Lifecycle
 {

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     public abstract class DynamicScrollViewBase : MonoBehaviour
     {

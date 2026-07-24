@@ -1,6 +1,6 @@
 using System;
 
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     public interface IModel
     {

@@ -1,4 +1,4 @@
-namespace UnityTools.Util.UIFramework
+namespace UnityTools.Util.UiFramework
 {
     public enum EDynamicScrollAxisType
     {

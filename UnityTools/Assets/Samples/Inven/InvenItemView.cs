@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.UIFramework;
+using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Samples.Inven
 {
