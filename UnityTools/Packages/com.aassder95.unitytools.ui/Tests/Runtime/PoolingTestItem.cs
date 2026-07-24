@@ -8,26 +8,26 @@ namespace UnityTools.Util.Tests.Lifecycle
         //============================================================
         // Fields
         //============================================================
-        private int _getCnt;
-        private int _returnCnt;
+        private int _getCallCnt;
+        private int _returnCallCnt;
 
         //============================================================
         // Properties
         //============================================================
-        public int GetCnt => _getCnt;
-        public int ReturnCnt => _returnCnt;
+        public int GetCallCnt => _getCallCnt;
+        public int ReturnCallCnt => _returnCallCnt;
 
         //============================================================
         // Callbacks
         //============================================================
         public void OnGet()
         {
-            _getCnt++;
+            _getCallCnt++;
         }
 
         public void OnReturn()
         {
-            _returnCnt++;
+            _returnCallCnt++;
         }
     }
 }

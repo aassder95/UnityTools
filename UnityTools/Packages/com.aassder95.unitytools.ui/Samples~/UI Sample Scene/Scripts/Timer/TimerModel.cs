@@ -47,11 +47,11 @@ namespace UnityTools.Samples.Timer
             });
         }
 
-        public void SetLoop(int min, DateTime openUpdatedTime)
+        public void SetLoop(int remainingMin, DateTime openUpdatedTime)
         {
             RunBatchUpdate(() =>
             {
-                SetField(ref _loopMin, min);
+                SetField(ref _loopMin, remainingMin);
                 SetField(ref _openUpdatedTime, openUpdatedTime);
             });
         }

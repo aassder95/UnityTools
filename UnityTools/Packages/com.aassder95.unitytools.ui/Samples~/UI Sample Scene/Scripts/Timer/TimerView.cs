@@ -240,9 +240,9 @@ namespace UnityTools.Samples.Timer
             SetText(_txtSubState, subState);
         }
 
-        private void SetLoop(int min)
+        private void SetLoop(int remainingMin)
         {
-            SetText(_txtLoop, $"({min})");
+            SetText(_txtLoop, $"({remainingMin})");
         }
 
         private void SetTimer(DateTime openUpdatedTime, DateTime openEndTime, DateTime closedEndTime)

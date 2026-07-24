@@ -22,7 +22,7 @@ namespace UnityTools.Util.Core.Events
         //============================================================
         public bool TrySubscribe(string key, EventDelegate listener, int priority = DEFAULT_PRIORITY)
         {
-            if (!ValidateKey(key) || listener == null)
+            if (!TryValidateKey(key) || listener == null)
             {
                 if (listener == null)
                     DebugLogger.LogError("구독할 이벤트 Listener가 비어 있습니다.");
@@ -33,8 +33,8 @@ namespace UnityTools.Util.Core.Events
             if (!CanUseListenerType(key, typeof(EventDelegate)))
                 return false;
 
-            SortedList<int, List<Delegate>> priorityList = GetPriorityList(key);
-            List<Delegate> listeners = GetListeners(priorityList, priority);
+            SortedList<int, List<Delegate>> listenersByPriority = GetListenersByPriority(key);
+            List<Delegate> listeners = GetListeners(listenersByPriority, priority);
             if (!listeners.Contains(listener))
                 listeners.Add(listener);
 
@@ -43,7 +43,7 @@ namespace UnityTools.Util.Core.Events
 
         public bool TrySubscribe<T>(string key, EventDelegate<T> listener, int priority = DEFAULT_PRIORITY)
         {
-            if (!ValidateKey(key) || listener == null)
+            if (!TryValidateKey(key) || listener == null)
             {
                 if (listener == null)
                     DebugLogger.LogError("구독할 이벤트 Listener가 비어 있습니다.");
@@ -54,8 +54,8 @@ namespace UnityTools.Util.Core.Events
             if (!CanUseListenerType(key, typeof(EventDelegate<T>)))
                 return false;
 
-            SortedList<int, List<Delegate>> priorityList = GetPriorityList(key);
-            List<Delegate> listeners = GetListeners(priorityList, priority);
+            SortedList<int, List<Delegate>> listenersByPriority = GetListenersByPriority(key);
+            List<Delegate> listeners = GetListeners(listenersByPriority, priority);
             if (!listeners.Contains(listener))
                 listeners.Add(listener);
 
@@ -64,7 +64,7 @@ namespace UnityTools.Util.Core.Events
 
         public bool TryUnsubscribe(string key, EventDelegate listener)
         {
-            if (!ValidateKey(key) || listener == null)
+            if (!TryValidateKey(key) || listener == null)
             {
                 if (listener == null)
                     DebugLogger.LogError("해제할 이벤트 Listener가 비어 있습니다.");
@@ -77,7 +77,7 @@ namespace UnityTools.Util.Core.Events
 
         public bool TryUnsubscribe<T>(string key, EventDelegate<T> listener)
         {
-            if (!ValidateKey(key) || listener == null)
+            if (!TryValidateKey(key) || listener == null)
             {
                 if (listener == null)
                     DebugLogger.LogError("해제할 이벤트 Listener가 비어 있습니다.");
@@ -90,18 +90,18 @@ namespace UnityTools.Util.Core.Events
 
         public bool TryDispatch(string key)
         {
-            if (!ValidateKey(key))
+            if (!TryValidateKey(key))
                 return false;
 
-            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> listenersByPriority))
                 return true;
 
-            foreach (List<Delegate> listeners in priorityList.Values)
+            foreach (List<Delegate> listeners in listenersByPriority.Values)
             {
-                Delegate[] listenerSnapshot = listeners.ToArray();
-                for (int i = 0; i < listenerSnapshot.Length; i++)
+                Delegate[] listenersSnapshot = listeners.ToArray();
+                for (int i = 0; i < listenersSnapshot.Length; i++)
                 {
-                    if (listenerSnapshot[i] is not EventDelegate listener)
+                    if (listenersSnapshot[i] is not EventDelegate listener)
                     {
                         DebugLogger.LogError("이벤트 Listener 형식이 Dispatch 인자와 일치하지 않습니다. 키=" + key);
                         return false;
@@ -116,18 +116,18 @@ namespace UnityTools.Util.Core.Events
 
         public bool TryDispatch<T>(string key, T param)
         {
-            if (!ValidateKey(key))
+            if (!TryValidateKey(key))
                 return false;
 
-            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> listenersByPriority))
                 return true;
 
-            foreach (List<Delegate> listeners in priorityList.Values)
+            foreach (List<Delegate> listeners in listenersByPriority.Values)
             {
-                Delegate[] listenerSnapshot = listeners.ToArray();
-                for (int i = 0; i < listenerSnapshot.Length; i++)
+                Delegate[] listenersSnapshot = listeners.ToArray();
+                for (int i = 0; i < listenersSnapshot.Length; i++)
                 {
-                    if (listenerSnapshot[i] is not EventDelegate<T> listener)
+                    if (listenersSnapshot[i] is not EventDelegate<T> listener)
                     {
                         DebugLogger.LogError("이벤트 Listener 형식이 Dispatch 인자와 일치하지 않습니다. 키=" + key);
                         return false;
@@ -142,10 +142,10 @@ namespace UnityTools.Util.Core.Events
 
         private bool CanUseListenerType(string key, Type listenerType)
         {
-            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> listenersByPriority))
                 return true;
 
-            foreach (List<Delegate> listeners in priorityList.Values)
+            foreach (List<Delegate> listeners in listenersByPriority.Values)
             {
                 for (int i = 0; i < listeners.Count; i++)
                 {
@@ -162,7 +162,7 @@ namespace UnityTools.Util.Core.Events
 
         private bool TryRemoveListener(string key, Delegate listener)
         {
-            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> listenersByPriority))
             {
                 DebugLogger.LogError("해제할 이벤트 키가 등록되어 있지 않습니다. 키=" + key);
                 return false;
@@ -170,7 +170,7 @@ namespace UnityTools.Util.Core.Events
 
             bool isRemoved = false;
             List<int> emptyPriorities = null;
-            foreach (KeyValuePair<int, List<Delegate>> pair in priorityList)
+            foreach (KeyValuePair<int, List<Delegate>> pair in listenersByPriority)
             {
                 isRemoved |= pair.Value.Remove(listener);
                 if (pair.Value.Count > 0)
@@ -190,17 +190,17 @@ namespace UnityTools.Util.Core.Events
             {
                 for (int i = 0; i < emptyPriorities.Count; i++)
                 {
-                    priorityList.Remove(emptyPriorities[i]);
+                    listenersByPriority.Remove(emptyPriorities[i]);
                 }
             }
 
-            if (priorityList.Count == 0)
+            if (listenersByPriority.Count == 0)
                 _events.Remove(key);
 
             return true;
         }
 
-        private static bool ValidateKey(string key)
+        private static bool TryValidateKey(string key)
         {
             if (!string.IsNullOrWhiteSpace(key))
                 return true;
@@ -212,23 +212,23 @@ namespace UnityTools.Util.Core.Events
         //============================================================
         // Utilities
         //============================================================
-        private SortedList<int, List<Delegate>> GetPriorityList(string key)
+        private SortedList<int, List<Delegate>> GetListenersByPriority(string key)
         {
-            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> priorityList))
+            if (!_events.TryGetValue(key, out SortedList<int, List<Delegate>> listenersByPriority))
             {
-                priorityList = new SortedList<int, List<Delegate>>();
-                _events[key] = priorityList;
+                listenersByPriority = new SortedList<int, List<Delegate>>();
+                _events[key] = listenersByPriority;
             }
 
-            return priorityList;
+            return listenersByPriority;
         }
 
-        private static List<Delegate> GetListeners(SortedList<int, List<Delegate>> priorityList, int priority)
+        private static List<Delegate> GetListeners(SortedList<int, List<Delegate>> listenersByPriority, int priority)
         {
-            if (!priorityList.TryGetValue(priority, out List<Delegate> listeners))
+            if (!listenersByPriority.TryGetValue(priority, out List<Delegate> listeners))
             {
                 listeners = new List<Delegate>();
-                priorityList[priority] = listeners;
+                listenersByPriority[priority] = listeners;
             }
 
             return listeners;
