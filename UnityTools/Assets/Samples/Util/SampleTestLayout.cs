@@ -7,18 +7,25 @@ namespace UnityTools.Samples.Util
         //============================================================
         // Readonly
         //============================================================
-        public readonly RectTransform RtRoot;
-        public readonly RectTransform RtControls;
-        public readonly RectTransform RtContentViewport;
+        private readonly RectTransform _rtRoot;
+        private readonly RectTransform _rtControls;
+        private readonly RectTransform _rtContentViewport;
+
+        //============================================================
+        // Properties
+        //============================================================
+        public RectTransform RtRoot => _rtRoot;
+        public RectTransform RtControls => _rtControls;
+        public RectTransform RtContentViewport => _rtContentViewport;
 
         //============================================================
         // Constructors
         //============================================================
         public SampleTestLayout(RectTransform rtRoot, RectTransform rtControls, RectTransform rtContentViewport)
         {
-            RtRoot = rtRoot;
-            RtControls = rtControls;
-            RtContentViewport = rtContentViewport;
+            _rtRoot = rtRoot;
+            _rtControls = rtControls;
+            _rtContentViewport = rtContentViewport;
         }
     }
 }

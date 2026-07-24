@@ -592,7 +592,7 @@ MonoBehaviour:
   _entryModuleKey: All
   _hostCanvas: {fileID: 106806487}
   _eventSystem: {fileID: 813070449}
-  _sampleModuleBehaviours:
+  _sampleModules:
   - {fileID: 5838824614990744452}
   - {fileID: 5856063721156839393}
   - {fileID: 5778237579399153516}

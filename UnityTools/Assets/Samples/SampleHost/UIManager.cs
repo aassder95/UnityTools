@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityTools.Samples.Modules;
 using UnityTools.Util.Core;
 
 namespace UnityTools.Manager
@@ -23,7 +24,7 @@ namespace UnityTools.Manager
         [SerializeField] private Canvas _hostCanvas;
         [SerializeField] private EventSystem _eventSystem;
         [Header("Modules")]
-        [SerializeField] private MonoBehaviour[] _sampleModuleBehaviours;
+        [SerializeField] private SampleModuleBase[] _sampleModules;
 
         //============================================================
         // Fields
@@ -73,9 +74,9 @@ namespace UnityTools.Manager
         private void RegisterModules()
         {
             _modules.Clear();
-            for (int i = 0; i < _sampleModuleBehaviours.Length; i++)
+            for (int i = 0; i < _sampleModules.Length; i++)
             {
-                _modules.Add((ISampleModule)_sampleModuleBehaviours[i]);
+                _modules.Add(_sampleModules[i]);
             }
         }
 
