@@ -28,7 +28,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         public void Init()
         {
-            if(_isInit)
+            if (_isInit)
                 return;
 
             OnInit();
@@ -37,7 +37,7 @@ namespace UnityTools.Util.UIFramework
 
         public void Release()
         {
-            if(!_isInit)
+            if (!_isInit)
                 return;
 
             _isInit = false;
@@ -58,7 +58,7 @@ namespace UnityTools.Util.UIFramework
         public void Show()
         {
             Init();
-            if(gameObject.activeSelf)
+            if (gameObject.activeSelf)
                 return;
 
             gameObject.SetActive(true);
@@ -66,7 +66,7 @@ namespace UnityTools.Util.UIFramework
 
         public void Hide()
         {
-            if(!gameObject.activeSelf)
+            if (!gameObject.activeSelf)
                 return;
 
             gameObject.SetActive(false);

@@ -50,7 +50,7 @@ namespace UnityTools.Util.Core.Timer.Task
         public virtual bool TryInit()
         {
             RegisterCallbacks();
-            if(_timer.TryInit())
+            if (_timer.TryInit())
                 return true;
 
             UnregisterCallbacks();
@@ -65,7 +65,7 @@ namespace UnityTools.Util.Core.Timer.Task
 
         private void RegisterCallbacks()
         {
-            if(_isRegistered)
+            if (_isRegistered)
                 return;
 
             _timer.OnProgressStarted += OnProgressStartedCallback;
@@ -78,7 +78,7 @@ namespace UnityTools.Util.Core.Timer.Task
 
         private void UnregisterCallbacks()
         {
-            if(!_isRegistered)
+            if (!_isRegistered)
                 return;
 
             _timer.OnProgressStarted -= OnProgressStartedCallback;

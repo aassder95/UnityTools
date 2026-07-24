@@ -38,10 +38,10 @@ namespace UnityTools.Manager
         public bool TryCreatePeriodTimerHandle(string id, out PeriodTimerHandle handle)
         {
             handle = null;
-            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
                 return false;
 
-            if(!PeriodTimer.TryCreate(normalizedId, this, out PeriodTimer timer))
+            if (!PeriodTimer.TryCreate(normalizedId, this, out PeriodTimer timer))
                 return false;
 
             handle = new PeriodTimerHandle(timer);
@@ -50,18 +50,18 @@ namespace UnityTools.Manager
 
         public bool TryInitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
-            if(handle == null || !StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
+            if (handle == null || !StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
                 return false;
 
-            if(!handle.TryInit(openMin, closedMin, initWaitFunc))
+            if (!handle.TryInit(openMin, closedMin, initWaitFunc))
                 return false;
 
-            if(!_handles.TrySetOrReplace(normalizedId, handle, out PeriodTimerHandle oldHandle))
+            if (!_handles.TrySetOrReplace(normalizedId, handle, out PeriodTimerHandle oldHandle))
                 return false;
-            if(oldHandle != null)
+            if (oldHandle != null)
             {
                 UnbindEvents(normalizedId, oldHandle);
-                if(oldHandle != handle)
+                if (oldHandle != handle)
                     oldHandle.Release();
             }
 
@@ -74,13 +74,13 @@ namespace UnityTools.Manager
         //============================================================
         public bool TryDeletePeriodTimer(string id)
         {
-            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
                 return false;
 
-            if(!PeriodTimerPersistence.TryDeleteAll(normalizedId))
+            if (!PeriodTimerPersistence.TryDeleteAll(normalizedId))
                 return false;
 
-            if(_handles.TryRemove(normalizedId, out PeriodTimerHandle handle))
+            if (_handles.TryRemove(normalizedId, out PeriodTimerHandle handle))
             {
                 UnbindEvents(normalizedId, handle);
                 handle.Release();
@@ -107,7 +107,7 @@ namespace UnityTools.Manager
         {
             string[] ids = new string[_eventBinders.Count];
             _eventBinders.Keys.CopyTo(ids, 0);
-            foreach(string id in ids)
+            foreach (string id in ids)
             {
                 UnbindEvents(id, _eventBinders[id].Handle);
             }
@@ -121,7 +121,7 @@ namespace UnityTools.Manager
         //============================================================
         private void OnPeriodTimerRemainMinUpdatedCallback(PeriodTimerHandle handle, int remainMin)
         {
-            if(handle.RemainingMin != remainMin)
+            if (handle.RemainingMin != remainMin)
                 return;
 
             _onAnyTimerRemainMinUpdated?.Invoke(handle.ToData());

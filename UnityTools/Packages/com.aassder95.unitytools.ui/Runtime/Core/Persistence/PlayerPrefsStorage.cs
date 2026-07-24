@@ -10,7 +10,7 @@ namespace UnityTools.Util.Core.Persistence
         //============================================================
         public bool TrySave(string key, string data)
         {
-            if(string.IsNullOrWhiteSpace(key) || data == null)
+            if (string.IsNullOrWhiteSpace(key) || data == null)
                 return false;
 
             try
@@ -19,7 +19,7 @@ namespace UnityTools.Util.Core.Persistence
                 PlayerPrefs.Save();
                 return true;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
@@ -28,18 +28,18 @@ namespace UnityTools.Util.Core.Persistence
         public bool TryLoad(string key, out string data)
         {
             data = null;
-            if(string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(key))
                 return false;
 
             try
             {
-                if(!PlayerPrefs.HasKey(key))
+                if (!PlayerPrefs.HasKey(key))
                     return false;
 
                 data = PlayerPrefs.GetString(key);
                 return true;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
@@ -48,7 +48,7 @@ namespace UnityTools.Util.Core.Persistence
         public bool TryHasKey(string key, out bool hasKey)
         {
             hasKey = false;
-            if(string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(key))
                 return false;
 
             try
@@ -56,7 +56,7 @@ namespace UnityTools.Util.Core.Persistence
                 hasKey = PlayerPrefs.HasKey(key);
                 return true;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
@@ -64,7 +64,7 @@ namespace UnityTools.Util.Core.Persistence
 
         public bool TryDelete(string key)
         {
-            if(string.IsNullOrWhiteSpace(key))
+            if (string.IsNullOrWhiteSpace(key))
                 return false;
 
             try
@@ -73,7 +73,7 @@ namespace UnityTools.Util.Core.Persistence
                 PlayerPrefs.Save();
                 return true;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }

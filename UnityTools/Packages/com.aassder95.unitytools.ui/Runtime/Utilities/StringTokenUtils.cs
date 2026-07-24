@@ -7,7 +7,7 @@ namespace UnityTools.Util.Utilities
         //============================================================
         public static string Normalize(string value, string fallback)
         {
-            if(string.IsNullOrWhiteSpace(value))
+            if (string.IsNullOrWhiteSpace(value))
                 return fallback;
 
             return value.Trim();
@@ -15,7 +15,7 @@ namespace UnityTools.Util.Utilities
 
         public static string ToLogSafe(string value)
         {
-            if(value == null)
+            if (value == null)
                 return "null";
 
             return value.Replace("\r", "\\r").Replace("\n", "\\n").Replace("\t", "\\t");

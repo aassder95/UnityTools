@@ -31,7 +31,7 @@ namespace UnityTools.Util.Core.Collections
 
         public bool TryDequeue(out T item)
         {
-            if(_deque.Count == 0)
+            if (_deque.Count == 0)
             {
                 item = default;
                 return false;
@@ -44,7 +44,7 @@ namespace UnityTools.Util.Core.Collections
 
         public bool TryDequeueBack(out T item)
         {
-            if(_deque.Count == 0)
+            if (_deque.Count == 0)
             {
                 item = default;
                 return false;
@@ -57,7 +57,7 @@ namespace UnityTools.Util.Core.Collections
 
         public bool TryPeek(out T item)
         {
-            if(_deque.Count == 0)
+            if (_deque.Count == 0)
             {
                 item = default;
                 return false;
@@ -69,7 +69,7 @@ namespace UnityTools.Util.Core.Collections
 
         public bool TryPeekBack(out T item)
         {
-            if(_deque.Count == 0)
+            if (_deque.Count == 0)
             {
                 item = default;
                 return false;
@@ -89,7 +89,7 @@ namespace UnityTools.Util.Core.Collections
         //============================================================
         public IEnumerator<T> GetEnumerator()
         {
-            foreach(T item in _deque)
+            foreach (T item in _deque)
             {
                 yield return item;
             }

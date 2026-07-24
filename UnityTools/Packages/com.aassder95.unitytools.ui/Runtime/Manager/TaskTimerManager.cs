@@ -41,10 +41,10 @@ namespace UnityTools.Manager
         public bool TryCreateTaskTimerHandle(string id, out TaskTimerHandle handle)
         {
             handle = null;
-            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
                 return false;
 
-            if(!TaskTimer.TryCreate(normalizedId, this, out TaskTimer timer))
+            if (!TaskTimer.TryCreate(normalizedId, this, out TaskTimer timer))
                 return false;
 
             handle = new TaskTimerHandle(timer);
@@ -53,18 +53,18 @@ namespace UnityTools.Manager
 
         public bool TryInitTaskTimer(TaskTimerHandle handle)
         {
-            if(handle == null || !StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
+            if (handle == null || !StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
                 return false;
 
-            if(!handle.TryInit())
+            if (!handle.TryInit())
                 return false;
 
-            if(!_handles.TrySetOrReplace(normalizedId, handle, out TaskTimerHandle oldHandle))
+            if (!_handles.TrySetOrReplace(normalizedId, handle, out TaskTimerHandle oldHandle))
                 return false;
-            if(oldHandle != null)
+            if (oldHandle != null)
             {
                 UnbindEvents(normalizedId, oldHandle);
-                if(oldHandle != handle)
+                if (oldHandle != handle)
                     oldHandle.Release();
             }
 
@@ -98,10 +98,10 @@ namespace UnityTools.Manager
         public bool TryGetTaskTimerClaimed(string id, out bool isClaimed)
         {
             isClaimed = false;
-            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
                 return false;
 
-            if(_handles.TryGet(normalizedId, out TaskTimerHandle handle))
+            if (_handles.TryGet(normalizedId, out TaskTimerHandle handle))
                 return handle.TryGetClaimed(out isClaimed);
 
             return TaskTimerPersistence.TryLoadClaimed(normalizedId, out isClaimed);
@@ -131,7 +131,7 @@ namespace UnityTools.Manager
         {
             string[] ids = new string[_eventBinders.Count];
             _eventBinders.Keys.CopyTo(ids, 0);
-            foreach(string id in ids)
+            foreach (string id in ids)
             {
                 UnbindEvents(id, _eventBinders[id].Handle);
             }
@@ -145,7 +145,7 @@ namespace UnityTools.Manager
         //============================================================
         private void OnTaskTimerRemainSecUpdatedCallback(TaskTimerHandle handle, int remainSec)
         {
-            if(handle.RemainingSec != remainSec)
+            if (handle.RemainingSec != remainSec)
                 return;
 
             _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());
@@ -163,7 +163,7 @@ namespace UnityTools.Manager
 
         private void OnTaskTimerStateTransitionCallback(TaskTimerHandle handle, ETaskTimerType prevType, ETaskTimerType nextType)
         {
-            if(prevType == nextType || nextType != ETaskTimerType.Processing)
+            if (prevType == nextType || nextType != ETaskTimerType.Processing)
                 return;
 
             _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());

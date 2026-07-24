@@ -38,7 +38,7 @@ namespace UnityTools.Util.Core.Timer.Period
 
         public static bool TryDeleteAll(string normalizedId, IStorage storage)
         {
-            if(string.IsNullOrWhiteSpace(normalizedId) || storage == null)
+            if (string.IsNullOrWhiteSpace(normalizedId) || storage == null)
                 return false;
 
             bool isOpenEndDeleted = storage.TryDelete(OpenEnd(normalizedId));

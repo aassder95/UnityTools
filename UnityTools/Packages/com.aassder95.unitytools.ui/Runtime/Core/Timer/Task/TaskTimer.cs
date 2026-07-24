@@ -74,7 +74,7 @@ namespace UnityTools.Util.Core.Timer.Task
         public static bool TryCreate(string id, MonoBehaviour runner, out TaskTimer timer, IStorage storage = null, Func<DateTime> utcNow = null)
         {
             timer = null;
-            if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId) || runner == null)
+            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId) || runner == null)
                 return false;
 
             timer = new TaskTimer(normalizedId, runner, storage, utcNow);
@@ -83,14 +83,14 @@ namespace UnityTools.Util.Core.Timer.Task
 
         public bool TryInit()
         {
-            if(_isInit)
+            if (_isInit)
                 return true;
 
-            if(!TryLoad())
+            if (!TryLoad())
                 return false;
 
             _isInit = true;
-            if(TryRefresh())
+            if (TryRefresh())
                 return true;
 
             _isInit = false;
@@ -115,7 +115,7 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         private bool TryLoad()
         {
-            if(!_persistence.TryLoad(out TaskTimerStorageSnapshot snapshot))
+            if (!_persistence.TryLoad(out TaskTimerStorageSnapshot snapshot))
                 return false;
 
             _startTime = snapshot.StartTime;
@@ -142,35 +142,35 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         private bool TryRefresh()
         {
-            if(!TryLoadStateType(out ETaskTimerType type))
+            if (!TryLoadStateType(out ETaskTimerType type))
                 return false;
 
-            if(_startTime == DateTime.MinValue || type == ETaskTimerType.None)
+            if (_startTime == DateTime.MinValue || type == ETaskTimerType.None)
             {
                 StopUpdate();
-                if(!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.None)
+                if (!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.None)
                     _fsm.Change(ETaskTimerType.None);
 
                 return true;
             }
 
-            if(type == ETaskTimerType.Processing)
+            if (type == ETaskTimerType.Processing)
             {
-                if(IsTampered)
+                if (IsTampered)
                 {
                     DateTime now = GetUtcNow();
                     double adjustedDurationSec = _durationSec + (_updatedTime - now).TotalSeconds;
-                    if(!TrySaveSnapshot(_startTime, adjustedDurationSec, ETaskTimerType.Processing, now))
+                    if (!TrySaveSnapshot(_startTime, adjustedDurationSec, ETaskTimerType.Processing, now))
                         return false;
 
                     _durationSec = adjustedDurationSec;
                     _updatedTime = now;
                 }
 
-                if(IsPeriodExpired)
+                if (IsPeriodExpired)
                     return TryUpdateCompletionTime();
 
-                if(!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Processing)
+                if (!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Processing)
                     _fsm.Change(ETaskTimerType.Processing);
 
                 StartUpdate();
@@ -178,7 +178,7 @@ namespace UnityTools.Util.Core.Timer.Task
             }
 
             StopUpdate();
-            if(!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Completed)
+            if (!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Completed)
                 _fsm.Change(ETaskTimerType.Completed);
 
             return true;
@@ -186,15 +186,15 @@ namespace UnityTools.Util.Core.Timer.Task
 
         public bool TryStart(double durationSec)
         {
-            if(!_isInit || _fsm.CurType == ETaskTimerType.Processing || !IsPositiveFinite(durationSec))
+            if (!_isInit || _fsm.CurType == ETaskTimerType.Processing || !IsPositiveFinite(durationSec))
                 return false;
 
             DateTime now = GetUtcNow();
             double nextDurationSec = durationSec;
-            if(_updatedTime != DateTime.MinValue && DateTimeUtils.CompareWithoutMs(now, _updatedTime) < 0)
+            if (_updatedTime != DateTime.MinValue && DateTimeUtils.CompareWithoutMs(now, _updatedTime) < 0)
                 nextDurationSec += (_updatedTime - now).TotalSeconds;
 
-            if(!TrySaveSnapshot(now, nextDurationSec, ETaskTimerType.Processing, now))
+            if (!TrySaveSnapshot(now, nextDurationSec, ETaskTimerType.Processing, now))
                 return false;
 
             _startTime = now;
@@ -208,23 +208,23 @@ namespace UnityTools.Util.Core.Timer.Task
 
         public bool TryReduce(double reduceSec)
         {
-            if(!_isInit || _fsm.CurType != ETaskTimerType.Processing || !IsPositiveFinite(reduceSec))
+            if (!_isInit || _fsm.CurType != ETaskTimerType.Processing || !IsPositiveFinite(reduceSec))
                 return false;
 
             DateTime now = GetUtcNow();
             double remainSec = (EndTime - now).TotalSeconds;
             double actualReduceSec = Math.Min(reduceSec, remainSec);
-            if(actualReduceSec <= 0.0d)
+            if (actualReduceSec <= 0.0d)
                 return false;
 
             DateTime nextStartTime = _startTime.AddSeconds(-actualReduceSec);
-            if(!TrySaveSnapshot(nextStartTime, _durationSec, ETaskTimerType.Processing, now))
+            if (!TrySaveSnapshot(nextStartTime, _durationSec, ETaskTimerType.Processing, now))
                 return false;
 
             _startTime = nextStartTime;
             _updatedTime = now;
             _onRemainSecUpdated?.Invoke(RemainingSec);
-            if(IsPeriodExpired)
+            if (IsPeriodExpired)
                 return TryUpdateCompletionTime();
 
             return true;
@@ -237,7 +237,7 @@ namespace UnityTools.Util.Core.Timer.Task
 
         public bool TryClaim()
         {
-            if(!_isInit || _fsm.CurType != ETaskTimerType.Completed || !_persistence.TryClearRuntimeData())
+            if (!_isInit || _fsm.CurType != ETaskTimerType.Completed || !_persistence.TryClearRuntimeData())
                 return false;
 
             _fsm.Change(ETaskTimerType.None);
@@ -254,12 +254,12 @@ namespace UnityTools.Util.Core.Timer.Task
         private bool TryUpdateCompletionTime()
         {
             DateTime updatedTime = GetUtcNow();
-            if(!TrySaveSnapshot(_startTime, _durationSec, ETaskTimerType.Completed, updatedTime))
+            if (!TrySaveSnapshot(_startTime, _durationSec, ETaskTimerType.Completed, updatedTime))
                 return false;
 
             _updatedTime = updatedTime;
             _savedStateType = (int)ETaskTimerType.Completed;
-            if(_fsm.CurType != ETaskTimerType.Completed)
+            if (_fsm.CurType != ETaskTimerType.Completed)
                 _fsm.Change(ETaskTimerType.Completed);
 
             return true;
@@ -270,10 +270,10 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         private IEnumerator CoUpdate()
         {
-            while(_isInit && _fsm.CurType == ETaskTimerType.Processing)
+            while (_isInit && _fsm.CurType == ETaskTimerType.Processing)
             {
                 _fsm.Tick();
-                if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
+                if (!_isInit || _fsm.CurType != ETaskTimerType.Processing)
                     yield break;
 
                 yield return new WaitForSecondsRealtime(1.0f);
@@ -288,7 +288,7 @@ namespace UnityTools.Util.Core.Timer.Task
 
         private void StopUpdate()
         {
-            if(_coUpdate == null)
+            if (_coUpdate == null)
                 return;
 
             _runner.StopCoroutine(_coUpdate);
@@ -300,7 +300,7 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         public void NotifyCurType()
         {
-            switch(_fsm.CurType)
+            switch (_fsm.CurType)
             {
                 case ETaskTimerType.Processing:
                     NotifyProcessingStarted();
@@ -314,7 +314,7 @@ namespace UnityTools.Util.Core.Timer.Task
 
         private void NotifyUpdate()
         {
-            if(_fsm.CurType == ETaskTimerType.Processing)
+            if (_fsm.CurType == ETaskTimerType.Processing)
                 _onRemainSecUpdated?.Invoke(RemainingSec);
         }
 
@@ -334,10 +334,10 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         private float CalculateProgress()
         {
-            if(_startTime == DateTime.MinValue)
+            if (_startTime == DateTime.MinValue)
                 return 0.0f;
 
-            if(_fsm.CurType == ETaskTimerType.Completed || IsPeriodExpired)
+            if (_fsm.CurType == ETaskTimerType.Completed || IsPeriodExpired)
                 return 1.0f;
 
             int totalSec = (int)Math.Round(_durationSec);
@@ -348,7 +348,7 @@ namespace UnityTools.Util.Core.Timer.Task
         private bool TryLoadStateType(out ETaskTimerType type)
         {
             type = (ETaskTimerType)_savedStateType;
-            if(_fsm.HasState(type))
+            if (_fsm.HasState(type))
                 return true;
 
             DebugLogger.LogError("유효하지 않은 TaskTimer 저장 상태값입니다. 값=" + _savedStateType + ", ID=" + _id);
@@ -413,7 +413,7 @@ namespace UnityTools.Util.Core.Timer.Task
 
             public override void Execute()
             {
-                if(_timer.IsPeriodExpired)
+                if (_timer.IsPeriodExpired)
                 {
                     _timer.TryUpdateCompletionTime();
                     return;

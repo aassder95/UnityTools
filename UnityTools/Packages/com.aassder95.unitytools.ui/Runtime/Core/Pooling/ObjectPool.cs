@@ -30,7 +30,7 @@ namespace UnityTools.Util.Core.Pooling
         public static ObjectPool<T> Create(int initialSize, T prefab, Transform parent)
         {
             ObjectPool<T> pool = new(prefab, parent);
-            for(int i = 0; i < initialSize; i++)
+            for (int i = 0; i < initialSize; i++)
             {
                 T newObj = pool.CreateObject();
                 pool._objects.Enqueue(newObj);
@@ -46,7 +46,7 @@ namespace UnityTools.Util.Core.Pooling
         public T Get()
         {
             T obj;
-            if(_objects.Count > 0)
+            if (_objects.Count > 0)
             {
                 obj = _objects.Dequeue();
                 _availableObjects.Remove(obj);
@@ -63,19 +63,19 @@ namespace UnityTools.Util.Core.Pooling
 
         public bool TryReturn(T obj)
         {
-            if(obj == null)
+            if (obj == null)
             {
                 DebugLogger.LogError("오브젝트 풀에 반환할 객체가 비어 있습니다.");
                 return false;
             }
 
-            if(!_createdObjects.Contains(obj))
+            if (!_createdObjects.Contains(obj))
             {
                 DebugLogger.LogError("다른 ObjectPool이 소유한 객체를 반환할 수 없습니다. 이름=" + obj.name);
                 return false;
             }
 
-            if(_availableObjects.Contains(obj))
+            if (_availableObjects.Contains(obj))
             {
                 DebugLogger.LogError("이미 풀에 들어 있는 객체를 중복 반환했습니다. 이름=" + obj.name);
                 return false;
@@ -90,7 +90,7 @@ namespace UnityTools.Util.Core.Pooling
 
         public void Clear()
         {
-            while(_objects.Count > 0)
+            while (_objects.Count > 0)
             {
                 T obj = _objects.Dequeue();
                 _availableObjects.Remove(obj);
@@ -114,7 +114,7 @@ namespace UnityTools.Util.Core.Pooling
 
         private static void DestroyObject(T obj)
         {
-            if(obj != null)
+            if (obj != null)
                 UnityEngine.Object.Destroy(obj.gameObject);
         }
     }

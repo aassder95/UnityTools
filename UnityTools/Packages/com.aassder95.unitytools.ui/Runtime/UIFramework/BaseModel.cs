@@ -28,14 +28,14 @@ namespace UnityTools.Util.UIFramework
 
         protected void EndUpdate()
         {
-            if(_updateDepth <= 0)
+            if (_updateDepth <= 0)
             {
                 DebugLogger.LogError("Model Update 범위가 시작되지 않은 상태에서 종료되었습니다. 타입=" + GetType().Name);
                 return;
             }
 
             _updateDepth--;
-            if(_updateDepth > 0 || !_hasPendingUpdate)
+            if (_updateDepth > 0 || !_hasPendingUpdate)
                 return;
 
             _hasPendingUpdate = false;
@@ -44,7 +44,7 @@ namespace UnityTools.Util.UIFramework
 
         protected void RunBatchUpdate(Action updateAction)
         {
-            if(updateAction == null)
+            if (updateAction == null)
             {
                 DebugLogger.LogError("Model Batch Update 작업이 비어 있습니다. 타입=" + GetType().Name);
                 return;
@@ -63,7 +63,7 @@ namespace UnityTools.Util.UIFramework
 
         protected void SetField<TValue>(ref TValue field, TValue value)
         {
-            if(EqualityComparer<TValue>.Default.Equals(field, value))
+            if (EqualityComparer<TValue>.Default.Equals(field, value))
                 return;
 
             field = value;
@@ -72,7 +72,7 @@ namespace UnityTools.Util.UIFramework
 
         protected void NotifyUpdated()
         {
-            if(_updateDepth > 0)
+            if (_updateDepth > 0)
             {
                 _hasPendingUpdate = true;
                 return;

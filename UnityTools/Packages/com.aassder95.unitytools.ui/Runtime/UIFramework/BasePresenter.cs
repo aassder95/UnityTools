@@ -33,10 +33,10 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         public void Init()
         {
-            if(_isInit)
+            if (_isInit)
                 return;
 
-            if(!_view.IsInit)
+            if (!_view.IsInit)
                 _view.Init();
 
             OnInit();
@@ -46,7 +46,7 @@ namespace UnityTools.Util.UIFramework
 
         public void Release()
         {
-            if(!_isInit)
+            if (!_isInit)
                 return;
 
             _isInit = false;
@@ -86,7 +86,7 @@ namespace UnityTools.Util.UIFramework
 
         public void Hide()
         {
-            if(!_isInit || !_view.IsVisible)
+            if (!_isInit || !_view.IsVisible)
                 return;
 
             _view.Hide();
@@ -106,7 +106,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         protected virtual void OnModelUpdated()
         {
-            if(!_isInit)
+            if (!_isInit)
                 return;
 
             _view.Refresh(_model);

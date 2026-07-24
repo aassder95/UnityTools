@@ -17,9 +17,9 @@ namespace UnityTools.Util.Utilities
         {
             DateTime firstWithoutMs = RemoveMs(first);
             DateTime secondWithoutMs = RemoveMs(second);
-            if(firstWithoutMs < secondWithoutMs)
+            if (firstWithoutMs < secondWithoutMs)
                 return -1;
-            if(firstWithoutMs > secondWithoutMs)
+            if (firstWithoutMs > secondWithoutMs)
                 return 1;
 
             return 0;
@@ -33,7 +33,7 @@ namespace UnityTools.Util.Utilities
         public static int GetRemainingMin(DateTime targetTime, DateTime utcNow)
         {
             TimeSpan remainingTime = targetTime - RemoveMs(utcNow);
-            if(remainingTime.TotalMinutes <= 0d)
+            if (remainingTime.TotalMinutes <= 0d)
                 return 0;
 
             return Mathf.CeilToInt((float)remainingTime.TotalMinutes);
@@ -47,7 +47,7 @@ namespace UnityTools.Util.Utilities
         public static int GetRemainingSec(DateTime targetTime, DateTime utcNow)
         {
             TimeSpan remainingTime = targetTime - RemoveMs(utcNow);
-            if(remainingTime.TotalSeconds <= 0d)
+            if (remainingTime.TotalSeconds <= 0d)
                 return 0;
 
             return Mathf.CeilToInt((float)remainingTime.TotalSeconds);

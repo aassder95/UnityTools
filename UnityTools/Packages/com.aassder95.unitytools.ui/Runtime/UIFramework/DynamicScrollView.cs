@@ -80,13 +80,13 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         private void OnRectTransformDimensionsChange()
         {
-            if(!_isInitialized)
+            if (!_isInitialized)
                 return;
 
             int prevItemCntPerLine = _itemCntPerLine;
             int prevVisibleLineCnt = _visibleLineCnt;
             UpdateLayoutConfig();
-            if(prevItemCntPerLine == _itemCntPerLine && prevVisibleLineCnt == _visibleLineCnt)
+            if (prevItemCntPerLine == _itemCntPerLine && prevVisibleLineCnt == _visibleLineCnt)
                 return;
 
             UpdateContentLayout();
@@ -103,7 +103,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         private void PrepareComponents()
         {
-            if(_isComponentReady)
+            if (_isComponentReady)
                 return;
 
             _rtView = GetComponent<RectTransform>();
@@ -129,7 +129,7 @@ namespace UnityTools.Util.UIFramework
 
         public void InitView(int totalItemCnt)
         {
-            if(totalItemCnt < 0)
+            if (totalItemCnt < 0)
             {
                 DebugLogger.LogError("동적 스크롤 전체 Item 수는 0 이상이어야 합니다. 값=" + totalItemCnt, this);
                 return;
@@ -140,13 +140,13 @@ namespace UnityTools.Util.UIFramework
             UpdateLayoutConfig();
             bool isSameTotalItemCnt = totalItemCnt == _totalItemCnt;
             SetTotalItemCnt(totalItemCnt);
-            if(isSameTotalItemCnt)
+            if (isSameTotalItemCnt)
                 RebuildVisibleItems();
         }
 
         public void ReleaseView()
         {
-            if(!_isComponentReady)
+            if (!_isComponentReady)
                 return;
 
             StopSmoothScroll();
@@ -171,13 +171,13 @@ namespace UnityTools.Util.UIFramework
 
         public void ScrollTo(int itemIdx, bool isImmediate = false, float durationSec = 0.3f)
         {
-            if(_totalItemCnt <= 0)
+            if (_totalItemCnt <= 0)
                 return;
 
             int targetIdx = Mathf.Clamp(itemIdx, 0, _totalItemCnt - 1);
             Vector2 targetPos = _context.GetContentPos(targetIdx);
             targetPos = _context.ClampContentPos(targetPos, _totalLineCnt, _visibleLineCnt);
-            if(isImmediate || durationSec <= MIN_SCROLL_DURATION_SEC)
+            if (isImmediate || durationSec <= MIN_SCROLL_DURATION_SEC)
             {
                 StopSmoothScroll();
                 _rtContent.anchoredPosition = targetPos;
@@ -190,12 +190,12 @@ namespace UnityTools.Util.UIFramework
 
         protected void SetTotalItemCnt(int totalItemCnt)
         {
-            if(totalItemCnt == _totalItemCnt)
+            if (totalItemCnt == _totalItemCnt)
                 return;
 
             _totalItemCnt = totalItemCnt;
             UpdateContentLayout();
-            if(_isInitialized)
+            if (_isInitialized)
             {
                 RebuildVisibleItems();
                 return;
@@ -206,24 +206,24 @@ namespace UnityTools.Util.UIFramework
 
         protected void SetVisibleLineCnt(int visibleLineCnt)
         {
-            if(visibleLineCnt == _visibleLineCnt)
+            if (visibleLineCnt == _visibleLineCnt)
                 return;
 
             _visibleLineCnt = visibleLineCnt;
-            if(_isInitialized)
+            if (_isInitialized)
                 RebuildVisibleItems();
         }
 
         private void ProcessScroll(Vector2 value)
         {
-            if(!_isComponentReady || _totalItemCnt <= 0 || _itemCtrl.Cnt <= 0)
+            if (!_isComponentReady || _totalItemCnt <= 0 || _itemCtrl.Cnt <= 0)
             {
                 HandleScrollValueChanged(value);
                 return;
             }
 
             float curScrollPos = IsVertical ? _rtContent.anchoredPosition.y : -_rtContent.anchoredPosition.x;
-            if(Mathf.Abs(curScrollPos - _lastScrollPos) <= SCROLL_REFRESH_EPSILON)
+            if (Mathf.Abs(curScrollPos - _lastScrollPos) <= SCROLL_REFRESH_EPSILON)
             {
                 HandleScrollValueChanged(value);
                 return;
@@ -232,11 +232,11 @@ namespace UnityTools.Util.UIFramework
             _lastScrollPos = curScrollPos;
             int curLine = _itemCtrl.FirstIdx / _itemCntPerLine;
             int visibleLine = _context.GetFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
-            if(curLine != visibleLine)
+            if (curLine != visibleLine)
             {
                 bool isDown = visibleLine > curLine;
                 int moveLineCnt = Mathf.Min(Mathf.Abs(curLine - visibleLine), _visibleLineCnt);
-                for(int i = 0; i < moveLineCnt; i++)
+                for (int i = 0; i < moveLineCnt; i++)
                 {
                     int addLine = isDown ? visibleLine + _visibleLineCnt - moveLineCnt + i : visibleLine + moveLineCnt - i - 1;
                     int removeLine = isDown ? curLine + i : curLine + _visibleLineCnt - i - 1;
@@ -260,7 +260,7 @@ namespace UnityTools.Util.UIFramework
 
         private void ApplyContentAlignment()
         {
-            if(IsVertical)
+            if (IsVertical)
             {
                 float crossAlignX = ResolveCrossAlignX(_contentAlignment);
                 _rtContent.anchorMin = new Vector2(crossAlignX, 1.0f);
@@ -280,11 +280,11 @@ namespace UnityTools.Util.UIFramework
 
         private void UpdateLayoutConfig()
         {
-            if(!_isComponentReady)
+            if (!_isComponentReady)
                 return;
 
             int nextItemCntPerLine = GetItemCntPerLine();
-            if(nextItemCntPerLine != _itemCntPerLine)
+            if (nextItemCntPerLine != _itemCntPerLine)
             {
                 _itemCntPerLine = nextItemCntPerLine;
                 _context.SetItemCntPerLine(_itemCntPerLine);
@@ -301,7 +301,7 @@ namespace UnityTools.Util.UIFramework
 
         private int GetItemCntPerLine()
         {
-            switch(_layoutMode)
+            switch (_layoutMode)
             {
                 case EDynamicScrollLayoutMode.Single:
                     return MIN_FIXED_CELLS_PER_GROUP;
@@ -339,17 +339,17 @@ namespace UnityTools.Util.UIFramework
         {
             _lastScrollPos = float.MinValue;
             _itemCtrl.Clear();
-            if(_totalItemCnt <= 0)
+            if (_totalItemCnt <= 0)
                 return;
 
             _rtContent.anchoredPosition = _context.ClampContentPos(_rtContent.anchoredPosition, _totalLineCnt, _visibleLineCnt);
             int firstLine = _context.GetFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
             int firstIdx = firstLine * _itemCntPerLine;
-            if(firstIdx >= _totalItemCnt)
+            if (firstIdx >= _totalItemCnt)
                 return;
 
             int visibleItemCnt = Mathf.Min(_visibleLineCnt * _itemCntPerLine, _totalItemCnt - firstIdx);
-            if(visibleItemCnt > 0)
+            if (visibleItemCnt > 0)
                 _itemCtrl.AddRange(visibleItemCnt, firstIdx, true);
         }
 
@@ -361,7 +361,7 @@ namespace UnityTools.Util.UIFramework
 
         private void StopSmoothScroll()
         {
-            if(_coSmoothScroll == null)
+            if (_coSmoothScroll == null)
                 return;
 
             StopCoroutine(_coSmoothScroll);
@@ -376,7 +376,7 @@ namespace UnityTools.Util.UIFramework
             Vector2 startPos = _rtContent.anchoredPosition;
             float elapsedSec = 0.0f;
 
-            while(elapsedSec < durationSec)
+            while (elapsedSec < durationSec)
             {
                 elapsedSec += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsedSec / durationSec);
@@ -411,7 +411,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         private static ScrollRect.MovementType ConvertMovementType(EDynamicScrollMovementType movementType)
         {
-            switch(movementType)
+            switch (movementType)
             {
                 case EDynamicScrollMovementType.Unrestricted:
                     return ScrollRect.MovementType.Unrestricted;
@@ -426,7 +426,7 @@ namespace UnityTools.Util.UIFramework
 
         private static float ResolveCrossAlignX(EDynamicScrollContentAlignment alignment)
         {
-            switch(alignment)
+            switch (alignment)
             {
                 case EDynamicScrollContentAlignment.TopLeft:
                 case EDynamicScrollContentAlignment.MiddleLeft:
@@ -447,7 +447,7 @@ namespace UnityTools.Util.UIFramework
 
         private static float ResolveCrossAlignY(EDynamicScrollContentAlignment alignment)
         {
-            switch(alignment)
+            switch (alignment)
             {
                 case EDynamicScrollContentAlignment.TopLeft:
                 case EDynamicScrollContentAlignment.TopCenter:

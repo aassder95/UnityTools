@@ -11,7 +11,7 @@ namespace UnityTools.Util.Coroutines
         //============================================================
         public Coroutine StartRoutine(IEnumerator routine)
         {
-            if(routine != null)
+            if (routine != null)
                 return StartCoroutine(routine);
 
             DebugLogger.LogError("실행할 Coroutine이 비어 있습니다.", this);
@@ -20,7 +20,7 @@ namespace UnityTools.Util.Coroutines
 
         public void StopRoutine(Coroutine coroutine)
         {
-            if(coroutine != null)
+            if (coroutine != null)
                 StopCoroutine(coroutine);
         }
 

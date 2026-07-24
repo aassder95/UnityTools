@@ -28,20 +28,20 @@ namespace UnityTools.Util.Core.Persistence
         //============================================================
         public bool TrySave<T>(string suffix, T data)
         {
-            if(!CanUseSuffix(suffix))
+            if (!CanUseSuffix(suffix))
                 return false;
 
             try
             {
                 string serialized;
-                if(typeof(T) == typeof(string) || typeof(T).IsPrimitive || typeof(T).IsEnum)
+                if (typeof(T) == typeof(string) || typeof(T).IsPrimitive || typeof(T).IsEnum)
                     serialized = data?.ToString() ?? string.Empty;
                 else
                     serialized = _serializer.Serialize(data);
 
                 return _storage.TrySave(GetKey(suffix), serialized);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
@@ -50,33 +50,33 @@ namespace UnityTools.Util.Core.Persistence
         public bool TryLoad<T>(string suffix, out T value, T defaultValue = default)
         {
             value = defaultValue;
-            if(!CanUseSuffix(suffix))
+            if (!CanUseSuffix(suffix))
                 return false;
 
             try
             {
                 string key = GetKey(suffix);
-                if(!_storage.TryHasKey(key, out bool hasKey))
+                if (!_storage.TryHasKey(key, out bool hasKey))
                     return false;
 
-                if(!hasKey)
+                if (!hasKey)
                     return true;
 
-                if(!_storage.TryLoad(key, out string data))
+                if (!_storage.TryLoad(key, out string data))
                     return false;
 
-                if(string.IsNullOrEmpty(data) || data == "{}" || data == "[]")
+                if (string.IsNullOrEmpty(data) || data == "{}" || data == "[]")
                     return true;
 
-                if(data is T typedData)
+                if (data is T typedData)
                 {
                     value = typedData;
                     return true;
                 }
 
-                if(typeof(T).IsEnum)
+                if (typeof(T).IsEnum)
                 {
-                    if(!Enum.TryParse(typeof(T), data, out object enumValue))
+                    if (!Enum.TryParse(typeof(T), data, out object enumValue))
                         return false;
 
                     value = (T)enumValue;
@@ -86,7 +86,7 @@ namespace UnityTools.Util.Core.Persistence
                 value = typeof(T).IsPrimitive ? (T)Convert.ChangeType(data, typeof(T)) : _serializer.Deserialize<T>(data);
                 return true;
             }
-            catch(Exception)
+            catch (Exception)
             {
                 value = defaultValue;
                 return false;
@@ -95,14 +95,14 @@ namespace UnityTools.Util.Core.Persistence
 
         public bool TryDelete(string suffix)
         {
-            if(!CanUseSuffix(suffix))
+            if (!CanUseSuffix(suffix))
                 return false;
 
             try
             {
                 return _storage.TryDelete(GetKey(suffix));
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }
@@ -111,14 +111,14 @@ namespace UnityTools.Util.Core.Persistence
         public bool TryHasKey(string suffix, out bool hasKey)
         {
             hasKey = false;
-            if(!CanUseSuffix(suffix))
+            if (!CanUseSuffix(suffix))
                 return false;
 
             try
             {
                 return _storage.TryHasKey(GetKey(suffix), out hasKey);
             }
-            catch(Exception)
+            catch (Exception)
             {
                 return false;
             }

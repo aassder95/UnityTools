@@ -39,7 +39,7 @@ namespace UnityTools.Util.Core.Pooling
 
         private void OnEnable()
         {
-            if(_coSpawn != null)
+            if (_coSpawn != null)
                 return;
 
             Init();
@@ -48,7 +48,7 @@ namespace UnityTools.Util.Core.Pooling
 
         private void OnDisable()
         {
-            if(_coSpawn != null)
+            if (_coSpawn != null)
             {
                 StopCoroutine(_coSpawn);
                 _coSpawn = null;
@@ -67,7 +67,7 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         private void Init()
         {
-            if(_isInit)
+            if (_isInit)
                 return;
 
             _pool = ObjectPool<T>.Create(_initialSize, _prefab, transform);
@@ -76,7 +76,7 @@ namespace UnityTools.Util.Core.Pooling
 
         private void Release()
         {
-            if(!_isInit)
+            if (!_isInit)
                 return;
 
             ReturnActiveObjects();
@@ -90,12 +90,12 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         private IEnumerator CoSpawn()
         {
-            while(true)
+            while (true)
             {
-                if(_activeObjects.Count >= _maxActiveCnt)
+                if (_activeObjects.Count >= _maxActiveCnt)
                 {
                     T oldestObject = _activeObjects.Peek();
-                    if(!_pool.TryReturn(oldestObject))
+                    if (!_pool.TryReturn(oldestObject))
                     {
                         yield return _spawnWait;
                         continue;
@@ -116,10 +116,10 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         private void ReturnActiveObjects()
         {
-            while(_activeObjects.Count > 0)
+            while (_activeObjects.Count > 0)
             {
                 T obj = _activeObjects.Peek();
-                if(!_pool.TryReturn(obj))
+                if (!_pool.TryReturn(obj))
                     return;
 
                 _activeObjects.Dequeue();

@@ -15,7 +15,7 @@ namespace UnityTools.Util.Core.Timer
         public bool TryGet(string id, out THandle handle)
         {
             handle = null;
-            if(string.IsNullOrWhiteSpace(id))
+            if (string.IsNullOrWhiteSpace(id))
                 return false;
 
             return _handles.TryGetValue(id, out handle);
@@ -24,7 +24,7 @@ namespace UnityTools.Util.Core.Timer
         public bool TrySetOrReplace(string id, THandle handle, out THandle oldHandle)
         {
             oldHandle = null;
-            if(string.IsNullOrWhiteSpace(id) || handle == null)
+            if (string.IsNullOrWhiteSpace(id) || handle == null)
                 return false;
 
             _handles.TryGetValue(id, out oldHandle);
@@ -35,7 +35,7 @@ namespace UnityTools.Util.Core.Timer
         public bool TryRemove(string id, out THandle removedHandle)
         {
             removedHandle = null;
-            if(string.IsNullOrWhiteSpace(id))
+            if (string.IsNullOrWhiteSpace(id))
                 return false;
 
             return _handles.Remove(id, out removedHandle);
@@ -43,7 +43,7 @@ namespace UnityTools.Util.Core.Timer
 
         public void Clear()
         {
-            foreach(THandle handle in _handles.Values)
+            foreach (THandle handle in _handles.Values)
             {
                 handle.Release();
             }

@@ -55,7 +55,7 @@ namespace UnityTools.Util.Core.Timer.Period
         public virtual bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             RegisterCallbacks();
-            if(_timer.TryInit(openMin, closedMin, initWaitFunc))
+            if (_timer.TryInit(openMin, closedMin, initWaitFunc))
                 return true;
 
             UnregisterCallbacks();
@@ -70,7 +70,7 @@ namespace UnityTools.Util.Core.Timer.Period
 
         private void RegisterCallbacks()
         {
-            if(_isRegistered)
+            if (_isRegistered)
                 return;
 
             _timer.OnOpenPeriodPreparing += OnOpenPeriodPreparingCallback;
@@ -83,7 +83,7 @@ namespace UnityTools.Util.Core.Timer.Period
 
         private void UnregisterCallbacks()
         {
-            if(!_isRegistered)
+            if (!_isRegistered)
                 return;
 
             _timer.OnOpenPeriodPreparing -= OnOpenPeriodPreparingCallback;

@@ -74,7 +74,7 @@ namespace UnityTools.Util.Core.Timer.Task
         public static bool TryLoadClaimed(string normalizedId, out bool isClaimed, IStorage storage = null)
         {
             isClaimed = false;
-            if(string.IsNullOrWhiteSpace(normalizedId))
+            if (string.IsNullOrWhiteSpace(normalizedId))
                 return false;
 
             IStorage targetStorage = storage ?? new PlayerPrefsStorage();
@@ -82,7 +82,7 @@ namespace UnityTools.Util.Core.Timer.Task
             bool isDurationChecked = StorageValueUtils.TryHasKey(targetStorage, TaskTimerStorageKeys.Duration(normalizedId), out bool hasDuration);
             bool isStateChecked = StorageValueUtils.TryHasKey(targetStorage, TaskTimerStorageKeys.State(normalizedId), out bool hasState);
             bool isUpdatedChecked = StorageValueUtils.TryHasKey(targetStorage, TaskTimerStorageKeys.Updated(normalizedId), out bool hasUpdated);
-            if(!isStartChecked || !isDurationChecked || !isStateChecked || !isUpdatedChecked)
+            if (!isStartChecked || !isDurationChecked || !isStateChecked || !isUpdatedChecked)
                 return false;
 
             isClaimed = !hasStart && !hasDuration && !hasState && hasUpdated;

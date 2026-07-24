@@ -35,7 +35,7 @@ namespace UnityTools.Util.Core.Logging
         //============================================================
         public static void Initialize()
         {
-            if(_isInitialized)
+            if (_isInitialized)
                 return;
 
             ApplyDefaultBuildPreset();
@@ -60,11 +60,11 @@ namespace UnityTools.Util.Core.Logging
         public static bool IsEnabled(string className, ELogLevel level)
         {
             Initialize();
-            if(!IsLevelEnabledInternal(level))
+            if (!IsLevelEnabledInternal(level))
                 return false;
 
             string key = StringTokenUtils.Normalize(className, DEFAULT_CLASS);
-            if(_classEnabled.TryGetValue(key, out bool isEnabled))
+            if (_classEnabled.TryGetValue(key, out bool isEnabled))
                 return isEnabled;
 
             return _isDefaultEnabled;
@@ -94,7 +94,7 @@ namespace UnityTools.Util.Core.Logging
 
         private static bool IsLevelEnabledInternal(ELogLevel level)
         {
-            switch(level)
+            switch (level)
             {
                 case ELogLevel.Log:
                     return _isLogEnabled;

@@ -59,7 +59,7 @@ namespace UnityTools.Util.UIFramework
 
         public Vector2 GetContentSize(int totalLineCnt)
         {
-            if(totalLineCnt <= 0)
+            if (totalLineCnt <= 0)
                 return _scrollRect.vertical ? new Vector2(ContentSize.x, _padding.top + _padding.bottom) : new Vector2(_padding.left + _padding.right, ContentSize.y);
 
             return _scrollRect.vertical ? new Vector2(ContentSize.x, _padding.top + (totalLineCnt * ItemSize.y - _spacing.y) + _padding.bottom) : new Vector2(_padding.left + (totalLineCnt * ItemSize.x - _spacing.x) + _padding.right, ContentSize.y);
@@ -68,7 +68,7 @@ namespace UnityTools.Util.UIFramework
         public Vector2 ClampContentPos(Vector2 contentPos, int totalLineCnt, int visibleLineCnt)
         {
             int maxLine = Mathf.Max(0, totalLineCnt - visibleLineCnt);
-            if(_scrollRect.vertical)
+            if (_scrollRect.vertical)
             {
                 float minY = _padding.top;
                 float maxY = _padding.top + (maxLine * ItemSize.y);
@@ -101,7 +101,7 @@ namespace UnityTools.Util.UIFramework
 
         public Vector2 GetItemPos(int itemIdx)
         {
-            if(_scrollRect.vertical)
+            if (_scrollRect.vertical)
             {
                 int x = itemIdx % _itemCntPerLine;
                 int y = itemIdx / _itemCntPerLine;
@@ -119,16 +119,16 @@ namespace UnityTools.Util.UIFramework
 
         public int GetItemCntForLine(int line, int totalItemCnt)
         {
-            if(line < 0 || totalItemCnt <= 0)
+            if (line < 0 || totalItemCnt <= 0)
                 return 0;
 
             int totalLineCnt = Mathf.CeilToInt((float)totalItemCnt / _itemCntPerLine);
-            if(line >= totalLineCnt)
+            if (line >= totalLineCnt)
                 return 0;
 
             int lastLineItemCnt = totalItemCnt % _itemCntPerLine;
             bool isLastLine = line == totalLineCnt - 1;
-            if(isLastLine && lastLineItemCnt > 0)
+            if (isLastLine && lastLineItemCnt > 0)
                 return lastLineItemCnt;
 
             return _itemCntPerLine;
