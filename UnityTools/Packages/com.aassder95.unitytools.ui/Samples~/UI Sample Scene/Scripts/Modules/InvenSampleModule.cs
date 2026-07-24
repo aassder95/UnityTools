@@ -9,9 +9,11 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Inventory View")] [SerializeField] private InvenView _invenView;
+        [Header("Inventory View")]
+        [SerializeField] private InvenView _invenView;
 
-        [Header("Inventory Data")] [Min(0)] [SerializeField] private int _invenModelCnt = 50;
+        [Header("Inventory Data")]
+        [SerializeField, Min(0)] private int _invenModelCnt = 50;
 
         //============================================================
         // Fields

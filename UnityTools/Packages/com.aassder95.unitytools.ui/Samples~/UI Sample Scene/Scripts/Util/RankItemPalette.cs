@@ -14,10 +14,10 @@ namespace UnityTools.Samples.Util
         //============================================================
         public static Color ResolveRankColor(int rank)
         {
-            if(rank <= 1)
+            if (rank <= 1)
                 return new Color(1.0f, 0.86f, 0.4f, 1.0f);
 
-            if(rank <= 3)
+            if (rank <= 3)
                 return new Color(0.62f, 0.88f, 1.0f, 1.0f);
 
             return new Color(0.91f, 0.94f, 1.0f, 1.0f);

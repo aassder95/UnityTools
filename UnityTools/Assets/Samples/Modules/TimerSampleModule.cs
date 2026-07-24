@@ -9,7 +9,8 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Timer View")] [SerializeField] private TimerView _timerView;
+        [Header("Timer View")]
+        [SerializeField] private TimerView _timerView;
 
         //============================================================
         // Fields

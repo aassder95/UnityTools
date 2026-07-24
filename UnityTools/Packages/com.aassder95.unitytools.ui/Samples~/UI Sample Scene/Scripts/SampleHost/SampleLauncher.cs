@@ -59,18 +59,18 @@ namespace UnityTools.Manager
 
         public void Release()
         {
-            for(int i = 0; i < _sampleButtons.Count; i++)
+            for (int i = 0; i < _sampleButtons.Count; i++)
             {
                 _sampleButtons[i].Button.onClick.RemoveListener(OnSampleButtonClicked);
             }
 
-            if(_btnBack != null)
+            if (_btnBack != null)
                 _btnBack.onClick.RemoveListener(OnBackButtonClicked);
 
             _sampleButtons.Clear();
             _moduleIdxByObject.Clear();
 
-            if(_goRuntimeCanvasRoot != null)
+            if (_goRuntimeCanvasRoot != null)
                 UnityEngine.Object.Destroy(_goRuntimeCanvasRoot);
 
             _goRuntimeCanvasRoot = null;
@@ -174,14 +174,14 @@ namespace UnityTools.Manager
             layout.padding = new RectOffset(0, 0, 12, 12);
             layout.spacing = 16.0f;
 
-            if(modules.Count == 0)
+            if (modules.Count == 0)
             {
                 SampleButton emptyButton = CreateButton(goListRoot.transform, "No Samples", false);
                 _sampleButtons.Add(emptyButton);
                 return;
             }
 
-            for(int i = 0; i < modules.Count; i++)
+            for (int i = 0; i < modules.Count; i++)
             {
                 SampleButton sampleButton = CreateButton(goListRoot.transform, modules[i].ModuleKey, true);
                 sampleButton.Button.onClick.AddListener(OnSampleButtonClicked);
@@ -226,7 +226,7 @@ namespace UnityTools.Manager
         private void OnSampleButtonClicked()
         {
             GameObject goSelected = _eventSystem.currentSelectedGameObject;
-            if(goSelected == null || !_moduleIdxByObject.TryGetValue(goSelected, out int moduleIdx))
+            if (goSelected == null || !_moduleIdxByObject.TryGetValue(goSelected, out int moduleIdx))
             {
                 DebugLogger.LogError("Sample 선택 Button과 Module 인덱스 연결을 찾을 수 없습니다.");
                 return;

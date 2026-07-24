@@ -83,7 +83,7 @@ namespace UnityTools.Samples.Inven
         //============================================================
         private void BuildTestLayout()
         {
-            if(_isTestLayoutBuilt)
+            if (_isTestLayoutBuilt)
                 return;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Inventory Test Sample", "Shuffle / Sort / Dynamic list refresh", 4);

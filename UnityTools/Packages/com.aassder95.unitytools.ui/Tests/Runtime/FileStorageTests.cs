@@ -29,9 +29,9 @@ namespace UnityTools.Util.Tests.Persistence
         [TearDown]
         public void TearDown()
         {
-            if(Directory.Exists(_rootPath))
+            if (Directory.Exists(_rootPath))
                 Directory.Delete(_rootPath, true);
-            if(File.Exists(_outsidePath))
+            if (File.Exists(_outsidePath))
                 File.Delete(_outsidePath);
         }
 

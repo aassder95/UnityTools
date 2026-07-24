@@ -75,7 +75,7 @@ namespace UnityTools.Samples.Timer
                 SetField(ref _closedEnd, closedEnd);
                 SetField(ref _state, state);
 
-                if(shouldUpdateSubState)
+                if (shouldUpdateSubState)
                     SetField(ref _subState, subState);
             });
         }

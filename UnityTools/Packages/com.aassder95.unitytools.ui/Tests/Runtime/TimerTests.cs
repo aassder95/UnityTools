@@ -32,7 +32,7 @@ namespace UnityTools.Util.Tests.Timer
         [TearDown]
         public void TearDown()
         {
-            if(_goRunner != null)
+            if (_goRunner != null)
                 UnityEngine.Object.DestroyImmediate(_goRunner);
         }
 
@@ -176,7 +176,7 @@ namespace UnityTools.Util.Tests.Timer
             //============================================================
             public bool TrySave(string key, string data)
             {
-                if(!_canSave || string.IsNullOrWhiteSpace(key) || data == null)
+                if (!_canSave || string.IsNullOrWhiteSpace(key) || data == null)
                     return false;
 
                 _values[key] = data;
@@ -197,7 +197,7 @@ namespace UnityTools.Util.Tests.Timer
 
             public bool TryDelete(string key)
             {
-                if(string.IsNullOrWhiteSpace(key))
+                if (string.IsNullOrWhiteSpace(key))
                     return false;
 
                 _values.Remove(key);

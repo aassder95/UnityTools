@@ -17,10 +17,13 @@ namespace UnityTools.Manager
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Entry")] [SerializeField] private string _entryModuleKey = SampleModuleKeys.All;
-        [Header("Dependencies")] [SerializeField] private Canvas _hostCanvas;
+        [Header("Entry")]
+        [SerializeField] private string _entryModuleKey = SampleModuleKeys.All;
+        [Header("Dependencies")]
+        [SerializeField] private Canvas _hostCanvas;
         [SerializeField] private EventSystem _eventSystem;
-        [Header("Modules")] [SerializeField] private MonoBehaviour[] _sampleModuleBehaviours;
+        [Header("Modules")]
+        [SerializeField] private MonoBehaviour[] _sampleModuleBehaviours;
 
         //============================================================
         // Fields
@@ -47,7 +50,7 @@ namespace UnityTools.Manager
         //============================================================
         public void Init()
         {
-            if(_isInit)
+            if (_isInit)
                 return;
 
             RegisterModules();
@@ -70,7 +73,7 @@ namespace UnityTools.Manager
         private void RegisterModules()
         {
             _modules.Clear();
-            for(int i = 0; i < _sampleModuleBehaviours.Length; i++)
+            for (int i = 0; i < _sampleModuleBehaviours.Length; i++)
             {
                 _modules.Add((ISampleModule)_sampleModuleBehaviours[i]);
             }
@@ -79,10 +82,10 @@ namespace UnityTools.Manager
         private void InitModules()
         {
             _activeModules.Clear();
-            for(int i = 0; i < _modules.Count; i++)
+            for (int i = 0; i < _modules.Count; i++)
             {
                 ISampleModule module = _modules[i];
-                if(!IsTargetModule(module.ModuleKey))
+                if (!IsTargetModule(module.ModuleKey))
                     continue;
 
                 module.Init();
@@ -93,7 +96,7 @@ namespace UnityTools.Manager
 
         private void ReleaseModules()
         {
-            for(int i = 0; i < _activeModules.Count; i++)
+            for (int i = 0; i < _activeModules.Count; i++)
             {
                 _activeModules[i].Release();
             }
@@ -122,7 +125,7 @@ namespace UnityTools.Manager
 
         private void HideSelectedModule()
         {
-            if(_selectedModule == null)
+            if (_selectedModule == null)
                 return;
 
             _selectedModule.Hide();
@@ -131,7 +134,7 @@ namespace UnityTools.Manager
 
         private bool IsTargetModule(string moduleKey)
         {
-            if(string.IsNullOrWhiteSpace(_entryModuleKey) || string.Equals(_entryModuleKey, SampleModuleKeys.All, StringComparison.OrdinalIgnoreCase))
+            if (string.IsNullOrWhiteSpace(_entryModuleKey) || string.Equals(_entryModuleKey, SampleModuleKeys.All, StringComparison.OrdinalIgnoreCase))
                 return true;
 
             return string.Equals(moduleKey, _entryModuleKey, StringComparison.OrdinalIgnoreCase);

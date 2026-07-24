@@ -33,7 +33,7 @@ namespace UnityTools.Samples.Rank
         //============================================================
         public RankModel(int cnt)
         {
-            for(int i = 0; i < cnt; i++)
+            for (int i = 0; i < cnt; i++)
             {
                 _itemModels.Add(new RankItemModel(i));
             }
@@ -47,7 +47,7 @@ namespace UnityTools.Samples.Rank
         //============================================================
         public void SetRandomScore()
         {
-            for(int i = 0; i < _itemModels.Count; i++)
+            for (int i = 0; i < _itemModels.Count; i++)
             {
                 _itemModels[i].SetScore(Random.Range(SCORE_MIN, SCORE_MAX));
             }
@@ -59,10 +59,10 @@ namespace UnityTools.Samples.Rank
         public void BoostTopScores()
         {
             int topCnt = Mathf.Min(3, _itemModels.Count);
-            if(topCnt <= 0)
+            if (topCnt <= 0)
                 return;
 
-            for(int i = 0; i < topCnt; i++)
+            for (int i = 0; i < topCnt; i++)
             {
                 _itemModels[i].SetScore(_itemModels[i].Score + Random.Range(10, 31));
             }
@@ -73,7 +73,7 @@ namespace UnityTools.Samples.Rank
 
         public void SetWaveScore()
         {
-            for(int i = 0; i < _itemModels.Count; i++)
+            for (int i = 0; i < _itemModels.Count; i++)
             {
                 float normalized = _itemModels.Count <= 1 ? 0.0f : (float)i / (_itemModels.Count - 1);
                 int waveScore = Mathf.RoundToInt(Mathf.Lerp(4900.0f, 700.0f, normalized)) + Random.Range(-240, 241);
@@ -96,7 +96,7 @@ namespace UnityTools.Samples.Rank
 
         public void RemoveLastItem()
         {
-            if(_itemModels.Count <= 1)
+            if (_itemModels.Count <= 1)
                 return;
 
             _itemModels.RemoveAt(_itemModels.Count - 1);
@@ -107,7 +107,7 @@ namespace UnityTools.Samples.Rank
         private void SortByScoreAndUpdateRank()
         {
             _itemModels.Sort((left, right) => right.Score.CompareTo(left.Score));
-            for(int i = 0; i < _itemModels.Count; i++)
+            for (int i = 0; i < _itemModels.Count; i++)
             {
                 _itemModels[i].SetRank(i + 1);
             }

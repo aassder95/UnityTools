@@ -29,7 +29,7 @@ namespace UnityTools.Util.Tests.Lifecycle
         [TearDown]
         public void TearDown()
         {
-            if(_goTestRoot != null)
+            if (_goTestRoot != null)
                 Object.DestroyImmediate(_goTestRoot);
         }
 
@@ -172,9 +172,9 @@ namespace UnityTools.Util.Tests.Lifecycle
         private static int CountActive<T>(T[] components) where T : Component
         {
             int activeCnt = 0;
-            for(int i = 0; i < components.Length; i++)
+            for (int i = 0; i < components.Length; i++)
             {
-                if(components[i].gameObject.activeSelf)
+                if (components[i].gameObject.activeSelf)
                     activeCnt++;
             }
 

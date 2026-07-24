@@ -21,7 +21,7 @@ namespace UnityTools.Samples.Modules
         //============================================================
         public void Init()
         {
-            if(_isInit)
+            if (_isInit)
                 return;
 
             OnInitModule();
@@ -30,7 +30,7 @@ namespace UnityTools.Samples.Modules
 
         public void Release()
         {
-            if(!_isInit)
+            if (!_isInit)
                 return;
 
             OnReleaseModule();
@@ -48,7 +48,7 @@ namespace UnityTools.Samples.Modules
 
         public void Hide()
         {
-            if(_isInit)
+            if (_isInit)
                 OnHideModule();
         }
 

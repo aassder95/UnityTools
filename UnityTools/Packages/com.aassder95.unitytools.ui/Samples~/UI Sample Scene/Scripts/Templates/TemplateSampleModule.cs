@@ -8,9 +8,12 @@ namespace UnityTools.Samples.Templates
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Module")] [SerializeField] private string _moduleKey = "Template";
-        [Header("Template View")] [SerializeField] private TemplateSampleView _view;
-        [Header("Sample Data")] [Min(0)] [SerializeField] private int _startCnt;
+        [Header("Module")]
+        [SerializeField] private string _moduleKey = "Template";
+        [Header("Template View")]
+        [SerializeField] private TemplateSampleView _view;
+        [Header("Sample Data")]
+        [SerializeField, Min(0)] private int _startCnt;
 
         //============================================================
         // Fields

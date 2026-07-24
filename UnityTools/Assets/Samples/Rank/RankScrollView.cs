@@ -14,7 +14,7 @@ namespace UnityTools.Samples.Rank
 
         public void IncreaseVisibleLine()
         {
-            if(VisibleLineCnt >= TotalLineCnt)
+            if (VisibleLineCnt >= TotalLineCnt)
                 return;
 
             SetVisibleLineCnt(VisibleLineCnt + 1);
@@ -22,7 +22,7 @@ namespace UnityTools.Samples.Rank
 
         public void DecreaseVisibleLine()
         {
-            if(VisibleLineCnt <= 1)
+            if (VisibleLineCnt <= 1)
                 return;
 
             SetVisibleLineCnt(VisibleLineCnt - 1);

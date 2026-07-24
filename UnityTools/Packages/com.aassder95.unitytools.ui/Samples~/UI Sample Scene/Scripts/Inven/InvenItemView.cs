@@ -63,7 +63,7 @@ namespace UnityTools.Samples.Inven
         //============================================================
         private static Color ResolveGradeTextColor(EInvenGrade grade)
         {
-            switch(grade)
+            switch (grade)
             {
                 case EInvenGrade.Common:
                     return new Color(0.24f, 0.31f, 0.43f, 1.0f);
@@ -80,7 +80,7 @@ namespace UnityTools.Samples.Inven
 
         private static Color ResolveGradeBgColor(EInvenGrade grade)
         {
-            switch(grade)
+            switch (grade)
             {
                 case EInvenGrade.Common:
                     return new Color(0.93f, 0.95f, 0.98f, 1.0f);

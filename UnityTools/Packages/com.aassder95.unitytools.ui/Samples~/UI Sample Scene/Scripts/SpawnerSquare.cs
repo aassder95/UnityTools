@@ -10,7 +10,8 @@ namespace UnityTools.Samples
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Square Spawn")] [SerializeField] private Vector2 _range;
+        [Header("Square Spawn")]
+        [SerializeField] private Vector2 _range;
 
         //============================================================
         // Utilities

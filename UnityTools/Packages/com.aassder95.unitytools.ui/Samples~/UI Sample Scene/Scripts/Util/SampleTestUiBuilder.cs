@@ -170,7 +170,7 @@ namespace UnityTools.Samples.Util
         private static float ResolveRectWidth(RectTransform rt, float fallback)
         {
             float width = rt.rect.width;
-            if(width > 0.0f)
+            if (width > 0.0f)
                 return width;
 
             return Screen.width > 0 ? Screen.width : fallback;
@@ -179,7 +179,7 @@ namespace UnityTools.Samples.Util
         private static float ResolveRectHeight(RectTransform rt, float fallback)
         {
             float height = rt.rect.height;
-            if(height > 0.0f)
+            if (height > 0.0f)
                 return height;
 
             return Screen.height > 0 ? Screen.height : fallback;

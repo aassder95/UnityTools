@@ -22,7 +22,7 @@ namespace UnityTools.Samples.Inven
         //============================================================
         public InvenModel(int cnt)
         {
-            for(int i = 0; i < cnt; i++)
+            for (int i = 0; i < cnt; i++)
             {
                 _itemModels.Add(new InvenItemModel(i));
             }
@@ -33,7 +33,7 @@ namespace UnityTools.Samples.Inven
         //============================================================
         public void ShuffleItems()
         {
-            for(int i = _itemModels.Count - 1; i > 0; i--)
+            for (int i = _itemModels.Count - 1; i > 0; i--)
             {
                 int swapIdx = Random.Range(0, i + 1);
                 InvenItemModel tempItem = _itemModels[i];
@@ -55,7 +55,7 @@ namespace UnityTools.Samples.Inven
             _itemModels.Sort((left, right) =>
             {
                 int gradeCompare = right.Grade.CompareTo(left.Grade);
-                if(gradeCompare != 0)
+                if (gradeCompare != 0)
                     return gradeCompare;
 
                 return right.Cnt.CompareTo(left.Cnt);
@@ -66,7 +66,7 @@ namespace UnityTools.Samples.Inven
 
         public void RandomizeItemCnts()
         {
-            for(int i = 0; i < _itemModels.Count; i++)
+            for (int i = 0; i < _itemModels.Count; i++)
             {
                 _itemModels[i].RandomizeGradeAndCnt();
             }

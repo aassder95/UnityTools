@@ -104,7 +104,7 @@ namespace UnityTools.Samples.Rank
         //============================================================
         private void BuildTestLayout()
         {
-            if(_isTestLayoutBuilt)
+            if (_isTestLayoutBuilt)
                 return;
 
             SampleTestLayout layout = SampleTestUiBuilder.Build(transform, "Rank Test Sample", "Random only rerolls all / Item +/- keeps existing scores", 7);

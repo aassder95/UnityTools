@@ -11,10 +11,13 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Timer")] [Min(0.0001f)] [SerializeField] private double _durationSec;
-        [Header("Info")] [SerializeField] private TextMeshProUGUI _txtState;
+        [Header("Timer")]
+        [SerializeField, Min(0.0001f)] private double _durationSec;
+        [Header("Info")]
+        [SerializeField] private TextMeshProUGUI _txtState;
         [SerializeField] private TextMeshProUGUI _txtTimer;
-        [Header("Buttons")] [SerializeField] private Button _btnStart;
+        [Header("Buttons")]
+        [SerializeField] private Button _btnStart;
         [SerializeField] private Button _btnReduce1Min;
         [SerializeField] private Button _btnComplete;
         [SerializeField] private Button _btnClaim;
@@ -60,7 +63,7 @@ namespace UnityTools.Samples.Timer
         //============================================================
         public void SetState(string state)
         {
-            if(string.IsNullOrWhiteSpace(state))
+            if (string.IsNullOrWhiteSpace(state))
             {
                 DebugLogger.LogError("TaskTimerView에 표시할 상태 문자열이 비어 있습니다.", this);
                 return;
@@ -77,7 +80,7 @@ namespace UnityTools.Samples.Timer
 
         public void SetTimer(string time)
         {
-            if(string.IsNullOrWhiteSpace(time))
+            if (string.IsNullOrWhiteSpace(time))
             {
                 DebugLogger.LogError("TaskTimerView에 표시할 시간 문자열이 비어 있습니다.", this);
                 return;

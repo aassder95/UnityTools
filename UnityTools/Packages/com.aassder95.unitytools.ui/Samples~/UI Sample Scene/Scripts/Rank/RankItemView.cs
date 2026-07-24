@@ -93,7 +93,7 @@ namespace UnityTools.Samples.Rank
         private static void SetColumnRect(TextMeshProUGUI txtTarget, float startX, float width, bool isLeftAnchor, bool isRightAnchor)
         {
             RectTransform rt = txtTarget.rectTransform;
-            if(isLeftAnchor)
+            if (isLeftAnchor)
             {
                 rt.anchorMin = new Vector2(0.0f, 0.0f);
                 rt.anchorMax = new Vector2(0.0f, 1.0f);
@@ -103,7 +103,7 @@ namespace UnityTools.Samples.Rank
                 return;
             }
 
-            if(isRightAnchor)
+            if (isRightAnchor)
             {
                 rt.anchorMin = new Vector2(1.0f, 0.0f);
                 rt.anchorMax = new Vector2(1.0f, 1.0f);

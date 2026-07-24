@@ -74,7 +74,7 @@ namespace UnityTools.Samples.Rank
         {
             int prevCnt = _model.ItemCnt;
             _model.RemoveLastItem();
-            if(_model.ItemCnt == prevCnt)
+            if (_model.ItemCnt == prevCnt)
                 return;
 
             _view.ScrollView.InitView(_model.ItemCnt);

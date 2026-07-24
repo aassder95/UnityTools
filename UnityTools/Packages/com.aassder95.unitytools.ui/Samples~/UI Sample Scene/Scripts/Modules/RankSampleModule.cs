@@ -9,9 +9,11 @@ namespace UnityTools.Samples.Modules
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Rank View")] [SerializeField] private RankView _rankView;
+        [Header("Rank View")]
+        [SerializeField] private RankView _rankView;
 
-        [Header("Rank Data")] [Min(0)] [SerializeField] private int _rankModelCnt = 10;
+        [Header("Rank Data")]
+        [SerializeField, Min(0)] private int _rankModelCnt = 10;
 
         //============================================================
         // Fields
