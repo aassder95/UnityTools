@@ -35,11 +35,11 @@ namespace UnityTools.Util.Editor
             DrawProperty(AXIS_PROP);
 
             SerializedProperty layoutProperty = serializedObject.FindProperty(LAYOUT_PROP);
-            if(layoutProperty != null)
+            if (layoutProperty != null)
             {
                 EditorGUILayout.PropertyField(layoutProperty);
                 EDynamicScrollLayoutMode layoutMode = (EDynamicScrollLayoutMode)layoutProperty.enumValueIndex;
-                if(layoutMode == EDynamicScrollLayoutMode.FixedCnt)
+                if (layoutMode == EDynamicScrollLayoutMode.FixedCnt)
                     DrawProperty(FIXED_CELLS_PROP);
             }
 
@@ -60,10 +60,10 @@ namespace UnityTools.Util.Editor
         private void DrawScriptField()
         {
             MonoBehaviour monoBehaviour = target as MonoBehaviour;
-            if(monoBehaviour == null)
+            if (monoBehaviour == null)
                 return;
 
-            using(new EditorGUI.DisabledScope(true))
+            using (new EditorGUI.DisabledScope(true))
             {
                 MonoScript script = MonoScript.FromMonoBehaviour(monoBehaviour);
                 EditorGUILayout.ObjectField("Script", script, typeof(MonoScript), false);
@@ -73,7 +73,7 @@ namespace UnityTools.Util.Editor
         private void DrawProperty(string propertyName)
         {
             SerializedProperty property = serializedObject.FindProperty(propertyName);
-            if(property == null)
+            if (property == null)
                 return;
 
             EditorGUILayout.PropertyField(property);
