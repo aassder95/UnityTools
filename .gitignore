@@ -11,12 +11,8 @@
 
 # Unity Build and Project Settings
 BuildSettings.asset
-EditorBuildSettings.asset
 AssetDatabaseVersion.txt
-Physics2DSettings.asset
-ProjectSettings.asset
 EditorUserBuildSettings.asset
-GraphicsSettings.asset
 
 # Unity Auto-Generated C# Project Files
 *.csproj
