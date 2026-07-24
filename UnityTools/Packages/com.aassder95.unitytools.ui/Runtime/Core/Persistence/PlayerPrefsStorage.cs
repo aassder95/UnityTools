@@ -1,5 +1,5 @@
+using System;
 using UnityEngine;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Persistence
 {
@@ -8,48 +8,75 @@ namespace UnityTools.Util.Core.Persistence
         //============================================================
         // Persistence
         //============================================================
-        public void Save(string key, string data)
+        public bool TrySave(string key, string data)
         {
-            if(string.IsNullOrEmpty(key) || data == null)
-            {
-                DebugLogger.LogError("PlayerPrefs에 저장할 Key 또는 Data가 유효하지 않습니다.");
-                return;
-            }
+            if(string.IsNullOrWhiteSpace(key) || data == null)
+                return false;
 
-            PlayerPrefs.SetString(key, data);
-            PlayerPrefs.Save();
+            try
+            {
+                PlayerPrefs.SetString(key, data);
+                PlayerPrefs.Save();
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
         }
 
-        public string Load(string key)
+        public bool TryLoad(string key, out string data)
         {
-            if(string.IsNullOrEmpty(key))
-            {
-                DebugLogger.LogError("PlayerPrefs에서 로드할 Key가 비어 있습니다.");
-                return string.Empty;
-            }
+            data = null;
+            if(string.IsNullOrWhiteSpace(key))
+                return false;
 
-            return PlayerPrefs.HasKey(key) ? PlayerPrefs.GetString(key) : string.Empty;
+            try
+            {
+                if(!PlayerPrefs.HasKey(key))
+                    return false;
+
+                data = PlayerPrefs.GetString(key);
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
         }
 
-        public bool HasKey(string key)
+        public bool TryHasKey(string key, out bool hasKey)
         {
-            if(!string.IsNullOrEmpty(key))
-                return PlayerPrefs.HasKey(key);
+            hasKey = false;
+            if(string.IsNullOrWhiteSpace(key))
+                return false;
 
-            DebugLogger.LogError("PlayerPrefs에서 조회할 Key가 비어 있습니다.");
-            return false;
+            try
+            {
+                hasKey = PlayerPrefs.HasKey(key);
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
         }
 
-        public void Delete(string key)
+        public bool TryDelete(string key)
         {
-            if(string.IsNullOrEmpty(key))
-            {
-                DebugLogger.LogError("PlayerPrefs에서 삭제할 Key가 비어 있습니다.");
-                return;
-            }
+            if(string.IsNullOrWhiteSpace(key))
+                return false;
 
-            PlayerPrefs.DeleteKey(key);
-            PlayerPrefs.Save();
+            try
+            {
+                PlayerPrefs.DeleteKey(key);
+                PlayerPrefs.Save();
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
         }
     }
 }

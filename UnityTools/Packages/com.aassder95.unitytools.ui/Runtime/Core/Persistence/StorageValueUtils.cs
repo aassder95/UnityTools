@@ -1,6 +1,5 @@
 using System;
 using System.Globalization;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Persistence
 {
@@ -9,83 +8,87 @@ namespace UnityTools.Util.Core.Persistence
         //============================================================
         // Persistence
         //============================================================
-        public static void SaveString(IStorage storage, string key, string value)
+        public static bool TrySaveString(IStorage storage, string key, string value)
         {
-            if(storage == null || string.IsNullOrEmpty(key) || value == null)
-            {
-                DebugLogger.LogError("저장할 Storage, Key, Value가 유효하지 않습니다.");
-                return;
-            }
+            if(storage == null || string.IsNullOrWhiteSpace(key) || value == null)
+                return false;
 
-            storage.Save(key, value);
+            return storage.TrySave(key, value);
         }
 
-        public static bool HasKey(IStorage storage, string key)
+        public static bool TryHasKey(IStorage storage, string key, out bool hasKey)
         {
-            if(storage != null && !string.IsNullOrEmpty(key))
-                return storage.HasKey(key);
+            hasKey = false;
+            if(storage == null || string.IsNullOrWhiteSpace(key))
+                return false;
 
-            DebugLogger.LogError("조회할 Storage 또는 Key가 유효하지 않습니다.");
+            return storage.TryHasKey(key, out hasKey);
+        }
+
+        public static bool TryLoadStringOrDefault(IStorage storage, string key, out string value)
+        {
+            value = string.Empty;
+            if(storage == null || string.IsNullOrWhiteSpace(key) || !TryLoadRawOrDefault(storage, key, out string raw))
+                return false;
+
+            value = raw ?? string.Empty;
+            return true;
+        }
+
+        public static bool TryLoadDateOrDefault(IStorage storage, string key, out DateTime value)
+        {
+            value = DateTime.MinValue;
+            if(storage == null || string.IsNullOrWhiteSpace(key) || !TryLoadRawOrDefault(storage, key, out string raw))
+                return false;
+
+            if(string.IsNullOrEmpty(raw))
+                return true;
+
+            if(long.TryParse(raw, out long ticks) && ticks >= DateTime.MinValue.Ticks && ticks <= DateTime.MaxValue.Ticks)
+            {
+                value = new DateTime(ticks, DateTimeKind.Utc);
+                return true;
+            }
+
             return false;
         }
 
-        public static string LoadString(IStorage storage, string key)
+        public static bool TryLoadDoubleOrDefault(IStorage storage, string key, out double value)
         {
-            if(storage == null || string.IsNullOrEmpty(key))
-            {
-                DebugLogger.LogError("로드할 Storage 또는 Key가 유효하지 않습니다.");
-                return string.Empty;
-            }
+            value = 0d;
+            if(storage == null || string.IsNullOrWhiteSpace(key) || !TryLoadRawOrDefault(storage, key, out string raw))
+                return false;
 
-            if(!storage.HasKey(key))
-                return string.Empty;
+            if(string.IsNullOrEmpty(raw))
+                return true;
 
-            string value = storage.Load(key);
-            if(value != null)
-                return value;
+            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsedValue) || double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out parsedValue);
+            if(!isParsed || parsedValue < 0d || double.IsNaN(parsedValue) || double.IsInfinity(parsedValue))
+                return false;
 
-            DebugLogger.LogError("Storage가 null 값을 반환했습니다. 키=" + key);
-            return string.Empty;
+            value = parsedValue;
+            return true;
         }
 
-        public static DateTime LoadDateOrDefault(IStorage storage, string key)
+        public static bool TryLoadIntOrDefault(IStorage storage, string key, out int value)
         {
-            string raw = LoadString(storage, key);
-            if(string.IsNullOrEmpty(raw))
-                return DateTime.MinValue;
+            value = 0;
+            if(storage == null || string.IsNullOrWhiteSpace(key) || !TryLoadRawOrDefault(storage, key, out string raw))
+                return false;
 
-            if(long.TryParse(raw, out long ticks) && ticks >= DateTime.MinValue.Ticks && ticks <= DateTime.MaxValue.Ticks)
-                return new DateTime(ticks, DateTimeKind.Utc);
-
-            DebugLogger.LogError("저장된 DateTime 값이 유효하지 않습니다. 키=" + key + ", 값=" + raw);
-            return DateTime.MinValue;
+            return string.IsNullOrEmpty(raw) || int.TryParse(raw, out value);
         }
 
-        public static double LoadDoubleOrDefault(IStorage storage, string key)
+        //============================================================
+        // Utilities
+        //============================================================
+        private static bool TryLoadRawOrDefault(IStorage storage, string key, out string value)
         {
-            string raw = LoadString(storage, key);
-            if(string.IsNullOrEmpty(raw))
-                return 0d;
+            value = null;
+            if(!storage.TryHasKey(key, out bool hasKey))
+                return false;
 
-            bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) || double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
-            if(isParsed && value >= 0d && !double.IsNaN(value) && !double.IsInfinity(value))
-                return value;
-
-            DebugLogger.LogError("저장된 double 값이 유효하지 않습니다. 키=" + key + ", 값=" + raw);
-            return 0d;
-        }
-
-        public static int LoadIntOrDefault(IStorage storage, string key)
-        {
-            string raw = LoadString(storage, key);
-            if(string.IsNullOrEmpty(raw))
-                return 0;
-
-            if(int.TryParse(raw, out int value))
-                return value;
-
-            DebugLogger.LogError("저장된 int 값이 유효하지 않습니다. 키=" + key + ", 값=" + raw);
-            return 0;
+            return !hasKey || storage.TryLoad(key, out value);
         }
     }
 }

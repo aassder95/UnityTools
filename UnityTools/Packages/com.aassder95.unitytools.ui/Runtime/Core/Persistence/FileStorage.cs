@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Persistence
 {
@@ -10,6 +9,7 @@ namespace UnityTools.Util.Core.Persistence
         // Readonly
         //============================================================
         private readonly string _rootPath;
+        private readonly string _rootPrefix;
 
         //============================================================
         // Constructors
@@ -17,118 +17,130 @@ namespace UnityTools.Util.Core.Persistence
         private FileStorage(string rootPath)
         {
             _rootPath = rootPath;
+            _rootPrefix = rootPath.EndsWith(Path.DirectorySeparatorChar.ToString()) ? rootPath : rootPath + Path.DirectorySeparatorChar;
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public static FileStorage Create(string rootPath)
+        public static bool TryCreate(string rootPath, out FileStorage storage)
         {
+            storage = null;
             if(string.IsNullOrWhiteSpace(rootPath))
-            {
-                DebugLogger.LogError("FileStorage Root Path가 비어 있습니다.");
-                return null;
-            }
+                return false;
 
             try
             {
-                if(!Directory.Exists(rootPath))
-                    Directory.CreateDirectory(rootPath);
+                string normalizedRootPath = Path.GetFullPath(rootPath);
+                if(!Directory.Exists(normalizedRootPath))
+                    Directory.CreateDirectory(normalizedRootPath);
 
-                return new FileStorage(rootPath);
+                storage = new FileStorage(normalizedRootPath);
+                return true;
             }
-            catch(Exception exception)
+            catch(Exception)
             {
-                DebugLogger.LogError("FileStorage Root 경로를 준비하지 못했습니다. 경로=" + rootPath + ", 원인=" + exception.Message);
-                return null;
+                return false;
             }
         }
 
         //============================================================
         // Persistence
         //============================================================
-        public void Save(string key, string data)
+        public bool TrySave(string key, string data)
         {
-            if(!CanUseKey(key) || data == null)
-            {
-                if(data == null)
-                    DebugLogger.LogError("FileStorage에 저장할 Data가 비어 있습니다.");
-
-                return;
-            }
+            if(data == null || !TryGetPath(key, out string path))
+                return false;
 
             try
             {
-                string path = Path.Combine(_rootPath, key);
                 File.WriteAllText(path, data);
+                return true;
             }
-            catch(Exception exception)
+            catch(Exception)
             {
-                DebugLogger.LogError("FileStorage 저장에 실패했습니다. Root=" + _rootPath + ", Key=" + key + ", 원인=" + exception.Message);
-            }
-        }
-
-        public string Load(string key)
-        {
-            if(!CanUseKey(key))
-                return null;
-
-            try
-            {
-                string path = Path.Combine(_rootPath, key);
-                return File.Exists(path) ? File.ReadAllText(path) : null;
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("FileStorage 로드에 실패했습니다. Root=" + _rootPath + ", Key=" + key + ", 원인=" + exception.Message);
-                return null;
-            }
-        }
-
-        public bool HasKey(string key)
-        {
-            if(!CanUseKey(key))
-                return false;
-
-            try
-            {
-                string path = Path.Combine(_rootPath, key);
-                return File.Exists(path);
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("FileStorage 조회에 실패했습니다. Root=" + _rootPath + ", Key=" + key + ", 원인=" + exception.Message);
                 return false;
             }
         }
 
-        public void Delete(string key)
+        public bool TryLoad(string key, out string data)
         {
-            if(!CanUseKey(key))
-                return;
+            data = null;
+            if(!TryGetPath(key, out string path))
+                return false;
 
             try
             {
-                string path = Path.Combine(_rootPath, key);
+                if(!File.Exists(path))
+                    return false;
+
+                data = File.ReadAllText(path);
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool TryHasKey(string key, out bool hasKey)
+        {
+            hasKey = false;
+            if(!TryGetPath(key, out string path))
+                return false;
+
+            try
+            {
+                hasKey = File.Exists(path);
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
+        }
+
+        public bool TryDelete(string key)
+        {
+            if(!TryGetPath(key, out string path))
+                return false;
+
+            try
+            {
                 if(File.Exists(path))
                     File.Delete(path);
+
+                return true;
             }
-            catch(Exception exception)
+            catch(Exception)
             {
-                DebugLogger.LogError("FileStorage 삭제에 실패했습니다. Root=" + _rootPath + ", Key=" + key + ", 원인=" + exception.Message);
+                return false;
             }
         }
 
         //============================================================
         // Utilities
         //============================================================
-        private static bool CanUseKey(string key)
+        private bool TryGetPath(string key, out string path)
         {
-            if(!string.IsNullOrWhiteSpace(key))
-                return true;
+            path = null;
+            if(string.IsNullOrWhiteSpace(key) || Path.IsPathRooted(key) || key == "." || key == ".." || key.IndexOf(Path.DirectorySeparatorChar) >= 0 || key.IndexOf(Path.AltDirectorySeparatorChar) >= 0 || key.IndexOfAny(Path.GetInvalidFileNameChars()) >= 0)
+                return false;
 
-            DebugLogger.LogError("FileStorage Key가 비어 있습니다.");
-            return false;
+            try
+            {
+                string candidatePath = Path.GetFullPath(Path.Combine(_rootPath, key));
+                StringComparison comparison = Path.DirectorySeparatorChar == '\\' ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal;
+                if(!candidatePath.StartsWith(_rootPrefix, comparison))
+                    return false;
+
+                path = candidatePath;
+                return true;
+            }
+            catch(Exception)
+            {
+                return false;
+            }
         }
     }
 }

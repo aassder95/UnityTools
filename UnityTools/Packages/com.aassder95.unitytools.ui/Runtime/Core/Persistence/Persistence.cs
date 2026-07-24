@@ -1,5 +1,4 @@
 using System;
-using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.Persistence
 {
@@ -22,19 +21,16 @@ namespace UnityTools.Util.Core.Persistence
             _serializer = serializer ?? new JsonSerializer();
             _storage = storage ?? new PlayerPrefsStorage();
             _isValid = !string.IsNullOrWhiteSpace(rootKey);
-            if(!_isValid)
-                DebugLogger.LogError("Persistence Root Key가 비어 있습니다.");
         }
 
         //============================================================
         // Persistence
         //============================================================
-        public void Save<T>(string suffix, T data)
+        public bool TrySave<T>(string suffix, T data)
         {
             if(!CanUseSuffix(suffix))
-                return;
+                return false;
 
-            string key = GetKey(suffix);
             try
             {
                 string serialized;
@@ -43,85 +39,87 @@ namespace UnityTools.Util.Core.Persistence
                 else
                     serialized = _serializer.Serialize(data);
 
-                _storage.Save(key, serialized);
-                DebugLogger.Log($"저장 완료: 키={key}, 값={serialized}");
+                return _storage.TrySave(GetKey(suffix), serialized);
             }
-            catch(Exception exception)
+            catch(Exception)
             {
-                DebugLogger.LogError("데이터 저장에 실패했습니다. 키=" + key + ", 원인=" + exception.Message);
+                return false;
             }
         }
 
-        public T Load<T>(string suffix, T defaultValue = default)
+        public bool TryLoad<T>(string suffix, out T value, T defaultValue = default)
         {
+            value = defaultValue;
             if(!CanUseSuffix(suffix))
-                return defaultValue;
+                return false;
 
-            string key = GetKey(suffix);
             try
             {
-                if(!_storage.HasKey(key))
-                {
-                    DebugLogger.Log($"데이터가 없습니다: 키={key}");
-                    return defaultValue;
-                }
+                string key = GetKey(suffix);
+                if(!_storage.TryHasKey(key, out bool hasKey))
+                    return false;
 
-                string data = _storage.Load(key);
+                if(!hasKey)
+                    return true;
+
+                if(!_storage.TryLoad(key, out string data))
+                    return false;
+
                 if(string.IsNullOrEmpty(data) || data == "{}" || data == "[]")
+                    return true;
+
+                if(data is T typedData)
                 {
-                    DebugLogger.Log($"데이터가 비어 있습니다: 키={key}");
-                    return defaultValue;
+                    value = typedData;
+                    return true;
                 }
 
-                T result;
-                if(data is T typedData)
-                    result = typedData;
-                else if(typeof(T).IsEnum)
-                    result = (T)Enum.Parse(typeof(T), data);
-                else if(typeof(T).IsPrimitive)
-                    result = (T)Convert.ChangeType(data, typeof(T));
-                else
-                    result = _serializer.Deserialize<T>(data);
+                if(typeof(T).IsEnum)
+                {
+                    if(!Enum.TryParse(typeof(T), data, out object enumValue))
+                        return false;
 
-                DebugLogger.Log($"로드 완료: 키={key}, 값={result}");
-                return result;
+                    value = (T)enumValue;
+                    return true;
+                }
+
+                value = typeof(T).IsPrimitive ? (T)Convert.ChangeType(data, typeof(T)) : _serializer.Deserialize<T>(data);
+                return true;
             }
-            catch(Exception exception)
+            catch(Exception)
             {
-                DebugLogger.LogError("데이터 로드에 실패했습니다. 키=" + key + ", 원인=" + exception.Message);
-                return defaultValue;
+                value = defaultValue;
+                return false;
             }
         }
 
-        public void Delete(string suffix)
-        {
-            if(!CanUseSuffix(suffix))
-                return;
-
-            string key = GetKey(suffix);
-            try
-            {
-                _storage.Delete(key);
-                DebugLogger.Log($"삭제 완료: 키={key}");
-            }
-            catch(Exception exception)
-            {
-                DebugLogger.LogError("데이터 삭제에 실패했습니다. 키=" + key + ", 원인=" + exception.Message);
-            }
-        }
-
-        public bool HasKey(string suffix)
+        public bool TryDelete(string suffix)
         {
             if(!CanUseSuffix(suffix))
                 return false;
 
             try
             {
-                return _storage.HasKey(GetKey(suffix));
+                return _storage.TryDelete(GetKey(suffix));
             }
-            catch(Exception exception)
+            catch(Exception)
             {
-                DebugLogger.LogError("데이터 존재 여부 조회에 실패했습니다. 원인=" + exception.Message);
+                return false;
+            }
+        }
+
+        public bool TryHasKey(string suffix, out bool hasKey)
+        {
+            hasKey = false;
+            if(!CanUseSuffix(suffix))
+                return false;
+
+            try
+            {
+                return _storage.TryHasKey(GetKey(suffix), out hasKey);
+            }
+            catch(Exception)
+            {
                 return false;
             }
         }
@@ -131,11 +129,7 @@ namespace UnityTools.Util.Core.Persistence
         //============================================================
         private bool CanUseSuffix(string suffix)
         {
-            if(_isValid && !string.IsNullOrWhiteSpace(suffix))
-                return true;
-
-            DebugLogger.LogError("Persistence가 유효하지 않거나 Suffix가 비어 있습니다. Root=" + (_rootKey ?? "null"));
-            return false;
+            return _isValid && !string.IsNullOrWhiteSpace(suffix);
         }
 
         private string GetKey(string suffix)

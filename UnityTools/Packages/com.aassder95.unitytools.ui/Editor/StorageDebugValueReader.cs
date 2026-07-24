@@ -24,10 +24,14 @@ namespace UnityTools.Util.Editor
         //============================================================
         public string ReadDateKey(string key)
         {
-            if(!StorageValueUtils.HasKey(_storage, key))
+            if(!StorageValueUtils.TryHasKey(_storage, key, out bool hasKey))
+                return "(조회 실패)";
+            if(!hasKey)
                 return "(없음)";
 
-            string raw = StorageValueUtils.LoadString(_storage, key);
+            if(!StorageValueUtils.TryLoadStringOrDefault(_storage, key, out string raw))
+                return "(로드 실패)";
+
             if(!long.TryParse(raw, out long ticks))
                 return $"잘못된 ticks 값: {raw}";
 
@@ -42,10 +46,14 @@ namespace UnityTools.Util.Editor
 
         public string ReadDoubleKey(string key, string unit = "")
         {
-            if(!StorageValueUtils.HasKey(_storage, key))
+            if(!StorageValueUtils.TryHasKey(_storage, key, out bool hasKey))
+                return "(조회 실패)";
+            if(!hasKey)
                 return "(없음)";
 
-            string raw = StorageValueUtils.LoadString(_storage, key);
+            if(!StorageValueUtils.TryLoadStringOrDefault(_storage, key, out string raw))
+                return "(로드 실패)";
+
             bool isParsed = double.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out double value) || double.TryParse(raw, NumberStyles.Float, CultureInfo.CurrentCulture, out value);
             if(!isParsed)
                 return $"잘못된 값: {raw}";
@@ -55,10 +63,14 @@ namespace UnityTools.Util.Editor
 
         public string ReadEnumKey<TEnum>(string key) where TEnum : struct, Enum
         {
-            if(!StorageValueUtils.HasKey(_storage, key))
+            if(!StorageValueUtils.TryHasKey(_storage, key, out bool hasKey))
+                return "(조회 실패)";
+            if(!hasKey)
                 return "(없음)";
 
-            string raw = StorageValueUtils.LoadString(_storage, key);
+            if(!StorageValueUtils.TryLoadStringOrDefault(_storage, key, out string raw))
+                return "(로드 실패)";
+
             if(!int.TryParse(raw, out int intValue))
                 return $"잘못된 state 값: {raw}";
 
@@ -68,10 +80,14 @@ namespace UnityTools.Util.Editor
 
         public string ReadFlagKey(string key, string trueRaw = "1", string trueText = "참", string falseText = "거짓")
         {
-            if(!StorageValueUtils.HasKey(_storage, key))
+            if(!StorageValueUtils.TryHasKey(_storage, key, out bool hasKey))
+                return "(조회 실패)";
+            if(!hasKey)
                 return "(없음)";
 
-            string raw = StorageValueUtils.LoadString(_storage, key);
+            if(!StorageValueUtils.TryLoadStringOrDefault(_storage, key, out string raw))
+                return "(로드 실패)";
+
             return raw == trueRaw ? $"{raw} ({trueText})" : $"{raw} ({falseText})";
         }
     }

@@ -5,9 +5,9 @@ namespace UnityTools.Util.Core.Persistence
         //============================================================
         // Persistence
         //============================================================
-        void Save(string key, string data);
-        string Load(string key);
-        bool HasKey(string key);
-        void Delete(string key);
+        bool TrySave(string key, string data);
+        bool TryLoad(string key, out string data);
+        bool TryHasKey(string key, out bool hasKey);
+        bool TryDelete(string key);
     }
 }
