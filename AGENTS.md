@@ -475,10 +475,24 @@ for (int i = roadStartIdx; i < roadPointCnt; ++i)
 }
 ```
 
-### 빈 줄과 attribute
+### 빈 줄과 Attribute
 
 - 같은 섹션의 연속 field 선언 사이에는 빈 줄을 넣지 않는다. 실제 논리 그룹 사이에만 1줄을 둔다.
-- field attribute는 선언과 같은 줄에 작성한다: `[SerializeField] private Transform _trRoot;`
+- 같은 역할의 Attribute는 하나의 `[]` 안에서 쉼표로 묶고, 역할이 다르면 줄을 분리한다.
+- Inspector 그룹 장식인 `Space`와 `Header`는 같은 줄에 묶는다. 표시 순서가 중요하면 `order`를 명시한다.
+- 설명용 `Tooltip`은 별도 줄에 작성한다.
+- `SerializeField`, `Min`, `Range` 같은 필드 설정은 같은 `[]`에 묶고 field 선언과 같은 줄에 작성한다.
+- 연속된 Attribute와 field 선언 사이에는 빈 줄을 넣지 않는다.
+- `Header`는 해당 그룹의 첫 field에만 작성한다.
+
+```csharp
+[Header("Rank Data")]
+[SerializeField, Min(0.0f)] private int _rankModelCnt = 10;
+
+[Space(16.0f, order = 0), Header("Animation", order = 1)]
+[Tooltip("등장 애니메이션 재생 시간")]
+[SerializeField, Range(0.1f, 3.0f)] private float _showDurationSec = 0.5f;
+```
 
 ### 한 줄 우선
 
