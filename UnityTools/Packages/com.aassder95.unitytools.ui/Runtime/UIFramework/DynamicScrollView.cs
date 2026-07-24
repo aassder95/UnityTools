@@ -22,18 +22,21 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Inspector Fields
         //============================================================
-        [Header("Item")] [SerializeField] private TView _item;
-        [Header("Layout")] [SerializeField] private EDynamicScrollAxisType _axisType = EDynamicScrollAxisType.Vertical;
+        [Header("Item")]
+        [SerializeField] private TView _item;
+        [Header("Layout")]
+        [SerializeField] private EDynamicScrollAxisType _axisType = EDynamicScrollAxisType.Vertical;
         [SerializeField] private EDynamicScrollLayoutMode _layoutMode = EDynamicScrollLayoutMode.FixedCnt;
-        [Min(MIN_FIXED_CELLS_PER_GROUP)] [SerializeField] private int _fixedCellsPerGroup = MIN_FIXED_CELLS_PER_GROUP;
-        [Min(MIN_VISIBLE_LINE_CNT)] [SerializeField] private int _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
+        [SerializeField, Min(MIN_FIXED_CELLS_PER_GROUP)] private int _fixedCellsPerGroup = MIN_FIXED_CELLS_PER_GROUP;
+        [SerializeField, Min(MIN_VISIBLE_LINE_CNT)] private int _minVisibleLineCnt = MIN_VISIBLE_LINE_CNT;
         [SerializeField] private EDynamicScrollContentAlignment _contentAlignment = EDynamicScrollContentAlignment.TopLeft;
         [SerializeField] private Vector2 _spacing;
         [SerializeField] private RectOffset _padding;
-        [Header("Movement")] [SerializeField] private EDynamicScrollMovementType _movementType = EDynamicScrollMovementType.Clamped;
+        [Header("Movement")]
+        [SerializeField] private EDynamicScrollMovementType _movementType = EDynamicScrollMovementType.Clamped;
         [SerializeField] private bool _isInertia = true;
-        [SerializeField] [Range(0.001f, 0.3f)] private float _decelerationRate = 0.135f;
-        [SerializeField] [Range(0.1f, 1.0f)] private float _elasticity = 0.1f;
+        [SerializeField, Range(0.001f, 0.3f)] private float _decelerationRate = 0.135f;
+        [SerializeField, Range(0.1f, 1.0f)] private float _elasticity = 0.1f;
 
         //============================================================
         // Fields

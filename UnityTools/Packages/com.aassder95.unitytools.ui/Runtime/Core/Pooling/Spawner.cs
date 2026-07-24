@@ -16,10 +16,10 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         [Header("Pool")]
         [SerializeField] private T _prefab;
-        [Min(0)] [SerializeField] private int _initialSize;
+        [SerializeField, Min(0)] private int _initialSize;
         [Header("Spawn")]
-        [Min(1)] [SerializeField] private int _maxActiveCnt = 10;
-        [Min(0.0001f)] [SerializeField] private float _intervalSec = 1.0f;
+        [SerializeField, Min(1)] private int _maxActiveCnt = 10;
+        [SerializeField, Min(0.0001f)] private float _intervalSec = 1.0f;
 
         //============================================================
         // Fields
