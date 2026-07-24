@@ -33,10 +33,10 @@ namespace UnityTools.Ui
         //============================================================
         // Logic
         //============================================================
-        public void PushScreen(UiNavigationEntry screen)
+        public bool TryPushScreen(UiNavigationEntry screen)
         {
             if (!CanAdd(screen, "화면"))
-                return;
+                return false;
 
             UiNavigationEntry currentScreen = CurrentScreen;
             if (currentScreen != null)
@@ -45,12 +45,13 @@ namespace UnityTools.Ui
             _screens.Add(screen);
             ShowEntry(screen);
             RefreshNavigationState();
+            return true;
         }
 
-        public void ReplaceScreen(UiNavigationEntry screen)
+        public bool TryReplaceScreen(UiNavigationEntry screen)
         {
             if (!CanAdd(screen, "화면"))
-                return;
+                return false;
 
             UiNavigationEntry currentScreen = CurrentScreen;
             if (currentScreen != null)
@@ -62,9 +63,10 @@ namespace UnityTools.Ui
             _screens.Add(screen);
             ShowEntry(screen);
             RefreshNavigationState();
+            return true;
         }
 
-        public bool PopScreen()
+        public bool TryPopScreen()
         {
             if (_screens.Count <= 1)
                 return false;
@@ -77,18 +79,19 @@ namespace UnityTools.Ui
             return true;
         }
 
-        public void OpenPopup(UiNavigationEntry popup)
+        public bool TryOpenPopup(UiNavigationEntry popup)
         {
             if (!CanAdd(popup, "팝업"))
-                return;
+                return false;
 
             SaveActiveFocus();
             _popups.Add(popup);
             ShowEntry(popup);
             RefreshNavigationState();
+            return true;
         }
 
-        public bool ClosePopup()
+        public bool TryClosePopup()
         {
             if (_popups.Count <= 0)
                 return false;
@@ -100,10 +103,10 @@ namespace UnityTools.Ui
             return true;
         }
 
-        public void ShowOverlay(UiNavigationEntry overlay)
+        public bool TryShowOverlay(UiNavigationEntry overlay)
         {
             if (!CanAdd(overlay, "오버레이"))
-                return;
+                return false;
 
             if (overlay.IsModal)
                 SaveActiveFocus();
@@ -111,9 +114,10 @@ namespace UnityTools.Ui
             _overlays.Add(overlay);
             ShowEntry(overlay);
             RefreshNavigationState();
+            return true;
         }
 
-        public bool HideOverlay(UiNavigationEntry overlay)
+        public bool TryHideOverlay(UiNavigationEntry overlay)
         {
             int overlayIdx = _overlays.IndexOf(overlay);
             if (overlayIdx < 0)
@@ -125,12 +129,12 @@ namespace UnityTools.Ui
             return true;
         }
 
-        public bool HandleBack()
+        public bool TryHandleBack()
         {
-            if (ClosePopup())
+            if (TryClosePopup())
                 return true;
 
-            return PopScreen();
+            return TryPopScreen();
         }
 
         public void Clear()
@@ -225,7 +229,7 @@ namespace UnityTools.Ui
                 return false;
             }
 
-            if (ContainsPresenter(entry.Presenter))
+            if (HasPresenter(entry.Presenter))
             {
                 Debug.LogError("같은 Presenter를 UI 탐색 스택에 중복 등록할 수 없습니다. 타입=" + entry.Presenter.GetType().Name);
                 return false;
@@ -234,12 +238,12 @@ namespace UnityTools.Ui
             return true;
         }
 
-        private bool ContainsPresenter(IPresenter presenter)
+        private bool HasPresenter(IPresenter presenter)
         {
-            return ContainsPresenter(_screens, presenter) || ContainsPresenter(_popups, presenter) || ContainsPresenter(_overlays, presenter);
+            return HasPresenter(_screens, presenter) || HasPresenter(_popups, presenter) || HasPresenter(_overlays, presenter);
         }
 
-        private static bool ContainsPresenter(List<UiNavigationEntry> entries, IPresenter presenter)
+        private static bool HasPresenter(List<UiNavigationEntry> entries, IPresenter presenter)
         {
             for (int i = 0; i < entries.Count; i++)
             {

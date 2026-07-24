@@ -19,5 +19,5 @@
 
 - `UiManager`가 `UiNavigator`를 생성하고 Sample Lobby를 첫 Screen으로 등록합니다.
 - Sample 선택 시 모듈 Presenter가 Screen 스택에 Push됩니다.
-- Back 버튼은 `UiNavigator.HandleBack()`을 호출해 현재 모듈을 닫고 Lobby를 복원합니다.
+- Back 버튼은 `UiNavigator.TryHandleBack()`을 호출해 현재 모듈을 닫고 Lobby를 복원합니다.
 - `SampleModuleBase`가 `IPresenter` 수명주기와 표시 상태 계약을 구현합니다.

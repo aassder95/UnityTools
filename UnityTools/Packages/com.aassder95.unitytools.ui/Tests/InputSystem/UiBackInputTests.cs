@@ -36,8 +36,8 @@ namespace UnityTools.Ui.Tests.InputSystem
         public void BackInputRoutesCallbackToNavigator()
         {
             UiNavigator navigator = new();
-            navigator.PushScreen(new UiNavigationEntry(new InputTestPresenter()));
-            navigator.PushScreen(new UiNavigationEntry(new InputTestPresenter()));
+            Assert.That(navigator.TryPushScreen(new UiNavigationEntry(new InputTestPresenter())), Is.True);
+            Assert.That(navigator.TryPushScreen(new UiNavigationEntry(new InputTestPresenter())), Is.True);
 
             GameObject goInput = new("BackInput");
             goInput.SetActive(false);

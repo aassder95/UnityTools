@@ -13,6 +13,7 @@
 ### Changed
 
 - runtime assembly와 공개 namespace를 `UnityTools.Ui`로 변경
+- `UiNavigator`의 실패 가능한 상태 변경 API를 `TryXxx` 반환 계약으로 통일
 - 숨겨진 View의 모델 갱신을 다음 `Show`까지 병합
 - `IDynamicScrollItem`에 `OnGet`, `OnReturn` pool 수명주기 통합
 - pool, deque, index 보조 구현을 UI 내부 책임으로 변경

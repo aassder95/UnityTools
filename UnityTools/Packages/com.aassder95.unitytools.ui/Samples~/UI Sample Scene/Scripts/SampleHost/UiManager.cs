@@ -63,7 +63,12 @@ namespace UnityTools.Manager
             _launcher.Init(_activeModules);
             _navigator = new UiNavigator();
             _lobbyPresenter = new SampleLobbyPresenter(_launcher);
-            _navigator.PushScreen(new UiNavigationEntry(_lobbyPresenter));
+            if (!_navigator.TryPushScreen(new UiNavigationEntry(_lobbyPresenter)))
+            {
+                Release();
+                return;
+            }
+
             _isInit = true;
         }
 
@@ -120,11 +125,6 @@ namespace UnityTools.Manager
         //============================================================
         // Logic
         //============================================================
-        private void OpenSample(int moduleIdx)
-        {
-            _navigator.PushScreen(_moduleEntries[moduleIdx]);
-        }
-
         private bool IsTargetModule(string moduleKey)
         {
             if (string.IsNullOrWhiteSpace(_entryModuleKey) || string.Equals(_entryModuleKey, SampleModuleKeys.All, StringComparison.OrdinalIgnoreCase))
@@ -138,12 +138,14 @@ namespace UnityTools.Manager
         //============================================================
         private void OnSampleSelected(int moduleIdx)
         {
-            OpenSample(moduleIdx);
+            if (!_navigator.TryPushScreen(_moduleEntries[moduleIdx]))
+                return;
         }
 
         private void OnBackClicked()
         {
-            _navigator.HandleBack();
+            if (!_navigator.TryHandleBack())
+                return;
         }
 
         //============================================================

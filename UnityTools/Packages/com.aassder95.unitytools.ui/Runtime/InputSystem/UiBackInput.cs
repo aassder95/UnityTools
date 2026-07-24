@@ -46,7 +46,10 @@ namespace UnityTools.Ui
         public void Init(UiNavigator navigator)
         {
             if (navigator == null)
+            {
+                Debug.LogError("UiBackInput에 연결할 UiNavigator가 비어 있습니다.", this);
                 return;
+            }
 
             if (ReferenceEquals(_navigator, navigator))
                 return;
@@ -86,7 +89,8 @@ namespace UnityTools.Ui
         //============================================================
         private void OnBackPerformed(InputAction.CallbackContext context)
         {
-            _navigator.HandleBack();
+            if (!_navigator.TryHandleBack())
+                return;
         }
     }
 }

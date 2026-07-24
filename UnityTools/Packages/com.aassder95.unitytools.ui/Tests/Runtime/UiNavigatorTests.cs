@@ -9,14 +9,14 @@ namespace UnityTools.Ui.Tests.UiFramework
         // Logic
         //============================================================
         [Test]
-        public void ScreenStackHidesAndRestoresPreviousScreen()
+        public void ScreenStackRestoresPreviousScreen()
         {
             UiNavigator navigator = new();
             NavigationTestEntry first = new();
             NavigationTestEntry second = new();
 
-            navigator.PushScreen(first.Entry);
-            navigator.PushScreen(second.Entry);
+            Assert.That(navigator.TryPushScreen(first.Entry), Is.True);
+            Assert.That(navigator.TryPushScreen(second.Entry), Is.True);
 
             Assert.That(navigator.ScreenCnt, Is.EqualTo(2));
             Assert.That(navigator.CurrentScreen, Is.SameAs(second.Entry));
@@ -25,7 +25,7 @@ namespace UnityTools.Ui.Tests.UiFramework
             Assert.That(second.Presenter.IsVisible, Is.True);
             Assert.That(second.Control.IsInteractionEnabled, Is.True);
 
-            Assert.That(navigator.PopScreen(), Is.True);
+            Assert.That(navigator.TryPopScreen(), Is.True);
             Assert.That(navigator.CurrentScreen, Is.SameAs(first.Entry));
             Assert.That(first.Presenter.IsVisible, Is.True);
             Assert.That(first.Control.IsInteractionEnabled, Is.True);
@@ -33,14 +33,14 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void ModalPopupBlocksScreenUntilBackClosesPopup()
+        public void ModalPopupBlocksUntilBack()
         {
             UiNavigator navigator = new();
             NavigationTestEntry screen = new();
             NavigationTestEntry popup = new(true);
-            navigator.PushScreen(screen.Entry);
+            Assert.That(navigator.TryPushScreen(screen.Entry), Is.True);
 
-            navigator.OpenPopup(popup.Entry);
+            Assert.That(navigator.TryOpenPopup(popup.Entry), Is.True);
 
             Assert.That(navigator.PopupCnt, Is.EqualTo(1));
             Assert.That(screen.Presenter.IsVisible, Is.True);
@@ -48,7 +48,7 @@ namespace UnityTools.Ui.Tests.UiFramework
             Assert.That(popup.Control.IsInteractionEnabled, Is.True);
             Assert.That(screen.Control.SaveFocusCnt, Is.EqualTo(1));
 
-            Assert.That(navigator.HandleBack(), Is.True);
+            Assert.That(navigator.TryHandleBack(), Is.True);
             Assert.That(navigator.PopupCnt, Is.Zero);
             Assert.That(popup.Presenter.IsVisible, Is.False);
             Assert.That(screen.Control.IsInteractionEnabled, Is.True);
@@ -56,61 +56,61 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void NonModalPopupKeepsCurrentScreenInteractive()
+        public void NonModalPopupKeepsScreenInteractive()
         {
             UiNavigator navigator = new();
             NavigationTestEntry screen = new();
             NavigationTestEntry popup = new(false);
-            navigator.PushScreen(screen.Entry);
+            Assert.That(navigator.TryPushScreen(screen.Entry), Is.True);
 
-            navigator.OpenPopup(popup.Entry);
+            Assert.That(navigator.TryOpenPopup(popup.Entry), Is.True);
 
             Assert.That(screen.Control.IsInteractionEnabled, Is.True);
             Assert.That(popup.Control.IsInteractionEnabled, Is.True);
         }
 
         [Test]
-        public void ModalOverlayBlocksLowerLayersOnlyWhileVisible()
+        public void ModalOverlayBlocksLowerLayers()
         {
             UiNavigator navigator = new();
             NavigationTestEntry screen = new();
             NavigationTestEntry nonModalOverlay = new(false);
             NavigationTestEntry modalOverlay = new(true);
-            navigator.PushScreen(screen.Entry);
-            navigator.ShowOverlay(nonModalOverlay.Entry);
+            Assert.That(navigator.TryPushScreen(screen.Entry), Is.True);
+            Assert.That(navigator.TryShowOverlay(nonModalOverlay.Entry), Is.True);
 
             Assert.That(screen.Control.IsInteractionEnabled, Is.True);
             Assert.That(nonModalOverlay.Control.IsInteractionEnabled, Is.True);
 
-            navigator.ShowOverlay(modalOverlay.Entry);
+            Assert.That(navigator.TryShowOverlay(modalOverlay.Entry), Is.True);
 
             Assert.That(screen.Control.IsInteractionEnabled, Is.False);
             Assert.That(nonModalOverlay.Control.IsInteractionEnabled, Is.False);
             Assert.That(modalOverlay.Control.IsInteractionEnabled, Is.True);
 
-            Assert.That(navigator.HideOverlay(modalOverlay.Entry), Is.True);
+            Assert.That(navigator.TryHideOverlay(modalOverlay.Entry), Is.True);
             Assert.That(screen.Control.IsInteractionEnabled, Is.True);
             Assert.That(nonModalOverlay.Control.IsInteractionEnabled, Is.True);
         }
 
         [Test]
-        public void ReplaceScreenDoesNotLeavePreviousScreenInStack()
+        public void TryReplaceKeepsSingleScreen()
         {
             UiNavigator navigator = new();
             NavigationTestEntry first = new();
             NavigationTestEntry second = new();
-            navigator.PushScreen(first.Entry);
+            Assert.That(navigator.TryPushScreen(first.Entry), Is.True);
 
-            navigator.ReplaceScreen(second.Entry);
+            Assert.That(navigator.TryReplaceScreen(second.Entry), Is.True);
 
             Assert.That(navigator.ScreenCnt, Is.EqualTo(1));
             Assert.That(navigator.CurrentScreen, Is.SameAs(second.Entry));
             Assert.That(first.Presenter.IsVisible, Is.False);
-            Assert.That(navigator.PopScreen(), Is.False);
+            Assert.That(navigator.TryPopScreen(), Is.False);
         }
 
         [Test]
-        public void ClearHidesEveryLayerAndNotifiesOnce()
+        public void ClearHidesLayersAndNotifiesOnce()
         {
             UiNavigator navigator = new();
             NavigationTestEntry screen = new();
@@ -118,9 +118,9 @@ namespace UnityTools.Ui.Tests.UiFramework
             NavigationTestEntry overlay = new(false);
             int changedCnt = 0;
             navigator.OnChanged += () => changedCnt++;
-            navigator.PushScreen(screen.Entry);
-            navigator.OpenPopup(popup.Entry);
-            navigator.ShowOverlay(overlay.Entry);
+            Assert.That(navigator.TryPushScreen(screen.Entry), Is.True);
+            Assert.That(navigator.TryOpenPopup(popup.Entry), Is.True);
+            Assert.That(navigator.TryShowOverlay(overlay.Entry), Is.True);
 
             navigator.Clear();
 

@@ -35,10 +35,10 @@ UiNavigationEntry home = new(homePresenter, homeTransition, homeFocus);
 UiNavigationEntry settings = new(settingsPresenter, settingsTransition, settingsFocus);
 UiNavigationEntry confirm = new(confirmPresenter, confirmTransition, confirmFocus, true);
 
-navigator.PushScreen(home);
-navigator.PushScreen(settings);
-navigator.OpenPopup(confirm);
-navigator.HandleBack();
+bool isHomeShown = navigator.TryPushScreen(home);
+bool isSettingsShown = isHomeShown && navigator.TryPushScreen(settings);
+bool isConfirmOpened = isSettingsShown && navigator.TryOpenPopup(confirm);
+bool isBackHandled = isConfirmOpened && navigator.TryHandleBack();
 ```
 
 ## 선택적 Input System
