@@ -48,6 +48,11 @@ namespace UnityTools.Samples.Rank
             BuildTestLayout();
         }
 
+        protected override void OnRelease()
+        {
+            _scrollView.ReleaseView();
+        }
+
         //============================================================
         // Logic
         //============================================================

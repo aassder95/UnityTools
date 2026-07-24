@@ -17,10 +17,12 @@ namespace UnityTools.Samples.Rank
         //============================================================
         // Inspector Fields
         //============================================================
+        [Header("Info")]
         [SerializeField] private TextMeshProUGUI _txtId;
         [SerializeField] private TextMeshProUGUI _txtRank;
         [SerializeField] private TextMeshProUGUI _txtScore;
-        [SerializeField] private Image _imgTmp;
+        [Header("Visual")]
+        [SerializeField] private Image _imgBackground;
 
         //============================================================
         // Fields
@@ -55,7 +57,7 @@ namespace UnityTools.Samples.Rank
             _txtRank.color = RankItemPalette.ResolveRankColor(model.Rank);
             _txtScore.SetText("{0:0000}", model.Score);
             _txtScore.color = scoreColor;
-            _imgTmp.color = RankItemPalette.ResolveBgColor(model.BgColor);
+            _imgBackground.color = RankItemPalette.ResolveBgColor(model.BgColor);
         }
 
         void IDynamicScrollItem.SetIdx(int idx)

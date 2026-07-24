@@ -15,8 +15,13 @@
   "samples": [
     {
       "displayName": "UI Sample Scene",
-      "description": "Inventory, dynamic rank, OSA rank, and timer UI samples. OSA.Core is required for the full sample scene.",
+      "description": "Inventory, dynamic rank, and timer UI samples with no third-party dependencies.",
       "path": "Samples~/UI Sample Scene"
+    },
+    {
+      "displayName": "OSA Rank Sample",
+      "description": "Optional virtualized rank sample. Install the separately distributed OSA.Core plugin before importing.",
+      "path": "Samples~/OSA Rank Sample"
     }
   ],
   "keywords": ["ui", "mvp", "scroll", "pooling", "timer"],
