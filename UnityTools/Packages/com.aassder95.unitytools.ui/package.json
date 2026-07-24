@@ -1,6 +1,6 @@
 {
   "name": "com.aassder95.unitytools.ui",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "displayName": "UnityTools UI Framework",
   "description": "Reusable MVP UI lifecycle, virtualized dynamic scroll views, pooling, timers, and sample UI modules for Unity.",
   "unity": "2022.3",

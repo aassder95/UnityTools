@@ -18,6 +18,8 @@ Unity Package Manager의 `Add package from git URL...`에서 다음 주소를 �
 https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#develop
 ```
 
+현재 저장소는 인증 없이 접근할 수 없으므로 Unity를 실행하기 전에 GitHub 저장소 접근 권한을 Git에 구성해야 합니다. 인증이 없는 배치 또는 CI 환경에서는 Git URL 설치가 실패합니다.
+
 로컬 개발 프로젝트에서는 `Packages/com.aassder95.unitytools.ui` 임베디드 패키지로 바로 로드됩니다.
 
 ## 샘플
