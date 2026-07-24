@@ -1,23 +1,12 @@
+using UnityTools.Util.UiFramework;
+
 namespace UnityTools.Util.Core
 {
-    public interface ISampleModule
+    public interface ISampleModule : IPresenter
     {
         //============================================================
         // Properties
         //============================================================
         string ModuleKey { get; }
-        bool IsInit { get; }
-
-        //============================================================
-        // Init/Register
-        //============================================================
-        void Init();
-        void Release();
-
-        //============================================================
-        // Logic
-        //============================================================
-        void Show();
-        void Hide();
     }
 }

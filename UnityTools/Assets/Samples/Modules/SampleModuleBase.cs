@@ -9,12 +9,14 @@ namespace UnityTools.Samples.Modules
         // Fields
         //============================================================
         private bool _isInit;
+        private bool _isVisible;
 
         //============================================================
         // Properties
         //============================================================
         public abstract string ModuleKey { get; }
         public bool IsInit => _isInit;
+        public bool IsVisible => _isVisible;
 
         //============================================================
         // Init/Register
@@ -34,6 +36,7 @@ namespace UnityTools.Samples.Modules
                 return;
 
             OnReleaseModule();
+            _isVisible = false;
             _isInit = false;
         }
 
@@ -44,12 +47,16 @@ namespace UnityTools.Samples.Modules
         {
             Init();
             OnShowModule();
+            _isVisible = true;
         }
 
         public void Hide()
         {
-            if (_isInit)
-                OnHideModule();
+            if (!_isInit)
+                return;
+
+            OnHideModule();
+            _isVisible = false;
         }
 
         protected abstract void OnInitModule();

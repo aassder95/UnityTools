@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityTools.Samples.Modules;
 using UnityTools.Util.Core;
+using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Manager
 {
@@ -14,6 +15,7 @@ namespace UnityTools.Manager
         //============================================================
         private readonly List<ISampleModule> _modules = new();
         private readonly List<ISampleModule> _activeModules = new();
+        private readonly List<UiNavigationEntry> _moduleEntries = new();
 
         //============================================================
         // Inspector Fields
@@ -30,7 +32,8 @@ namespace UnityTools.Manager
         // Fields
         //============================================================
         private SampleLauncher _launcher;
-        private ISampleModule _selectedModule;
+        private UiNavigator _navigator;
+        private SampleLobbyPresenter _lobbyPresenter;
         private bool _isInit;
 
         //============================================================
@@ -58,13 +61,18 @@ namespace UnityTools.Manager
             InitModules();
             _launcher = new SampleLauncher(_hostCanvas, _eventSystem, OnSampleSelected, OnBackClicked);
             _launcher.Init(_activeModules);
+            _navigator = new UiNavigator();
+            _lobbyPresenter = new SampleLobbyPresenter(_launcher);
+            _navigator.PushScreen(new UiNavigationEntry(_lobbyPresenter));
             _isInit = true;
-            ShowSampleList();
         }
 
         public void Release()
         {
-            HideSelectedModule();
+            _navigator?.Clear();
+            _lobbyPresenter?.Release();
+            _navigator = null;
+            _lobbyPresenter = null;
             _launcher?.Release();
             _launcher = null;
             ReleaseModules();
@@ -83,6 +91,7 @@ namespace UnityTools.Manager
         private void InitModules()
         {
             _activeModules.Clear();
+            _moduleEntries.Clear();
             for (int i = 0; i < _modules.Count; i++)
             {
                 ISampleModule module = _modules[i];
@@ -91,6 +100,7 @@ namespace UnityTools.Manager
 
                 module.Init();
                 _activeModules.Add(module);
+                _moduleEntries.Add(new UiNavigationEntry(module));
                 module.Hide();
             }
         }
@@ -103,6 +113,7 @@ namespace UnityTools.Manager
             }
 
             _activeModules.Clear();
+            _moduleEntries.Clear();
             _modules.Clear();
         }
 
@@ -111,26 +122,7 @@ namespace UnityTools.Manager
         //============================================================
         private void OpenSample(int moduleIdx)
         {
-            HideSelectedModule();
-            ISampleModule module = _activeModules[moduleIdx];
-            module.Show();
-            _launcher.ShowModule();
-            _selectedModule = module;
-        }
-
-        private void ShowSampleList()
-        {
-            HideSelectedModule();
-            _launcher.ShowList();
-        }
-
-        private void HideSelectedModule()
-        {
-            if (_selectedModule == null)
-                return;
-
-            _selectedModule.Hide();
-            _selectedModule = null;
+            _navigator.PushScreen(_moduleEntries[moduleIdx]);
         }
 
         private bool IsTargetModule(string moduleKey)
@@ -151,7 +143,56 @@ namespace UnityTools.Manager
 
         private void OnBackClicked()
         {
-            ShowSampleList();
+            _navigator.HandleBack();
+        }
+
+        //============================================================
+        // Nested Types
+        //============================================================
+        private class SampleLobbyPresenter : IPresenter
+        {
+            private readonly SampleLauncher _launcher;
+
+            private bool _isInit;
+            private bool _isVisible;
+
+            public bool IsInit => _isInit;
+            public bool IsVisible => _isVisible;
+
+            public SampleLobbyPresenter(SampleLauncher launcher)
+            {
+                _launcher = launcher;
+            }
+
+            public void Init()
+            {
+                _isInit = true;
+            }
+
+            public void Release()
+            {
+                if (!_isInit)
+                    return;
+
+                Hide();
+                _isInit = false;
+            }
+
+            public void Show()
+            {
+                Init();
+                _launcher.ShowList();
+                _isVisible = true;
+            }
+
+            public void Hide()
+            {
+                if (!_isInit)
+                    return;
+
+                _launcher.ShowModule();
+                _isVisible = false;
+            }
         }
     }
 }
