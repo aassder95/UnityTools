@@ -1,12 +1,12 @@
 {
   "name": "com.aassder95.unitytools.ui",
-  "version": "2.1.0",
+  "version": "2.0.0",
   "displayName": "UnityTools UI Framework",
   "description": "Reusable MVP lifecycle, layered navigation, transitions, virtualized scroll views, and mobile-safe uGUI components.",
   "unity": "2022.3",
-  "documentationUrl": "https://github.com/aassder95/UnityTools/tree/develop/UnityTools/Packages/com.aassder95.unitytools.ui",
-  "changelogUrl": "https://github.com/aassder95/UnityTools/blob/develop/UnityTools/Packages/com.aassder95.unitytools.ui/CHANGELOG.md",
-  "licensesUrl": "https://github.com/aassder95/UnityTools",
+  "documentationUrl": "https://github.com/aassder95/UnityTools/tree/unitytools-ui/v2.0.0/UnityTools/Packages/com.aassder95.unitytools.ui",
+  "changelogUrl": "https://github.com/aassder95/UnityTools/blob/unitytools-ui/v2.0.0/UnityTools/Packages/com.aassder95.unitytools.ui/CHANGELOG.md",
+  "licensesUrl": "https://github.com/aassder95/UnityTools/blob/unitytools-ui/v2.0.0/LICENSE",
   "dependencies": {
     "com.unity.ugui": "1.0.0",
     "com.unity.textmeshpro": "3.0.7"

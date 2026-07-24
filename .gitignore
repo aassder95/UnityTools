@@ -37,6 +37,12 @@ UserSettings/*
 # Licensed vendor assets that must never enter this public repository
 UnityTools/Assets/Plugins/Com.ForbiddenByte/
 UnityTools/Assets/Plugins/Com.ForbiddenByte.meta
+**/Com.ForbiddenByte/
+**/Com.ForbiddenByte.meta
+**/OSA/
+**/OSA.meta
+**/DOTweenPro/
+**/DOTweenPro.meta
 
 # ------------------------------------------
 # Visual Studio Code

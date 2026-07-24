@@ -4,9 +4,9 @@
   "displayName": "UnityTools Timer",
   "description": "Task and period timers with UTC-based persistence for Unity.",
   "unity": "2022.3",
-  "documentationUrl": "https://github.com/aassder95/UnityTools/tree/develop/UnityTools/Packages/com.aassder95.unitytools.timer",
-  "changelogUrl": "https://github.com/aassder95/UnityTools/blob/develop/UnityTools/Packages/com.aassder95.unitytools.timer/CHANGELOG.md",
-  "licensesUrl": "https://github.com/aassder95/UnityTools/blob/develop/LICENSE",
+  "documentationUrl": "https://github.com/aassder95/UnityTools/tree/unitytools-timer/v1.0.0/UnityTools/Packages/com.aassder95.unitytools.timer",
+  "changelogUrl": "https://github.com/aassder95/UnityTools/blob/unitytools-timer/v1.0.0/UnityTools/Packages/com.aassder95.unitytools.timer/CHANGELOG.md",
+  "licensesUrl": "https://github.com/aassder95/UnityTools/blob/unitytools-timer/v1.0.0/LICENSE",
   "dependencies": {},
   "samples": [
     {
