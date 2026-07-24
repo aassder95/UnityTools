@@ -138,6 +138,76 @@ namespace UnityTools.Timer.Tests.Timer
             timer.Release();
         }
 
+        [Test]
+        public void TaskTimerRestoresPersistedProcessingState()
+        {
+            MemoryStorage storage = new();
+            Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer firstTimer, storage, GetUtcNow), Is.True);
+            Assert.That(firstTimer.TryInit(), Is.True);
+            Assert.That(firstTimer.TryStart(120.0d), Is.True);
+            firstTimer.Release();
+
+            _utcNow = _utcNow.AddSeconds(30.0d);
+            Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer restoredTimer, storage, GetUtcNow), Is.True);
+            Assert.That(restoredTimer.TryInit(), Is.True);
+            Assert.That(restoredTimer.CurType, Is.EqualTo(ETaskTimerType.Processing));
+            Assert.That(restoredTimer.RemainingSec, Is.EqualTo(90));
+            restoredTimer.Release();
+        }
+
+        [Test]
+        public void TaskTimerServiceReplacesDuplicateIdAndReleasesOldHandle()
+        {
+            TaskTimerService service = new(_runner, new MemoryStorage(), GetUtcNow);
+            Assert.That(service.TryCreate("Task", out TaskTimerHandle firstHandle), Is.True);
+            Assert.That(service.TryInit(firstHandle), Is.True);
+            Assert.That(service.TryStart("Task", 60.0d), Is.True);
+            Assert.That(service.TryCreate("Task", out TaskTimerHandle secondHandle), Is.True);
+
+            Assert.That(service.TryInit(secondHandle), Is.True);
+
+            Assert.That(service.TryGetHandle("Task", out TaskTimerHandle currentHandle), Is.True);
+            Assert.That(currentHandle, Is.SameAs(secondHandle));
+            Assert.That(firstHandle.TryComplete(), Is.False);
+
+            service.Release();
+            Assert.That(secondHandle.TryComplete(), Is.False);
+        }
+
+        [Test]
+        public void PeriodTimerServiceReplacesDuplicateIdAndReleasesOldHandle()
+        {
+            PeriodTimerService service = new(_runner, new MemoryStorage(), GetUtcNow);
+            Assert.That(service.TryCreate("Period", out PeriodTimerHandle firstHandle), Is.True);
+            Assert.That(service.TryInit(firstHandle, 1.0d, 2.0d), Is.True);
+            Assert.That(service.TryCreate("Period", out PeriodTimerHandle secondHandle), Is.True);
+
+            Assert.That(service.TryInit(secondHandle, 1.0d, 2.0d), Is.True);
+
+            Assert.That(service.TryGetHandle("Period", out PeriodTimerHandle currentHandle), Is.True);
+            Assert.That(currentHandle, Is.SameAs(secondHandle));
+            Assert.That(firstHandle.TryForceClosed(), Is.False);
+
+            service.Release();
+            Assert.That(secondHandle.TryForceOpen(), Is.False);
+        }
+
+        [Test]
+        public void TimerHostOwnsAndReleasesBothServices()
+        {
+            TimerHost host = _goRunner.AddComponent<TimerHost>();
+
+            host.Init(new MemoryStorage(), GetUtcNow);
+
+            Assert.That(host.TaskTimers, Is.Not.Null);
+            Assert.That(host.PeriodTimers, Is.Not.Null);
+
+            host.Release();
+
+            Assert.That(host.TaskTimers, Is.Null);
+            Assert.That(host.PeriodTimers, Is.Null);
+        }
+
         //============================================================
         // Utilities
         //============================================================
