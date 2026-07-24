@@ -1,5 +1,21 @@
 # Changelog
 
+## [2.1.0] - 2026-07-24
+
+### Added
+
+- Screen, Popup, Overlay 레이어를 분리하고 Back 순서, 모달 입력 차단, 포커스 복원을 관리하는 `UiNavigator`
+- `CanvasGroup` 기반 전환과 전환 중 입력 차단을 제공하는 `UiCanvasTransition`, `TransitionView<TModel>`
+- Input System의 Back 액션을 `UiNavigator`에 연결하는 `UiBackInput`과 선택 포커스를 저장·복원하는 `UiFocusScope`
+- 화면 회전과 해상도 변경에 맞춰 지정한 축의 앵커만 갱신하는 `UiSafeAreaFitter`
+- DynamicScroll의 보이는 항목·범위 증분 갱신, 항목 삽입·제거 시 앵커 보존, Start/Center/End 정렬 이동
+- MVP 수명주기, 내비게이션, 전환, DynamicScroll, Safe Area를 검증하는 PlayMode 테스트
+
+### Changed
+
+- 숨겨진 View는 모델 갱신마다 렌더링하지 않고 다음 `Show`에서 최신 모델을 한 번만 반영
+- 기본 UI Sample Scene의 Lobby와 모듈 이동을 `UiNavigator` 화면 스택 예제로 변경
+
 ## [2.0.0] - 2026-07-24
 
 ### Changed
