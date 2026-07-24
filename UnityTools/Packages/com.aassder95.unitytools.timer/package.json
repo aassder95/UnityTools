@@ -8,6 +8,13 @@
   "changelogUrl": "https://github.com/aassder95/UnityTools/blob/develop/UnityTools/Packages/com.aassder95.unitytools.timer/CHANGELOG.md",
   "licensesUrl": "https://github.com/aassder95/UnityTools/blob/develop/LICENSE",
   "dependencies": {},
+  "samples": [
+    {
+      "displayName": "Timer Sample Scene",
+      "description": "Standalone TaskTimerService lifecycle and persistence sample.",
+      "path": "Samples~/Timer Sample Scene"
+    }
+  ],
   "keywords": ["timer", "persistence", "utc"],
   "author": {
     "name": "aassder95",

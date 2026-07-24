@@ -15,7 +15,7 @@ namespace UnityTools.Timer.Tests.Timer
         // Fields
         //============================================================
         private GameObject _goRunner;
-        private CoroutineHelper _runner;
+        private TestRunner _runner;
         private DateTime _utcNow;
 
         //============================================================
@@ -25,7 +25,7 @@ namespace UnityTools.Timer.Tests.Timer
         public void SetUp()
         {
             _goRunner = new GameObject("TimerTestRunner");
-            _runner = _goRunner.AddComponent<CoroutineHelper>();
+            _runner = _goRunner.AddComponent<TestRunner>();
             _utcNow = new DateTime(2026, 7, 24, 0, 0, 0, DateTimeKind.Utc);
         }
 
@@ -149,6 +149,8 @@ namespace UnityTools.Timer.Tests.Timer
         //============================================================
         // Nested Types
         //============================================================
+        private class TestRunner : MonoBehaviour { }
+
         private class MemoryStorage : IStorage
         {
             //============================================================

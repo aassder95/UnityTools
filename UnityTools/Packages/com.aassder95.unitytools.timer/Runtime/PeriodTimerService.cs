@@ -11,6 +11,15 @@ namespace UnityTools.Timer
     public class PeriodTimerService
     {
         //============================================================
+        // Constants
+        //============================================================
+        private const string STORAGE_PREFIX = "PeriodTimer_";
+        private const string OPEN_END_TIME_SUFFIX = "_OPEN_END";
+        private const string CLOSED_END_TIME_SUFFIX = "_CLOSED_END";
+        private const string OPEN_UPDATED_TIME_SUFFIX = "_OPEN_UPDATED";
+        private const string TAMPERED_SUFFIX = "_TAMPERED";
+
+        //============================================================
         // Readonly
         //============================================================
         private readonly MonoBehaviour _runner;
@@ -97,7 +106,7 @@ namespace UnityTools.Timer
             if (!TryNormalizeId(id, out string normalizedId))
                 return false;
 
-            if (!PeriodTimerPersistence.TryDeleteAll(normalizedId, _storage))
+            if (!TryDeleteAll(normalizedId))
                 return false;
 
             if (_handles.Remove(normalizedId, out PeriodTimerHandle handle))
@@ -147,6 +156,15 @@ namespace UnityTools.Timer
         {
             normalizedId = id?.Trim();
             return !string.IsNullOrEmpty(normalizedId);
+        }
+
+        private bool TryDeleteAll(string id)
+        {
+            bool isOpenEndDeleted = _storage.TryDelete($"{STORAGE_PREFIX}{id}{OPEN_END_TIME_SUFFIX}");
+            bool isClosedEndDeleted = _storage.TryDelete($"{STORAGE_PREFIX}{id}{CLOSED_END_TIME_SUFFIX}");
+            bool isOpenUpdatedDeleted = _storage.TryDelete($"{STORAGE_PREFIX}{id}{OPEN_UPDATED_TIME_SUFFIX}");
+            bool isTamperedDeleted = _storage.TryDelete($"{STORAGE_PREFIX}{id}{TAMPERED_SUFFIX}");
+            return isOpenEndDeleted && isClosedEndDeleted && isOpenUpdatedDeleted && isTamperedDeleted;
         }
 
         //============================================================

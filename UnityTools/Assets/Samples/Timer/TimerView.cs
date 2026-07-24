@@ -96,7 +96,8 @@ namespace UnityTools.Samples.Timer
         {
             while (true)
             {
-                DateTime curUtcTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
+                DateTime utcNow = DateTime.UtcNow;
+                DateTime curUtcTime = new DateTime(utcNow.Year, utcNow.Month, utcNow.Day, utcNow.Hour, utcNow.Minute, utcNow.Second, DateTimeKind.Utc);
                 _txtCur.SetText("cur: " + curUtcTime.ToString(UTC_TIME_FORMAT));
                 yield return _clockWait;
             }

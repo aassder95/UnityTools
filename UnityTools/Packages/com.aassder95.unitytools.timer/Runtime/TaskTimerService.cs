@@ -10,6 +10,15 @@ namespace UnityTools.Timer
     public class TaskTimerService
     {
         //============================================================
+        // Constants
+        //============================================================
+        private const string STORAGE_PREFIX = "TaskTimer_";
+        private const string START_TIME_SUFFIX = "_START";
+        private const string UPDATED_TIME_SUFFIX = "_UPDATED";
+        private const string DURATION_SUFFIX = "_DURATION";
+        private const string STATE_SUFFIX = "_STATE";
+
+        //============================================================
         // Readonly
         //============================================================
         private readonly MonoBehaviour _runner;
@@ -124,7 +133,7 @@ namespace UnityTools.Timer
             if (_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
                 return handle.TryGetClaimed(out isClaimed);
 
-            return TaskTimerPersistence.TryLoadClaimed(normalizedId, out isClaimed, _storage);
+            return TryLoadClaimed(normalizedId, out isClaimed);
         }
 
         public bool TryGetHandle(string id, out TaskTimerHandle handle)
@@ -189,6 +198,20 @@ namespace UnityTools.Timer
         {
             normalizedId = id?.Trim();
             return !string.IsNullOrEmpty(normalizedId);
+        }
+
+        private bool TryLoadClaimed(string id, out bool isClaimed)
+        {
+            isClaimed = false;
+            bool isStartChecked = _storage.TryHasKey($"{STORAGE_PREFIX}{id}{START_TIME_SUFFIX}", out bool hasStart);
+            bool isDurationChecked = _storage.TryHasKey($"{STORAGE_PREFIX}{id}{DURATION_SUFFIX}", out bool hasDuration);
+            bool isStateChecked = _storage.TryHasKey($"{STORAGE_PREFIX}{id}{STATE_SUFFIX}", out bool hasState);
+            bool isUpdatedChecked = _storage.TryHasKey($"{STORAGE_PREFIX}{id}{UPDATED_TIME_SUFFIX}", out bool hasUpdated);
+            if (!isStartChecked || !isDurationChecked || !isStateChecked || !isUpdatedChecked)
+                return false;
+
+            isClaimed = !hasStart && !hasDuration && !hasState && hasUpdated;
+            return true;
         }
 
         //============================================================
