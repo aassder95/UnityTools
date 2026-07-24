@@ -13,7 +13,7 @@ namespace UnityTools.Ui
         // Properties
         //============================================================
         public bool IsInit => _isInit;
-        public bool IsVisible => IsViewVisible;
+        public bool IsVisible => _isInit && IsViewVisible;
         protected virtual bool IsViewVisible => gameObject.activeSelf;
 
         //============================================================
@@ -67,7 +67,7 @@ namespace UnityTools.Ui
 
         public void Hide()
         {
-            if (!IsViewVisible)
+            if (!_isInit || !IsViewVisible)
                 return;
 
             HideView();

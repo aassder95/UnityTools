@@ -13,22 +13,16 @@ namespace UnityTools.Ui
         //============================================================
         // Properties
         //============================================================
-        protected override bool IsViewVisible
-        {
-            get
-            {
-                PrepareTransition();
-                return _transition.IsVisible;
-            }
-        }
+        protected override bool IsViewVisible => _transition.IsVisible;
+        public bool IsInteractionEnabled => IsInit && _transition.IsInteractionEnabled;
 
-        public bool IsInteractionEnabled
+        //============================================================
+        // Init/Register
+        //============================================================
+        protected override void OnInit()
         {
-            get
-            {
-                PrepareTransition();
-                return _transition.IsInteractionEnabled;
-            }
+            base.OnInit();
+            _transition = GetComponent<UiCanvasTransition>();
         }
 
         //============================================================
@@ -36,26 +30,18 @@ namespace UnityTools.Ui
         //============================================================
         public void SetInteractionEnabled(bool isEnabled)
         {
-            PrepareTransition();
+            Init();
             _transition.SetInteractionEnabled(isEnabled);
         }
 
         protected override void ShowView()
         {
-            PrepareTransition();
             _transition.Show();
         }
 
         protected override void HideView()
         {
-            PrepareTransition();
             _transition.Hide();
-        }
-
-        private void PrepareTransition()
-        {
-            if (_transition == null)
-                _transition = GetComponent<UiCanvasTransition>();
         }
     }
 }

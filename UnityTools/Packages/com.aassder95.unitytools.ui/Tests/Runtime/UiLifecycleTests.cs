@@ -1,4 +1,6 @@
+using System.Reflection;
 using NUnit.Framework;
+using UnityEngine;
 using UnityTools.Ui;
 
 namespace UnityTools.Ui.Tests.UiFramework
@@ -98,6 +100,35 @@ namespace UnityTools.Ui.Tests.UiFramework
             Assert.That(view.RefreshCnt, Is.EqualTo(1));
         }
 
+        [Test]
+        public void TransitionViewPropertiesDoNotInitializeComponentCache()
+        {
+            GameObject goView = new("TransitionLifecycleTestView");
+            try
+            {
+                goView.SetActive(false);
+                goView.AddComponent<CanvasGroup>();
+                goView.AddComponent<UiCanvasTransition>();
+                TransitionLifecycleTestView view = goView.AddComponent<TransitionLifecycleTestView>();
+                FieldInfo transitionField = typeof(TransitionView<LifecycleTestModel>).GetField("_transition", BindingFlags.Instance | BindingFlags.NonPublic);
+
+                Assert.That(transitionField, Is.Not.Null);
+                Assert.That(view.IsVisible, Is.False);
+                Assert.That(view.IsInteractionEnabled, Is.False);
+                Assert.That(transitionField.GetValue(view), Is.Null);
+
+                view.Show();
+
+                Assert.That(view.IsVisible, Is.True);
+                Assert.That(view.IsInteractionEnabled, Is.True);
+                Assert.That(transitionField.GetValue(view), Is.Not.Null);
+            }
+            finally
+            {
+                Object.DestroyImmediate(goView);
+            }
+        }
+
         //============================================================
         // Nested Types
         //============================================================
@@ -172,6 +203,13 @@ namespace UnityTools.Ui.Tests.UiFramework
         private class LifecycleTestPresenter : BasePresenter<LifecycleTestModel, LifecycleTestView>
         {
             public LifecycleTestPresenter(LifecycleTestModel model, LifecycleTestView view) : base(model, view)
+            {
+            }
+        }
+
+        private class TransitionLifecycleTestView : TransitionView<LifecycleTestModel>
+        {
+            protected override void OnRefresh(LifecycleTestModel model)
             {
             }
         }
