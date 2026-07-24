@@ -111,7 +111,8 @@ namespace UnityTools.Timer.Period
             if (!TryLoad())
                 return false;
 
-            if (initWaitFunc == null)
+            IEnumerator initEnumerator = initWaitFunc?.Invoke();
+            if (initEnumerator == null)
             {
                 _isInit = true;
                 if (TryRefresh())
@@ -124,7 +125,6 @@ namespace UnityTools.Timer.Period
                 return false;
             }
 
-            IEnumerator initEnumerator = initWaitFunc.Invoke();
             _coInit = _runner.StartCoroutine(CoInit(initEnumerator));
             return true;
         }
@@ -163,15 +163,11 @@ namespace UnityTools.Timer.Period
                 if (IsTampered)
                     return TryHandleTampered();
 
-                ChangeState(EPeriodTimerType.Open);
-                return true;
+                return TryChangeState(EPeriodTimerType.Open);
             }
 
             if (now < _closedEndTime)
-            {
-                ChangeState(EPeriodTimerType.Closed);
-                return true;
-            }
+                return TryChangeState(EPeriodTimerType.Closed);
 
             return TryOpenNewPeriod();
         }
@@ -182,10 +178,11 @@ namespace UnityTools.Timer.Period
             if (!TryApplyPeriodTime())
                 return false;
 
-            ChangeState(EPeriodTimerType.Reset);
+            if (!TryChangeState(EPeriodTimerType.Reset, true))
+                return false;
+
             NotifyOpenPeriodStarted();
-            ChangeState(EPeriodTimerType.Open);
-            return true;
+            return TryChangeState(EPeriodTimerType.Open, true);
         }
 
         private bool TryApplyPeriodTime()
@@ -214,8 +211,7 @@ namespace UnityTools.Timer.Period
                 return false;
 
             _isTamperedFlag = true;
-            ChangeState(EPeriodTimerType.Closed);
-            return true;
+            return TryChangeState(EPeriodTimerType.Closed);
         }
 
         private bool TryClearTampered()
@@ -259,8 +255,7 @@ namespace UnityTools.Timer.Period
             if (!_isInit || !TrySetClosedPeriodFromNow())
                 return false;
 
-            ChangeState(EPeriodTimerType.Closed);
-            return true;
+            return TryChangeState(EPeriodTimerType.Closed, true);
         }
 
         private bool TrySetClosedPeriodFromNow()
@@ -285,8 +280,7 @@ namespace UnityTools.Timer.Period
             bool isCompleted = false;
             try
             {
-                if (initEnumerator != null)
-                    yield return initEnumerator;
+                yield return initEnumerator;
 
                 _isInit = true;
                 if (!TryRefresh())
@@ -314,13 +308,19 @@ namespace UnityTools.Timer.Period
 
         private IEnumerator CoUpdate()
         {
-            while (_isInit && _curType != EPeriodTimerType.None)
+            try
             {
-                TickState();
-                if (!_isInit || _curType == EPeriodTimerType.None)
-                    yield break;
+                while (_isInit && _curType != EPeriodTimerType.None)
+                {
+                    if (TryTickState() && (!_isInit || _curType == EPeriodTimerType.None))
+                        yield break;
 
-                yield return new WaitForSecondsRealtime(GetWaitSec());
+                    yield return new WaitForSecondsRealtime(GetWaitSec());
+                }
+            }
+            finally
+            {
+                _coUpdate = null;
             }
         }
 
@@ -368,21 +368,19 @@ namespace UnityTools.Timer.Period
 
         private bool TryNotifyOpenRemainMinUpdated()
         {
-            DateTime updatedTime = GetUtcNow();
-            if (!TrySavePeriod(_openEndTime, _closedEndTime, updatedTime, _isTamperedFlag))
+            if (!TryUpdateOpenRemainMin(out int remainingMin))
                 return false;
 
-            _openUpdatedTime = updatedTime;
-            _onRemainMinUpdated?.Invoke(GetRemainingMin(_openEndTime, updatedTime));
+            _onRemainMinUpdated?.Invoke(remainingMin);
             return true;
         }
 
         private bool TryNotifyClosedRemainMinUpdated()
         {
-            if (!TrySavePeriod(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag))
+            if (!TryUpdateClosedRemainMin(out int remainingMin))
                 return false;
 
-            _onRemainMinUpdated?.Invoke(GetRemainingMin(_closedEndTime, GetUtcNow()));
+            _onRemainMinUpdated?.Invoke(remainingMin);
             return true;
         }
 
@@ -442,71 +440,107 @@ namespace UnityTools.Timer.Period
             return value > 0.0d && !double.IsNaN(value) && !double.IsInfinity(value);
         }
 
-        private void ChangeState(EPeriodTimerType type)
+        private bool TryChangeState(EPeriodTimerType type, bool hasSavedTime = false)
         {
-            if (!IsKnownState(type) || _curType == type)
-                return;
+            if (!IsKnownState(type))
+                return false;
+            if (_curType == type)
+                return true;
+
+            int remainingMin = 0;
+            if (type == EPeriodTimerType.Open)
+            {
+                if (hasSavedTime)
+                    remainingMin = GetRemainingMin(_openEndTime, GetUtcNow());
+                else if (!TryUpdateOpenRemainMin(out remainingMin))
+                    return false;
+            }
+            else if (type == EPeriodTimerType.Closed)
+            {
+                if (_isTamperedFlag)
+                {
+                    if (!TryClearTampered())
+                        return false;
+
+                    remainingMin = GetRemainingMin(_closedEndTime, GetUtcNow());
+                }
+                else if (hasSavedTime)
+                {
+                    remainingMin = GetRemainingMin(_closedEndTime, GetUtcNow());
+                }
+                else if (!TryUpdateClosedRemainMin(out remainingMin))
+                {
+                    return false;
+                }
+            }
 
             EPeriodTimerType prevType = _curType;
             _curType = type;
 
             if (type == EPeriodTimerType.Open)
             {
-                TryNotifyOpenRemainMinUpdated();
+                _onRemainMinUpdated?.Invoke(remainingMin);
             }
             else if (type == EPeriodTimerType.Closed)
             {
-                if (_isTamperedFlag && !TryClearTampered())
-                {
-                    OnStateTransitionCallback(prevType, type);
-                    return;
-                }
-
                 NotifyClosedPeriodStarted();
-                TryNotifyClosedRemainMinUpdated();
+                _onRemainMinUpdated?.Invoke(remainingMin);
             }
 
             OnStateTransitionCallback(prevType, type);
+            return true;
         }
 
-        private void TickState()
+        private bool TryTickState()
         {
             if (_curType == EPeriodTimerType.Open)
             {
                 if (IsTampered)
-                {
-                    TryHandleTampered();
-                    return;
-                }
+                    return TryHandleTampered();
 
                 if (!IsOpenPeriod)
-                {
-                    ChangeState(EPeriodTimerType.Closed);
-                    return;
-                }
+                    return TryChangeState(EPeriodTimerType.Closed, true);
 
-                TryNotifyOpenRemainMinUpdated();
-                return;
+                return TryNotifyOpenRemainMinUpdated();
             }
 
             if (_curType != EPeriodTimerType.Closed)
-                return;
+                return false;
 
             if (_isTamperedFlag)
             {
                 if (!TryClearTampered())
-                    return;
+                    return false;
 
                 NotifyClosedPeriodStarted();
             }
 
             if (!IsClosedPeriod)
-            {
-                TryOpenNewPeriod();
-                return;
-            }
+                return TryOpenNewPeriod();
 
-            TryNotifyClosedRemainMinUpdated();
+            return TryNotifyClosedRemainMinUpdated();
+        }
+
+        private bool TryUpdateOpenRemainMin(out int remainingMin)
+        {
+            remainingMin = 0;
+            DateTime updatedTime = GetUtcNow();
+            if (!TrySavePeriod(_openEndTime, _closedEndTime, updatedTime, _isTamperedFlag))
+                return false;
+
+            _openUpdatedTime = updatedTime;
+            remainingMin = GetRemainingMin(_openEndTime, updatedTime);
+            return true;
+        }
+
+        private bool TryUpdateClosedRemainMin(out int remainingMin)
+        {
+            remainingMin = 0;
+            if (!TrySavePeriod(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag))
+                return false;
+
+            remainingMin = GetRemainingMin(_closedEndTime, GetUtcNow());
+            return true;
         }
 
         private bool TrySavePeriod(DateTime openEndTime, DateTime closedEndTime, DateTime openUpdatedTime, bool isTamperedFlag)

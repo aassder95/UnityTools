@@ -21,6 +21,7 @@ namespace UnityTools.Timer.Samples
         private TaskTimerService _service;
         private TaskTimerHandle _handle;
         private int _remainingSec;
+        private string _actionResult = "Ready";
 
         //============================================================
         // Unity Methods
@@ -39,11 +40,12 @@ namespace UnityTools.Timer.Samples
         {
             GUI.Label(new Rect(24.0f, 24.0f, 260.0f, 24.0f), "Remaining: " + _remainingSec + " sec");
             if (GUI.Button(new Rect(24.0f, 56.0f, 120.0f, 36.0f), "Start"))
-                _service.TryStart(TIMER_ID, _durationSec);
+                _actionResult = _service.TryStart(TIMER_ID, _durationSec) ? "Start succeeded" : "Start unavailable";
             if (GUI.Button(new Rect(152.0f, 56.0f, 120.0f, 36.0f), "Complete"))
-                _service.TryComplete(TIMER_ID);
+                _actionResult = _service.TryComplete(TIMER_ID) ? "Complete succeeded" : "Complete unavailable";
             if (GUI.Button(new Rect(280.0f, 56.0f, 120.0f, 36.0f), "Claim"))
-                _service.TryClaim(TIMER_ID);
+                _actionResult = _service.TryClaim(TIMER_ID) ? "Claim succeeded" : "Claim unavailable";
+            GUI.Label(new Rect(24.0f, 100.0f, 376.0f, 24.0f), _actionResult);
         }
 
         //============================================================

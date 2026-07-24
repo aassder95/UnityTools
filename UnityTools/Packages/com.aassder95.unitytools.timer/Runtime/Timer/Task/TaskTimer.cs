@@ -272,13 +272,19 @@ namespace UnityTools.Timer.Task
         //============================================================
         private IEnumerator CoUpdate()
         {
-            while (_isInit && _curType == ETaskTimerType.Processing)
+            try
             {
-                TickState();
-                if (!_isInit || _curType != ETaskTimerType.Processing)
-                    yield break;
+                while (_isInit && _curType == ETaskTimerType.Processing)
+                {
+                    if (TryTickState() && (!_isInit || _curType != ETaskTimerType.Processing))
+                        yield break;
 
-                yield return new WaitForSecondsRealtime(1.0f);
+                    yield return new WaitForSecondsRealtime(1.0f);
+                }
+            }
+            finally
+            {
+                _coUpdate = null;
             }
         }
 
@@ -389,18 +395,16 @@ namespace UnityTools.Timer.Task
             _onStateTransition?.Invoke(prevType, type);
         }
 
-        private void TickState()
+        private bool TryTickState()
         {
             if (_curType != ETaskTimerType.Processing)
-                return;
+                return false;
 
             if (IsPeriodExpired)
-            {
-                TryUpdateCompletionTime();
-                return;
-            }
+                return TryUpdateCompletionTime();
 
             NotifyUpdate();
+            return true;
         }
 
         private bool TryClearRuntimeData()

@@ -73,6 +73,20 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
+        public void TaskTimerPreservesProcessingStateWhenCompletionSaveFails()
+        {
+            MemoryStorage storage = new();
+            Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer timer, storage, GetUtcNow), Is.True);
+            Assert.That(timer.TryInit(), Is.True);
+            Assert.That(timer.TryStart(60.0d), Is.True);
+            storage.DisableSave();
+
+            Assert.That(timer.TryComplete(), Is.False);
+            Assert.That(timer.CurType, Is.EqualTo(ETaskTimerType.Processing));
+            timer.Release();
+        }
+
+        [Test]
         public void TaskTimerReportsClaimedReadFailure()
         {
             MemoryStorage storage = new();
@@ -135,6 +149,23 @@ namespace UnityTools.Timer.Tests.Timer
             Assert.That(timer.CurType, Is.EqualTo(prevType));
             Assert.That(timer.OpenEndTime, Is.EqualTo(prevOpenEndTime));
             Assert.That(timer.ClosedEndTime, Is.EqualTo(prevClosedEndTime));
+            timer.Release();
+        }
+
+        [Test]
+        public void PeriodTimerReportsRefreshSaveFailure()
+        {
+            MemoryStorage storage = new();
+            Assert.That(PeriodTimer.TryCreate("Period", _runner, out PeriodTimer timer, storage, GetUtcNow), Is.True);
+            Assert.That(timer.TryInit(1.0d, 2.0d), Is.True);
+            Assert.That(timer.IsReady, Is.True);
+            timer.Release();
+            _utcNow = _utcNow.AddSeconds(90.0d);
+            storage.DisableSave();
+
+            Assert.That(timer.TryInit(1.0d, 2.0d), Is.False);
+            Assert.That(timer.CurType, Is.EqualTo(EPeriodTimerType.Open));
+            Assert.That(timer.IsReady, Is.False);
             timer.Release();
         }
 
