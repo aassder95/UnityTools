@@ -109,6 +109,9 @@ namespace UnityTools.Util.UiFramework
             if (!_isInit)
                 return;
 
+            if (!_view.IsVisible)
+                return;
+
             _view.Refresh(_model);
         }
     }
