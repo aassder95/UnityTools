@@ -78,15 +78,15 @@ namespace UnityTools.Samples.Timer
             };
         }
 
-        public void SetTimer(string time)
+        public void SetTimer(string timeText)
         {
-            if (string.IsNullOrWhiteSpace(time))
+            if (string.IsNullOrWhiteSpace(timeText))
             {
                 Debug.LogError("TaskTimerView에 표시할 시간 문자열이 비어 있습니다.", this);
                 return;
             }
 
-            _txtTimer.text = time;
+            _txtTimer.text = timeText;
         }
 
         //============================================================

@@ -59,7 +59,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void TaskTimerPreservesStateWhenSaveFails()
+        public void TaskSaveFailurePreservesState()
         {
             MemoryStorage storage = new();
             Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer timer, storage, GetUtcNow), Is.True);
@@ -73,7 +73,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void TaskTimerPreservesProcessingStateWhenCompletionSaveFails()
+        public void TaskCompletionSaveFailurePreservesState()
         {
             MemoryStorage storage = new();
             Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer timer, storage, GetUtcNow), Is.True);
@@ -100,7 +100,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void TaskTimerAppliesClockRollbackOnlyOnce()
+        public void TaskAppliesClockRollbackOnce()
         {
             MemoryStorage storage = new();
             Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer timer, storage, GetUtcNow), Is.True);
@@ -119,7 +119,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void PeriodTimerUsesInjectedUtcClockAndPendingPeriods()
+        public void PeriodUsesClockAndPendingPeriods()
         {
             MemoryStorage storage = new();
             Assert.That(PeriodTimer.TryCreate("Period", _runner, out PeriodTimer timer, storage, GetUtcNow), Is.True);
@@ -135,7 +135,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void PeriodTimerPreservesStateWhenForceSaveFails()
+        public void PeriodForceSaveFailurePreservesState()
         {
             MemoryStorage storage = new();
             Assert.That(PeriodTimer.TryCreate("Period", _runner, out PeriodTimer timer, storage, GetUtcNow), Is.True);
@@ -187,7 +187,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void TaskTimerServiceReplacesDuplicateIdAndReleasesOldHandle()
+        public void TaskServiceReplacesAndReleasesHandle()
         {
             TaskTimerService service = new(_runner, new MemoryStorage(), GetUtcNow);
             Assert.That(service.TryCreate("Task", out TaskTimerHandle firstHandle), Is.True);
@@ -206,7 +206,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void PeriodTimerServiceReplacesDuplicateIdAndReleasesOldHandle()
+        public void PeriodServiceReplacesAndReleasesHandle()
         {
             PeriodTimerService service = new(_runner, new MemoryStorage(), GetUtcNow);
             Assert.That(service.TryCreate("Period", out PeriodTimerHandle firstHandle), Is.True);
@@ -224,7 +224,7 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
-        public void TimerHostOwnsAndReleasesBothServices()
+        public void TimerHostOwnsAndReleasesServices()
         {
             TimerHost host = _goRunner.AddComponent<TimerHost>();
 
@@ -262,19 +262,6 @@ namespace UnityTools.Timer.Tests.Timer
             private bool _canRead = true;
 
             //============================================================
-            // Logic
-            //============================================================
-            public void DisableSave()
-            {
-                _canSave = false;
-            }
-
-            public void DisableRead()
-            {
-                _canRead = false;
-            }
-
-            //============================================================
             // Persistence
             //============================================================
             public bool TrySave(string key, string data)
@@ -305,6 +292,19 @@ namespace UnityTools.Timer.Tests.Timer
 
                 _values.Remove(key);
                 return true;
+            }
+
+            //============================================================
+            // Logic
+            //============================================================
+            public void DisableSave()
+            {
+                _canSave = false;
+            }
+
+            public void DisableRead()
+            {
+                _canRead = false;
             }
         }
     }
