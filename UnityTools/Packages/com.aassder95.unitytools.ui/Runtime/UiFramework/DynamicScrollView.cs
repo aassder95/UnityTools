@@ -2,13 +2,11 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
-using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Pooling;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     [RequireComponent(typeof(ScrollRect))]
-    public class DynamicScrollView<TView> : DynamicScrollViewBase where TView : Component, IDynamicScrollItem, IPoolable
+    public class DynamicScrollView<TView> : DynamicScrollViewBase where TView : Component, IDynamicScrollItem
     {
         //============================================================
         // Constants
@@ -43,7 +41,6 @@ namespace UnityTools.Util.UiFramework
         //============================================================
         private DynamicScrollContext _context;
         private DynamicScrollItemController<TView> _itemCtrl;
-        private ObjectPool<TView> _pool;
         private int _totalItemCnt;
         private int _totalLineCnt;
         private int _visibleLineCnt = MIN_VISIBLE_LINE_CNT;
@@ -122,8 +119,7 @@ namespace UnityTools.Util.UiFramework
             UpdateAutoVisibleLineCnt();
 
             int initialItemCnt = Mathf.Max(_visibleLineCnt * _itemCntPerLine, _itemCntPerLine);
-            _pool = ObjectPool<TView>.Create(initialItemCnt, _item, _rtContent);
-            _itemCtrl = new DynamicScrollItemController<TView>(_context, _pool);
+            _itemCtrl = new DynamicScrollItemController<TView>(_context, initialItemCnt, _item, _rtContent);
 
             _scrollRect.onValueChanged.AddListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated += OnControllerItemUpdated;
@@ -134,7 +130,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (totalItemCnt < 0)
             {
-                DebugLogger.LogError("동적 스크롤 전체 Item 수는 0 이상이어야 합니다. 값=" + totalItemCnt, this);
+                Debug.LogError("동적 스크롤 전체 Item 수는 0 이상이어야 합니다. 값=" + totalItemCnt, this);
                 return;
             }
 
@@ -155,11 +151,9 @@ namespace UnityTools.Util.UiFramework
             StopSmoothScroll();
             _scrollRect.onValueChanged.RemoveListener(OnScrollValueChanged);
             _itemCtrl.OnItemUpdated -= OnControllerItemUpdated;
-            _itemCtrl.Clear();
-            _pool.Clear();
+            _itemCtrl.Release();
             _context = null;
             _itemCtrl = null;
-            _pool = null;
             _isComponentReady = false;
             _isInitialized = false;
         }
@@ -176,7 +170,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (itemIdx < 0 || itemIdx >= _totalItemCnt)
             {
-                DebugLogger.LogError("갱신할 DynamicScroll Item 인덱스가 유효하지 않습니다. 인덱스=" + itemIdx + ", 전체 개수=" + _totalItemCnt, this);
+                Debug.LogError("갱신할 DynamicScroll Item 인덱스가 유효하지 않습니다. 인덱스=" + itemIdx + ", 전체 개수=" + _totalItemCnt, this);
                 return;
             }
 
@@ -187,7 +181,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (startIdx < 0 || cnt < 0 || startIdx > _totalItemCnt - cnt)
             {
-                DebugLogger.LogError("갱신할 DynamicScroll Item 범위가 유효하지 않습니다. 시작 인덱스=" + startIdx + ", 개수=" + cnt + ", 전체 개수=" + _totalItemCnt, this);
+                Debug.LogError("갱신할 DynamicScroll Item 범위가 유효하지 않습니다. 시작 인덱스=" + startIdx + ", 개수=" + cnt + ", 전체 개수=" + _totalItemCnt, this);
                 return;
             }
 
@@ -201,7 +195,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (!_isInitialized || totalItemCnt < 0)
             {
-                DebugLogger.LogError("DynamicScroll Item 개수 갱신 조건이 유효하지 않습니다. 초기화=" + _isInitialized + ", 전체 개수=" + totalItemCnt, this);
+                Debug.LogError("DynamicScroll Item 개수 갱신 조건이 유효하지 않습니다. 초기화=" + _isInitialized + ", 전체 개수=" + totalItemCnt, this);
                 return;
             }
 
@@ -218,7 +212,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (!_isInitialized || itemIdx < 0 || itemIdx > _totalItemCnt || itemCnt <= 0)
             {
-                DebugLogger.LogError("삽입할 DynamicScroll Item 범위가 유효하지 않습니다. 초기화=" + _isInitialized + ", 인덱스=" + itemIdx + ", 개수=" + itemCnt + ", 전체 개수=" + _totalItemCnt, this);
+                Debug.LogError("삽입할 DynamicScroll Item 범위가 유효하지 않습니다. 초기화=" + _isInitialized + ", 인덱스=" + itemIdx + ", 개수=" + itemCnt + ", 전체 개수=" + _totalItemCnt, this);
                 return;
             }
 
@@ -241,7 +235,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (!_isInitialized || itemIdx < 0 || itemCnt <= 0 || itemIdx > _totalItemCnt - itemCnt)
             {
-                DebugLogger.LogError("제거할 DynamicScroll Item 범위가 유효하지 않습니다. 초기화=" + _isInitialized + ", 인덱스=" + itemIdx + ", 개수=" + itemCnt + ", 전체 개수=" + _totalItemCnt, this);
+                Debug.LogError("제거할 DynamicScroll Item 범위가 유효하지 않습니다. 초기화=" + _isInitialized + ", 인덱스=" + itemIdx + ", 개수=" + itemCnt + ", 전체 개수=" + _totalItemCnt, this);
                 return;
             }
 

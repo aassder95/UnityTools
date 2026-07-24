@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityTools.Util.Core.Logging;
+using UnityEngine;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     public abstract class BaseModel : IModel
     {
@@ -30,7 +30,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (_updateDepth <= 0)
             {
-                DebugLogger.LogError("Model Update 범위가 시작되지 않은 상태에서 종료되었습니다. 타입=" + GetType().Name);
+                Debug.LogError("Model Update 범위가 시작되지 않은 상태에서 종료되었습니다. 타입=" + GetType().Name);
                 return;
             }
 
@@ -46,7 +46,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (updateAction == null)
             {
-                DebugLogger.LogError("Model Batch Update 작업이 비어 있습니다. 타입=" + GetType().Name);
+                Debug.LogError("Model Batch Update 작업이 비어 있습니다. 타입=" + GetType().Name);
                 return;
             }
 

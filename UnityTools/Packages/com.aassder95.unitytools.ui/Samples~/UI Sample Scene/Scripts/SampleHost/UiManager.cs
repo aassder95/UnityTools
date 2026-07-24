@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityTools.Samples.Modules;
-using UnityTools.Util.Core;
-using UnityTools.Util.UiFramework;
+using UnityTools.Samples.Core;
+using UnityTools.Ui;
 
 namespace UnityTools.Manager
 {

@@ -1,6 +1,6 @@
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
-namespace UnityTools.Util.Core
+namespace UnityTools.Samples.Core
 {
     public interface ISampleModule : IPresenter
     {

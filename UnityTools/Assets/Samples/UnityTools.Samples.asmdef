@@ -2,7 +2,7 @@
     "name": "UnityTools.Samples",
     "rootNamespace": "UnityTools.Samples",
     "references": [
-        "UnityTools.Util",
+        "UnityTools.Ui",
         "UnityTools.Timer",
         "Unity.TextMeshPro"
     ],

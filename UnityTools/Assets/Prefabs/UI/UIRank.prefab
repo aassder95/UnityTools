@@ -1613,7 +1613,7 @@ MonoBehaviour:
     m_PersistentCalls:
       m_Calls:
       - m_Target: {fileID: 2642601110903686304}
-        m_TargetAssemblyTypeName: UnityTools.Util.DynamicScrollView`2[[UnityTools.Model.RankItemModel,
+        m_TargetAssemblyTypeName: UnityTools.Ui.DynamicScrollView`2[[UnityTools.Model.RankItemModel,
           Assembly-CSharp
         m_MethodName: OnScrollValueChanged
         m_Mode: 0

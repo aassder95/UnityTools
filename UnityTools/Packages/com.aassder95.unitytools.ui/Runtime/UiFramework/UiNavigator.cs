@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using UnityTools.Util.Core.Logging;
+using UnityEngine;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     public class UiNavigator
     {
@@ -221,13 +221,13 @@ namespace UnityTools.Util.UiFramework
         {
             if (entry == null || entry.Presenter == null)
             {
-                DebugLogger.LogError("UI " + layerName + " 등록 정보 또는 Presenter가 비어 있습니다.");
+                Debug.LogError("UI " + layerName + " 등록 정보 또는 Presenter가 비어 있습니다.");
                 return false;
             }
 
             if (ContainsPresenter(entry.Presenter))
             {
-                DebugLogger.LogError("같은 Presenter를 UI 탐색 스택에 중복 등록할 수 없습니다. 타입=" + entry.Presenter.GetType().Name);
+                Debug.LogError("같은 Presenter를 UI 탐색 스택에 중복 등록할 수 없습니다. 타입=" + entry.Presenter.GetType().Name);
                 return false;
             }
 

@@ -2,7 +2,7 @@ using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityTools.Util.Core.Logging;
+using UnityTools.Ui;
 
 namespace UnityTools.Samples.Timer
 {
@@ -65,7 +65,7 @@ namespace UnityTools.Samples.Timer
         {
             if (string.IsNullOrWhiteSpace(state))
             {
-                DebugLogger.LogError("TaskTimerView에 표시할 상태 문자열이 비어 있습니다.", this);
+                Debug.LogError("TaskTimerView에 표시할 상태 문자열이 비어 있습니다.", this);
                 return;
             }
 
@@ -82,7 +82,7 @@ namespace UnityTools.Samples.Timer
         {
             if (string.IsNullOrWhiteSpace(time))
             {
-                DebugLogger.LogError("TaskTimerView에 표시할 시간 문자열이 비어 있습니다.", this);
+                Debug.LogError("TaskTimerView에 표시할 시간 문자열이 비어 있습니다.", this);
                 return;
             }
 

@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     public abstract class BaseView<TModel> : MonoBehaviour, IView<TModel> where TModel : IModel
     {

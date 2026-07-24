@@ -1,4 +1,4 @@
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
 namespace UnityTools.Samples.Templates
 {

@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     public class UiFocusScope : MonoBehaviour, IUiFocusControl
     {

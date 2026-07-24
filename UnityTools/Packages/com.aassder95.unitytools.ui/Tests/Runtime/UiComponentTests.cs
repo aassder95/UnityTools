@@ -3,9 +3,9 @@ using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
-namespace UnityTools.Util.Tests.UiFramework
+namespace UnityTools.Ui.Tests.UiFramework
 {
     public class UiComponentTests
     {
@@ -144,30 +144,6 @@ namespace UnityTools.Util.Tests.UiFramework
             Assert.That(rtTarget.offsetMax.y, Is.EqualTo(0.0f).Within(0.0001f));
         }
 
-        [Test]
-        public void BackInputRoutesCallbackToNavigator()
-        {
-            UiNavigator navigator = new();
-            navigator.PushScreen(new UiNavigationEntry(new ComponentTestPresenter()));
-            navigator.PushScreen(new UiNavigationEntry(new ComponentTestPresenter()));
-
-            GameObject goInput = new("BackInput");
-            goInput.SetActive(false);
-            goInput.transform.SetParent(_goTestRoot.transform);
-            UiBackInput backInput = goInput.AddComponent<UiBackInput>();
-            backInput.Init(navigator);
-
-            MethodInfo callback = typeof(UiBackInput).GetMethod("OnBackPerformed", BindingFlags.Instance | BindingFlags.NonPublic);
-            object context = System.Activator.CreateInstance(callback.GetParameters()[0].ParameterType);
-            callback.Invoke(backInput, new[] { context });
-
-            Assert.That(navigator.ScreenCnt, Is.EqualTo(1));
-
-            backInput.Release();
-
-            Assert.That(backInput.IsInit, Is.False);
-        }
-
         //============================================================
         // Utilities
         //============================================================
@@ -184,38 +160,5 @@ namespace UnityTools.Util.Tests.UiFramework
             field.SetValue(target, value);
         }
 
-        //============================================================
-        // Nested Types
-        //============================================================
-        private class ComponentTestPresenter : IPresenter
-        {
-            private bool _isInit;
-            private bool _isVisible;
-
-            public bool IsInit => _isInit;
-            public bool IsVisible => _isVisible;
-
-            public void Init()
-            {
-                _isInit = true;
-            }
-
-            public void Release()
-            {
-                _isInit = false;
-                _isVisible = false;
-            }
-
-            public void Show()
-            {
-                Init();
-                _isVisible = true;
-            }
-
-            public void Hide()
-            {
-                _isVisible = false;
-            }
-        }
     }
 }

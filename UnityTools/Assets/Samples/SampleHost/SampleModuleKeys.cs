@@ -1,4 +1,4 @@
-namespace UnityTools.Util.Core
+namespace UnityTools.Samples.Core
 {
     public static class SampleModuleKeys
     {

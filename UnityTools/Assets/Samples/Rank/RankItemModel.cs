@@ -1,6 +1,5 @@
 using UnityEngine;
-using UnityTools.Util.UiFramework;
-using UnityTools.Util.Utilities;
+using UnityTools.Ui;
 
 namespace UnityTools.Samples.Rank
 {
@@ -32,7 +31,7 @@ namespace UnityTools.Samples.Rank
         public RankItemModel(int id)
         {
             _id = id;
-            _bgColor = RandomUtils.GetRandomColor();
+            _bgColor = Random.ColorHSV(0.0f, 1.0f, 0.5f, 1.0f, 0.7f, 1.0f);
         }
 
         //============================================================

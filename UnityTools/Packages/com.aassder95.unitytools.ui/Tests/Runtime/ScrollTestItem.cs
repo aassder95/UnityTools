@@ -1,22 +1,25 @@
 using UnityEngine;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
-namespace UnityTools.Util.Tests.Lifecycle
+namespace UnityTools.Ui.Tests.Lifecycle
 {
-    public class ScrollTestItem : MonoBehaviour, IDynamicScrollItem, IPoolable
+    public class ScrollTestItem : MonoBehaviour, IDynamicScrollItem
     {
         //============================================================
         // Fields
         //============================================================
         private int _idx;
         private int _updateCnt;
+        private int _getCnt;
+        private int _returnCnt;
 
         //============================================================
         // Properties
         //============================================================
         public int Idx => _idx;
         public int UpdateCnt => _updateCnt;
+        public int GetCnt => _getCnt;
+        public int ReturnCnt => _returnCnt;
 
         //============================================================
         // Init/Register
@@ -45,7 +48,14 @@ namespace UnityTools.Util.Tests.Lifecycle
         //============================================================
         // Callbacks
         //============================================================
-        public void OnGet() { }
-        public void OnReturn() { }
+        public void OnGet()
+        {
+            _getCnt++;
+        }
+
+        public void OnReturn()
+        {
+            _returnCnt++;
+        }
     }
 }

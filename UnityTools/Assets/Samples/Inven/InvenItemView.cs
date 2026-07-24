@@ -1,13 +1,12 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
 namespace UnityTools.Samples.Inven
 {
     [RequireComponent(typeof(Image))]
-    public class InvenItemView : BaseView<InvenItemModel>, IDynamicScrollItem, IPoolable
+    public class InvenItemView : BaseView<InvenItemModel>, IDynamicScrollItem
     {
         //============================================================
         // Inspector Fields
@@ -55,8 +54,8 @@ namespace UnityTools.Samples.Inven
             _rtView.anchoredPosition = pos;
         }
 
-        void IPoolable.OnGet() { }
-        void IPoolable.OnReturn() { }
+        void IDynamicScrollItem.OnGet() { }
+        void IDynamicScrollItem.OnReturn() { }
 
         //============================================================
         // Utilities

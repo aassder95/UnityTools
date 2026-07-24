@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     [RequireComponent(typeof(UiCanvasTransition))]
     public abstract class TransitionView<TModel> : BaseView<TModel>, IUiInteractionControl where TModel : IModel

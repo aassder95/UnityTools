@@ -1,6 +1,6 @@
 using UnityEngine;
 using UnityTools.Samples.Inven;
-using UnityTools.Util.Core;
+using UnityTools.Samples.Core;
 
 namespace UnityTools.Samples.Modules
 {

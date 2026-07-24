@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Util.Core.Logging;
+using UnityTools.Ui;
 using UnityTools.Timer.Period;
-using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Samples.Timer
 {
@@ -69,7 +68,7 @@ namespace UnityTools.Samples.Timer
         protected override void OnShow()
         {
             if (!_periodTimer.TryInit(1.0, 1.0))
-                DebugLogger.LogError("PeriodTimer 샘플 초기화에 실패했습니다.", _view);
+                Debug.LogError("PeriodTimer 샘플 초기화에 실패했습니다.", _view);
         }
 
         protected override void OnHide()
@@ -88,13 +87,13 @@ namespace UnityTools.Samples.Timer
         private void OnForceOpenCallback()
         {
             if (!_periodTimer.TryForceOpen())
-                DebugLogger.LogError("PeriodTimer Open 전환에 실패했습니다.", _view);
+                Debug.LogError("PeriodTimer Open 전환에 실패했습니다.", _view);
         }
 
         private void OnForceClosedCallback()
         {
             if (!_periodTimer.TryForceClosed())
-                DebugLogger.LogError("PeriodTimer Closed 전환에 실패했습니다.", _view);
+                Debug.LogError("PeriodTimer Closed 전환에 실패했습니다.", _view);
         }
 
         private void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)

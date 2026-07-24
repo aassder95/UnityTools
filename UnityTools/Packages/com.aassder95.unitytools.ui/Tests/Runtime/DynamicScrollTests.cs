@@ -2,10 +2,10 @@ using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityTools.Util.UiFramework;
-using UnityTools.Util.Tests.Lifecycle;
+using UnityTools.Ui;
+using UnityTools.Ui.Tests.Lifecycle;
 
-namespace UnityTools.Util.Tests.UiFramework
+namespace UnityTools.Ui.Tests.UiFramework
 {
     public class DynamicScrollTests
     {
@@ -111,6 +111,29 @@ namespace UnityTools.Util.Tests.UiFramework
             scrollView.ScrollTo(5, true, alignment: EDynamicScrollAlignment.Center);
 
             Assert.That(scrollView.ContentPos.x, Is.EqualTo(-390.0f).Within(0.01f));
+        }
+
+        [Test]
+        public void RebuildReturnsVisibleItemsThroughLifecycle()
+        {
+            ScrollTestView scrollView = CreateScrollView(20);
+            ScrollTestItem[] items = scrollView.GetComponentsInChildren<ScrollTestItem>(true);
+            int getCnt = 0;
+            for (int i = 0; i < items.Length; i++)
+            {
+                getCnt += items[i].GetCnt;
+            }
+
+            scrollView.UpdateItemCnt(0);
+
+            int returnCnt = 0;
+            for (int i = 0; i < items.Length; i++)
+            {
+                returnCnt += items[i].ReturnCnt;
+            }
+
+            Assert.That(getCnt, Is.GreaterThan(0));
+            Assert.That(returnCnt, Is.EqualTo(getCnt));
         }
 
         //============================================================

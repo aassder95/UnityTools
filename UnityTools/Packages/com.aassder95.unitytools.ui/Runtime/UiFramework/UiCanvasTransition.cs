@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     [RequireComponent(typeof(CanvasGroup))]
     public class UiCanvasTransition : MonoBehaviour, IUiInteractionControl

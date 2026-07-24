@@ -1,0 +1,25 @@
+{
+    "name": "UnityTools.Ui.InputSystem",
+    "rootNamespace": "UnityTools.Ui",
+    "references": [
+        "UnityTools.Ui",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITYTOOLS_INPUT_SYSTEM"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "UNITYTOOLS_INPUT_SYSTEM"
+        }
+    ],
+    "noEngineReferences": false
+}

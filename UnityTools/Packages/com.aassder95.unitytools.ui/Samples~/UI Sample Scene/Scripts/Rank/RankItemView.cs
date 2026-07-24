@@ -2,12 +2,11 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityTools.Samples.Util;
-using UnityTools.Util.Core.Pooling;
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
 namespace UnityTools.Samples.Rank
 {
-    public class RankItemView : BaseView<RankItemModel>, IDynamicScrollItem, IPoolable
+    public class RankItemView : BaseView<RankItemModel>, IDynamicScrollItem
     {
         //============================================================
         // Constants
@@ -70,8 +69,8 @@ namespace UnityTools.Samples.Rank
             _rtView.anchoredPosition = pos;
         }
 
-        void IPoolable.OnGet() { }
-        void IPoolable.OnReturn() { }
+        void IDynamicScrollItem.OnGet() { }
+        void IDynamicScrollItem.OnReturn() { }
 
         //============================================================
         // Utilities

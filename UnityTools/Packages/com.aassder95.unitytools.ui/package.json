@@ -8,19 +8,17 @@
   "changelogUrl": "https://github.com/aassder95/UnityTools/blob/develop/UnityTools/Packages/com.aassder95.unitytools.ui/CHANGELOG.md",
   "licensesUrl": "https://github.com/aassder95/UnityTools",
   "dependencies": {
-    "com.aassder95.unitytools.timer": "1.0.0",
     "com.unity.ugui": "1.0.0",
-    "com.unity.textmeshpro": "3.0.7",
-    "com.unity.inputsystem": "1.14.0"
+    "com.unity.textmeshpro": "3.0.7"
   },
   "samples": [
     {
       "displayName": "UI Sample Scene",
-      "description": "UiNavigator-based lobby with inventory, dynamic rank, and timer UI modules.",
+      "description": "UiNavigator-based lobby with inventory and dynamic rank modules.",
       "path": "Samples~/UI Sample Scene"
     }
   ],
-  "keywords": ["ui", "mvp", "navigation", "transition", "scroll", "safe-area", "pooling", "timer"],
+  "keywords": ["ui", "mvp", "navigation", "transition", "scroll", "safe-area"],
   "author": {
     "name": "aassder95",
     "url": "https://github.com/aassder95"

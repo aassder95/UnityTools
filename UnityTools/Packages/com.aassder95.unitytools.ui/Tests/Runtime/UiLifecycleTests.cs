@@ -1,7 +1,7 @@
 using NUnit.Framework;
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
-namespace UnityTools.Util.Tests.UiFramework
+namespace UnityTools.Ui.Tests.UiFramework
 {
     public class UiLifecycleTests
     {

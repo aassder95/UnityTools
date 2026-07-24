@@ -1,8 +1,8 @@
 using UnityEditor;
 using UnityEngine;
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
-namespace UnityTools.Util.Editor
+namespace UnityTools.Ui.Editor
 {
     [CustomEditor(typeof(DynamicScrollViewBase), true)]
     [CanEditMultipleObjects]

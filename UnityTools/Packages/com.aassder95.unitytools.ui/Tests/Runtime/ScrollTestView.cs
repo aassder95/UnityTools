@@ -1,7 +1,7 @@
 using UnityEngine;
-using UnityTools.Util.UiFramework;
+using UnityTools.Ui;
 
-namespace UnityTools.Util.Tests.Lifecycle
+namespace UnityTools.Ui.Tests.Lifecycle
 {
     public class ScrollTestView : DynamicScrollView<ScrollTestItem>
     {

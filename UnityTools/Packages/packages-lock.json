@@ -13,10 +13,8 @@
                                                                         "depth":  0,
                                                                         "source":  "embedded",
                                                                         "dependencies":  {
-                                                                                             "com.aassder95.unitytools.timer":  "1.0.0",
                                                                                              "com.unity.ugui":  "1.0.0",
-                                                                                             "com.unity.textmeshpro":  "3.0.7",
-                                                                                             "com.unity.inputsystem":  "1.14.0"
+                                                                                             "com.unity.textmeshpro":  "3.0.7"
                                                                                          }
                                                                     },
                          "com.coplaydev.unity-mcp":  {

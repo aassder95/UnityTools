@@ -1,8 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
-using UnityTools.Util.Utilities;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     public class DynamicScrollContext
     {
@@ -106,7 +105,10 @@ namespace UnityTools.Util.UiFramework
 
         public int GetFirstVisibleLine(int lastLine)
         {
-            return _scrollRect.vertical ? IdxUtils.GetClampedIdx(_rtContent.anchoredPosition.y - _padding.top, ItemSize.y, lastLine) : IdxUtils.GetClampedIdx(-_rtContent.anchoredPosition.x - _padding.left, ItemSize.x, lastLine);
+            float pos = _scrollRect.vertical ? _rtContent.anchoredPosition.y - _padding.top : -_rtContent.anchoredPosition.x - _padding.left;
+            float itemSize = _scrollRect.vertical ? ItemSize.y : ItemSize.x;
+            int idx = Mathf.FloorToInt((pos / itemSize) + 0.0001f);
+            return Mathf.Clamp(idx, 0, lastLine);
         }
 
         public Vector2 GetItemPos(int itemIdx)

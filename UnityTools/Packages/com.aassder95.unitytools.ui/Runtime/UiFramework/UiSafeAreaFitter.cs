@@ -1,7 +1,6 @@
 using UnityEngine;
-using UnityTools.Util.Core.Logging;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     public class UiSafeAreaFitter : MonoBehaviour
     {
@@ -49,7 +48,7 @@ namespace UnityTools.Util.UiFramework
         {
             if (screenSize.x <= 0.0f || screenSize.y <= 0.0f)
             {
-                DebugLogger.LogError("Safe Area를 적용할 화면 크기가 유효하지 않습니다. 화면 크기=" + screenSize, this);
+                Debug.LogError("Safe Area를 적용할 화면 크기가 유효하지 않습니다. 화면 크기=" + screenSize, this);
                 return;
             }
 

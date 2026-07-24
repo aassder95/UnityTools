@@ -1,0 +1,21 @@
+{
+    "name": "UnityTools.Ui.Tests",
+    "rootNamespace": "UnityTools.Ui.Tests",
+    "references": [
+        "UnityTools.Ui"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

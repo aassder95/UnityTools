@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using UnityTools.Util.Core;
-using UnityTools.Util.Core.Logging;
+using UnityTools.Samples.Core;
+using UnityTools.Ui;
 
 namespace UnityTools.Manager
 {
@@ -228,7 +228,7 @@ namespace UnityTools.Manager
             GameObject goSelected = _eventSystem.currentSelectedGameObject;
             if (goSelected == null || !_moduleIdxByObject.TryGetValue(goSelected, out int moduleIdx))
             {
-                DebugLogger.LogError("Sample 선택 Button과 Module 인덱스 연결을 찾을 수 없습니다.");
+                Debug.LogError("Sample 선택 Button과 Module 인덱스 연결을 찾을 수 없습니다.");
                 return;
             }
 

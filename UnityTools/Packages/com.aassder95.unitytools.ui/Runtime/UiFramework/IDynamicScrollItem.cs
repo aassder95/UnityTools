@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace UnityTools.Util.UiFramework
+namespace UnityTools.Ui
 {
     public interface IDynamicScrollItem
     {
@@ -13,6 +13,8 @@ namespace UnityTools.Util.UiFramework
         // Logic
         //============================================================
         void Init();
+        void OnGet();
+        void OnReturn();
         void SetIdx(int idx);
         void SetPos(Vector2 pos);
     }

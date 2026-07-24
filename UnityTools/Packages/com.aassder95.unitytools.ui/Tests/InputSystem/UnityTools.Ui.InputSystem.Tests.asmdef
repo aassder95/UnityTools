@@ -1,0 +1,30 @@
+{
+    "name": "UnityTools.Ui.InputSystem.Tests",
+    "rootNamespace": "UnityTools.Ui.Tests.InputSystem",
+    "references": [
+        "UnityTools.Ui",
+        "UnityTools.Ui.InputSystem",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS",
+        "UNITYTOOLS_INPUT_SYSTEM"
+    ],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "UNITYTOOLS_INPUT_SYSTEM"
+        }
+    ],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
