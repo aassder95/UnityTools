@@ -11,9 +11,9 @@ namespace UnityTools.Samples.Timer
         private string _state;
         private string _subState;
         private int _loopMin;
-        private DateTime _openUpdated;
-        private DateTime _openEnd;
-        private DateTime _closedEnd;
+        private DateTime _openUpdatedTime;
+        private DateTime _openEndTime;
+        private DateTime _closedEndTime;
 
         //============================================================
         // Properties
@@ -21,9 +21,9 @@ namespace UnityTools.Samples.Timer
         public string State => _state;
         public string SubState => _subState;
         public int LoopMin => _loopMin;
-        public DateTime OpenUpdated => _openUpdated;
-        public DateTime OpenEnd => _openEnd;
-        public DateTime ClosedEnd => _closedEnd;
+        public DateTime OpenUpdatedTime => _openUpdatedTime;
+        public DateTime OpenEndTime => _openEndTime;
+        public DateTime ClosedEndTime => _closedEndTime;
 
         //============================================================
         // Logic
@@ -47,32 +47,32 @@ namespace UnityTools.Samples.Timer
             });
         }
 
-        public void SetLoop(int min, DateTime openUpdated)
+        public void SetLoop(int min, DateTime openUpdatedTime)
         {
             RunBatchUpdate(() =>
             {
                 SetField(ref _loopMin, min);
-                SetField(ref _openUpdated, openUpdated);
+                SetField(ref _openUpdatedTime, openUpdatedTime);
             });
         }
 
-        public void SetTimer(DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
+        public void SetTimer(DateTime openUpdatedTime, DateTime openEndTime, DateTime closedEndTime)
         {
             RunBatchUpdate(() =>
             {
-                SetField(ref _openUpdated, openUpdated);
-                SetField(ref _openEnd, openEnd);
-                SetField(ref _closedEnd, closedEnd);
+                SetField(ref _openUpdatedTime, openUpdatedTime);
+                SetField(ref _openEndTime, openEndTime);
+                SetField(ref _closedEndTime, closedEndTime);
             });
         }
 
-        public void SetSnapshot(DateTime openUpdated, DateTime openEnd, DateTime closedEnd, string state, string subState, bool shouldUpdateSubState)
+        public void SetSnapshot(DateTime openUpdatedTime, DateTime openEndTime, DateTime closedEndTime, string state, string subState, bool shouldUpdateSubState)
         {
             RunBatchUpdate(() =>
             {
-                SetField(ref _openUpdated, openUpdated);
-                SetField(ref _openEnd, openEnd);
-                SetField(ref _closedEnd, closedEnd);
+                SetField(ref _openUpdatedTime, openUpdatedTime);
+                SetField(ref _openEndTime, openEndTime);
+                SetField(ref _closedEndTime, closedEndTime);
                 SetField(ref _state, state);
 
                 if (shouldUpdateSubState)

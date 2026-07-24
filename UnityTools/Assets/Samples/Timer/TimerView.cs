@@ -86,7 +86,7 @@ namespace UnityTools.Samples.Timer
         {
             SetState(model.State, model.SubState);
             SetLoop(model.LoopMin);
-            SetTimer(model.OpenUpdated, model.OpenEnd, model.ClosedEnd);
+            SetTimer(model.OpenUpdatedTime, model.OpenEndTime, model.ClosedEndTime);
         }
 
         //============================================================
@@ -245,11 +245,11 @@ namespace UnityTools.Samples.Timer
             SetText(_txtLoop, $"({min})");
         }
 
-        private void SetTimer(DateTime openUpdated, DateTime openEnd, DateTime closedEnd)
+        private void SetTimer(DateTime openUpdatedTime, DateTime openEndTime, DateTime closedEndTime)
         {
-            SetText(_txtOpenUpdated, "updated: " + openUpdated.ToString(UTC_TIME_FORMAT));
-            SetText(_txtOpenEnd, "open: " + openEnd.ToString(UTC_TIME_FORMAT));
-            SetText(_txtClosedEnd, "closed: " + closedEnd.ToString(UTC_TIME_FORMAT));
+            SetText(_txtOpenUpdated, "updated: " + openUpdatedTime.ToString(UTC_TIME_FORMAT));
+            SetText(_txtOpenEnd, "open: " + openEndTime.ToString(UTC_TIME_FORMAT));
+            SetText(_txtClosedEnd, "closed: " + closedEndTime.ToString(UTC_TIME_FORMAT));
         }
 
         private static void SetText(TextMeshProUGUI txtTarget, string textValue)
