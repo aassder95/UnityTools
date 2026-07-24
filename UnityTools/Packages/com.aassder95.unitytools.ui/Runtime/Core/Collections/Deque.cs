@@ -29,28 +29,54 @@ namespace UnityTools.Util.Core.Collections
             _deque.AddFirst(item);
         }
 
-        public T Dequeue()
+        public bool TryDequeue(out T item)
         {
-            T value = _deque.First.Value;
+            if(_deque.Count == 0)
+            {
+                item = default;
+                return false;
+            }
+
+            item = _deque.First.Value;
             _deque.RemoveFirst();
-            return value;
+            return true;
         }
 
-        public T DequeueBack()
+        public bool TryDequeueBack(out T item)
         {
-            T value = _deque.Last.Value;
+            if(_deque.Count == 0)
+            {
+                item = default;
+                return false;
+            }
+
+            item = _deque.Last.Value;
             _deque.RemoveLast();
-            return value;
+            return true;
         }
 
-        public T Peek()
+        public bool TryPeek(out T item)
         {
-            return _deque.First.Value;
+            if(_deque.Count == 0)
+            {
+                item = default;
+                return false;
+            }
+
+            item = _deque.First.Value;
+            return true;
         }
 
-        public T PeekBack()
+        public bool TryPeekBack(out T item)
         {
-            return _deque.Last.Value;
+            if(_deque.Count == 0)
+            {
+                item = default;
+                return false;
+            }
+
+            item = _deque.Last.Value;
+            return true;
         }
 
         public void Clear()

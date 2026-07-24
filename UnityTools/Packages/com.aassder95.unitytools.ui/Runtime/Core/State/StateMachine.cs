@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
+using UnityTools.Util.Core.Logging;
 
 namespace UnityTools.Util.Core.State
 {
@@ -35,6 +36,18 @@ namespace UnityTools.Util.Core.State
         //============================================================
         public void Add(TType type, IState state)
         {
+            if(state == null)
+            {
+                DebugLogger.LogError("State 등록 대상이 비어 있습니다. Type=" + type);
+                return;
+            }
+
+            if(_states.ContainsKey(type))
+            {
+                DebugLogger.LogError("같은 Type의 State가 이미 등록되어 있습니다. Type=" + type);
+                return;
+            }
+
             _states.Add(type, state);
         }
 
@@ -43,7 +56,12 @@ namespace UnityTools.Util.Core.State
         //============================================================
         public void Change(TType type, bool shouldTick = false)
         {
-            IState nextState = _states[type];
+            if(!_states.TryGetValue(type, out IState nextState))
+            {
+                DebugLogger.LogError("등록되지 않은 State로 전환할 수 없습니다. Type=" + type);
+                return;
+            }
+
             if(_hasCurState && EqualityComparer<TType>.Default.Equals(_curType, type))
                 return;
 

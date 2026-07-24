@@ -46,5 +46,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _prefab: {fileID: 8810801761609323040, guid: 92799a78ee236944d84a1651f257c58d, type: 3}
   _initialSize: 10
+  _maxActiveCnt: 10
   _intervalSec: 2
   _range: {x: 2, y: 2}

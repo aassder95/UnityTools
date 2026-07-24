@@ -24,7 +24,7 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Properties
         //============================================================
-        public int FirstIdx => _items.IsEmpty ? 0 : _items.Peek().Idx;
+        public int FirstIdx => _items.TryPeek(out TView item) ? item.Idx : 0;
         public int Cnt => _items.Count;
 
         //============================================================
@@ -195,8 +195,16 @@ namespace UnityTools.Util.UIFramework
 
         private void Remove(bool isBack)
         {
-            TView item = isBack ? _items.DequeueBack() : _items.Dequeue();
-            _pool.Return(item);
+            TView item;
+            bool hasItem = isBack ? _items.TryDequeueBack(out item) : _items.TryDequeue(out item);
+            if(!hasItem)
+            {
+                DebugLogger.LogError("DynamicScroll Item Collection 상태가 유효하지 않습니다.");
+                return;
+            }
+
+            if(!_pool.TryReturn(item))
+                DebugLogger.LogError("DynamicScroll Item을 ObjectPool에 반환하지 못했습니다.");
         }
     }
 }

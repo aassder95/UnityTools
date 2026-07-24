@@ -12,7 +12,8 @@ namespace UnityTools.Util.Core.Pooling
         private readonly T _prefab;
         private readonly Transform _parent;
         private readonly Queue<T> _objects = new();
-        private readonly HashSet<T> _pooledObjects = new();
+        private readonly HashSet<T> _createdObjects = new();
+        private readonly HashSet<T> _availableObjects = new();
 
         //============================================================
         // Constructors
@@ -33,7 +34,7 @@ namespace UnityTools.Util.Core.Pooling
             {
                 T newObj = pool.CreateObject();
                 pool._objects.Enqueue(newObj);
-                pool._pooledObjects.Add(newObj);
+                pool._availableObjects.Add(newObj);
             }
 
             return pool;
@@ -48,7 +49,7 @@ namespace UnityTools.Util.Core.Pooling
             if(_objects.Count > 0)
             {
                 obj = _objects.Dequeue();
-                _pooledObjects.Remove(obj);
+                _availableObjects.Remove(obj);
             }
             else
             {
@@ -60,34 +61,44 @@ namespace UnityTools.Util.Core.Pooling
             return obj;
         }
 
-        public void Return(T obj)
+        public bool TryReturn(T obj)
         {
             if(obj == null)
             {
                 DebugLogger.LogError("오브젝트 풀에 반환할 객체가 비어 있습니다.");
-                return;
+                return false;
             }
 
-            if(_pooledObjects.Contains(obj))
+            if(!_createdObjects.Contains(obj))
+            {
+                DebugLogger.LogError("다른 ObjectPool이 소유한 객체를 반환할 수 없습니다. 이름=" + obj.name);
+                return false;
+            }
+
+            if(_availableObjects.Contains(obj))
             {
                 DebugLogger.LogError("이미 풀에 들어 있는 객체를 중복 반환했습니다. 이름=" + obj.name);
-                return;
+                return false;
             }
 
             obj.OnReturn();
             obj.gameObject.SetActive(false);
             _objects.Enqueue(obj);
-            _pooledObjects.Add(obj);
+            _availableObjects.Add(obj);
+            return true;
         }
 
         public void Clear()
         {
             while(_objects.Count > 0)
             {
-                DestroyObject(_objects.Dequeue());
+                T obj = _objects.Dequeue();
+                _availableObjects.Remove(obj);
+                _createdObjects.Remove(obj);
+                DestroyObject(obj);
             }
 
-            _pooledObjects.Clear();
+            _availableObjects.Clear();
         }
 
         //============================================================
@@ -96,6 +107,7 @@ namespace UnityTools.Util.Core.Pooling
         private T CreateObject()
         {
             T newObj = UnityEngine.Object.Instantiate(_prefab, _parent);
+            _createdObjects.Add(newObj);
             newObj.gameObject.SetActive(false);
             return newObj;
         }

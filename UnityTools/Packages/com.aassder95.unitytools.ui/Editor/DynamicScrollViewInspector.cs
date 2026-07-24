@@ -15,6 +15,7 @@ namespace UnityTools.Util.Editor
         private const string AXIS_PROP = "_axisType";
         private const string LAYOUT_PROP = "_layoutMode";
         private const string FIXED_CELLS_PROP = "_fixedCellsPerGroup";
+        private const string MIN_VISIBLE_LINE_CNT_PROP = "_minVisibleLineCnt";
         private const string MOVEMENT_PROP = "_movementType";
         private const string INERTIA_PROP = "_isInertia";
         private const string DECELERATION_PROP = "_decelerationRate";
@@ -42,6 +43,7 @@ namespace UnityTools.Util.Editor
                     DrawProperty(FIXED_CELLS_PROP);
             }
 
+            DrawProperty(MIN_VISIBLE_LINE_CNT_PROP);
             DrawProperty(MOVEMENT_PROP);
             DrawProperty(INERTIA_PROP);
             DrawProperty(DECELERATION_PROP);

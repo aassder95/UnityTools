@@ -18,22 +18,19 @@ namespace UnityTools.Util.Core.Singleton
         {
             get
             {
-                if(_instance == null)
-                    _instance = FindFirstObjectByType<T>();
-
-                if(_instance == null)
+                if(_instance != null)
                 {
-                    if(!_hasMissingLog)
-                    {
-                        DebugLogger.LogError(typeof(T).Name + " 인스턴스가 씬에 배치되어 있지 않습니다.");
-                        _hasMissingLog = true;
-                    }
-
-                    return null;
+                    _hasMissingLog = false;
+                    return _instance;
                 }
 
-                _hasMissingLog = false;
-                return _instance;
+                if(!_hasMissingLog)
+                {
+                    DebugLogger.LogError(typeof(T).Name + " 인스턴스가 씬에 배치되어 있지 않습니다.");
+                    _hasMissingLog = true;
+                }
+
+                return null;
             }
         }
 

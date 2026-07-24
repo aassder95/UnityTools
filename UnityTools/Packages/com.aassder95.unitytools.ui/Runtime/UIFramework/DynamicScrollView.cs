@@ -78,11 +78,6 @@ namespace UnityTools.Util.UIFramework
         //============================================================
         // Unity Methods
         //============================================================
-        private void Awake()
-        {
-            PrepareComponents();
-        }
-
         private void OnRectTransformDimensionsChange()
         {
             if(!_isInitialized)
@@ -119,6 +114,7 @@ namespace UnityTools.Util.UIFramework
             ApplyScrollRectSettings();
             ApplyContentAlignment();
             _itemCntPerLine = GetItemCntPerLine();
+            _totalItemCnt = -1;
             _context = new DynamicScrollContext(_itemCntPerLine, _spacing, _padding, _rtItem, _scrollRect);
             UpdateAutoVisibleLineCnt();
 

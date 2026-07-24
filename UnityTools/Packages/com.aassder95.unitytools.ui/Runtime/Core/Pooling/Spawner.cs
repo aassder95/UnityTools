@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace UnityTools.Util.Core.Pooling
@@ -6,10 +7,18 @@ namespace UnityTools.Util.Core.Pooling
     public abstract class Spawner<T> : MonoBehaviour where T : Component, IPoolable
     {
         //============================================================
+        // Readonly
+        //============================================================
+        private readonly Queue<T> _activeObjects = new();
+
+        //============================================================
         // Inspector Fields
         //============================================================
+        [Header("Pool")]
         [SerializeField] private T _prefab;
         [Min(0)] [SerializeField] private int _initialSize;
+        [Header("Spawn")]
+        [Min(1)] [SerializeField] private int _maxActiveCnt = 10;
         [Min(0.0001f)] [SerializeField] private float _intervalSec = 1.0f;
 
         //============================================================
@@ -39,11 +48,13 @@ namespace UnityTools.Util.Core.Pooling
 
         private void OnDisable()
         {
-            if(_coSpawn == null)
-                return;
+            if(_coSpawn != null)
+            {
+                StopCoroutine(_coSpawn);
+                _coSpawn = null;
+            }
 
-            StopCoroutine(_coSpawn);
-            _coSpawn = null;
+            ReturnActiveObjects();
         }
 
         private void OnDestroy()
@@ -68,6 +79,7 @@ namespace UnityTools.Util.Core.Pooling
             if(!_isInit)
                 return;
 
+            ReturnActiveObjects();
             _pool.Clear();
             _pool = null;
             _isInit = false;
@@ -80,8 +92,21 @@ namespace UnityTools.Util.Core.Pooling
         {
             while(true)
             {
+                if(_activeObjects.Count >= _maxActiveCnt)
+                {
+                    T oldestObject = _activeObjects.Peek();
+                    if(!_pool.TryReturn(oldestObject))
+                    {
+                        yield return _spawnWait;
+                        continue;
+                    }
+
+                    _activeObjects.Dequeue();
+                }
+
                 T obj = _pool.Get();
                 obj.transform.position = GetSpawnPos();
+                _activeObjects.Enqueue(obj);
                 yield return _spawnWait;
             }
         }
@@ -89,6 +114,18 @@ namespace UnityTools.Util.Core.Pooling
         //============================================================
         // Utilities
         //============================================================
+        private void ReturnActiveObjects()
+        {
+            while(_activeObjects.Count > 0)
+            {
+                T obj = _activeObjects.Peek();
+                if(!_pool.TryReturn(obj))
+                    return;
+
+                _activeObjects.Dequeue();
+            }
+        }
+
         protected abstract Vector3 GetSpawnPos();
     }
 }
