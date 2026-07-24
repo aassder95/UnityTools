@@ -34,7 +34,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         // Logic
         //============================================================
         [Test]
-        public void RefreshItemAndRangeOnlyUpdateVisibleTargets()
+        public void RefreshUpdatesVisibleTargetsOnly()
         {
             ScrollTestView scrollView = CreateScrollView(20);
             ScrollTestItem firstItem = FindActiveItem(scrollView, 0);
@@ -54,7 +54,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void InsertAndRemoveBeforeViewportPreserveAnchor()
+        public void ViewportMutationsPreserveAnchor()
         {
             ScrollTestView scrollView = CreateScrollView(20);
             scrollView.ScrollTo(5, true);
@@ -72,7 +72,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void UpdateItemCountCanPreserveOrResetScrollPosition()
+        public void ItemCountUpdateControlsScrollPreservation()
         {
             ScrollTestView scrollView = CreateScrollView(20);
             scrollView.ScrollTo(5, true);
@@ -89,7 +89,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void ScrollToSupportsVerticalStartCenterAndEndAlignment()
+        public void ScrollToSupportsVerticalAlignments()
         {
             ScrollTestView scrollView = CreateScrollView(20);
 

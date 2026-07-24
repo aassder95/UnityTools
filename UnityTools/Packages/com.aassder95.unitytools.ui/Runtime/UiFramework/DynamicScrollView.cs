@@ -83,10 +83,10 @@ namespace UnityTools.Ui
             if (!_isInitialized)
                 return;
 
-            int prevItemCntPerLine = _itemCntPerLine;
+            int prevLineItemCnt = _itemCntPerLine;
             int prevVisibleLineCnt = _visibleLineCnt;
             UpdateLayoutConfig();
-            if (prevItemCntPerLine == _itemCntPerLine && prevVisibleLineCnt == _visibleLineCnt)
+            if (prevLineItemCnt == _itemCntPerLine && prevVisibleLineCnt == _visibleLineCnt)
                 return;
 
             UpdateContentLayout();
@@ -137,9 +137,9 @@ namespace UnityTools.Ui
             PrepareComponents();
             _isInitialized = true;
             UpdateLayoutConfig();
-            bool isSameTotalItemCnt = totalItemCnt == _totalItemCnt;
+            bool isSameItemCnt = totalItemCnt == _totalItemCnt;
             SetTotalItemCnt(totalItemCnt);
-            if (isSameTotalItemCnt)
+            if (isSameItemCnt)
                 RebuildVisibleItems();
         }
 
@@ -369,10 +369,10 @@ namespace UnityTools.Ui
             if (!_isComponentReady)
                 return;
 
-            int nextItemCntPerLine = GetItemCntPerLine();
-            if (nextItemCntPerLine != _itemCntPerLine)
+            int nextLineItemCnt = GetItemCntPerLine();
+            if (nextLineItemCnt != _itemCntPerLine)
             {
-                _itemCntPerLine = nextItemCntPerLine;
+                _itemCntPerLine = nextLineItemCnt;
                 _context.SetItemCntPerLine(_itemCntPerLine);
             }
 

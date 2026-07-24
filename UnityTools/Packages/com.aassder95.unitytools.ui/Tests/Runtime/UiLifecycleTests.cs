@@ -25,7 +25,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void ModelDoesNotNotifyForSameValue()
+        public void ModelSkipsSameValueNotification()
         {
             LifecycleTestModel model = new();
             int updateCnt = 0;
@@ -101,7 +101,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void TransitionViewPropertiesDoNotInitializeComponentCache()
+        public void TransitionPropertiesDoNotInitializeCache()
         {
             GameObject goView = new("TransitionLifecycleTestView");
             try

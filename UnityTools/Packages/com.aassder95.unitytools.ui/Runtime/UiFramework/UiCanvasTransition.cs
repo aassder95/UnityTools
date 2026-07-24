@@ -48,7 +48,6 @@ namespace UnityTools.Ui
         {
             StopFade();
             gameObject.SetActive(true);
-            Prepare();
             _isVisible = true;
             ApplyInteraction(false);
 
@@ -71,7 +70,6 @@ namespace UnityTools.Ui
             }
 
             StopFade();
-            Prepare();
             _isVisible = false;
             ApplyInteraction(false);
 
@@ -89,12 +87,6 @@ namespace UnityTools.Ui
         {
             _isInteractionEnabled = isEnabled;
             ApplyInteraction(_coFade == null && _isVisible && isEnabled);
-        }
-
-        private void Prepare()
-        {
-            if (_cgTarget == null)
-                _cgTarget = GetComponent<CanvasGroup>();
         }
 
         private void StopFade()

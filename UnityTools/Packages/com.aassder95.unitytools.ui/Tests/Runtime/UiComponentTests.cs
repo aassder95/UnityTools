@@ -34,7 +34,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         // Logic
         //============================================================
         [Test]
-        public void CanvasTransitionAppliesImmediateVisibilityAndInteraction()
+        public void CanvasTransitionAppliesVisibilityAndInteraction()
         {
             GameObject goView = new("TransitionView");
             goView.transform.SetParent(_goTestRoot.transform);
@@ -65,7 +65,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void FocusScopeRestoresDefaultAndLastSelection()
+        public void FocusRestoresDefaultAndLastSelection()
         {
             GameObject goEventSystem = new("EventSystem");
             goEventSystem.transform.SetParent(_goTestRoot.transform);
@@ -92,7 +92,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void SafeAreaFitterConvertsPixelBoundsToAnchors()
+        public void SafeAreaConvertsPixelsToAnchors()
         {
             GameObject goTarget = new("SafeAreaTarget", typeof(RectTransform));
             goTarget.transform.SetParent(_goTestRoot.transform);
@@ -115,7 +115,7 @@ namespace UnityTools.Ui.Tests.UiFramework
         }
 
         [Test]
-        public void SafeAreaFitterPreservesDisabledAxisLayout()
+        public void SafeAreaPreservesDisabledAxis()
         {
             GameObject goTarget = new("SafeAreaTarget", typeof(RectTransform));
             goTarget.transform.SetParent(_goTestRoot.transform);
