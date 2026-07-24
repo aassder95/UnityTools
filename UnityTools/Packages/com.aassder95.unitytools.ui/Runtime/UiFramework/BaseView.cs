@@ -13,7 +13,8 @@ namespace UnityTools.Util.UiFramework
         // Properties
         //============================================================
         public bool IsInit => _isInit;
-        public bool IsVisible => gameObject.activeSelf;
+        public bool IsVisible => IsViewVisible;
+        protected virtual bool IsViewVisible => gameObject.activeSelf;
 
         //============================================================
         // Unity Methods
@@ -58,23 +59,33 @@ namespace UnityTools.Util.UiFramework
         public void Show()
         {
             Init();
-            if (gameObject.activeSelf)
+            if (IsViewVisible)
                 return;
 
-            gameObject.SetActive(true);
+            ShowView();
         }
 
         public void Hide()
         {
-            if (!gameObject.activeSelf)
+            if (!IsViewVisible)
                 return;
 
-            gameObject.SetActive(false);
+            HideView();
         }
 
         public void Refresh(TModel model)
         {
             OnRefresh(model);
+        }
+
+        protected virtual void ShowView()
+        {
+            gameObject.SetActive(true);
+        }
+
+        protected virtual void HideView()
+        {
+            gameObject.SetActive(false);
         }
 
         protected abstract void OnRefresh(TModel model);

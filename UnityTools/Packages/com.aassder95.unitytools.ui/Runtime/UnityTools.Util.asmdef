@@ -1,7 +1,9 @@
 {
     "name": "UnityTools.Util",
     "rootNamespace": "UnityTools.Util",
-    "references": [],
+    "references": [
+        "Unity.InputSystem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
