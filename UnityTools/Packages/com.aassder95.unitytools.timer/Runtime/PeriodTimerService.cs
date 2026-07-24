@@ -1,86 +1,106 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Timer;
 using UnityTools.Timer.Period;
-using UnityTools.Util.Utilities;
+using UnityTools.Timer.Persistence;
 
-namespace UnityTools.Manager
+namespace UnityTools.Timer
 {
-    public class PeriodTimerManager : MonoSingleton<PeriodTimerManager>
+    public class PeriodTimerService
     {
         //============================================================
         // Readonly
         //============================================================
-        private readonly TimerHandleRegistry<PeriodTimerHandle> _handles = new();
+        private readonly MonoBehaviour _runner;
+        private readonly IStorage _storage;
+        private readonly Func<DateTime> _utcNow;
+        private readonly Dictionary<string, PeriodTimerHandle> _handles = new();
         private readonly Dictionary<string, PeriodTimerEventBinder> _eventBinders = new();
 
         //============================================================
         // Events
         //============================================================
-        public event UnityAction<PeriodTimerData> OnAnyTimerRemainMinUpdated { add => _onAnyTimerRemainMinUpdated += value; remove => _onAnyTimerRemainMinUpdated -= value; }
-        private event UnityAction<PeriodTimerData> _onAnyTimerRemainMinUpdated;
+        public event UnityAction<PeriodTimerData> OnRemainMinUpdated { add => _onRemainMinUpdated += value; remove => _onRemainMinUpdated -= value; }
+        private event UnityAction<PeriodTimerData> _onRemainMinUpdated;
 
         //============================================================
-        // Unity Methods
+        // Constructors
         //============================================================
-        protected override void OnDestroy()
+        public PeriodTimerService(MonoBehaviour runner, IStorage storage = null, Func<DateTime> utcNow = null)
         {
-            base.OnDestroy();
-            ClearHandles();
+            _runner = runner;
+            _storage = storage ?? new PlayerPrefsStorage();
+            _utcNow = utcNow;
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public bool TryCreatePeriodTimerHandle(string id, out PeriodTimerHandle handle)
+        public bool TryCreate(string id, out PeriodTimerHandle handle)
         {
             handle = null;
-            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!TryNormalizeId(id, out string normalizedId))
                 return false;
 
-            if (!PeriodTimer.TryCreate(normalizedId, this, out PeriodTimer timer))
+            if (!PeriodTimer.TryCreate(normalizedId, _runner, out PeriodTimer timer, _storage, _utcNow))
                 return false;
 
             handle = new PeriodTimerHandle(timer);
             return true;
         }
 
-        public bool TryInitPeriodTimer(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
+        public bool TryInit(PeriodTimerHandle handle, double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
-            if (handle == null || !StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
+            if (handle == null || !TryNormalizeId(handle.Id, out string normalizedId))
                 return false;
 
             if (!handle.TryInit(openMin, closedMin, initWaitFunc))
                 return false;
 
-            if (!_handles.TrySetOrReplace(normalizedId, handle, out PeriodTimerHandle oldHandle))
-                return false;
-            if (oldHandle != null)
+            if (_handles.TryGetValue(normalizedId, out PeriodTimerHandle oldHandle))
             {
                 UnbindEvents(normalizedId, oldHandle);
                 if (oldHandle != handle)
                     oldHandle.Release();
             }
 
+            _handles[normalizedId] = handle;
             BindEvents(normalizedId, handle);
             return true;
+        }
+
+        public void Release()
+        {
+            string[] ids = new string[_eventBinders.Count];
+            _eventBinders.Keys.CopyTo(ids, 0);
+            for (int i = 0; i < ids.Length; i++)
+            {
+                UnbindEvents(ids[i], _handles[ids[i]]);
+            }
+
+            foreach (PeriodTimerHandle handle in _handles.Values)
+            {
+                handle.Release();
+            }
+
+            _handles.Clear();
+            _eventBinders.Clear();
         }
 
         //============================================================
         // Logic
         //============================================================
-        public bool TryDeletePeriodTimer(string id)
+        public bool TryDelete(string id)
         {
-            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!TryNormalizeId(id, out string normalizedId))
                 return false;
 
-            if (!PeriodTimerPersistence.TryDeleteAll(normalizedId))
+            if (!PeriodTimerPersistence.TryDeleteAll(normalizedId, _storage))
                 return false;
 
-            if (_handles.TryRemove(normalizedId, out PeriodTimerHandle handle))
+            if (_handles.Remove(normalizedId, out PeriodTimerHandle handle))
             {
                 UnbindEvents(normalizedId, handle);
                 handle.Release();
@@ -89,9 +109,15 @@ namespace UnityTools.Manager
             return true;
         }
 
+        public bool TryGetHandle(string id, out PeriodTimerHandle handle)
+        {
+            handle = null;
+            return TryNormalizeId(id, out string normalizedId) && _handles.TryGetValue(normalizedId, out handle);
+        }
+
         private void BindEvents(string id, PeriodTimerHandle handle)
         {
-            PeriodTimerEventBinder eventBinder = new(this, handle);
+            PeriodTimerEventBinder eventBinder = new(handle, OnRemainMinUpdatedCallback);
             _eventBinders[id] = eventBinder;
             handle.OnRemainMinUpdated += eventBinder.OnRemainMinUpdatedCallback;
         }
@@ -103,37 +129,24 @@ namespace UnityTools.Manager
             _eventBinders.Remove(id);
         }
 
-        private void ClearHandles()
-        {
-            string[] ids = new string[_eventBinders.Count];
-            _eventBinders.Keys.CopyTo(ids, 0);
-            foreach (string id in ids)
-            {
-                UnbindEvents(id, _eventBinders[id].Handle);
-            }
-
-            _eventBinders.Clear();
-            _handles.Clear();
-        }
-
         //============================================================
         // Callbacks
         //============================================================
-        private void OnPeriodTimerRemainMinUpdatedCallback(PeriodTimerHandle handle, int remainMin)
+        private void OnRemainMinUpdatedCallback(PeriodTimerHandle handle, int remainMin)
         {
             if (handle.RemainingMin != remainMin)
                 return;
 
-            _onAnyTimerRemainMinUpdated?.Invoke(handle.ToData());
+            _onRemainMinUpdated?.Invoke(handle.ToData());
         }
 
         //============================================================
         // Utilities
         //============================================================
-        public bool TryGetPeriodHandle(string id, out PeriodTimerHandle handle)
+        private static bool TryNormalizeId(string id, out string normalizedId)
         {
-            handle = null;
-            return StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId) && _handles.TryGet(normalizedId, out handle);
+            normalizedId = id?.Trim();
+            return !string.IsNullOrEmpty(normalizedId);
         }
 
         //============================================================
@@ -144,21 +157,16 @@ namespace UnityTools.Manager
             //============================================================
             // Readonly
             //============================================================
-            private readonly PeriodTimerManager _manager;
             private readonly PeriodTimerHandle _handle;
-
-            //============================================================
-            // Properties
-            //============================================================
-            public PeriodTimerHandle Handle => _handle;
+            private readonly Action<PeriodTimerHandle, int> _onRemainMinUpdated;
 
             //============================================================
             // Constructors
             //============================================================
-            public PeriodTimerEventBinder(PeriodTimerManager manager, PeriodTimerHandle handle)
+            public PeriodTimerEventBinder(PeriodTimerHandle handle, Action<PeriodTimerHandle, int> onRemainMinUpdated)
             {
-                _manager = manager;
                 _handle = handle;
+                _onRemainMinUpdated = onRemainMinUpdated;
             }
 
             //============================================================
@@ -166,7 +174,7 @@ namespace UnityTools.Manager
             //============================================================
             public void OnRemainMinUpdatedCallback(int remainMin)
             {
-                _manager.OnPeriodTimerRemainMinUpdatedCallback(_handle, remainMin);
+                _onRemainMinUpdated.Invoke(_handle, remainMin);
             }
         }
     }

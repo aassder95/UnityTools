@@ -1,115 +1,141 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.Events;
-using UnityTools.Util.Core.Singleton;
-using UnityTools.Timer;
+using UnityTools.Timer.Persistence;
 using UnityTools.Timer.Task;
-using UnityTools.Util.Utilities;
 
-namespace UnityTools.Manager
+namespace UnityTools.Timer
 {
-    public class TaskTimerManager : MonoSingleton<TaskTimerManager>
+    public class TaskTimerService
     {
         //============================================================
         // Readonly
         //============================================================
-        private readonly TimerHandleRegistry<TaskTimerHandle> _handles = new();
+        private readonly MonoBehaviour _runner;
+        private readonly IStorage _storage;
+        private readonly Func<DateTime> _utcNow;
+        private readonly Dictionary<string, TaskTimerHandle> _handles = new();
         private readonly Dictionary<string, TaskTimerEventBinder> _eventBinders = new();
 
         //============================================================
         // Events
         //============================================================
-        public event UnityAction<TaskTimerData> OnAnyTimerRemainSecUpdated { add => _onAnyTimerRemainSecUpdated += value; remove => _onAnyTimerRemainSecUpdated -= value; }
-        public event UnityAction<TaskTimerData> OnAnyTimerCompleted { add => _onAnyTimerCompleted += value; remove => _onAnyTimerCompleted -= value; }
-        public event UnityAction<TaskTimerData> OnAnyTimerClaimed { add => _onAnyTimerClaimed += value; remove => _onAnyTimerClaimed -= value; }
-        private event UnityAction<TaskTimerData> _onAnyTimerRemainSecUpdated;
-        private event UnityAction<TaskTimerData> _onAnyTimerCompleted;
-        private event UnityAction<TaskTimerData> _onAnyTimerClaimed;
+        public event UnityAction<TaskTimerData> OnRemainSecUpdated { add => _onRemainSecUpdated += value; remove => _onRemainSecUpdated -= value; }
+        public event UnityAction<TaskTimerData> OnCompleted { add => _onCompleted += value; remove => _onCompleted -= value; }
+        public event UnityAction<TaskTimerData> OnClaimed { add => _onClaimed += value; remove => _onClaimed -= value; }
+        private event UnityAction<TaskTimerData> _onRemainSecUpdated;
+        private event UnityAction<TaskTimerData> _onCompleted;
+        private event UnityAction<TaskTimerData> _onClaimed;
 
         //============================================================
-        // Unity Methods
+        // Constructors
         //============================================================
-        protected override void OnDestroy()
+        public TaskTimerService(MonoBehaviour runner, IStorage storage = null, Func<DateTime> utcNow = null)
         {
-            base.OnDestroy();
-            ClearHandles();
+            _runner = runner;
+            _storage = storage ?? new PlayerPrefsStorage();
+            _utcNow = utcNow;
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public bool TryCreateTaskTimerHandle(string id, out TaskTimerHandle handle)
+        public bool TryCreate(string id, out TaskTimerHandle handle)
         {
             handle = null;
-            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!TryNormalizeId(id, out string normalizedId))
                 return false;
 
-            if (!TaskTimer.TryCreate(normalizedId, this, out TaskTimer timer))
+            if (!TaskTimer.TryCreate(normalizedId, _runner, out TaskTimer timer, _storage, _utcNow))
                 return false;
 
             handle = new TaskTimerHandle(timer);
             return true;
         }
 
-        public bool TryInitTaskTimer(TaskTimerHandle handle)
+        public bool TryInit(TaskTimerHandle handle)
         {
-            if (handle == null || !StringTokenUtils.TryNormalizeNonEmpty(handle.Id, out string normalizedId))
+            if (handle == null || !TryNormalizeId(handle.Id, out string normalizedId))
                 return false;
 
             if (!handle.TryInit())
                 return false;
 
-            if (!_handles.TrySetOrReplace(normalizedId, handle, out TaskTimerHandle oldHandle))
-                return false;
-            if (oldHandle != null)
+            if (_handles.TryGetValue(normalizedId, out TaskTimerHandle oldHandle))
             {
                 UnbindEvents(normalizedId, oldHandle);
                 if (oldHandle != handle)
                     oldHandle.Release();
             }
 
+            _handles[normalizedId] = handle;
             BindEvents(normalizedId, handle);
             return true;
+        }
+
+        public void Release()
+        {
+            string[] ids = new string[_eventBinders.Count];
+            _eventBinders.Keys.CopyTo(ids, 0);
+            for (int i = 0; i < ids.Length; i++)
+            {
+                UnbindEvents(ids[i], _handles[ids[i]]);
+            }
+
+            foreach (TaskTimerHandle handle in _handles.Values)
+            {
+                handle.Release();
+            }
+
+            _handles.Clear();
+            _eventBinders.Clear();
         }
 
         //============================================================
         // Logic
         //============================================================
-        public bool TryStartTaskTimer(string id, double durationSec)
+        public bool TryStart(string id, double durationSec)
         {
-            return TryGetTaskHandle(id, out TaskTimerHandle handle) && handle.TryStart(durationSec);
+            return TryGetHandle(id, out TaskTimerHandle handle) && handle.TryStart(durationSec);
         }
 
-        public bool TryReduceTaskTimer(string id, double reduceSec)
+        public bool TryReduce(string id, double reduceSec)
         {
-            return TryGetTaskHandle(id, out TaskTimerHandle handle) && handle.TryReduce(reduceSec);
+            return TryGetHandle(id, out TaskTimerHandle handle) && handle.TryReduce(reduceSec);
         }
 
-        public bool TryCompleteTaskTimer(string id)
+        public bool TryComplete(string id)
         {
-            return TryGetTaskHandle(id, out TaskTimerHandle handle) && handle.TryComplete();
+            return TryGetHandle(id, out TaskTimerHandle handle) && handle.TryComplete();
         }
 
-        public bool TryClaimTaskTimer(string id)
+        public bool TryClaim(string id)
         {
-            return TryGetTaskHandle(id, out TaskTimerHandle handle) && handle.TryClaim();
+            return TryGetHandle(id, out TaskTimerHandle handle) && handle.TryClaim();
         }
 
-        public bool TryGetTaskTimerClaimed(string id, out bool isClaimed)
+        public bool TryGetClaimed(string id, out bool isClaimed)
         {
             isClaimed = false;
-            if (!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
+            if (!TryNormalizeId(id, out string normalizedId))
                 return false;
 
-            if (_handles.TryGet(normalizedId, out TaskTimerHandle handle))
+            if (_handles.TryGetValue(normalizedId, out TaskTimerHandle handle))
                 return handle.TryGetClaimed(out isClaimed);
 
-            return TaskTimerPersistence.TryLoadClaimed(normalizedId, out isClaimed);
+            return TaskTimerPersistence.TryLoadClaimed(normalizedId, out isClaimed, _storage);
+        }
+
+        public bool TryGetHandle(string id, out TaskTimerHandle handle)
+        {
+            handle = null;
+            return TryNormalizeId(id, out string normalizedId) && _handles.TryGetValue(normalizedId, out handle);
         }
 
         private void BindEvents(string id, TaskTimerHandle handle)
         {
-            TaskTimerEventBinder eventBinder = new(handle, OnTaskTimerRemainSecUpdatedCallback, OnTaskTimerCompletedCallback, OnTaskTimerClaimedCallback, OnTaskTimerStateTransitionCallback);
+            TaskTimerEventBinder eventBinder = new(handle, OnRemainSecUpdatedCallback, OnCompletedCallback, OnClaimedCallback, OnStateTransitionCallback);
             _eventBinders[id] = eventBinder;
             handle.OnRemainSecUpdated += eventBinder.OnRemainSecUpdatedCallback;
             handle.OnCompleted += eventBinder.OnCompletedCallback;
@@ -127,55 +153,42 @@ namespace UnityTools.Manager
             _eventBinders.Remove(id);
         }
 
-        private void ClearHandles()
-        {
-            string[] ids = new string[_eventBinders.Count];
-            _eventBinders.Keys.CopyTo(ids, 0);
-            foreach (string id in ids)
-            {
-                UnbindEvents(id, _eventBinders[id].Handle);
-            }
-
-            _eventBinders.Clear();
-            _handles.Clear();
-        }
-
         //============================================================
         // Callbacks
         //============================================================
-        private void OnTaskTimerRemainSecUpdatedCallback(TaskTimerHandle handle, int remainSec)
+        private void OnRemainSecUpdatedCallback(TaskTimerHandle handle, int remainSec)
         {
             if (handle.RemainingSec != remainSec)
                 return;
 
-            _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());
+            _onRemainSecUpdated?.Invoke(handle.ToData());
         }
 
-        private void OnTaskTimerCompletedCallback(TaskTimerHandle handle)
+        private void OnCompletedCallback(TaskTimerHandle handle)
         {
-            _onAnyTimerCompleted?.Invoke(handle.ToData());
+            _onCompleted?.Invoke(handle.ToData());
         }
 
-        private void OnTaskTimerClaimedCallback(TaskTimerHandle handle)
+        private void OnClaimedCallback(TaskTimerHandle handle)
         {
-            _onAnyTimerClaimed?.Invoke(handle.ToData());
+            _onClaimed?.Invoke(handle.ToData());
         }
 
-        private void OnTaskTimerStateTransitionCallback(TaskTimerHandle handle, ETaskTimerType prevType, ETaskTimerType nextType)
+        private void OnStateTransitionCallback(TaskTimerHandle handle, ETaskTimerType prevType, ETaskTimerType nextType)
         {
             if (prevType == nextType || nextType != ETaskTimerType.Processing)
                 return;
 
-            _onAnyTimerRemainSecUpdated?.Invoke(handle.ToData());
+            _onRemainSecUpdated?.Invoke(handle.ToData());
         }
 
         //============================================================
         // Utilities
         //============================================================
-        public bool TryGetTaskHandle(string id, out TaskTimerHandle handle)
+        private static bool TryNormalizeId(string id, out string normalizedId)
         {
-            handle = null;
-            return StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId) && _handles.TryGet(normalizedId, out handle);
+            normalizedId = id?.Trim();
+            return !string.IsNullOrEmpty(normalizedId);
         }
 
         //============================================================
@@ -191,11 +204,6 @@ namespace UnityTools.Manager
             private readonly Action<TaskTimerHandle> _onCompleted;
             private readonly Action<TaskTimerHandle> _onClaimed;
             private readonly Action<TaskTimerHandle, ETaskTimerType, ETaskTimerType> _onStateTransition;
-
-            //============================================================
-            // Properties
-            //============================================================
-            public TaskTimerHandle Handle => _handle;
 
             //============================================================
             // Constructors
