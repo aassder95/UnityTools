@@ -46,10 +46,17 @@ namespace UnityTools.Util.UiFramework
         //============================================================
         // Logic
         //============================================================
-        public Vector2 GetContentPos(int itemIdx, float offset = 0.0f)
+        public Vector2 GetContentPos(int itemIdx, float offset = 0.0f, EDynamicScrollAlignment alignment = EDynamicScrollAlignment.Start)
         {
             int line = itemIdx / _itemCntPerLine;
-            return _scrollRect.vertical ? new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) + offset) : new Vector2(-(_padding.left + (line * ItemSize.x) + offset), _rtContent.anchoredPosition.y);
+            if (_scrollRect.vertical)
+            {
+                float alignmentOffset = GetAlignmentOffset(alignment, _rtViewport.rect.height, _rtItem.sizeDelta.y);
+                return new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) - alignmentOffset + offset);
+            }
+
+            float horizontalAlignmentOffset = GetAlignmentOffset(alignment, _rtViewport.rect.width, _rtItem.sizeDelta.x);
+            return new Vector2(-(_padding.left + (line * ItemSize.x)) + horizontalAlignmentOffset - offset, _rtContent.anchoredPosition.y);
         }
 
         public void SetItemCntPerLine(int itemCntPerLine)
@@ -65,17 +72,20 @@ namespace UnityTools.Util.UiFramework
             return _scrollRect.vertical ? new Vector2(ContentSize.x, _padding.top + (totalLineCnt * ItemSize.y - _spacing.y) + _padding.bottom) : new Vector2(_padding.left + (totalLineCnt * ItemSize.x - _spacing.x) + _padding.right, ContentSize.y);
         }
 
-        public Vector2 ClampContentPos(Vector2 contentPos, int totalLineCnt, int visibleLineCnt)
+        public Vector2 ClampContentPos(Vector2 contentPos, int totalLineCnt)
         {
-            int maxLine = Mathf.Max(0, totalLineCnt - visibleLineCnt);
             if (_scrollRect.vertical)
             {
                 float minY = _padding.top;
-                float maxY = _padding.top + (maxLine * ItemSize.y);
+                float lastLinePos = _padding.top + (Mathf.Max(0, totalLineCnt - 1) * ItemSize.y);
+                float endAlignmentOffset = Mathf.Max(0.0f, _rtViewport.rect.height - _rtItem.sizeDelta.y);
+                float maxY = Mathf.Max(minY, lastLinePos - endAlignmentOffset);
                 return new Vector2(contentPos.x, Mathf.Clamp(contentPos.y, minY, maxY));
             }
 
-            float minX = -(_padding.left + (maxLine * ItemSize.x));
+            float horizontalLastLinePos = -(_padding.left + (Mathf.Max(0, totalLineCnt - 1) * ItemSize.x));
+            float horizontalEndOffset = Mathf.Max(0.0f, _rtViewport.rect.width - _rtItem.sizeDelta.x);
+            float minX = Mathf.Min(-_padding.left, horizontalLastLinePos + horizontalEndOffset);
             float maxX = -_padding.left;
             return new Vector2(Mathf.Clamp(contentPos.x, minX, maxX), contentPos.y);
         }
@@ -132,6 +142,25 @@ namespace UnityTools.Util.UiFramework
                 return lastLineItemCnt;
 
             return _itemCntPerLine;
+        }
+
+        //============================================================
+        // Utilities
+        //============================================================
+        private static float GetAlignmentOffset(EDynamicScrollAlignment alignment, float viewportSize, float itemSize)
+        {
+            float availableSize = Mathf.Max(0.0f, viewportSize - itemSize);
+            switch (alignment)
+            {
+                case EDynamicScrollAlignment.Start:
+                    return 0.0f;
+                case EDynamicScrollAlignment.Center:
+                    return availableSize / 2.0f;
+                case EDynamicScrollAlignment.End:
+                    return availableSize;
+            }
+
+            return 0.0f;
         }
     }
 }

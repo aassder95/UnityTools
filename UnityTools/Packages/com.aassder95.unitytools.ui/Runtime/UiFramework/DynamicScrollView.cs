@@ -172,14 +172,104 @@ namespace UnityTools.Util.UiFramework
             RebuildVisibleItems();
         }
 
-        public void ScrollTo(int itemIdx, bool isImmediate = false, float durationSec = 0.3f)
+        public void RefreshItem(int itemIdx)
+        {
+            if (itemIdx < 0 || itemIdx >= _totalItemCnt)
+            {
+                DebugLogger.LogError("갱신할 DynamicScroll Item 인덱스가 유효하지 않습니다. 인덱스=" + itemIdx + ", 전체 개수=" + _totalItemCnt, this);
+                return;
+            }
+
+            _itemCtrl.UpdateItem(itemIdx);
+        }
+
+        public void RefreshRange(int startIdx, int cnt)
+        {
+            if (startIdx < 0 || cnt < 0 || startIdx > _totalItemCnt - cnt)
+            {
+                DebugLogger.LogError("갱신할 DynamicScroll Item 범위가 유효하지 않습니다. 시작 인덱스=" + startIdx + ", 개수=" + cnt + ", 전체 개수=" + _totalItemCnt, this);
+                return;
+            }
+
+            if (cnt == 0)
+                return;
+
+            _itemCtrl.UpdateRange(startIdx, cnt);
+        }
+
+        public void UpdateItemCnt(int totalItemCnt, bool shouldPreserveScrollPos = true)
+        {
+            if (!_isInitialized || totalItemCnt < 0)
+            {
+                DebugLogger.LogError("DynamicScroll Item 개수 갱신 조건이 유효하지 않습니다. 초기화=" + _isInitialized + ", 전체 개수=" + totalItemCnt, this);
+                return;
+            }
+
+            StopSmoothScroll();
+            ApplyTotalItemCnt(totalItemCnt);
+            if (!shouldPreserveScrollPos)
+                _rtContent.anchoredPosition = _context.GetContentPos(0);
+
+            _rtContent.anchoredPosition = _context.ClampContentPos(_rtContent.anchoredPosition, _totalLineCnt);
+            RebuildVisibleItems();
+        }
+
+        public void InsertItems(int itemIdx, int itemCnt = 1, bool shouldPreserveAnchor = true)
+        {
+            if (!_isInitialized || itemIdx < 0 || itemIdx > _totalItemCnt || itemCnt <= 0)
+            {
+                DebugLogger.LogError("삽입할 DynamicScroll Item 범위가 유효하지 않습니다. 초기화=" + _isInitialized + ", 인덱스=" + itemIdx + ", 개수=" + itemCnt + ", 전체 개수=" + _totalItemCnt, this);
+                return;
+            }
+
+            StopSmoothScroll();
+            int anchorIdx = GetFirstVisibleItemIdx();
+            Vector2 contentPos = _rtContent.anchoredPosition;
+            ApplyTotalItemCnt(_totalItemCnt + itemCnt);
+            if (shouldPreserveAnchor && itemIdx <= anchorIdx)
+            {
+                Vector2 prevAnchorPos = _context.GetContentPos(anchorIdx);
+                Vector2 nextAnchorPos = _context.GetContentPos(anchorIdx + itemCnt);
+                contentPos += nextAnchorPos - prevAnchorPos;
+            }
+
+            _rtContent.anchoredPosition = _context.ClampContentPos(contentPos, _totalLineCnt);
+            RebuildVisibleItems();
+        }
+
+        public void RemoveItems(int itemIdx, int itemCnt = 1, bool shouldPreserveAnchor = true)
+        {
+            if (!_isInitialized || itemIdx < 0 || itemCnt <= 0 || itemIdx > _totalItemCnt - itemCnt)
+            {
+                DebugLogger.LogError("제거할 DynamicScroll Item 범위가 유효하지 않습니다. 초기화=" + _isInitialized + ", 인덱스=" + itemIdx + ", 개수=" + itemCnt + ", 전체 개수=" + _totalItemCnt, this);
+                return;
+            }
+
+            StopSmoothScroll();
+            int anchorIdx = GetFirstVisibleItemIdx();
+            int nextTotalItemCnt = _totalItemCnt - itemCnt;
+            Vector2 contentPos = _rtContent.anchoredPosition;
+            ApplyTotalItemCnt(nextTotalItemCnt);
+            if (shouldPreserveAnchor && itemIdx <= anchorIdx && nextTotalItemCnt > 0)
+            {
+                int nextAnchorIdx = itemIdx + itemCnt <= anchorIdx ? anchorIdx - itemCnt : Mathf.Min(itemIdx, nextTotalItemCnt - 1);
+                Vector2 prevAnchorPos = _context.GetContentPos(anchorIdx);
+                Vector2 nextAnchorPos = _context.GetContentPos(nextAnchorIdx);
+                contentPos += nextAnchorPos - prevAnchorPos;
+            }
+
+            _rtContent.anchoredPosition = _context.ClampContentPos(contentPos, _totalLineCnt);
+            RebuildVisibleItems();
+        }
+
+        public void ScrollTo(int itemIdx, bool isImmediate = false, float durationSec = 0.3f, EDynamicScrollAlignment alignment = EDynamicScrollAlignment.Start, float offset = 0.0f)
         {
             if (_totalItemCnt <= 0)
                 return;
 
             int targetIdx = Mathf.Clamp(itemIdx, 0, _totalItemCnt - 1);
-            Vector2 targetPos = _context.GetContentPos(targetIdx);
-            targetPos = _context.ClampContentPos(targetPos, _totalLineCnt, _visibleLineCnt);
+            Vector2 targetPos = _context.GetContentPos(targetIdx, offset, alignment);
+            targetPos = _context.ClampContentPos(targetPos, _totalLineCnt);
             if (isImmediate || durationSec <= MIN_SCROLL_DURATION_SEC)
             {
                 StopSmoothScroll();
@@ -196,8 +286,7 @@ namespace UnityTools.Util.UiFramework
             if (totalItemCnt == _totalItemCnt)
                 return;
 
-            _totalItemCnt = totalItemCnt;
-            UpdateContentLayout();
+            ApplyTotalItemCnt(totalItemCnt);
             if (_isInitialized)
             {
                 RebuildVisibleItems();
@@ -338,6 +427,21 @@ namespace UnityTools.Util.UiFramework
             _rtContent.sizeDelta = _context.GetContentSize(_totalLineCnt);
         }
 
+        private void ApplyTotalItemCnt(int totalItemCnt)
+        {
+            _totalItemCnt = totalItemCnt;
+            UpdateContentLayout();
+        }
+
+        private int GetFirstVisibleItemIdx()
+        {
+            if (_totalItemCnt <= 0)
+                return 0;
+
+            int lastLine = Mathf.Max(0, _totalLineCnt - _visibleLineCnt);
+            return Mathf.Min(_context.GetFirstVisibleItemIdx(lastLine), _totalItemCnt - 1);
+        }
+
         private void RebuildVisibleItems()
         {
             _lastScrollPos = float.MinValue;
@@ -345,7 +449,7 @@ namespace UnityTools.Util.UiFramework
             if (_totalItemCnt <= 0)
                 return;
 
-            _rtContent.anchoredPosition = _context.ClampContentPos(_rtContent.anchoredPosition, _totalLineCnt, _visibleLineCnt);
+            _rtContent.anchoredPosition = _context.ClampContentPos(_rtContent.anchoredPosition, _totalLineCnt);
             int firstLine = _context.GetFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
             int firstIdx = firstLine * _itemCntPerLine;
             if (firstIdx >= _totalItemCnt)

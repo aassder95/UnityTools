@@ -1,3 +1,4 @@
+using UnityEngine;
 using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Util.Tests.Lifecycle
@@ -8,5 +9,6 @@ namespace UnityTools.Util.Tests.Lifecycle
         // Properties
         //============================================================
         public int ItemCnt => TotalItemCnt;
+        public Vector2 ContentPos => RtContent.anchoredPosition;
     }
 }

@@ -57,6 +57,28 @@ namespace UnityTools.Util.UiFramework
             }
         }
 
+        public void UpdateItem(int itemIdx)
+        {
+            foreach (TView item in _items)
+            {
+                if (item.Idx == itemIdx)
+                {
+                    _onItemUpdated?.Invoke(item);
+                    return;
+                }
+            }
+        }
+
+        public void UpdateRange(int startIdx, int cnt)
+        {
+            int endIdx = startIdx + cnt;
+            foreach (TView item in _items)
+            {
+                if (item.Idx >= startIdx && item.Idx < endIdx)
+                    _onItemUpdated?.Invoke(item);
+            }
+        }
+
         public void UpdatePos()
         {
             foreach (TView item in _items)

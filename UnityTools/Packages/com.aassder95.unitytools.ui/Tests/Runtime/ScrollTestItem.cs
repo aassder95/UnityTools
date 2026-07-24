@@ -10,11 +10,13 @@ namespace UnityTools.Util.Tests.Lifecycle
         // Fields
         //============================================================
         private int _idx;
+        private int _updateCnt;
 
         //============================================================
         // Properties
         //============================================================
         public int Idx => _idx;
+        public int UpdateCnt => _updateCnt;
 
         //============================================================
         // Init/Register
@@ -33,6 +35,11 @@ namespace UnityTools.Util.Tests.Lifecycle
         {
             RectTransform rt = transform as RectTransform;
             rt.anchoredPosition = pos;
+        }
+
+        public void MarkUpdated()
+        {
+            _updateCnt++;
         }
 
         //============================================================

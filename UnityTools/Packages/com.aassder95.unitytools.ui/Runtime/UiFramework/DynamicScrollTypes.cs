@@ -32,4 +32,11 @@ namespace UnityTools.Util.UiFramework
         BottomCenter,
         BottomRight
     }
+
+    public enum EDynamicScrollAlignment
+    {
+        Start = 0,
+        Center,
+        End
+    }
 }
