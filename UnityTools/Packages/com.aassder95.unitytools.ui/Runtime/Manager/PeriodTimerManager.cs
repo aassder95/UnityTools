@@ -41,7 +41,10 @@ namespace UnityTools.Manager
             if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
                 return false;
 
-            handle = new PeriodTimerHandle(PeriodTimer.Create(normalizedId, this));
+            if(!PeriodTimer.TryCreate(normalizedId, this, out PeriodTimer timer))
+                return false;
+
+            handle = new PeriodTimerHandle(timer);
             return true;
         }
 
@@ -53,7 +56,8 @@ namespace UnityTools.Manager
             if(!handle.TryInit(openMin, closedMin, initWaitFunc))
                 return false;
 
-            PeriodTimerHandle oldHandle = _handles.SetOrReplace(normalizedId, handle);
+            if(!_handles.TrySetOrReplace(normalizedId, handle, out PeriodTimerHandle oldHandle))
+                return false;
             if(oldHandle != null)
             {
                 UnbindEvents(normalizedId, oldHandle);
@@ -73,13 +77,15 @@ namespace UnityTools.Manager
             if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId))
                 return false;
 
+            if(!PeriodTimerPersistence.TryDeleteAll(normalizedId))
+                return false;
+
             if(_handles.TryRemove(normalizedId, out PeriodTimerHandle handle))
             {
                 UnbindEvents(normalizedId, handle);
                 handle.Release();
             }
 
-            PeriodTimerPersistence.DeleteAll(normalizedId);
             return true;
         }
 

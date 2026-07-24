@@ -27,7 +27,12 @@ namespace UnityTools.Util.Utilities
 
         public static int GetRemainingMin(DateTime targetTime)
         {
-            TimeSpan remainingTime = targetTime - RemoveMs(DateTime.UtcNow);
+            return GetRemainingMin(targetTime, DateTime.UtcNow);
+        }
+
+        public static int GetRemainingMin(DateTime targetTime, DateTime utcNow)
+        {
+            TimeSpan remainingTime = targetTime - RemoveMs(utcNow);
             if(remainingTime.TotalMinutes <= 0d)
                 return 0;
 
@@ -36,7 +41,12 @@ namespace UnityTools.Util.Utilities
 
         public static int GetRemainingSec(DateTime targetTime)
         {
-            TimeSpan remainingTime = targetTime - RemoveMs(DateTime.UtcNow);
+            return GetRemainingSec(targetTime, DateTime.UtcNow);
+        }
+
+        public static int GetRemainingSec(DateTime targetTime, DateTime utcNow)
+        {
+            TimeSpan remainingTime = targetTime - RemoveMs(utcNow);
             if(remainingTime.TotalSeconds <= 0d)
                 return 0;
 

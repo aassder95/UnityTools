@@ -33,7 +33,6 @@ namespace UnityTools.Util.Core.Timer.Task
         // Properties
         //============================================================
         public ETaskTimerType CurType => _timer.CurType;
-        public bool IsClaimed => _timer.IsClaimed;
         public int RemainingSec => _timer.RemainingSec;
         public string Id => _timer.Id;
 
@@ -111,6 +110,11 @@ namespace UnityTools.Util.Core.Timer.Task
         public virtual bool TryClaim()
         {
             return _timer.TryClaim();
+        }
+
+        public bool TryGetClaimed(out bool isClaimed)
+        {
+            return _timer.TryGetClaimed(out isClaimed);
         }
 
         public void NotifyCurType()

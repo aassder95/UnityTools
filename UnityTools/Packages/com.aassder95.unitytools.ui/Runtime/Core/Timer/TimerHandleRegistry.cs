@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace UnityTools.Util.Core.Timer
 {
-    public class TimerHandleRegistry<THandle> where THandle : ITimerHandle
+    public class TimerHandleRegistry<THandle> where THandle : class, ITimerHandle
     {
         //============================================================
         // Readonly
@@ -14,18 +14,30 @@ namespace UnityTools.Util.Core.Timer
         //============================================================
         public bool TryGet(string id, out THandle handle)
         {
+            handle = null;
+            if(string.IsNullOrWhiteSpace(id))
+                return false;
+
             return _handles.TryGetValue(id, out handle);
         }
 
-        public THandle SetOrReplace(string id, THandle handle)
+        public bool TrySetOrReplace(string id, THandle handle, out THandle oldHandle)
         {
-            THandle oldHandle = _handles.GetValueOrDefault(id);
+            oldHandle = null;
+            if(string.IsNullOrWhiteSpace(id) || handle == null)
+                return false;
+
+            _handles.TryGetValue(id, out oldHandle);
             _handles[id] = handle;
-            return oldHandle;
+            return true;
         }
 
         public bool TryRemove(string id, out THandle removedHandle)
         {
+            removedHandle = null;
+            if(string.IsNullOrWhiteSpace(id))
+                return false;
+
             return _handles.Remove(id, out removedHandle);
         }
 

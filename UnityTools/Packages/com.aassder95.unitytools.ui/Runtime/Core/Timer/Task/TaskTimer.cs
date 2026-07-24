@@ -3,6 +3,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Util.Core.Logging;
+using UnityTools.Util.Core.Persistence;
 using UnityTools.Util.Core.State;
 using UnityTools.Util.Utilities;
 
@@ -17,6 +18,7 @@ namespace UnityTools.Util.Core.Timer.Task
         private readonly StateMachine<ETaskTimerType> _fsm;
         private readonly MonoBehaviour _runner;
         private readonly TaskTimerPersistence _persistence;
+        private readonly Func<DateTime> _utcNow;
 
         //============================================================
         // Fields
@@ -45,46 +47,37 @@ namespace UnityTools.Util.Core.Timer.Task
         // Properties
         //============================================================
         public string Id => _id;
-        public StateMachine<ETaskTimerType> Fsm => _fsm;
         public ETaskTimerType CurType => _fsm.CurType;
-        public int RemainingSec => DateTimeUtils.GetRemainingSec(EndTime);
+        public int RemainingSec => DateTimeUtils.GetRemainingSec(EndTime, GetUtcNow());
         public int DurationSec => (int)_durationSec;
         public float Progress => CalculateProgress();
-        public bool IsClaimed => _persistence.IsClaimed;
-        public bool IsPeriodExpired => DateTimeUtils.CompareWithoutMs(DateTime.UtcNow, EndTime) >= 0;
         public DateTime EndTime => _startTime.AddSeconds(_durationSec);
-        private bool IsTampered => DateTimeUtils.CompareWithoutMs(DateTime.UtcNow, _updatedTime) < 0;
+        private bool IsPeriodExpired => DateTimeUtils.CompareWithoutMs(GetUtcNow(), EndTime) >= 0;
+        private bool IsTampered => DateTimeUtils.CompareWithoutMs(GetUtcNow(), _updatedTime) < 0;
 
         //============================================================
         // Constructors
         //============================================================
-        private TaskTimer(string normalizedId, MonoBehaviour runner)
+        private TaskTimer(string normalizedId, MonoBehaviour runner, IStorage storage, Func<DateTime> utcNow)
         {
             _id = normalizedId;
             _runner = runner;
-            _persistence = new TaskTimerPersistence(_id);
+            _persistence = new TaskTimerPersistence(_id, storage);
+            _utcNow = utcNow ?? GetSystemUtcNow;
             _fsm = new StateMachine<ETaskTimerType>();
+            RegisterStates();
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public static TaskTimer Create(string normalizedId, MonoBehaviour runner)
-        {
-            TaskTimer timer = new(normalizedId, runner);
-            timer._fsm.Add(ETaskTimerType.None, new TaskTimerBaseState(timer));
-            timer._fsm.Add(ETaskTimerType.Processing, new TaskTimerProcessingState(timer));
-            timer._fsm.Add(ETaskTimerType.Completed, new TaskTimerCompletedState(timer));
-            return timer;
-        }
-
-        public static bool TryCreate(string id, MonoBehaviour runner, out TaskTimer timer)
+        public static bool TryCreate(string id, MonoBehaviour runner, out TaskTimer timer, IStorage storage = null, Func<DateTime> utcNow = null)
         {
             timer = null;
             if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId) || runner == null)
                 return false;
 
-            timer = Create(normalizedId, runner);
+            timer = new TaskTimer(normalizedId, runner, storage, utcNow);
             return true;
         }
 
@@ -93,7 +86,9 @@ namespace UnityTools.Util.Core.Timer.Task
             if(_isInit)
                 return true;
 
-            Load();
+            if(!TryLoad())
+                return false;
+
             _isInit = true;
             if(TryRefresh())
                 return true;
@@ -108,29 +103,37 @@ namespace UnityTools.Util.Core.Timer.Task
             _isInit = false;
         }
 
+        private void RegisterStates()
+        {
+            _fsm.Add(ETaskTimerType.None, new TaskTimerBaseState(this));
+            _fsm.Add(ETaskTimerType.Processing, new TaskTimerProcessingState(this));
+            _fsm.Add(ETaskTimerType.Completed, new TaskTimerCompletedState(this));
+        }
+
         //============================================================
         // Persistence
         //============================================================
-        private void Save()
+        private bool TryLoad()
         {
-            _updatedTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
-            _persistence.Save(_startTime, _durationSec, _fsm.CurType, _updatedTime);
-        }
+            if(!_persistence.TryLoad(out TaskTimerStorageSnapshot snapshot))
+                return false;
 
-        private void Load()
-        {
-            TaskTimerStorageSnapshot snapshot = _persistence.Load();
             _startTime = snapshot.StartTime;
             _durationSec = snapshot.DurationSec;
             _updatedTime = snapshot.UpdatedTime;
             _savedStateType = snapshot.SavedStateType;
+            return true;
+        }
+
+        private bool TrySaveSnapshot(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
+        {
+            return _persistence.TrySave(startTime, durationSec, stateType, updatedTime);
         }
 
         private void Clear()
         {
-            _persistence.ClearRuntimeData();
             _startTime = DateTime.MinValue;
-            _durationSec = 0d;
+            _durationSec = 0.0d;
             _savedStateType = 0;
         }
 
@@ -155,16 +158,17 @@ namespace UnityTools.Util.Core.Timer.Task
             {
                 if(IsTampered)
                 {
-                    double adjustSec = (_updatedTime - DateTime.UtcNow).TotalSeconds;
-                    _durationSec += adjustSec;
-                    _persistence.SaveDuration(_durationSec);
+                    DateTime now = GetUtcNow();
+                    double adjustedDurationSec = _durationSec + (_updatedTime - now).TotalSeconds;
+                    if(!TrySaveSnapshot(_startTime, adjustedDurationSec, ETaskTimerType.Processing, now))
+                        return false;
+
+                    _durationSec = adjustedDurationSec;
+                    _updatedTime = now;
                 }
 
                 if(IsPeriodExpired)
-                {
-                    UpdateCompletionTime();
-                    return true;
-                }
+                    return TryUpdateCompletionTime();
 
                 if(!_fsm.HasCurState || _fsm.CurType != ETaskTimerType.Processing)
                     _fsm.Change(ETaskTimerType.Processing);
@@ -185,13 +189,19 @@ namespace UnityTools.Util.Core.Timer.Task
             if(!_isInit || _fsm.CurType == ETaskTimerType.Processing || !IsPositiveFinite(durationSec))
                 return false;
 
-            _startTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
-            _durationSec = durationSec;
-            if(_updatedTime != DateTime.MinValue && IsTampered)
-                _durationSec += (_updatedTime - DateTime.UtcNow).TotalSeconds;
+            DateTime now = GetUtcNow();
+            double nextDurationSec = durationSec;
+            if(_updatedTime != DateTime.MinValue && DateTimeUtils.CompareWithoutMs(now, _updatedTime) < 0)
+                nextDurationSec += (_updatedTime - now).TotalSeconds;
 
+            if(!TrySaveSnapshot(now, nextDurationSec, ETaskTimerType.Processing, now))
+                return false;
+
+            _startTime = now;
+            _durationSec = nextDurationSec;
+            _updatedTime = now;
+            _savedStateType = (int)ETaskTimerType.Processing;
             _fsm.Change(ETaskTimerType.Processing);
-            Save();
             StartUpdate();
             return true;
         }
@@ -201,32 +211,33 @@ namespace UnityTools.Util.Core.Timer.Task
             if(!_isInit || _fsm.CurType != ETaskTimerType.Processing || !IsPositiveFinite(reduceSec))
                 return false;
 
-            double remainSec = (EndTime - DateTime.UtcNow).TotalSeconds;
+            DateTime now = GetUtcNow();
+            double remainSec = (EndTime - now).TotalSeconds;
             double actualReduceSec = Math.Min(reduceSec, remainSec);
-            if(actualReduceSec <= 0d)
+            if(actualReduceSec <= 0.0d)
                 return false;
 
-            _startTime = _startTime.AddSeconds(-actualReduceSec);
-            Save();
+            DateTime nextStartTime = _startTime.AddSeconds(-actualReduceSec);
+            if(!TrySaveSnapshot(nextStartTime, _durationSec, ETaskTimerType.Processing, now))
+                return false;
+
+            _startTime = nextStartTime;
+            _updatedTime = now;
             _onRemainSecUpdated?.Invoke(RemainingSec);
             if(IsPeriodExpired)
-                UpdateCompletionTime();
+                return TryUpdateCompletionTime();
 
             return true;
         }
 
         public bool TryComplete()
         {
-            if(!_isInit || _fsm.CurType != ETaskTimerType.Processing)
-                return false;
-
-            UpdateCompletionTime();
-            return true;
+            return _isInit && _fsm.CurType == ETaskTimerType.Processing && TryUpdateCompletionTime();
         }
 
         public bool TryClaim()
         {
-            if(!_isInit || _fsm.CurType != ETaskTimerType.Completed)
+            if(!_isInit || _fsm.CurType != ETaskTimerType.Completed || !_persistence.TryClearRuntimeData())
                 return false;
 
             _fsm.Change(ETaskTimerType.None);
@@ -235,14 +246,23 @@ namespace UnityTools.Util.Core.Timer.Task
             return true;
         }
 
-        public void UpdateCompletionTime()
+        public bool TryGetClaimed(out bool isClaimed)
         {
-            _updatedTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
-            _persistence.SaveUpdated(_updatedTime);
+            return _persistence.TryLoadClaimed(out isClaimed);
+        }
+
+        private bool TryUpdateCompletionTime()
+        {
+            DateTime updatedTime = GetUtcNow();
+            if(!TrySaveSnapshot(_startTime, _durationSec, ETaskTimerType.Completed, updatedTime))
+                return false;
+
+            _updatedTime = updatedTime;
+            _savedStateType = (int)ETaskTimerType.Completed;
             if(_fsm.CurType != ETaskTimerType.Completed)
                 _fsm.Change(ETaskTimerType.Completed);
 
-            _persistence.SaveState(ETaskTimerType.Completed);
+            return true;
         }
 
         //============================================================
@@ -278,23 +298,6 @@ namespace UnityTools.Util.Core.Timer.Task
         //============================================================
         // Callbacks
         //============================================================
-        public void NotifyUpdate()
-        {
-            if(_fsm.CurType == ETaskTimerType.Processing)
-                _onRemainSecUpdated?.Invoke(RemainingSec);
-        }
-
-        public void NotifyProcessingStarted()
-        {
-            _onProgressStarted?.Invoke();
-        }
-
-        public void NotifyCompleted()
-        {
-            StopUpdate();
-            _onCompleted?.Invoke();
-        }
-
         public void NotifyCurType()
         {
             switch(_fsm.CurType)
@@ -309,6 +312,23 @@ namespace UnityTools.Util.Core.Timer.Task
             }
         }
 
+        private void NotifyUpdate()
+        {
+            if(_fsm.CurType == ETaskTimerType.Processing)
+                _onRemainSecUpdated?.Invoke(RemainingSec);
+        }
+
+        private void NotifyProcessingStarted()
+        {
+            _onProgressStarted?.Invoke();
+        }
+
+        private void NotifyCompleted()
+        {
+            StopUpdate();
+            _onCompleted?.Invoke();
+        }
+
         //============================================================
         // Utilities
         //============================================================
@@ -321,7 +341,7 @@ namespace UnityTools.Util.Core.Timer.Task
                 return 1.0f;
 
             int totalSec = (int)Math.Round(_durationSec);
-            int elapsedSec = (int)Math.Round((DateTime.UtcNow - _startTime).TotalSeconds);
+            int elapsedSec = (int)Math.Round((GetUtcNow() - _startTime).TotalSeconds);
             return totalSec <= 0 ? 0.0f : Mathf.Clamp01((float)elapsedSec / totalSec);
         }
 
@@ -335,9 +355,88 @@ namespace UnityTools.Util.Core.Timer.Task
             return false;
         }
 
+        private DateTime GetUtcNow()
+        {
+            return DateTimeUtils.RemoveMs(_utcNow.Invoke());
+        }
+
+        private static DateTime GetSystemUtcNow()
+        {
+            return DateTime.UtcNow;
+        }
+
         private static bool IsPositiveFinite(double value)
         {
-            return value > 0d && !double.IsNaN(value) && !double.IsInfinity(value);
+            return value > 0.0d && !double.IsNaN(value) && !double.IsInfinity(value);
+        }
+
+        //============================================================
+        // Nested Types
+        //============================================================
+        private class TaskTimerBaseState : IState
+        {
+            //============================================================
+            // Readonly
+            //============================================================
+            protected readonly TaskTimer _timer;
+
+            //============================================================
+            // Constructors
+            //============================================================
+            public TaskTimerBaseState(TaskTimer timer)
+            {
+                _timer = timer;
+            }
+
+            //============================================================
+            // Logic
+            //============================================================
+            public virtual void Enter() { }
+            public virtual void Execute() { }
+            public virtual void Exit() { }
+        }
+
+        private class TaskTimerProcessingState : TaskTimerBaseState
+        {
+            //============================================================
+            // Constructors
+            //============================================================
+            public TaskTimerProcessingState(TaskTimer timer) : base(timer) { }
+
+            //============================================================
+            // Logic
+            //============================================================
+            public override void Enter()
+            {
+                _timer.NotifyProcessingStarted();
+            }
+
+            public override void Execute()
+            {
+                if(_timer.IsPeriodExpired)
+                {
+                    _timer.TryUpdateCompletionTime();
+                    return;
+                }
+
+                _timer.NotifyUpdate();
+            }
+        }
+
+        private class TaskTimerCompletedState : TaskTimerBaseState
+        {
+            //============================================================
+            // Constructors
+            //============================================================
+            public TaskTimerCompletedState(TaskTimer timer) : base(timer) { }
+
+            //============================================================
+            // Logic
+            //============================================================
+            public override void Enter()
+            {
+                _timer.NotifyCompleted();
+            }
         }
     }
 }

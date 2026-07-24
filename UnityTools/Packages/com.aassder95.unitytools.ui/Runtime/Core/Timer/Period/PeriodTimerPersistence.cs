@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using UnityTools.Util.Core.Persistence;
 
 namespace UnityTools.Util.Core.Timer.Period
@@ -14,36 +15,38 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Constructors
         //============================================================
-        public PeriodTimerPersistence(string normalizedId)
+        public PeriodTimerPersistence(string normalizedId, IStorage storage = null)
         {
             _id = normalizedId;
-            _storage = new PlayerPrefsStorage();
+            _storage = storage ?? new PlayerPrefsStorage();
         }
 
         //============================================================
         // Persistence
         //============================================================
-        public void Save(DateTime openEndTime, DateTime closedEndTime, DateTime openUpdatedTime, bool isTamperedFlag)
+        public bool TrySave(DateTime openEndTime, DateTime closedEndTime, DateTime openUpdatedTime, bool isTamperedFlag)
         {
-            StorageValueUtils.SaveString(_storage, PeriodTimerStorageKeys.OpenEnd(_id), openEndTime.Ticks.ToString());
-            StorageValueUtils.SaveString(_storage, PeriodTimerStorageKeys.ClosedEnd(_id), closedEndTime.Ticks.ToString());
-            StorageValueUtils.SaveString(_storage, PeriodTimerStorageKeys.OpenUpdated(_id), openUpdatedTime.Ticks.ToString());
-            StorageValueUtils.SaveString(_storage, PeriodTimerStorageKeys.Tampered(_id), isTamperedFlag ? "1" : "0");
+            bool isOpenEndSaved = StorageValueUtils.TrySaveString(_storage, PeriodTimerStorageKeys.OpenEnd(_id), openEndTime.Ticks.ToString(CultureInfo.InvariantCulture));
+            bool isClosedEndSaved = StorageValueUtils.TrySaveString(_storage, PeriodTimerStorageKeys.ClosedEnd(_id), closedEndTime.Ticks.ToString(CultureInfo.InvariantCulture));
+            bool isOpenUpdatedSaved = StorageValueUtils.TrySaveString(_storage, PeriodTimerStorageKeys.OpenUpdated(_id), openUpdatedTime.Ticks.ToString(CultureInfo.InvariantCulture));
+            bool isTamperedSaved = StorageValueUtils.TrySaveString(_storage, PeriodTimerStorageKeys.Tampered(_id), isTamperedFlag ? "1" : "0");
+            return isOpenEndSaved && isClosedEndSaved && isOpenUpdatedSaved && isTamperedSaved;
         }
 
-        public PeriodTimerStorageSnapshot Load()
+        public bool TryLoad(out PeriodTimerStorageSnapshot snapshot)
         {
-            DateTime openEndTime = StorageValueUtils.LoadDateOrDefault(_storage, PeriodTimerStorageKeys.OpenEnd(_id));
-            DateTime closedEndTime = StorageValueUtils.LoadDateOrDefault(_storage, PeriodTimerStorageKeys.ClosedEnd(_id));
-            DateTime openUpdatedTime = StorageValueUtils.LoadDateOrDefault(_storage, PeriodTimerStorageKeys.OpenUpdated(_id));
-            bool isTamperedFlag = StorageValueUtils.LoadString(_storage, PeriodTimerStorageKeys.Tampered(_id)) == "1";
-            return new PeriodTimerStorageSnapshot(openEndTime, closedEndTime, openUpdatedTime, isTamperedFlag);
+            bool isOpenEndLoaded = StorageValueUtils.TryLoadDateOrDefault(_storage, PeriodTimerStorageKeys.OpenEnd(_id), out DateTime openEndTime);
+            bool isClosedEndLoaded = StorageValueUtils.TryLoadDateOrDefault(_storage, PeriodTimerStorageKeys.ClosedEnd(_id), out DateTime closedEndTime);
+            bool isOpenUpdatedLoaded = StorageValueUtils.TryLoadDateOrDefault(_storage, PeriodTimerStorageKeys.OpenUpdated(_id), out DateTime openUpdatedTime);
+            bool isTamperedLoaded = StorageValueUtils.TryLoadStringOrDefault(_storage, PeriodTimerStorageKeys.Tampered(_id), out string rawTampered);
+            snapshot = new PeriodTimerStorageSnapshot(openEndTime, closedEndTime, openUpdatedTime, rawTampered == "1");
+            return isOpenEndLoaded && isClosedEndLoaded && isOpenUpdatedLoaded && isTamperedLoaded;
         }
 
-        public static void DeleteAll(string normalizedId, IStorage storage = null)
+        public static bool TryDeleteAll(string normalizedId, IStorage storage = null)
         {
             IStorage targetStorage = storage ?? new PlayerPrefsStorage();
-            PeriodTimerStorageKeys.DeleteAll(normalizedId, targetStorage);
+            return PeriodTimerStorageKeys.TryDeleteAll(normalizedId, targetStorage);
         }
     }
 }

@@ -36,12 +36,16 @@ namespace UnityTools.Util.Core.Timer.Period
             return $"{PREFIX}{normalizedId}{TAMPERED_SUFFIX}";
         }
 
-        public static void DeleteAll(string normalizedId, IStorage storage)
+        public static bool TryDeleteAll(string normalizedId, IStorage storage)
         {
-            storage.Delete(OpenEnd(normalizedId));
-            storage.Delete(ClosedEnd(normalizedId));
-            storage.Delete(OpenUpdated(normalizedId));
-            storage.Delete(Tampered(normalizedId));
+            if(string.IsNullOrWhiteSpace(normalizedId) || storage == null)
+                return false;
+
+            bool isOpenEndDeleted = storage.TryDelete(OpenEnd(normalizedId));
+            bool isClosedEndDeleted = storage.TryDelete(ClosedEnd(normalizedId));
+            bool isOpenUpdatedDeleted = storage.TryDelete(OpenUpdated(normalizedId));
+            bool isTamperedDeleted = storage.TryDelete(Tampered(normalizedId));
+            return isOpenEndDeleted && isClosedEndDeleted && isOpenUpdatedDeleted && isTamperedDeleted;
         }
     }
 }

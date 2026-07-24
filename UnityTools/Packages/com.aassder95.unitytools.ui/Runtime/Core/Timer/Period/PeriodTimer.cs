@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityTools.Util.Core.Persistence;
 using UnityTools.Util.Core.State;
 using UnityTools.Util.Utilities;
 
@@ -16,6 +17,7 @@ namespace UnityTools.Util.Core.Timer.Period
         private readonly StateMachine<EPeriodTimerType> _fsm;
         private readonly MonoBehaviour _runner;
         private readonly PeriodTimerPersistence _persistence;
+        private readonly Func<DateTime> _utcNow;
 
         //============================================================
         // Fields
@@ -52,77 +54,41 @@ namespace UnityTools.Util.Core.Timer.Period
         // Properties
         //============================================================
         public string Id => _id;
-        public StateMachine<EPeriodTimerType> Fsm => _fsm;
         public EPeriodTimerType CurType => _fsm.CurType;
-        public bool IsTamperedFlag => _isTamperedFlag;
-        public bool IsOpenPeriod => DateTimeUtils.CompareWithoutMs(DateTime.UtcNow, _openEndTime) < 0;
-        public bool IsClosedPeriod => DateTimeUtils.CompareWithoutMs(DateTime.UtcNow, _closedEndTime) < 0;
-        public bool IsTampered => DateTimeUtils.CompareWithoutMs(DateTime.UtcNow, _openUpdatedTime) < 0;
+        public bool IsOpenPeriod => DateTimeUtils.CompareWithoutMs(GetUtcNow(), _openEndTime) < 0;
+        public bool IsClosedPeriod => DateTimeUtils.CompareWithoutMs(GetUtcNow(), _closedEndTime) < 0;
         public bool IsReady => _isInit && _coInit == null;
         public int RemainingMin => CalculateRemainingMin();
         public int RemainingSec => CalculateRemainingSec();
         public DateTime OpenUpdatedTime => _openUpdatedTime;
         public DateTime OpenEndTime => _openEndTime;
         public DateTime ClosedEndTime => _closedEndTime;
+        private bool IsTampered => DateTimeUtils.CompareWithoutMs(GetUtcNow(), _openUpdatedTime) < 0;
 
         //============================================================
         // Constructors
         //============================================================
-        private PeriodTimer(string normalizedId, MonoBehaviour runner)
+        private PeriodTimer(string normalizedId, MonoBehaviour runner, IStorage storage, Func<DateTime> utcNow)
         {
             _id = normalizedId;
             _runner = runner;
-            _persistence = new PeriodTimerPersistence(_id);
+            _persistence = new PeriodTimerPersistence(_id, storage);
+            _utcNow = utcNow ?? GetSystemUtcNow;
             _fsm = new StateMachine<EPeriodTimerType>();
+            RegisterStates();
         }
 
         //============================================================
         // Init/Register
         //============================================================
-        public static PeriodTimer Create(string normalizedId, MonoBehaviour runner)
-        {
-            PeriodTimer timer = new(normalizedId, runner);
-            timer._fsm.Add(EPeriodTimerType.Reset, new PeriodTimerResetState(timer));
-            timer._fsm.Add(EPeriodTimerType.Open, new PeriodTimerOpenState(timer));
-            timer._fsm.Add(EPeriodTimerType.Closed, new PeriodTimerClosedState(timer));
-            return timer;
-        }
-
-        public static bool TryCreate(string id, MonoBehaviour runner, out PeriodTimer timer)
+        public static bool TryCreate(string id, MonoBehaviour runner, out PeriodTimer timer, IStorage storage = null, Func<DateTime> utcNow = null)
         {
             timer = null;
             if(!StringTokenUtils.TryNormalizeNonEmpty(id, out string normalizedId) || runner == null)
                 return false;
 
-            timer = Create(normalizedId, runner);
+            timer = new PeriodTimer(normalizedId, runner, storage, utcNow);
             return true;
-        }
-
-        public void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
-        {
-            if(_isInit)
-                return;
-
-            StopInit();
-            if(!_isStateEventRegistered)
-            {
-                _fsm.OnStateTransition += OnStateTransitionCallback;
-                _isStateEventRegistered = true;
-            }
-
-            _openPeriodMin = openMin;
-            _closedPeriodMin = closedMin;
-            Load();
-            if(initWaitFunc == null)
-            {
-                _isInit = true;
-                Refresh();
-                StartUpdate();
-                return;
-            }
-
-            IEnumerator initEnumerator = initWaitFunc();
-            _coInit = _runner.StartCoroutine(CoInit(initEnumerator));
         }
 
         public bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
@@ -133,7 +99,32 @@ namespace UnityTools.Util.Core.Timer.Period
             if(!IsPositiveFinite(openMin) || !IsPositiveFinite(closedMin))
                 return false;
 
-            Init(openMin, closedMin, initWaitFunc);
+            StopInit();
+            RegisterStateEvent();
+            _openPeriodMin = openMin;
+            _closedPeriodMin = closedMin;
+            if(!TryLoad())
+            {
+                UnregisterStateEvent();
+                return false;
+            }
+
+            if(initWaitFunc == null)
+            {
+                _isInit = true;
+                if(TryRefresh())
+                {
+                    StartUpdate();
+                    return true;
+                }
+
+                _isInit = false;
+                UnregisterStateEvent();
+                return false;
+            }
+
+            IEnumerator initEnumerator = initWaitFunc.Invoke();
+            _coInit = _runner.StartCoroutine(CoInit(initEnumerator));
             return true;
         }
 
@@ -141,82 +132,131 @@ namespace UnityTools.Util.Core.Timer.Period
         {
             StopInit();
             StopUpdate();
-            if(_isStateEventRegistered)
-            {
-                _fsm.OnStateTransition -= OnStateTransitionCallback;
-                _isStateEventRegistered = false;
-            }
-
+            UnregisterStateEvent();
             _isInit = false;
+        }
+
+        private void RegisterStates()
+        {
+            _fsm.Add(EPeriodTimerType.Reset, new PeriodTimerBaseState(this));
+            _fsm.Add(EPeriodTimerType.Open, new PeriodTimerOpenState(this));
+            _fsm.Add(EPeriodTimerType.Closed, new PeriodTimerClosedState(this));
+        }
+
+        private void RegisterStateEvent()
+        {
+            if(_isStateEventRegistered)
+                return;
+
+            _fsm.OnStateTransition += OnStateTransitionCallback;
+            _isStateEventRegistered = true;
+        }
+
+        private void UnregisterStateEvent()
+        {
+            if(!_isStateEventRegistered)
+                return;
+
+            _fsm.OnStateTransition -= OnStateTransitionCallback;
+            _isStateEventRegistered = false;
         }
 
         //============================================================
         // Persistence
         //============================================================
-        private void Load()
+        private bool TryLoad()
         {
-            PeriodTimerStorageSnapshot snapshot = _persistence.Load();
+            if(!_persistence.TryLoad(out PeriodTimerStorageSnapshot snapshot))
+                return false;
+
             _openEndTime = snapshot.OpenEndTime;
             _closedEndTime = snapshot.ClosedEndTime;
             _openUpdatedTime = snapshot.OpenUpdatedTime;
             _isTamperedFlag = snapshot.IsTamperedFlag;
+            return true;
         }
 
         //============================================================
         // Logic
         //============================================================
-        private void Refresh()
+        private bool TryRefresh()
         {
-            DateTime now = DateTimeUtils.RemoveMs(DateTime.UtcNow);
+            DateTime now = GetUtcNow();
             if(_openEndTime == DateTime.MinValue)
-            {
-                _fsm.Change(EPeriodTimerType.Reset, true);
-                return;
-            }
+                return TryOpenNewPeriod();
 
             if(now < _openEndTime)
             {
                 if(IsTampered)
-                {
-                    HandleTampered();
-                    return;
-                }
+                    return TryHandleTampered();
 
                 _fsm.Change(EPeriodTimerType.Open);
-                return;
+                return true;
             }
 
             if(now < _closedEndTime)
             {
                 _fsm.Change(EPeriodTimerType.Closed);
-                return;
+                return true;
             }
 
-            _fsm.Change(EPeriodTimerType.Reset, true);
+            return TryOpenNewPeriod();
         }
 
-        public void ApplyPeriodTime()
+        private bool TryOpenNewPeriod()
         {
-            ApplyPendingPeriodsIfNeeded();
-            DateTime now = DateTimeUtils.RemoveMs(DateTime.UtcNow);
+            NotifyOpenPeriodPreparing();
+            if(!TryApplyPeriodTime())
+                return false;
+
+            _fsm.Change(EPeriodTimerType.Reset);
+            NotifyOpenPeriodStarted();
+            _fsm.Change(EPeriodTimerType.Open);
+            return true;
+        }
+
+        private bool TryApplyPeriodTime()
+        {
+            double openPeriodMin = _hasPendingPeriodChange ? _nextOpenPeriodMin : _openPeriodMin;
+            double closedPeriodMin = _hasPendingPeriodChange ? _nextClosedPeriodMin : _closedPeriodMin;
+            DateTime now = GetUtcNow();
+            DateTime openEndTime = DateTimeUtils.RemoveMs(now.AddMinutes(openPeriodMin));
+            DateTime closedEndTime = DateTimeUtils.RemoveMs(now.AddMinutes(openPeriodMin + closedPeriodMin));
+            if(!_persistence.TrySave(openEndTime, closedEndTime, now, false))
+                return false;
+
+            _openPeriodMin = openPeriodMin;
+            _closedPeriodMin = closedPeriodMin;
+            _hasPendingPeriodChange = false;
+            _isTamperedFlag = false;
             _openUpdatedTime = now;
-            _openEndTime = DateTimeUtils.RemoveMs(now.AddMinutes(_openPeriodMin));
-            _closedEndTime = DateTimeUtils.RemoveMs(now.AddMinutes(_openPeriodMin + _closedPeriodMin));
-            _persistence.Save(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
+            _openEndTime = openEndTime;
+            _closedEndTime = closedEndTime;
+            return true;
         }
 
-        public void HandleTampered()
+        private bool TryHandleTampered()
         {
+            if(!_persistence.TrySave(_openEndTime, _closedEndTime, _openUpdatedTime, true))
+                return false;
+
             _isTamperedFlag = true;
             _fsm.Change(EPeriodTimerType.Closed);
-            _persistence.Save(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
+            return true;
         }
 
-        public void ClearTampered()
+        private bool TryClearTampered()
         {
+            DateTime now = GetUtcNow();
+            DateTime closedEndTime = DateTimeUtils.RemoveMs(now.AddMinutes(_closedPeriodMin));
+            if(!_persistence.TrySave(now, closedEndTime, now, false))
+                return false;
+
             _isTamperedFlag = false;
-            SetClosedPeriodFromNow();
-            _persistence.Save(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
+            _openUpdatedTime = now;
+            _openEndTime = now;
+            _closedEndTime = closedEndTime;
+            return true;
         }
 
         public bool TrySetPeriods(double openMin, double closedMin)
@@ -230,56 +270,38 @@ namespace UnityTools.Util.Core.Timer.Period
             return true;
         }
 
-        public void ForceOpen()
-        {
-            _isTamperedFlag = false;
-            StopUpdate();
-            _fsm.Change(EPeriodTimerType.Reset, true);
-            StartUpdate();
-        }
-
-        public void ForceClosed()
-        {
-            _isTamperedFlag = false;
-            SetClosedPeriodFromNow();
-            _fsm.Change(EPeriodTimerType.Closed);
-            _persistence.Save(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
-        }
-
         public bool TryForceOpen()
         {
             if(!_isInit)
                 return false;
 
-            ForceOpen();
-            return true;
+            StopUpdate();
+            bool isOpened = TryOpenNewPeriod();
+            StartUpdate();
+            return isOpened;
         }
 
         public bool TryForceClosed()
         {
-            if(!_isInit)
+            if(!_isInit || !TrySetClosedPeriodFromNow())
                 return false;
 
-            ForceClosed();
+            _fsm.Change(EPeriodTimerType.Closed);
             return true;
         }
 
-        private void ApplyPendingPeriodsIfNeeded()
+        private bool TrySetClosedPeriodFromNow()
         {
-            if(!_hasPendingPeriodChange)
-                return;
+            DateTime now = GetUtcNow();
+            DateTime closedEndTime = DateTimeUtils.RemoveMs(now.AddMinutes(_closedPeriodMin));
+            if(!_persistence.TrySave(now, closedEndTime, now, false))
+                return false;
 
-            _openPeriodMin = _nextOpenPeriodMin;
-            _closedPeriodMin = _nextClosedPeriodMin;
-            _hasPendingPeriodChange = false;
-        }
-
-        private void SetClosedPeriodFromNow()
-        {
-            DateTime now = DateTimeUtils.RemoveMs(DateTime.UtcNow);
+            _isTamperedFlag = false;
             _openUpdatedTime = now;
             _openEndTime = now;
-            _closedEndTime = DateTimeUtils.RemoveMs(now.AddMinutes(_closedPeriodMin));
+            _closedEndTime = closedEndTime;
+            return true;
         }
 
         //============================================================
@@ -294,7 +316,9 @@ namespace UnityTools.Util.Core.Timer.Period
                     yield return initEnumerator;
 
                 _isInit = true;
-                Refresh();
+                if(!TryRefresh())
+                    yield break;
+
                 StartUpdate();
                 isCompleted = true;
             }
@@ -302,7 +326,10 @@ namespace UnityTools.Util.Core.Timer.Period
             {
                 _coInit = null;
                 if(!isCompleted)
+                {
                     _isInit = false;
+                    UnregisterStateEvent();
+                }
             }
         }
 
@@ -323,8 +350,7 @@ namespace UnityTools.Util.Core.Timer.Period
                 if(!_isInit || _fsm.CurType == EPeriodTimerType.None)
                     yield break;
 
-                int waitSec = GetWaitSec();
-                yield return new WaitForSecondsRealtime(waitSec);
+                yield return new WaitForSecondsRealtime(GetWaitSec());
             }
         }
 
@@ -345,12 +371,13 @@ namespace UnityTools.Util.Core.Timer.Period
 
         private int GetWaitSec()
         {
+            DateTime now = GetUtcNow();
             switch(_fsm.CurType)
             {
                 case EPeriodTimerType.Open:
-                    return Mathf.Clamp(DateTimeUtils.GetRemainingSec(_openEndTime), 1, 60);
+                    return Mathf.Clamp(DateTimeUtils.GetRemainingSec(_openEndTime, now), 1, 60);
                 case EPeriodTimerType.Closed:
-                    return Mathf.Clamp(DateTimeUtils.GetRemainingSec(_closedEndTime), 1, 60);
+                    return Mathf.Clamp(DateTimeUtils.GetRemainingSec(_closedEndTime, now), 1, 60);
                 default:
                     return 1;
             }
@@ -359,32 +386,37 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Callbacks
         //============================================================
-        public void NotifyOpenPeriodPreparing()
+        private void NotifyOpenPeriodPreparing()
         {
             _onOpenPeriodPreparing?.Invoke();
         }
 
-        public void NotifyOpenPeriodStarted()
+        private void NotifyOpenPeriodStarted()
         {
             _onOpenPeriodStarted?.Invoke();
         }
 
-        public void NotifyOpenRemainMinUpdated()
+        private bool TryNotifyOpenRemainMinUpdated()
         {
-            _openUpdatedTime = DateTimeUtils.RemoveMs(DateTime.UtcNow);
-            _persistence.Save(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
-            int remainMin = DateTimeUtils.GetRemainingMin(_openEndTime);
-            _onRemainMinUpdated?.Invoke(remainMin);
+            DateTime updatedTime = GetUtcNow();
+            if(!_persistence.TrySave(_openEndTime, _closedEndTime, updatedTime, _isTamperedFlag))
+                return false;
+
+            _openUpdatedTime = updatedTime;
+            _onRemainMinUpdated?.Invoke(DateTimeUtils.GetRemainingMin(_openEndTime, updatedTime));
+            return true;
         }
 
-        public void NotifyClosedRemainMinUpdated()
+        private bool TryNotifyClosedRemainMinUpdated()
         {
-            _persistence.Save(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag);
-            int remainMin = DateTimeUtils.GetRemainingMin(_closedEndTime);
-            _onRemainMinUpdated?.Invoke(remainMin);
+            if(!_persistence.TrySave(_openEndTime, _closedEndTime, _openUpdatedTime, _isTamperedFlag))
+                return false;
+
+            _onRemainMinUpdated?.Invoke(DateTimeUtils.GetRemainingMin(_closedEndTime, GetUtcNow()));
+            return true;
         }
 
-        public void NotifyClosedPeriodStarted()
+        private void NotifyClosedPeriodStarted()
         {
             _onClosedPeriodStarted?.Invoke();
         }
@@ -399,12 +431,13 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         private int CalculateRemainingMin()
         {
+            DateTime now = GetUtcNow();
             switch(_fsm.CurType)
             {
                 case EPeriodTimerType.Open:
-                    return DateTimeUtils.GetRemainingMin(_openEndTime);
+                    return DateTimeUtils.GetRemainingMin(_openEndTime, now);
                 case EPeriodTimerType.Closed:
-                    return DateTimeUtils.GetRemainingMin(_closedEndTime);
+                    return DateTimeUtils.GetRemainingMin(_closedEndTime, now);
                 default:
                     return 0;
             }
@@ -412,20 +445,129 @@ namespace UnityTools.Util.Core.Timer.Period
 
         private int CalculateRemainingSec()
         {
+            DateTime now = GetUtcNow();
             switch(_fsm.CurType)
             {
                 case EPeriodTimerType.Open:
-                    return DateTimeUtils.GetRemainingSec(_openEndTime);
+                    return DateTimeUtils.GetRemainingSec(_openEndTime, now);
                 case EPeriodTimerType.Closed:
-                    return DateTimeUtils.GetRemainingSec(_closedEndTime);
+                    return DateTimeUtils.GetRemainingSec(_closedEndTime, now);
                 default:
                     return 0;
             }
         }
 
+        private DateTime GetUtcNow()
+        {
+            return DateTimeUtils.RemoveMs(_utcNow.Invoke());
+        }
+
+        private static DateTime GetSystemUtcNow()
+        {
+            return DateTime.UtcNow;
+        }
+
         private static bool IsPositiveFinite(double value)
         {
-            return value > 0d && !double.IsNaN(value) && !double.IsInfinity(value);
+            return value > 0.0d && !double.IsNaN(value) && !double.IsInfinity(value);
+        }
+
+        //============================================================
+        // Nested Types
+        //============================================================
+        private class PeriodTimerBaseState : IState
+        {
+            //============================================================
+            // Readonly
+            //============================================================
+            protected readonly PeriodTimer _timer;
+
+            //============================================================
+            // Constructors
+            //============================================================
+            public PeriodTimerBaseState(PeriodTimer timer)
+            {
+                _timer = timer;
+            }
+
+            //============================================================
+            // Logic
+            //============================================================
+            public virtual void Enter() { }
+            public virtual void Execute() { }
+            public virtual void Exit() { }
+        }
+
+        private class PeriodTimerOpenState : PeriodTimerBaseState
+        {
+            //============================================================
+            // Constructors
+            //============================================================
+            public PeriodTimerOpenState(PeriodTimer timer) : base(timer) { }
+
+            //============================================================
+            // Logic
+            //============================================================
+            public override void Enter()
+            {
+                _timer.TryNotifyOpenRemainMinUpdated();
+            }
+
+            public override void Execute()
+            {
+                if(_timer.IsTampered)
+                {
+                    _timer.TryHandleTampered();
+                    return;
+                }
+
+                if(!_timer.IsOpenPeriod)
+                {
+                    _timer._fsm.Change(EPeriodTimerType.Closed);
+                    return;
+                }
+
+                _timer.TryNotifyOpenRemainMinUpdated();
+            }
+        }
+
+        private class PeriodTimerClosedState : PeriodTimerBaseState
+        {
+            //============================================================
+            // Constructors
+            //============================================================
+            public PeriodTimerClosedState(PeriodTimer timer) : base(timer) { }
+
+            //============================================================
+            // Logic
+            //============================================================
+            public override void Enter()
+            {
+                if(_timer._isTamperedFlag && !_timer.TryClearTampered())
+                    return;
+
+                _timer.NotifyClosedPeriodStarted();
+                _timer.TryNotifyClosedRemainMinUpdated();
+            }
+
+            public override void Execute()
+            {
+                if(_timer._isTamperedFlag)
+                {
+                    if(!_timer.TryClearTampered())
+                        return;
+
+                    _timer.NotifyClosedPeriodStarted();
+                }
+
+                if(!_timer.IsClosedPeriod)
+                {
+                    _timer.TryOpenNewPeriod();
+                    return;
+                }
+
+                _timer.TryNotifyClosedRemainMinUpdated();
+            }
         }
     }
 }

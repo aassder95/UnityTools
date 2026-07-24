@@ -13,69 +13,80 @@ namespace UnityTools.Util.Core.Timer.Task
         private readonly IStorage _storage;
 
         //============================================================
-        // Properties
-        //============================================================
-        public bool IsClaimed => LoadClaimed(_id, _storage);
-
-        //============================================================
         // Constructors
         //============================================================
-        public TaskTimerPersistence(string normalizedId)
+        public TaskTimerPersistence(string normalizedId, IStorage storage = null)
         {
             _id = normalizedId;
-            _storage = new PlayerPrefsStorage();
+            _storage = storage ?? new PlayerPrefsStorage();
         }
 
         //============================================================
         // Persistence
         //============================================================
-        public void Save(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
+        public bool TrySave(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Start(_id), startTime.Ticks.ToString());
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Duration(_id), durationSec.ToString(CultureInfo.InvariantCulture));
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.State(_id), ((int)stateType).ToString());
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Updated(_id), updatedTime.Ticks.ToString());
+            bool isStartSaved = StorageValueUtils.TrySaveString(_storage, TaskTimerStorageKeys.Start(_id), startTime.Ticks.ToString(CultureInfo.InvariantCulture));
+            bool isDurationSaved = TrySaveDuration(durationSec);
+            bool isStateSaved = TrySaveState(stateType);
+            bool isUpdatedSaved = TrySaveUpdated(updatedTime);
+            return isStartSaved && isDurationSaved && isStateSaved && isUpdatedSaved;
         }
 
-        public void SaveDuration(double durationSec)
+        public bool TrySaveDuration(double durationSec)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Duration(_id), durationSec.ToString(CultureInfo.InvariantCulture));
+            return StorageValueUtils.TrySaveString(_storage, TaskTimerStorageKeys.Duration(_id), durationSec.ToString(CultureInfo.InvariantCulture));
         }
 
-        public void SaveState(ETaskTimerType stateType)
+        public bool TrySaveState(ETaskTimerType stateType)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.State(_id), ((int)stateType).ToString());
+            return StorageValueUtils.TrySaveString(_storage, TaskTimerStorageKeys.State(_id), ((int)stateType).ToString(CultureInfo.InvariantCulture));
         }
 
-        public void SaveUpdated(DateTime updatedTime)
+        public bool TrySaveUpdated(DateTime updatedTime)
         {
-            StorageValueUtils.SaveString(_storage, TaskTimerStorageKeys.Updated(_id), updatedTime.Ticks.ToString());
+            return StorageValueUtils.TrySaveString(_storage, TaskTimerStorageKeys.Updated(_id), updatedTime.Ticks.ToString(CultureInfo.InvariantCulture));
         }
 
-        public TaskTimerStorageSnapshot Load()
+        public bool TryLoad(out TaskTimerStorageSnapshot snapshot)
         {
-            DateTime startTime = StorageValueUtils.LoadDateOrDefault(_storage, TaskTimerStorageKeys.Start(_id));
-            double durationSec = StorageValueUtils.LoadDoubleOrDefault(_storage, TaskTimerStorageKeys.Duration(_id));
-            DateTime updatedTime = StorageValueUtils.LoadDateOrDefault(_storage, TaskTimerStorageKeys.Updated(_id));
-            int savedStateType = StorageValueUtils.LoadIntOrDefault(_storage, TaskTimerStorageKeys.State(_id));
-            return new TaskTimerStorageSnapshot(startTime, durationSec, updatedTime, savedStateType);
+            bool isStartLoaded = StorageValueUtils.TryLoadDateOrDefault(_storage, TaskTimerStorageKeys.Start(_id), out DateTime startTime);
+            bool isDurationLoaded = StorageValueUtils.TryLoadDoubleOrDefault(_storage, TaskTimerStorageKeys.Duration(_id), out double durationSec);
+            bool isUpdatedLoaded = StorageValueUtils.TryLoadDateOrDefault(_storage, TaskTimerStorageKeys.Updated(_id), out DateTime updatedTime);
+            bool isStateLoaded = StorageValueUtils.TryLoadIntOrDefault(_storage, TaskTimerStorageKeys.State(_id), out int savedStateType);
+            snapshot = new TaskTimerStorageSnapshot(startTime, durationSec, updatedTime, savedStateType);
+            return isStartLoaded && isDurationLoaded && isUpdatedLoaded && isStateLoaded;
         }
 
-        public void ClearRuntimeData()
+        public bool TryClearRuntimeData()
         {
-            _storage.Delete(TaskTimerStorageKeys.Start(_id));
-            _storage.Delete(TaskTimerStorageKeys.Duration(_id));
-            _storage.Delete(TaskTimerStorageKeys.State(_id));
+            bool isStartDeleted = _storage.TryDelete(TaskTimerStorageKeys.Start(_id));
+            bool isDurationDeleted = _storage.TryDelete(TaskTimerStorageKeys.Duration(_id));
+            bool isStateDeleted = _storage.TryDelete(TaskTimerStorageKeys.State(_id));
+            return isStartDeleted && isDurationDeleted && isStateDeleted;
         }
 
-        public static bool LoadClaimed(string normalizedId, IStorage storage = null)
+        public bool TryLoadClaimed(out bool isClaimed)
         {
+            return TryLoadClaimed(_id, out isClaimed, _storage);
+        }
+
+        public static bool TryLoadClaimed(string normalizedId, out bool isClaimed, IStorage storage = null)
+        {
+            isClaimed = false;
+            if(string.IsNullOrWhiteSpace(normalizedId))
+                return false;
+
             IStorage targetStorage = storage ?? new PlayerPrefsStorage();
-            bool hasStart = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.Start(normalizedId));
-            bool hasDuration = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.Duration(normalizedId));
-            bool hasState = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.State(normalizedId));
-            bool hasUpdated = StorageValueUtils.HasKey(targetStorage, TaskTimerStorageKeys.Updated(normalizedId));
-            return !hasStart && !hasDuration && !hasState && hasUpdated;
+            bool isStartChecked = StorageValueUtils.TryHasKey(targetStorage, TaskTimerStorageKeys.Start(normalizedId), out bool hasStart);
+            bool isDurationChecked = StorageValueUtils.TryHasKey(targetStorage, TaskTimerStorageKeys.Duration(normalizedId), out bool hasDuration);
+            bool isStateChecked = StorageValueUtils.TryHasKey(targetStorage, TaskTimerStorageKeys.State(normalizedId), out bool hasState);
+            bool isUpdatedChecked = StorageValueUtils.TryHasKey(targetStorage, TaskTimerStorageKeys.Updated(normalizedId), out bool hasUpdated);
+            if(!isStartChecked || !isDurationChecked || !isStateChecked || !isUpdatedChecked)
+                return false;
+
+            isClaimed = !hasStart && !hasDuration && !hasState && hasUpdated;
+            return true;
         }
     }
 }

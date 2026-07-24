@@ -39,7 +39,7 @@ namespace UnityTools.Samples.Timer
         //============================================================
         // Unity Methods
         //============================================================
-        private void Awake()
+        private void OnEnable()
         {
             _btnStart.onClick.AddListener(OnStartButtonClicked);
             _btnComplete.onClick.AddListener(OnCompleteButtonClicked);
@@ -47,7 +47,7 @@ namespace UnityTools.Samples.Timer
             _btnReduce1Min.onClick.AddListener(OnReduceButtonClicked);
         }
 
-        private void OnDestroy()
+        private void OnDisable()
         {
             _btnStart.onClick.RemoveListener(OnStartButtonClicked);
             _btnComplete.onClick.RemoveListener(OnCompleteButtonClicked);

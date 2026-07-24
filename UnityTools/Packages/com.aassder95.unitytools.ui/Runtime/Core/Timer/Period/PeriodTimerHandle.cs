@@ -52,12 +52,6 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Init/Register
         //============================================================
-        public virtual void Init(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
-        {
-            RegisterCallbacks();
-            _timer.Init(openMin, closedMin, initWaitFunc);
-        }
-
         public virtual bool TryInit(double openMin, double closedMin, Func<IEnumerator> initWaitFunc = null)
         {
             RegisterCallbacks();
@@ -103,16 +97,6 @@ namespace UnityTools.Util.Core.Timer.Period
         //============================================================
         // Logic
         //============================================================
-        public void ForceOpen()
-        {
-            _timer.ForceOpen();
-        }
-
-        public void ForceClosed()
-        {
-            _timer.ForceClosed();
-        }
-
         public bool TryForceOpen()
         {
             return _timer.TryForceOpen();

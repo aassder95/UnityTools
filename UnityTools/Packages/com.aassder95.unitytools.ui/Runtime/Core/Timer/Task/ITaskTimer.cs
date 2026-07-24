@@ -17,7 +17,6 @@ namespace UnityTools.Util.Core.Timer.Task
         // Properties
         //============================================================
         ETaskTimerType CurType { get; }
-        bool IsClaimed { get; }
         int RemainingSec { get; }
         int DurationSec { get; }
         float Progress { get; }
@@ -30,6 +29,7 @@ namespace UnityTools.Util.Core.Timer.Task
         bool TryReduce(double reduceSec);
         bool TryComplete();
         bool TryClaim();
+        bool TryGetClaimed(out bool isClaimed);
         void NotifyCurType();
     }
 }
