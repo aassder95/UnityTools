@@ -68,11 +68,7 @@ rankScroll.ScrollTo(targetIdx, alignment: EDynamicScrollAlignment.Center);
 
 ## 샘플
 
-Package Manager에서 `UI Sample Scene`을 Import하면 Inventory, Rank, Timer 샘플과 필요한 프리팹 및 폰트가 `Assets/Samples` 아래에 복사됩니다. Sample Lobby와 각 모듈 이동은 `UiNavigator` 화면 스택으로 동작하며, 이 기본 샘플은 외부 플러그인 없이 컴파일됩니다.
-
-가상화 Rank 예제는 별도 `OSA Rank Sample`로 제공됩니다. 해당 샘플에는 제3자 플러그인이 포함되지 않으므로, 별도 배포되는 `OSA.Core`를 먼저 설치한 뒤 Import해야 합니다.
-
-두 샘플은 서로 독립적이며 필요한 샘플만 선택해서 Import할 수 있습니다.
+Package Manager에서 `UI Sample Scene`을 Import하면 Inventory, Rank, Timer 샘플과 필요한 프리팹 및 폰트가 `Assets/Samples` 아래에 복사됩니다. Sample Lobby와 각 모듈 이동은 `UiNavigator` 화면 스택으로 동작하며, 외부 플러그인 없이 컴파일됩니다.
 
 ## 런타임 어셈블리
 

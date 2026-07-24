@@ -34,6 +34,10 @@ UserSettings/*
 !UnityTools/Packages/**/*.meta
 !Packages/**/*.meta
 
+# Licensed vendor assets that must never enter this public repository
+UnityTools/Assets/Plugins/Com.ForbiddenByte/
+UnityTools/Assets/Plugins/Com.ForbiddenByte.meta
+
 # ------------------------------------------
 # Visual Studio Code
 # ------------------------------------------

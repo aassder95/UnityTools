@@ -17,11 +17,6 @@
       "displayName": "UI Sample Scene",
       "description": "UiNavigator-based lobby with inventory, dynamic rank, and timer UI modules.",
       "path": "Samples~/UI Sample Scene"
-    },
-    {
-      "displayName": "OSA Rank Sample",
-      "description": "Optional virtualized rank sample. Install the separately distributed OSA.Core plugin before importing.",
-      "path": "Samples~/OSA Rank Sample"
     }
   ],
   "keywords": ["ui", "mvp", "navigation", "transition", "scroll", "safe-area", "pooling", "timer"],

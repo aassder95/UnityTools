@@ -33,12 +33,11 @@
 - FileStorage 키를 단일 파일명으로 제한하고 루트 경로 이탈을 차단
 - `ObjectPool.TryReturn` 소유권 검증과 Spawner 활성 객체 상한·반환 수명주기를 추가
 - Rank 행 배경 Image의 serialized field 이름을 `_imgBackground`로 명확히 하고 관련 prefab 연결을 함께 갱신
-- OSA 의존 Rank 예제를 독립 `OSA Rank Sample`과 전용 어셈블리로 분리해 기본 UI 샘플이 OSA 없이 컴파일되도록 변경
 - UPM 샘플 Import 시 Unity meta parser 오류가 발생하지 않도록 `.meta` 파일의 EOF 개행 형식을 정규화
 
 ## [1.0.0] - 2026-07-22
 
 - MVP 기반 UI 수명주기 패키지화
 - 가상화 DynamicScrollView와 전용 Inspector 포함
-- Inventory, Rank, Rank OSA, Timer 샘플 제공
+- Inventory, Rank, Timer 샘플 제공
 - 모바일 해상도 대응 패널 레이아웃 및 텍스트 대비 개선 반영
