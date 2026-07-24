@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Events;
 using UnityTools.Util.Core.Logging;
-using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Timer.Period;
 using UnityTools.Util.UiFramework;
 
 namespace UnityTools.Samples.Timer

@@ -2,8 +2,8 @@ using System;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.Timer;
-using UnityTools.Util.Core.Timer.Task;
+using UnityTools.Timer;
+using UnityTools.Timer.Task;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Manager

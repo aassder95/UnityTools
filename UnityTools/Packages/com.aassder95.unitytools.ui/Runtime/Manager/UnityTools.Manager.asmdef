@@ -2,7 +2,8 @@
     "name": "UnityTools.Manager",
     "rootNamespace": "UnityTools.Manager",
     "references": [
-        "UnityTools.Util"
+        "UnityTools.Util",
+        "UnityTools.Timer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

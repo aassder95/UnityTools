@@ -1,17 +1,17 @@
 {
-    "name": "UnityTools.Samples",
-    "rootNamespace": "UnityTools.Samples",
+    "name": "UnityTools.Timer.Editor",
+    "rootNamespace": "UnityTools.Timer.Editor",
     "references": [
-        "UnityTools.Util",
-        "UnityTools.Timer",
-        "Unity.TextMeshPro"
+        "UnityTools.Timer"
     ],
-    "includePlatforms": [],
+    "includePlatforms": [
+        "Editor"
+    ],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

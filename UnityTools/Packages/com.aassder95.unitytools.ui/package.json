@@ -8,6 +8,7 @@
   "changelogUrl": "https://github.com/aassder95/UnityTools/blob/develop/UnityTools/Packages/com.aassder95.unitytools.ui/CHANGELOG.md",
   "licensesUrl": "https://github.com/aassder95/UnityTools",
   "dependencies": {
+    "com.aassder95.unitytools.timer": "1.0.0",
     "com.unity.ugui": "1.0.0",
     "com.unity.textmeshpro": "3.0.7",
     "com.unity.inputsystem": "1.14.0"

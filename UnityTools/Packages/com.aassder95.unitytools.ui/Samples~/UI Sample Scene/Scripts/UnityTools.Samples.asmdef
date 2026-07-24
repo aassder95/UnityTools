@@ -3,6 +3,7 @@
     "rootNamespace": "UnityTools.Samples",
     "references": [
         "UnityTools.Util",
+        "UnityTools.Timer",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [],

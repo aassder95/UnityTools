@@ -3,8 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine.Events;
 using UnityTools.Util.Core.Singleton;
-using UnityTools.Util.Core.Timer;
-using UnityTools.Util.Core.Timer.Period;
+using UnityTools.Timer;
+using UnityTools.Timer.Period;
 using UnityTools.Util.Utilities;
 
 namespace UnityTools.Manager
