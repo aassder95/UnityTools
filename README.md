@@ -1,6 +1,6 @@
 # UnityTools
 
-Unity 2022.3용 UI와 Timer 기능을 각각 독립 설치할 수 있는 UPM 패키지입니다. 저장소는 하나지만 패키지 assembly, dependency, sample, release tag는 분리되어 있습니다.
+Unity 2022.3용 UI, Timer, Benchmark, Persistence 기능을 각각 독립 설치할 수 있는 UPM 패키지입니다. 저장소는 하나지만 package assembly와 dependency는 분리되어 있습니다. Benchmark와 Persistence는 아직 개발 버전이며 release tag가 없습니다.
 
 ## 패키지
 
@@ -8,6 +8,8 @@ Unity 2022.3용 UI와 Timer 기능을 각각 독립 설치할 수 있는 UPM 패
 | --- | --- | --- | --- |
 | `com.aassder95.unitytools.ui` | `2.0.0` | `UnityTools.Ui` | MVP, navigation, transition, focus, safe area, DynamicScroll |
 | `com.aassder95.unitytools.timer` | `1.0.0` | `UnityTools.Timer` | Task/Period Timer, service/handle, UTC, persistence |
+| `com.aassder95.unitytools.benchmark` | `0.1.0` | `UnityTools.Benchmark` | Main Thread, GC, memory, custom marker 측정 및 CSV 출력 |
+| `com.aassder95.unitytools.persistence` | `0.1.0` | `UnityTools.Persistence` | 버전형 저장, migration, 검증, 백업 복구 |
 
 ## 설치
 
@@ -24,6 +26,10 @@ Timer:
 ```text
 https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.0.0
 ```
+
+Benchmark 개발 버전은 Package Manager의 `Add package from disk...`에서 현재 checkout의 `UnityTools/Packages/com.aassder95.unitytools.benchmark/package.json`을 선택합니다. 사용법은 [Benchmark README](UnityTools/Packages/com.aassder95.unitytools.benchmark/README.md)를 참고하세요.
+
+Persistence 개발 버전도 `Add package from disk...`에서 `UnityTools/Packages/com.aassder95.unitytools.persistence/package.json`을 선택합니다. 사용법은 [Persistence README](UnityTools/Packages/com.aassder95.unitytools.persistence/README.md)를 참고하세요.
 
 UI 기본 패키지는 Timer와 Input System에 의존하지 않습니다. Input System Back 입력이 필요하면 프로젝트에 `com.unity.inputsystem`을 추가하면 `UnityTools.Ui.InputSystem` 선택 assembly가 활성화됩니다.
 
