@@ -1,0 +1,13 @@
+{
+  "name": "com.aassder95.unitytools.persistence",
+  "version": "0.1.0",
+  "displayName": "UnityTools Persistence",
+  "description": "Versioned local saves with migration, validation, backup, and atomic replacement.",
+  "unity": "2022.3",
+  "dependencies": {},
+  "keywords": ["save", "persistence", "migration"],
+  "author": {
+    "name": "aassder95",
+    "url": "https://github.com/aassder95"
+  }
+}
