@@ -1,0 +1,8 @@
+{
+  "references": [
+    "UnityTools.Persistence",
+    "UnityEngine.UI"
+  ],
+  "rootNamespace": "UnityTools.Persistence.Samples",
+  "name": "UnityTools.Persistence.SaveLab"
+}

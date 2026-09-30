@@ -1,5 +1,9 @@
 # UnityTools Persistence
 
+## Save Recovery Lab
+
+Package Manager의 Samples에서 **Save Recovery Lab**을 Import하면 구버전 변환, 백업 복구, 미래 버전 보호와 세 가지 실패 조건을 재현할 수 있습니다. `SaveRecoveryLab.unity`에서 입력·출력 파일과 실제 API 결과를 비교합니다. 자세한 실행 방법은 [샘플 안내](Samples~/Save%20Recovery%20Lab/README.md)를 참고하세요.
+
 Unity 2022.3 이상에서 쓰는 독립 로컬 저장 패키지입니다. UI와 Timer 패키지에 의존하지 않습니다.
 
 ## 책임

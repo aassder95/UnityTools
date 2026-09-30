@@ -1,0 +1,15 @@
+{
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "references": [
+    "UnityTools.Persistence.SaveLab",
+    "UnityTools.Persistence",
+    "UnityEngine.UI"
+  ],
+  "autoReferenced": false,
+  "name": "UnityTools.Persistence.SaveLab.Tests"
+}
