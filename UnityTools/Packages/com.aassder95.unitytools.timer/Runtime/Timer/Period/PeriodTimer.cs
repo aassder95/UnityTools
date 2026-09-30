@@ -17,6 +17,7 @@ namespace UnityTools.Timer.Period
         private const string CLOSED_END_TIME_SUFFIX = "_CLOSED_END";
         private const string OPEN_UPDATED_TIME_SUFFIX = "_OPEN_UPDATED";
         private const string TAMPERED_SUFFIX = "_TAMPERED";
+        private const string SNAPSHOT_SUFFIX = "_SNAPSHOT";
 
         //============================================================
         // Readonly
@@ -141,6 +142,33 @@ namespace UnityTools.Timer.Period
         //============================================================
         private bool TryLoad()
         {
+            if (!_storage.TryHasKey(GetSnapshotKey(_id), out bool hasSnapshot))
+                return false;
+
+            if (hasSnapshot)
+            {
+                if (!_storage.TryLoad(GetSnapshotKey(_id), out string snapshot))
+                    return false;
+
+                if (snapshot == "1|DELETED")
+                {
+                    _openEndTime = DateTime.MinValue;
+                    _closedEndTime = DateTime.MinValue;
+                    _openUpdatedTime = DateTime.MinValue;
+                    _isTamperedFlag = false;
+                    return true;
+                }
+
+                if (!TryParseSnapshot(snapshot, out DateTime openEndTime, out DateTime closedEndTime, out DateTime openUpdatedTime, out bool isTampered))
+                    return false;
+
+                _openEndTime = openEndTime;
+                _closedEndTime = closedEndTime;
+                _openUpdatedTime = openUpdatedTime;
+                _isTamperedFlag = isTampered;
+                return true;
+            }
+
             bool isOpenEndLoaded = TryLoadDate(GetOpenEndKey(_id), out _openEndTime);
             bool isClosedEndLoaded = TryLoadDate(GetClosedEndKey(_id), out _closedEndTime);
             bool isOpenUpdatedLoaded = TryLoadDate(GetOpenUpdatedKey(_id), out _openUpdatedTime);
@@ -545,16 +573,8 @@ namespace UnityTools.Timer.Period
 
         private bool TrySavePeriod(DateTime openEndTime, DateTime closedEndTime, DateTime openUpdatedTime, bool isTamperedFlag)
         {
-            bool isOpenEndSaved = TrySaveString(GetOpenEndKey(_id), openEndTime.Ticks.ToString(CultureInfo.InvariantCulture));
-            bool isClosedEndSaved = TrySaveString(GetClosedEndKey(_id), closedEndTime.Ticks.ToString(CultureInfo.InvariantCulture));
-            bool isOpenUpdatedSaved = TrySaveString(GetOpenUpdatedKey(_id), openUpdatedTime.Ticks.ToString(CultureInfo.InvariantCulture));
-            bool isTamperedSaved = TrySaveString(GetTamperedKey(_id), isTamperedFlag ? "1" : "0");
-            return isOpenEndSaved && isClosedEndSaved && isOpenUpdatedSaved && isTamperedSaved;
-        }
-
-        private bool TrySaveString(string key, string value)
-        {
-            return !string.IsNullOrWhiteSpace(key) && value != null && _storage.TrySave(key, value);
+            string snapshot = $"1|{openEndTime.Ticks.ToString(CultureInfo.InvariantCulture)}|{closedEndTime.Ticks.ToString(CultureInfo.InvariantCulture)}|{openUpdatedTime.Ticks.ToString(CultureInfo.InvariantCulture)}|{(isTamperedFlag ? "1" : "0")}";
+            return _storage.TrySave(GetSnapshotKey(_id), snapshot);
         }
 
         private bool TryLoadDate(string key, out DateTime value)
@@ -582,6 +602,26 @@ namespace UnityTools.Timer.Period
                 return false;
 
             value = raw ?? string.Empty;
+            return true;
+        }
+
+        private static bool TryParseSnapshot(string snapshot, out DateTime openEndTime, out DateTime closedEndTime, out DateTime openUpdatedTime, out bool isTampered)
+        {
+            openEndTime = DateTime.MinValue;
+            closedEndTime = DateTime.MinValue;
+            openUpdatedTime = DateTime.MinValue;
+            isTampered = false;
+            string[] parts = snapshot?.Split('|');
+            if (parts == null || parts.Length != 5 || parts[0] != "1" || !long.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out long openTicks) || !long.TryParse(parts[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out long closedTicks) || !long.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out long updatedTicks) || (parts[4] != "0" && parts[4] != "1"))
+                return false;
+
+            if (openTicks < DateTime.MinValue.Ticks || openTicks > DateTime.MaxValue.Ticks || closedTicks < DateTime.MinValue.Ticks || closedTicks > DateTime.MaxValue.Ticks || updatedTicks < DateTime.MinValue.Ticks || updatedTicks > DateTime.MaxValue.Ticks || (closedTicks != DateTime.MinValue.Ticks && closedTicks < openTicks))
+                return false;
+
+            openEndTime = new DateTime(openTicks, DateTimeKind.Utc);
+            closedEndTime = new DateTime(closedTicks, DateTimeKind.Utc);
+            openUpdatedTime = new DateTime(updatedTicks, DateTimeKind.Utc);
+            isTampered = parts[4] == "1";
             return true;
         }
 
@@ -630,6 +670,11 @@ namespace UnityTools.Timer.Period
         private static string GetTamperedKey(string id)
         {
             return $"{STORAGE_PREFIX}{id}{TAMPERED_SUFFIX}";
+        }
+
+        private static string GetSnapshotKey(string id)
+        {
+            return $"{STORAGE_PREFIX}{id}{SNAPSHOT_SUFFIX}";
         }
     }
 }
