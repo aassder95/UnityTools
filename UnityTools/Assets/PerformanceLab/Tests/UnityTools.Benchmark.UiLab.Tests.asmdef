@@ -1,0 +1,15 @@
+{
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "references": [
+    "UnityTools.Benchmark.UiLab",
+    "UnityTools.Benchmark",
+    "UnityEngine.UI"
+  ],
+  "name": "UnityTools.Benchmark.UiLab.Tests",
+  "autoReferenced": false
+}

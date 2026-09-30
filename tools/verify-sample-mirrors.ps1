@@ -23,3 +23,18 @@ foreach ($sourceFile in $sourceFiles)
 }
 
 Write-Host "UI sample C# mirrors match: $($sourceFiles.Count) files"
+
+$labSource = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Packages/com.aassder95.unitytools.benchmark/Samples~/UI Performance Lab')).Path
+$labMirror = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Assets/PerformanceLab')).Path
+$labFiles = @(Get-ChildItem -LiteralPath $labSource -Recurse -File)
+foreach ($sourceFile in $labFiles)
+{
+    $relativePath = $sourceFile.FullName.Substring($labSource.Length + 1)
+    $projectFile = Join-Path $labMirror $relativePath
+    if (!(Test-Path -LiteralPath $projectFile) -or (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $projectFile -Algorithm SHA256).Hash)
+    {
+        throw "Performance Lab sample differs or is missing: $relativePath"
+    }
+}
+
+Write-Host "Performance Lab sample mirrors match: $($labFiles.Count) files"
