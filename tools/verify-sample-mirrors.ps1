@@ -38,3 +38,18 @@ foreach ($sourceFile in $labFiles)
 }
 
 Write-Host "Performance Lab sample mirrors match: $($labFiles.Count) files"
+
+$saveSource = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Packages/com.aassder95.unitytools.persistence/Samples~/Save Recovery Lab')).Path
+$saveMirror = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Assets/SaveRecoveryLab')).Path
+$saveFiles = @(Get-ChildItem -LiteralPath $saveSource -Recurse -File)
+foreach ($sourceFile in $saveFiles)
+{
+    $relativePath = $sourceFile.FullName.Substring($saveSource.Length + 1)
+    $projectFile = Join-Path $saveMirror $relativePath
+    if (!(Test-Path -LiteralPath $projectFile) -or (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $projectFile -Algorithm SHA256).Hash)
+    {
+        throw "Save Recovery Lab sample differs or is missing: $relativePath"
+    }
+}
+
+Write-Host "Save Recovery Lab sample mirrors match: $($saveFiles.Count) files"

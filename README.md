@@ -31,6 +31,8 @@ Benchmark 개발 버전은 Package Manager의 `Add package from disk...`에서 �
 
 Persistence 개발 버전도 `Add package from disk...`에서 `UnityTools/Packages/com.aassder95.unitytools.persistence/package.json`을 선택합니다. 사용법은 [Persistence README](UnityTools/Packages/com.aassder95.unitytools.persistence/README.md)를 참고하세요.
 
+Persistence의 **Save Recovery Lab** 샘플은 변환·손상 복구·미래 버전 보호를 실행하고 입력/출력 파일을 비교하는 데모입니다. [샘플 안내](UnityTools/Packages/com.aassder95.unitytools.persistence/Samples~/Save%20Recovery%20Lab/README.md)에서 여섯 실험의 검증 조건을 확인할 수 있습니다.
+
 UI 기본 패키지는 Timer와 Input System에 의존하지 않습니다. Input System Back 입력이 필요하면 프로젝트에 `com.unity.inputsystem`을 추가하면 `UnityTools.Ui.InputSystem` 선택 assembly가 활성화됩니다.
 
 ## Breaking migration
@@ -55,6 +57,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\test-upm-compati
 기본 Editor는 `6000.3.20f1`이며, 검증 대상 원격 커밋은 스크립트의 `UiRef`, `TimerRef`, `BenchmarkRef`, `PersistenceRef`에 고정합니다. 개발 브랜치의 검증이며 release tag 검증과 구분합니다. `-Scenarios timer`처럼 한 시나리오만 선택할 수 있고, 로컬 변경은 `-Source Local`로 검증합니다. 실행 결과와 로그, packages-lock, 테스트 XML, 빌드는 출력된 임시 프로젝트 경로에 보존합니다. Editor 설치 경로가 다르면 `-UnityPath`를 지정하세요.
 
 기본 시나리오는 Timer, UI, UI+Input System, Benchmark, Persistence, UI Performance Lab입니다. UI와 Benchmark의 단독 프로젝트는 샘플 의존성이 없는 상태를 검증하고, UI 샘플은 Input System 조합에서, 성능 실험실은 Benchmark+UI 조합에서 Import합니다. 장면의 누락 스크립트도 검사합니다. Player 빌드 성공은 실제 실행, 화면 배치, 터치 또는 대상 기기 성능 검증을 의미하지 않습니다.
+
+새 Save Recovery Lab은 `-Source Local -Scenarios save-lab`으로 검증합니다. 기본 원격 커밋에는 이 샘플이 포함되어 있지 않습니다. Persistence 코어 단독 검증은 uGUI 의존성 없이 유지하고, `save-lab`에서 uGUI와 샘플을 추가합니다.
 
 2026-09-30, Unity `6000.3.20f1`에서 빈 프로젝트별 Git URL 설치를 검증했습니다. UI·Timer·Benchmark는 `18665ab98b9bc97c9f664a6a0407ba1353f59145`, Persistence는 `472a08ef24418e81045dcc66109c1a9b7c86606b` 기준입니다.
 

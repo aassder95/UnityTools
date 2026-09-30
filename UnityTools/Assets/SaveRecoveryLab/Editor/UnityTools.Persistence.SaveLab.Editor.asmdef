@@ -1,0 +1,10 @@
+{
+  "references": [
+    "UnityTools.Persistence.SaveLab",
+    "UnityEngine.UI"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "name": "UnityTools.Persistence.SaveLab.Editor"
+}

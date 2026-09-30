@@ -9,5 +9,12 @@
   "author": {
     "name": "aassder95",
     "url": "https://github.com/aassder95"
-  }
+  },
+  "samples": [
+    {
+      "description": "Controlled migration, corruption, backup recovery and future-version protection experiments.",
+      "displayName": "Save Recovery Lab",
+      "path": "Samples~/Save Recovery Lab"
+    }
+  ]
 }
