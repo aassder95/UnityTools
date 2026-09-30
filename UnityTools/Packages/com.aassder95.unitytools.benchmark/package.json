@@ -6,6 +6,13 @@
   "unity": "2022.3",
   "dependencies": {},
   "keywords": ["benchmark", "profiling", "performance"],
+  "samples": [
+    {
+      "displayName": "UI Performance Lab",
+      "description": "DynamicScroll scenarios with frame, GC, item reuse measurements and CSV export. Requires UnityTools UI.",
+      "path": "Samples~/UI Performance Lab"
+    }
+  ],
   "author": {
     "name": "aassder95",
     "url": "https://github.com/aassder95"

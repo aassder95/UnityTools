@@ -1,0 +1,9 @@
+{
+  "autoReferenced": true,
+  "references": [
+    "UnityTools.Benchmark",
+    "UnityTools.Ui",
+    "UnityEngine.UI"
+  ],
+  "name": "UnityTools.Benchmark.UiLab"
+}

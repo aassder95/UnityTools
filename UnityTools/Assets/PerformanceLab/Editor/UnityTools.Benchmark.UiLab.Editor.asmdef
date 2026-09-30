@@ -1,0 +1,12 @@
+{
+  "autoReferenced": true,
+  "references": [
+    "UnityTools.Benchmark.UiLab",
+    "UnityTools.Ui",
+    "UnityEngine.UI"
+  ],
+  "name": "UnityTools.Benchmark.UiLab.Editor",
+  "includePlatforms": [
+    "Editor"
+  ]
+}

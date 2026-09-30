@@ -14,6 +14,8 @@ Unity 2022.3 이상에서 같은 게임 시나리오를 반복 측정하는 독�
 
 ## 사용
 
+UI 성능 시연은 Package Manager에서 `UI Performance Lab` 샘플을 Import하세요. 별도로 UnityTools UI 패키지가 필요합니다. `UiPerformanceLab.unity`에서 항목 수·시드와 세 가지 스크롤 시나리오를 선택해 측정하고 CSV로 저장할 수 있습니다. 자세한 조건과 통계 해석은 샘플 README를 참고하세요.
+
 게임의 승객 갱신 경로에 `ProfilerMarker`를 붙이고, 동일한 시드로 시나리오를 준비합니다. 마커는 측정 시작 전에 생성되어 있어야 합니다.
 
 ```csharp
