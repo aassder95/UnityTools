@@ -35,6 +35,8 @@ function Get-DuplicatePackageGuids([string]$packagePath)
 Push-Location $repoRoot
 try
 {
+    & (Join-Path $PSScriptRoot 'verify-sample-mirrors.ps1')
+
     $failures = [System.Collections.Generic.List[string]]::new()
 
     $originUrl = git remote get-url origin 2>$null
