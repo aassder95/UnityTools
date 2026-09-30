@@ -75,6 +75,8 @@ rankScroll.ScrollTo(targetIdx, alignment: EDynamicScrollAlignment.Center);
 
 Package Manager에서 `UI Sample Scene`을 Import하면 Inventory와 Rank navigation 예제가 복사됩니다. Timer sample은 Timer package에 별도로 포함됩니다.
 
+저장소에서 UI sample C#을 변경할 때는 `Samples~`와 `Assets/Samples`를 함께 갱신하고 `tools/verify-sample-mirrors.ps1`로 일치 여부를 확인합니다. 두 위치의 asmdef는 Timer 참조 때문에 의도적으로 다릅니다.
+
 ## Migration과 라이선스
 
 `UnityTools.Util.*` 호환 shim은 제공하지 않습니다. [migration 문서](https://github.com/aassder95/UnityTools/blob/unitytools-ui/v2.0.0/MIGRATION.md)를 따라 assembly와 namespace를 변경하세요.

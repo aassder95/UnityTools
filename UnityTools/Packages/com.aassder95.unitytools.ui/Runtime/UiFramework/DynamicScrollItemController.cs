@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
@@ -12,7 +11,7 @@ namespace UnityTools.Ui
         //============================================================
         private readonly DynamicScrollContext _context;
         private readonly ItemPool _pool;
-        private readonly ItemDeque<TView> _items = new();
+        private readonly ItemDeque<TView> _items;
 
         //============================================================
         // Events
@@ -33,6 +32,7 @@ namespace UnityTools.Ui
         {
             _context = context;
             _pool = new ItemPool(initialItemCnt, prefab, parent);
+            _items = new ItemDeque<TView>(initialItemCnt);
         }
 
         //============================================================
@@ -40,38 +40,34 @@ namespace UnityTools.Ui
         //============================================================
         public void UpdateItems()
         {
-            foreach (TView item in _items)
+            for (int i = 0; i < _items.Count; i++)
             {
-                _onItemUpdated?.Invoke(item);
+                _onItemUpdated?.Invoke(_items.GetAt(i));
             }
         }
 
         public void UpdateItem(int itemIdx)
         {
-            foreach (TView item in _items)
-            {
-                if (item.Idx == itemIdx)
-                {
-                    _onItemUpdated?.Invoke(item);
-                    return;
-                }
-            }
+            int offset = itemIdx - FirstIdx;
+            if (offset >= 0 && offset < _items.Count)
+                _onItemUpdated?.Invoke(_items.GetAt(offset));
         }
 
         public void UpdateRange(int startIdx, int cnt)
         {
-            int endIdx = startIdx + cnt;
-            foreach (TView item in _items)
+            int firstOffset = Mathf.Max(0, startIdx - FirstIdx);
+            int endOffset = Mathf.Min(_items.Count, startIdx + cnt - FirstIdx);
+            for (int i = firstOffset; i < endOffset; i++)
             {
-                if (item.Idx >= startIdx && item.Idx < endIdx)
-                    _onItemUpdated?.Invoke(item);
+                _onItemUpdated?.Invoke(_items.GetAt(i));
             }
         }
 
         public void UpdatePos()
         {
-            foreach (TView item in _items)
+            for (int i = 0; i < _items.Count; i++)
             {
+                TView item = _items.GetAt(i);
                 item.SetPos(_context.GetItemPos(item.Idx));
             }
         }
@@ -337,83 +333,109 @@ namespace UnityTools.Ui
             }
         }
 
-        private class ItemDeque<TItem> : IEnumerable<TItem>
+        private class ItemDeque<TItem>
         {
             //============================================================
-            // Readonly
+            // Fields
             //============================================================
-            private readonly LinkedList<TItem> _items = new();
+            private TItem[] _items;
+            private int _head;
+            private int _cnt;
 
             //============================================================
             // Properties
             //============================================================
-            public int Count => _items.Count;
+            public int Count => _cnt;
+
+            //============================================================
+            // Constructors
+            //============================================================
+            public ItemDeque(int capacity)
+            {
+                _items = new TItem[Mathf.Max(4, capacity)];
+            }
 
             //============================================================
             // Logic
             //============================================================
             public void Enqueue(TItem item)
             {
-                _items.AddLast(item);
+                EnsureCapacity();
+                _items[(_head + _cnt) % _items.Length] = item;
+                _cnt++;
             }
 
             public void EnqueueFront(TItem item)
             {
-                _items.AddFirst(item);
+                EnsureCapacity();
+                _head = (_head - 1 + _items.Length) % _items.Length;
+                _items[_head] = item;
+                _cnt++;
             }
 
             public bool TryDequeue(out TItem item)
             {
-                if (_items.Count == 0)
+                if (_cnt == 0)
                 {
                     item = default;
                     return false;
                 }
 
-                item = _items.First.Value;
-                _items.RemoveFirst();
+                item = _items[_head];
+                _items[_head] = default;
+                _head = (_head + 1) % _items.Length;
+                _cnt--;
                 return true;
             }
 
             public bool TryDequeueBack(out TItem item)
             {
-                if (_items.Count == 0)
+                if (_cnt == 0)
                 {
                     item = default;
                     return false;
                 }
 
-                item = _items.Last.Value;
-                _items.RemoveLast();
+                int tail = (_head + _cnt - 1) % _items.Length;
+                item = _items[tail];
+                _items[tail] = default;
+                _cnt--;
                 return true;
             }
 
             public bool TryPeek(out TItem item)
             {
-                if (_items.Count == 0)
+                if (_cnt == 0)
                 {
                     item = default;
                     return false;
                 }
 
-                item = _items.First.Value;
+                item = _items[_head];
                 return true;
+            }
+
+            public TItem GetAt(int idx)
+            {
+                return _items[(_head + idx) % _items.Length];
             }
 
             //============================================================
             // Utilities
             //============================================================
-            public IEnumerator<TItem> GetEnumerator()
+            private void EnsureCapacity()
             {
-                foreach (TItem item in _items)
-                {
-                    yield return item;
-                }
-            }
+                if (_cnt < _items.Length)
+                    return;
 
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
+                TItem[] expanded = new TItem[_items.Length * 2];
+                for (int i = 0; i < _cnt; i++)
+                {
+                    expanded[i] = GetAt(i);
+                }
+
+                _items = expanded;
+                _head = 0;
             }
         }
     }
