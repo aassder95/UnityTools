@@ -17,6 +17,7 @@ namespace UnityTools.Timer.Task
         private const string UPDATED_TIME_SUFFIX = "_UPDATED";
         private const string DURATION_SUFFIX = "_DURATION";
         private const string STATE_SUFFIX = "_STATE";
+        private const string SNAPSHOT_SUFFIX = "_SNAPSHOT";
 
         //============================================================
         // Readonly
@@ -116,6 +117,24 @@ namespace UnityTools.Timer.Task
         //============================================================
         private bool TryLoad()
         {
+            if (!_storage.TryHasKey(GetSnapshotKey(_id), out bool hasSnapshot))
+                return false;
+
+            if (hasSnapshot)
+            {
+                if (!_storage.TryLoad(GetSnapshotKey(_id), out string snapshot))
+                    return false;
+
+                if (!TryParseSnapshot(snapshot, out DateTime startTime, out double durationSec, out int stateType, out DateTime updatedTime, out _))
+                    return false;
+
+                _startTime = startTime;
+                _durationSec = durationSec;
+                _savedStateType = stateType;
+                _updatedTime = updatedTime;
+                return true;
+            }
+
             bool isStartLoaded = TryLoadDate(GetStartKey(_id), out _startTime);
             bool isDurationLoaded = TryLoadDouble(GetDurationKey(_id), out _durationSec);
             bool isUpdatedLoaded = TryLoadDate(GetUpdatedKey(_id), out _updatedTime);
@@ -125,11 +144,8 @@ namespace UnityTools.Timer.Task
 
         private bool TrySaveSnapshot(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
         {
-            bool isStartSaved = TrySaveString(GetStartKey(_id), startTime.Ticks.ToString(CultureInfo.InvariantCulture));
-            bool isDurationSaved = TrySaveString(GetDurationKey(_id), durationSec.ToString(CultureInfo.InvariantCulture));
-            bool isStateSaved = TrySaveString(GetStateKey(_id), ((int)stateType).ToString(CultureInfo.InvariantCulture));
-            bool isUpdatedSaved = TrySaveString(GetUpdatedKey(_id), updatedTime.Ticks.ToString(CultureInfo.InvariantCulture));
-            return isStartSaved && isDurationSaved && isStateSaved && isUpdatedSaved;
+            string snapshot = $"1|{startTime.Ticks.ToString(CultureInfo.InvariantCulture)}|{durationSec.ToString(CultureInfo.InvariantCulture)}|{((int)stateType).ToString(CultureInfo.InvariantCulture)}|{updatedTime.Ticks.ToString(CultureInfo.InvariantCulture)}|0";
+            return _storage.TrySave(GetSnapshotKey(_id), snapshot);
         }
 
         private void Clear()
@@ -250,7 +266,7 @@ namespace UnityTools.Timer.Task
 
         public bool TryGetClaimed(out bool isClaimed)
         {
-            return TryLoadClaimed(_id, _storage, out isClaimed);
+            return TryReadClaimed(_id, _storage, out isClaimed);
         }
 
         private bool TryUpdateCompletionTime()
@@ -409,15 +425,8 @@ namespace UnityTools.Timer.Task
 
         private bool TryClearRuntimeData()
         {
-            bool isStartDeleted = _storage.TryDelete(GetStartKey(_id));
-            bool isDurationDeleted = _storage.TryDelete(GetDurationKey(_id));
-            bool isStateDeleted = _storage.TryDelete(GetStateKey(_id));
-            return isStartDeleted && isDurationDeleted && isStateDeleted;
-        }
-
-        private bool TrySaveString(string key, string value)
-        {
-            return !string.IsNullOrWhiteSpace(key) && value != null && _storage.TrySave(key, value);
+            string snapshot = $"1|{DateTime.MinValue.Ticks.ToString(CultureInfo.InvariantCulture)}|0|{((int)ETaskTimerType.None).ToString(CultureInfo.InvariantCulture)}|{_updatedTime.Ticks.ToString(CultureInfo.InvariantCulture)}|1";
+            return _storage.TrySave(GetSnapshotKey(_id), snapshot);
         }
 
         private bool TryLoadDate(string key, out DateTime value)
@@ -476,9 +485,23 @@ namespace UnityTools.Timer.Task
             return true;
         }
 
-        private static bool TryLoadClaimed(string id, IStorage storage, out bool isClaimed)
+        public static bool TryReadClaimed(string id, IStorage storage, out bool isClaimed)
         {
             isClaimed = false;
+            if (string.IsNullOrWhiteSpace(id) || storage == null || !storage.TryHasKey(GetSnapshotKey(id), out bool hasSnapshot))
+                return false;
+
+            if (hasSnapshot)
+            {
+                if (!storage.TryLoad(GetSnapshotKey(id), out string snapshot))
+                    return false;
+
+                if (!TryParseSnapshot(snapshot, out _, out _, out _, out _, out isClaimed))
+                    return false;
+
+                return true;
+            }
+
             bool isStartChecked = storage.TryHasKey(GetStartKey(id), out bool hasStart);
             bool isDurationChecked = storage.TryHasKey(GetDurationKey(id), out bool hasDuration);
             bool isStateChecked = storage.TryHasKey(GetStateKey(id), out bool hasState);
@@ -487,6 +510,33 @@ namespace UnityTools.Timer.Task
                 return false;
 
             isClaimed = !hasStart && !hasDuration && !hasState && hasUpdated;
+            return true;
+        }
+
+        private static bool TryParseSnapshot(string snapshot, out DateTime startTime, out double durationSec, out int stateType, out DateTime updatedTime, out bool isClaimed)
+        {
+            startTime = DateTime.MinValue;
+            durationSec = 0.0d;
+            stateType = 0;
+            updatedTime = DateTime.MinValue;
+            isClaimed = false;
+            string[] parts = snapshot?.Split('|');
+            if (parts == null || parts.Length != 6 || parts[0] != "1" || (parts[5] != "0" && parts[5] != "1"))
+                return false;
+
+            if (!long.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out long startTicks) || !double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out durationSec) || !int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out stateType) || !long.TryParse(parts[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out long updatedTicks))
+                return false;
+
+            if (startTicks < DateTime.MinValue.Ticks || startTicks > DateTime.MaxValue.Ticks || updatedTicks < DateTime.MinValue.Ticks || updatedTicks > DateTime.MaxValue.Ticks || durationSec < 0.0d || double.IsNaN(durationSec) || double.IsInfinity(durationSec) || !IsKnownState((ETaskTimerType)stateType))
+                return false;
+
+            bool parsedClaimed = parts[5] == "1";
+            if (parsedClaimed && (startTicks != DateTime.MinValue.Ticks || durationSec != 0.0d || stateType != (int)ETaskTimerType.None))
+                return false;
+
+            startTime = new DateTime(startTicks, DateTimeKind.Utc);
+            updatedTime = new DateTime(updatedTicks, DateTimeKind.Utc);
+            isClaimed = parsedClaimed;
             return true;
         }
 
@@ -529,6 +579,11 @@ namespace UnityTools.Timer.Task
         private static string GetStateKey(string id)
         {
             return $"{STORAGE_PREFIX}{id}{STATE_SUFFIX}";
+        }
+
+        private static string GetSnapshotKey(string id)
+        {
+            return $"{STORAGE_PREFIX}{id}{SNAPSHOT_SUFFIX}";
         }
     }
 }

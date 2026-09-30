@@ -87,6 +87,65 @@ namespace UnityTools.Timer.Tests.Timer
         }
 
         [Test]
+        public void TaskSnapshotFailureRestoresPreviousState()
+        {
+            MemoryStorage storage = new();
+            Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer timer, storage, GetUtcNow), Is.True);
+            Assert.That(timer.TryInit(), Is.True);
+            Assert.That(timer.TryStart(60.0d), Is.True);
+            Assert.That(storage.SaveCnt, Is.EqualTo(1));
+            storage.DisableSave();
+
+            Assert.That(timer.TryComplete(), Is.False);
+            timer.Release();
+
+            Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer restored, storage, GetUtcNow), Is.True);
+            Assert.That(restored.TryInit(), Is.True);
+            Assert.That(restored.CurType, Is.EqualTo(ETaskTimerType.Processing));
+            Assert.That(restored.RemainingSec, Is.EqualTo(60));
+            restored.Release();
+        }
+
+        [Test]
+        public void TaskLegacyDataLoadsAndClaimUsesSnapshot()
+        {
+            MemoryStorage storage = new();
+            storage.Seed("TaskTimer_Task_START", _utcNow.Ticks.ToString());
+            storage.Seed("TaskTimer_Task_DURATION", "60");
+            storage.Seed("TaskTimer_Task_STATE", ((int)ETaskTimerType.Completed).ToString());
+            storage.Seed("TaskTimer_Task_UPDATED", _utcNow.Ticks.ToString());
+            Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer timer, storage, GetUtcNow), Is.True);
+            Assert.That(timer.TryInit(), Is.True);
+            Assert.That(timer.CurType, Is.EqualTo(ETaskTimerType.Completed));
+
+            Assert.That(timer.TryClaim(), Is.True);
+            Assert.That(timer.TryGetClaimed(out bool isClaimed), Is.True);
+            Assert.That(isClaimed, Is.True);
+            timer.Release();
+
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryGetClaimed("Task", out bool isServiceClaimed), Is.True);
+            Assert.That(isServiceClaimed, Is.True);
+            Assert.That(service.TryCreate("Task", out TaskTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle), Is.True);
+            Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.None));
+            service.Release();
+        }
+
+        [Test]
+        public void InvalidClaimedSnapshotDoesNotReportClaimed()
+        {
+            MemoryStorage storage = new();
+            storage.Seed("TaskTimer_Task_SNAPSHOT", $"1|{_utcNow.Ticks}|60|{(int)ETaskTimerType.Completed}|{_utcNow.Ticks}|1");
+
+            Assert.That(TaskTimer.TryReadClaimed("Task", storage, out bool isClaimed), Is.False);
+            Assert.That(isClaimed, Is.False);
+            Assert.That(TaskTimer.TryCreate("Task", _runner, out TaskTimer timer, storage, GetUtcNow), Is.True);
+            Assert.That(timer.TryInit(), Is.False);
+            timer.Release();
+        }
+
+        [Test]
         public void TaskTimerReportsClaimedReadFailure()
         {
             MemoryStorage storage = new();
@@ -150,6 +209,43 @@ namespace UnityTools.Timer.Tests.Timer
             Assert.That(timer.OpenEndTime, Is.EqualTo(prevOpenEndTime));
             Assert.That(timer.ClosedEndTime, Is.EqualTo(prevClosedEndTime));
             timer.Release();
+        }
+
+        [Test]
+        public void PeriodSnapshotFailureRestoresPreviousState()
+        {
+            MemoryStorage storage = new();
+            Assert.That(PeriodTimer.TryCreate("Period", _runner, out PeriodTimer timer, storage, GetUtcNow), Is.True);
+            Assert.That(timer.TryInit(1.0d, 2.0d), Is.True);
+            Assert.That(storage.SaveCnt, Is.EqualTo(2));
+            storage.DisableSave();
+
+            Assert.That(timer.TryForceClosed(), Is.False);
+            timer.Release();
+            storage.EnableSave();
+
+            Assert.That(PeriodTimer.TryCreate("Period", _runner, out PeriodTimer restored, storage, GetUtcNow), Is.True);
+            Assert.That(restored.TryInit(1.0d, 2.0d), Is.True);
+            Assert.That(restored.CurType, Is.EqualTo(EPeriodTimerType.Open));
+            Assert.That(restored.OpenEndTime, Is.EqualTo(_utcNow.AddMinutes(1.0d)));
+            restored.Release();
+        }
+
+        [Test]
+        public void PeriodDeleteDoesNotRestoreLegacyData()
+        {
+            MemoryStorage storage = new();
+            storage.Seed("PeriodTimer_Period_OPEN_END", _utcNow.AddMinutes(10.0d).Ticks.ToString());
+            storage.Seed("PeriodTimer_Period_CLOSED_END", _utcNow.AddMinutes(20.0d).Ticks.ToString());
+            storage.Seed("PeriodTimer_Period_OPEN_UPDATED", _utcNow.Ticks.ToString());
+            storage.Seed("PeriodTimer_Period_TAMPERED", "0");
+            PeriodTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryDelete("Period"), Is.True);
+
+            Assert.That(service.TryCreate("Period", out PeriodTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle, 1.0d, 2.0d), Is.True);
+            Assert.That(handle.RemainingSec, Is.EqualTo(60));
+            service.Release();
         }
 
         [Test]
@@ -261,6 +357,8 @@ namespace UnityTools.Timer.Tests.Timer
             private bool _canSave = true;
             private bool _canRead = true;
 
+            public int SaveCnt { get; private set; }
+
             //============================================================
             // Persistence
             //============================================================
@@ -270,6 +368,7 @@ namespace UnityTools.Timer.Tests.Timer
                     return false;
 
                 _values[key] = data;
+                SaveCnt++;
                 return true;
             }
 
@@ -302,9 +401,19 @@ namespace UnityTools.Timer.Tests.Timer
                 _canSave = false;
             }
 
+            public void EnableSave()
+            {
+                _canSave = true;
+            }
+
             public void DisableRead()
             {
                 _canRead = false;
+            }
+
+            public void Seed(string key, string value)
+            {
+                _values[key] = value;
             }
         }
     }

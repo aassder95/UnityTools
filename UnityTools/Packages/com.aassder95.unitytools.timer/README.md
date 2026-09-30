@@ -46,6 +46,8 @@ timerHost.Release();
 - 절대 시각은 UTC ticks로 저장합니다.
 - 저장 성공 후에만 runtime 상태를 전이합니다.
 - Task Timer는 clock rollback 보정을 한 번만 반영합니다.
+- 새 상태는 타이머별 단일 snapshot 키에 저장합니다. 기존 4키 데이터는 snapshot이 없을 때 읽으며, 이후 상태 변경부터 새 형식으로 저장합니다.
+- `PeriodTimerService.TryDelete`는 snapshot에 삭제 상태를 기록합니다. 이전 형식의 키는 호환성을 위해 그대로 두지만, 삭제 상태가 우선되어 타이머가 다시 살아나지 않습니다.
 
 ## 샘플과 라이선스
 
