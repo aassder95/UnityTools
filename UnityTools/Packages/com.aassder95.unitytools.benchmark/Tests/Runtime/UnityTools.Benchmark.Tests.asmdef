@@ -1,0 +1,21 @@
+{
+    "name": "UnityTools.Benchmark.Tests",
+    "rootNamespace": "UnityTools.Benchmark.Tests",
+    "references": [
+        "UnityTools.Benchmark"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}

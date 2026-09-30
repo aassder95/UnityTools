@@ -1,0 +1,13 @@
+{
+  "name": "com.aassder95.unitytools.benchmark",
+  "version": "0.1.0",
+  "displayName": "UnityTools Benchmark",
+  "description": "Reusable frame, allocation, memory, and custom marker measurements for Unity scenarios.",
+  "unity": "2022.3",
+  "dependencies": {},
+  "keywords": ["benchmark", "profiling", "performance"],
+  "author": {
+    "name": "aassder95",
+    "url": "https://github.com/aassder95"
+  }
+}
