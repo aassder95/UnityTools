@@ -326,8 +326,8 @@ namespace UnityTools.Ui
                 {
                     int addLine = isDown ? visibleLine + _visibleLineCnt - moveLineCnt + i : visibleLine + moveLineCnt - i - 1;
                     int removeLine = isDown ? curLine + i : curLine + _visibleLineCnt - i - 1;
-                    _itemCtrl.AddRange(_context.GetItemCntForLine(addLine, _totalItemCnt), addLine * _itemCntPerLine, isDown);
                     _itemCtrl.RemoveRange(_context.GetItemCntForLine(removeLine, _totalItemCnt), !isDown);
+                    _itemCtrl.AddRange(_context.GetItemCntForLine(addLine, _totalItemCnt), addLine * _itemCntPerLine, isDown);
                 }
             }
 

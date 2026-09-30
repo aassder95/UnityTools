@@ -136,6 +136,31 @@ namespace UnityTools.Ui.Tests.UiFramework
             Assert.That(returnCnt, Is.EqualTo(getCnt));
         }
 
+        [Test]
+        public void ScrollingBothDirectionsReusesVisibleItems()
+        {
+            ScrollTestView scrollView = CreateScrollView(30);
+            ScrollTestItem[] items = scrollView.GetComponentsInChildren<ScrollTestItem>(true);
+            int initialItemCnt = items.Length;
+
+            scrollView.ScrollTo(5, true);
+            Assert.That(FindActiveItem(scrollView, 5), Is.Not.Null);
+            scrollView.ScrollTo(8, true);
+            Assert.That(FindActiveItem(scrollView, 8), Is.Not.Null);
+            scrollView.ScrollTo(3, true);
+            ScrollTestItem item = FindActiveItem(scrollView, 3);
+            Assert.That(item, Is.Not.Null);
+            int prevUpdateCnt = item.UpdateCnt;
+            scrollView.RefreshItem(3);
+            Assert.That(item.UpdateCnt, Is.EqualTo(prevUpdateCnt + 1));
+
+            scrollView.ScrollTo(29, true);
+            Assert.That(FindActiveItem(scrollView, 29), Is.Not.Null);
+            scrollView.ScrollTo(0, true);
+            Assert.That(FindActiveItem(scrollView, 0), Is.Not.Null);
+            Assert.That(scrollView.GetComponentsInChildren<ScrollTestItem>(true).Length, Is.EqualTo(initialItemCnt));
+        }
+
         //============================================================
         // Callbacks
         //============================================================
