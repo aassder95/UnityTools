@@ -1,0 +1,21 @@
+{
+    "name": "UnityTools.Persistence.Tests",
+    "rootNamespace": "UnityTools.Persistence.Tests",
+    "references": [
+        "UnityTools.Persistence"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false,
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ]
+}
