@@ -1,0 +1,5 @@
+{
+  "name": "UnityTools.Showcase",
+  "references": ["UnityEngine.UI"],
+  "autoReferenced": true
+}

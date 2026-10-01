@@ -85,6 +85,21 @@ public static class CompatibilityValidation
             scenes.Add(new EditorBuildSettingsScene("Assets/SmokeScene.unity", true));
         }
 
+        if (File.Exists("ValidationEntryScene.txt"))
+        {
+            string entryPath = File.ReadAllText("ValidationEntryScene.txt").Trim();
+            int entryIdx = scenes.FindIndex(item => item.path == entryPath);
+            if (entryIdx < 0)
+            {
+                Fail("시작 장면이 없습니다: " + entryPath);
+                return;
+            }
+
+            EditorBuildSettingsScene entry = scenes[entryIdx];
+            scenes.RemoveAt(entryIdx);
+            scenes.Insert(0, entry);
+        }
+
         EditorBuildSettings.scenes = scenes.ToArray();
         File.WriteAllText("scenes-ready.txt", scenes.Count.ToString());
     }
