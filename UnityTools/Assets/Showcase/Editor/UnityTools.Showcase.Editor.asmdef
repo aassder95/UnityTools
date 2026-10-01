@@ -1,0 +1,5 @@
+{
+  "name": "UnityTools.Showcase.Editor",
+  "references": ["UnityTools.Showcase", "UnityEngine.UI"],
+  "includePlatforms": ["Editor"]
+}

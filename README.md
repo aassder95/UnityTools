@@ -2,6 +2,18 @@
 
 Unity 2022.3 이상에서 UI, Timer, Benchmark, Persistence 기능을 각각 독립 설치할 수 있는 UPM 패키지입니다. 데모 프로젝트는 Unity 6.3 LTS를 사용하고 패키지의 최소 지원 버전은 2022.3을 유지합니다. 저장소는 하나지만 package assembly와 dependency는 분리되어 있습니다. Benchmark와 Persistence는 아직 개발 버전이며 release tag가 없습니다.
 
+## 포트폴리오 데모
+
+![UnityTools Showcase 선택 화면](docs/images/showcase.png)
+
+`UnityTools/Assets/Showcase/Showcase.unity`는 스크롤 성능 비교, 저장 복구, 시간 시뮬레이션의 진입 화면입니다. 데모 프로젝트에서 `Tools > UnityTools > Configure Showcase Build Scenes`로 시작 장면과 세 실험실을 등록하고 Play합니다. 각 실험실 오른쪽 위의 `< SHOWCASE`로 돌아올 수 있습니다.
+
+- [5분 시연과 재현 검증](docs/SHOWCASE.md): 실행 순서, 확인할 결과와 한계
+- [설계 선택](docs/DESIGN.md): 패키지 경계, deque·pool 재사용, 저장 보호, 시간 주입
+- [통과한 정적 CI](https://github.com/aassder95/UnityTools/actions/runs/36803052811): 배포 계약·회귀 테스트·샘플 사본 검사
+
+Showcase는 개발 프로젝트 전용이며 개별 UPM 설치에는 포함되지 않습니다. 실제 기기에서 측정한 성능 결과를 함께 기록할 수 있도록 각 실험실에서 입력·출력과 측정 조건을 제공합니다.
+
 ## 패키지
 
 | 패키지 | 버전 | Assembly | 주요 책임 |

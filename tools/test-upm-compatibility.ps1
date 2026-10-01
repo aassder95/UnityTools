@@ -41,7 +41,8 @@ function Invoke-Unity([string]$project, [string]$step, [string[]]$extra)
 $summaries = @()
 foreach ($scenario in $Scenarios)
 {
-    if ($scenario -notin @('timer','ui','ui-input','benchmark','persistence','ui-lab','save-lab','timer-lab')) { throw "알 수 없는 시나리오: $scenario" }
+    if ($scenario -notin @('timer','ui','ui-input','benchmark','persistence','ui-lab','save-lab','timer-lab','showcase')) { throw "알 수 없는 시나리오: $scenario" }
+    if ($scenario -eq 'showcase' -and $Source -ne 'Local') { throw 'Showcase는 현재 로컬 소스로만 검증합니다. -Source Local을 지정하세요.' }
     $project = Join-Path $runRoot $scenario
     New-Item -ItemType Directory -Path "$project/Assets/Editor", "$project/Packages", "$project/ProjectSettings" -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'CompatibilityValidation.cs') -Destination "$project/Assets/Editor/CompatibilityValidation.cs"
@@ -64,6 +65,7 @@ foreach ($scenario in $Scenarios)
         'timer-lab' { $packages = @('timer'); $samples = @('timer'); $filter = 'UnityTools.Timer'; $dependencies['com.unity.ugui'] = '1.0.0' }
         'save-lab' { $packages = @('persistence'); $samples = @('persistence'); $filter = 'UnityTools.Persistence'; $dependencies['com.unity.ugui'] = '1.0.0' }
         'ui-lab' { $packages = @('benchmark','ui'); $samples = @('benchmark'); $filter = 'UnityTools.Benchmark' }
+        'showcase' { $packages = @('ui','benchmark','persistence','timer'); $samples = @('benchmark','persistence','timer'); $filter = 'UnityTools.Showcase.Tests' }
     }
     foreach ($package in $packages)
     {
@@ -75,6 +77,7 @@ foreach ($scenario in $Scenarios)
     [IO.File]::WriteAllText("$project/ProjectSettings/ProjectVersion.txt", "m_EditorVersion: $UnityVersion", $utf8)
     [IO.File]::WriteAllLines("$project/ValidationSamples.txt", [string[]]@($samples | ForEach-Object { "com.aassder95.unitytools.$_" }), $utf8)
     if ($scenario -eq 'timer') { [IO.File]::WriteAllLines("$project/ValidationSampleNames.txt", [string[]]@('Timer Sample Scene'), $utf8) }
+    if ($scenario -eq 'showcase') { [IO.File]::WriteAllLines("$project/ValidationSampleNames.txt", [string[]]@('UI Performance Lab', 'Save Recovery Lab', 'Timer Simulation Lab'), $utf8) }
     Write-Host "$scenario : Git 설치 및 샘플 Import"
     Invoke-Unity $project 'import' @('-executeMethod','CompatibilityValidation.ImportSamples','-quit')
     if (!(Test-Path "$project/sample-imports.txt")) { throw "Import 완료 기록 누락: $project" }
@@ -84,6 +87,13 @@ foreach ($scenario in $Scenarios)
     {
         $installed = $lock.dependencies."com.aassder95.unitytools.$package"
         if ($Source -eq 'Remote' -and ($installed.source -ne 'git' -or !$installed.hash)) { throw "Git 패키지 설치 기록 누락: $package" }
+    }
+    if ($scenario -eq 'showcase')
+    {
+        Copy-Item -LiteralPath (Join-Path $repoRoot 'UnityTools/Assets/Showcase') -Destination "$project/Assets/Showcase" -Recurse
+        Invoke-Unity $project 'showcase' @('-executeMethod','UnityTools.Showcase.Editor.ShowcaseSceneBuilder.BuildValidationScene','-quit')
+        if (!(Test-Path "$project/Assets/Showcase/Showcase.unity")) { throw "Showcase 생성 장면 누락: $project" }
+        [IO.File]::WriteAllText("$project/ValidationEntryScene.txt", 'Assets/Showcase/Showcase.unity', $utf8)
     }
     Invoke-Unity $project 'scenes' @('-executeMethod','CompatibilityValidation.PrepareScenes','-quit')
     if (!(Test-Path "$project/scenes-ready.txt")) { throw "장면 검증 기록 누락: $project" }
