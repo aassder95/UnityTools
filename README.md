@@ -9,6 +9,8 @@ Unity 2022.3 이상에서 UI, Timer, Benchmark, Persistence 기능을 각각 독
 `UnityTools/Assets/Showcase/Showcase.unity`는 스크롤 성능 비교, 저장 복구, 시간 시뮬레이션의 진입 화면입니다. 데모 프로젝트에서 `Tools > UnityTools > Configure Showcase Build Scenes`로 시작 장면과 세 실험실을 등록하고 Play합니다. 각 실험실 오른쪽 위의 `< SHOWCASE`로 돌아올 수 있습니다.
 
 - [5분 시연과 재현 검증](docs/SHOWCASE.md): 실행 순서, 확인할 결과와 한계
+- [Windows 측정 결과와 원본 CSV](docs/PORTFOLIO_RESULTS.md): 반복 A/B의 실제 결과·조건·한계
+- [정식 패키지 릴리스](docs/RELEASE_PACKAGES.md): 고정 태그 설치, Windows 데모 및 검증 증거
 - [설계 선택](docs/DESIGN.md): 패키지 경계, deque·pool 재사용, 저장 보호, 시간 주입
 - [통과한 정적 CI](https://github.com/aassder95/UnityTools/actions/runs/36803052811): 배포 계약·회귀 테스트·샘플 사본 검사
 
