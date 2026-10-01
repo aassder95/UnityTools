@@ -49,7 +49,7 @@ namespace UnityTools.Benchmark.Samples.Editor
 
             RectTransform rtControls = CreateRect("Controls", rtRoot);
             Place(rtControls, 24.0f, 80.0f, 1232.0f, 50.0f);
-            InputField inputCnt = CreateInput(rtControls, "Item count", "10000", 0.0f);
+            InputField inputCnt = CreateInput(rtControls, "Item count", "1000", 0.0f);
             InputField inputSeed = CreateInput(rtControls, "Seed", "42", 175.0f);
             Dropdown choice = CreateDropdown(rtControls, 350.0f);
             Button btnRun = CreateButton(rtControls, "RUN", 630.0f);
@@ -58,11 +58,23 @@ namespace UnityTools.Benchmark.Samples.Editor
             btnStop.interactable = false;
             btnExport.interactable = false;
 
-            Text result = CreateText("Result", rtRoot, "Set item count and seed, then RUN.\nSweep / Random Jump / Insert & Remove\nStatistics appear after measurement. Use a Development Build for device profiling.", 20);
-            Place((RectTransform)result.transform, 760.0f, 160.0f, 495.0f, 500.0f);
+            RectTransform rtCompare = CreateRect("ComparisonControls", rtRoot);
+            Place(rtCompare, 24.0f, 140.0f, 1232.0f, 46.0f);
+            Button btnCompare = CreateButton(rtCompare, "COMPARE A/B", 0.0f);
+            Dropdown order = CreateDropdown(rtCompare, 190.0f);
+            order.options = new System.Collections.Generic.List<Dropdown.OptionData>
+            {
+                new Dropdown.OptionData("Baseline -> Virtualized"),
+                new Dropdown.OptionData("Virtualized -> Baseline")
+            };
+            order.RefreshShownValue();
+            Text hint = CreateText("Hint", rtCompare, "Compare: up to 10,000 / RUN: virtualized only", 17);
+            Place((RectTransform)hint.transform, 470.0f, 6.0f, 730.0f, 36.0f);
+            Text result = CreateText("Result", rtRoot, "RUN: virtualized only\nCOMPARE A/B: fresh UI objects, same data and workload\nInitialization and steady frame costs are separate.\nUse a Development Build for device profiling.", 18);
+            Place((RectTransform)result.transform, 760.0f, 210.0f, 495.0f, 480.0f);
             result.alignment = TextAnchor.UpperLeft;
             RectTransform rtViewport = CreateRect("Viewport", rtRoot);
-            Place(rtViewport, 24.0f, 160.0f, 710.0f, 530.0f);
+            Place(rtViewport, 24.0f, 210.0f, 710.0f, 480.0f);
             Image imgViewport = rtViewport.gameObject.AddComponent<Image>();
             imgViewport.color = new Color(0.05f, 0.09f, 0.15f);
             rtViewport.gameObject.AddComponent<RectMask2D>();
@@ -91,14 +103,22 @@ namespace UnityTools.Benchmark.Samples.Editor
             scrollData.FindProperty("_layoutMode").enumValueIndex = 0;
             scrollData.FindProperty("_isInertia").boolValue = false;
             scrollData.ApplyModifiedPropertiesWithoutUndo();
+            UiLabBaseline baseline = rtViewport.gameObject.AddComponent<UiLabBaseline>();
+            Assign(baseline, "_item", item);
+            Assign(baseline, "_scrollRect", scrollRect);
+            Assign(baseline, "_rtContent", rtContent);
+            Assign(baseline, "_rtViewport", rtViewport);
             UiLabController controller = goCanvas.AddComponent<UiLabController>();
             Assign(controller, "_scroll", scroll);
+            Assign(controller, "_baseline", baseline);
             Assign(controller, "_inputItemCnt", inputCnt);
             Assign(controller, "_inputSeed", inputSeed);
             Assign(controller, "_scenarioChoice", choice);
             Assign(controller, "_btnRun", btnRun);
             Assign(controller, "_btnStop", btnStop);
             Assign(controller, "_btnExport", btnExport);
+            Assign(controller, "_btnCompare", btnCompare);
+            Assign(controller, "_orderChoice", order);
             Assign(controller, "_txtResult", result);
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             EditorSceneManager.SaveScene(scene, path);
