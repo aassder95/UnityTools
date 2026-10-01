@@ -5,7 +5,8 @@
   "optionalUnityReferences": [
     "TestAssemblies"
   ],
-  "references": [
+    "references": [
+        "UnityTools.Ui",
     "UnityTools.Benchmark.UiLab",
     "UnityTools.Benchmark",
     "UnityEngine.UI"
