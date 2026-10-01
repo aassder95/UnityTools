@@ -1,0 +1,17 @@
+UTC=2026-10-01T07:17:22.0319159Z
+Unity=6000.3.20f1
+OS=Windows 11  (10.0.26200)
+CPU=AMD Ryzen 9 7900 12-Core Processor
+GPU=NVIDIA GeForce RTX 4060 Ti
+GraphicsAPI=Direct3D12
+RAM_MB=31863
+Screen=1280x720
+Quality=Ultra
+VSync=0
+TargetFPS=60
+WarmupFrames=120
+SampleFrames=600
+Seed=42
+Scenario=Sweep
+Pairs=4
+VideoExcludedFromCSV=true
