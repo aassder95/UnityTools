@@ -1,0 +1,72 @@
+name: UPM static checks
+
+on:
+  pull_request:
+  push:
+    branches: [develop, main, 'codex/**']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: upm-static-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Package and sample contracts
+    runs-on: windows-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Verify UPM distribution
+        id: distribution
+        run: python tools/verify-upm.py --report "$env:RUNNER_TEMP/upm-static-report.json"
+      - name: Test static validator
+        id: regression
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        run: python -m unittest discover -s tools/tests -p 'test_verify_upm.py' -v
+      - name: Verify sample mirrors
+        id: mirrors
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        run: ./tools/verify-sample-mirrors.ps1
+      - name: Publish static check summary
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        env:
+          DISTRIBUTION_RESULT: ${{ steps.distribution.outcome }}
+          REGRESSION_RESULT: ${{ steps.regression.outcome }}
+          MIRROR_RESULT: ${{ steps.mirrors.outcome }}
+        run: |
+          $lines = @(
+            '## UPM static checks'
+            ''
+            '| Check | Result |'
+            '| --- | --- |'
+            "| Distribution contracts | $env:DISTRIBUTION_RESULT |"
+            "| Validator regression tests | $env:REGRESSION_RESULT |"
+            "| Sample mirrors | $env:MIRROR_RESULT |"
+            ''
+            'Unity compilation, Play Mode and Player builds were not run by this workflow.'
+          )
+          $reportPath = Join-Path $env:RUNNER_TEMP 'upm-static-report.json'
+          if (Test-Path -LiteralPath $reportPath) {
+            $report = Get-Content -LiteralPath $reportPath -Raw | ConvertFrom-Json
+            $lines += "Distribution issues: $($report.error_count). See the JSON artifact for file paths and details."
+          }
+          $lines | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+      - name: Upload distribution report
+        if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: upm-static-report
+          path: ${{ runner.temp }}/upm-static-report.json
+          if-no-files-found: warn
+          retention-days: 14

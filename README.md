@@ -41,6 +41,10 @@ UI 기본 패키지는 Timer와 Input System에 의존하지 않습니다. Input
 
 ## 검증
 
+PR 정적 검사 CI는 네 패키지의 manifest·assembly 경계·meta GUID·배포 파일과 샘플 사본을 검사합니다. 로컬에서도 `python tools/verify-upm.py`, `python -m unittest discover -s tools/tests -p test_verify_upm.py -v`로 실행할 수 있습니다. Unity 실행 검증과는 별개이며, runner·라이선스 조건과 연결 계획은 [CI 안내](docs/CI.md)를 참고하세요.
+
+GitHub 실행 Summary에서 검사별 결과를 확인하고 `upm-static-report` artifact에서 배포 오류의 파일 경로와 사유를 확인할 수 있습니다. 로컬 JSON 출력은 `python tools/verify-upm.py --report <출력 경로>`를 사용합니다.
+
 ```powershell
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\verify-release.ps1 -Release
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\test-upm-packages.ps1 -Source Remote
