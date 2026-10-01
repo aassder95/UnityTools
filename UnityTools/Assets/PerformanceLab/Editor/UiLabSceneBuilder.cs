@@ -68,8 +68,9 @@ namespace UnityTools.Benchmark.Samples.Editor
                 new Dropdown.OptionData("Virtualized -> Baseline")
             };
             order.RefreshShownValue();
+            InputField inputPairs = CreateInput(rtCompare, "Pairs (1-20)", "4", 470.0f);
             Text hint = CreateText("Hint", rtCompare, "Compare: up to 10,000 / RUN: virtualized only", 17);
-            Place((RectTransform)hint.transform, 470.0f, 6.0f, 730.0f, 36.0f);
+            Place((RectTransform)hint.transform, 650.0f, 6.0f, 560.0f, 36.0f);
             Text result = CreateText("Result", rtRoot, "RUN: virtualized only\nCOMPARE A/B: fresh UI objects, same data and workload\nInitialization and steady frame costs are separate.\nUse a Development Build for device profiling.", 18);
             Place((RectTransform)result.transform, 760.0f, 210.0f, 495.0f, 480.0f);
             result.alignment = TextAnchor.UpperLeft;
@@ -119,6 +120,7 @@ namespace UnityTools.Benchmark.Samples.Editor
             Assign(controller, "_btnExport", btnExport);
             Assign(controller, "_btnCompare", btnCompare);
             Assign(controller, "_orderChoice", order);
+            Assign(controller, "_inputPairCnt", inputPairs);
             Assign(controller, "_txtResult", result);
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             EditorSceneManager.SaveScene(scene, path);

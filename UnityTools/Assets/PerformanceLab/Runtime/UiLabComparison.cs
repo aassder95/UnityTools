@@ -8,8 +8,14 @@ namespace UnityTools.Benchmark.Samples
     public class UiLabComparison
     {
         //============================================================
+        // Constants
+        //============================================================
+        private const string CSV_HEADER = BenchmarkCsv.HEADER + ",pair_id,mode,run_order,init_ms,created_item_cnt,peak_live_item_cnt,bind_cnt,item_step,mutation_cnt,mutation_interval_frames,viewport_width,viewport_height";
+
+        //============================================================
         // Properties
         //============================================================
+        public static string CsvHeader => CSV_HEADER;
         public UiLabReport Baseline { get; }
         public UiLabReport Virtualized { get; }
         public double BaselineInitMs { get; }
@@ -44,8 +50,8 @@ namespace UnityTools.Benchmark.Samples
 
             try
             {
-                string header = BenchmarkCsv.HEADER + ",pair_id,mode,run_order,init_ms,created_item_cnt,peak_live_item_cnt,bind_cnt,item_step,mutation_cnt,mutation_interval_frames,viewport_width,viewport_height";
-                string content = Row(Baseline, "Baseline", IsBaselineFirst ? 1 : 2, BaselineInitMs) + Environment.NewLine + Row(Virtualized, "Virtualized", IsBaselineFirst ? 2 : 1, VirtualizedInitMs) + Environment.NewLine;
+                string header = CSV_HEADER;
+                string content = ToCsvRow(true) + Environment.NewLine + ToCsvRow(false) + Environment.NewLine;
                 bool needsHeader = !File.Exists(path) || new FileInfo(path).Length == 0;
                 File.AppendAllText(path, (needsHeader ? header + Environment.NewLine : string.Empty) + content, new UTF8Encoding(false));
                 return true;
@@ -66,6 +72,12 @@ namespace UnityTools.Benchmark.Samples
             {
                 return false;
             }
+        }
+
+        public string ToCsvRow(bool isBaseline)
+        {
+            UiLabReport report = isBaseline ? Baseline : Virtualized;
+            return Row(report, isBaseline ? "Baseline" : "Virtualized", isBaseline == IsBaselineFirst ? 1 : 2, isBaseline ? BaselineInitMs : VirtualizedInitMs);
         }
 
         //============================================================
