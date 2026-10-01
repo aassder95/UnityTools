@@ -1,6 +1,6 @@
 # Changelog
 
-## [1.0.0] - 릴리스 후보
+## [1.0.0] - 2026-10-01
 
 - Save Recovery Lab UPM 샘플 장면과 여섯 가지 저장·복구 실험 추가
 - 파일·데이터 보존 및 장면 버튼 구독 수명 검증 추가
@@ -10,7 +10,7 @@
 - migration 시작 버전의 int overflow로 음수 다음 버전을 허용하던 생성 검증 오류 수정
 - UPM 폴더에 MIT 라이선스 원문 포함
 - 0.1.0과 API 및 envelope format 동일; 패키지 업그레이드 migration 불필요
-- 후보 tag unitytools-persistence/v1.0.0은 아직 발행하지 않음
+- 고정 tag unitytools-persistence/v1.0.0으로 배포
 
 ## 0.1.0
 

@@ -1,6 +1,6 @@
-# Persistence 1.0.0 릴리스 준비
+# Persistence 1.0.0 릴리스
 
-현재는 **미게시 릴리스 후보**입니다. 후보 package version은 1.0.0이고 예정 tag는 `unitytools-persistence/v1.0.0`입니다. 기존 공개 tag를 가리키는 설치 주소로 안내하지 않습니다. Benchmark는 이번 준비 범위에 포함하지 않습니다.
+정식 태그는 `unitytools-persistence/v1.0.0`입니다. 아래 후보 검증 기록은 발행 전 검증 이력이며, 공개 태그 검증 결과는 [정식 릴리스 기록](RELEASE_PACKAGES.md)에 별도로 기록합니다.
 
 ## 확정한 계약
 

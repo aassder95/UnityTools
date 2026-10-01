@@ -1,10 +1,10 @@
 # UnityTools Persistence
 
-**1.0.0 릴리스 후보를 준비 중이며 공개 tag는 아직 없습니다.** `0.1.0`과 공개 API·저장 envelope format을 유지하며 패키지 업그레이드 자체에 데이터 migration이 필요하지 않습니다.
+**1.0.0 정식 릴리스입니다.** `0.1.0`과 공개 API·저장 envelope format을 유지하며 패키지 업그레이드 자체에 데이터 migration이 필요하지 않습니다.
 
 ## 설치
 
-현재 후보는 `Add package from disk...`에서 이 폴더의 `package.json`을 선택합니다. 정식 tag 발행 후 사용할 고정 주소는 다음과 같습니다. 발행 전에는 이 주소로 설치할 수 없습니다.
+Package Manager의 `Add package from git URL...`에 다음 고정 주소를 입력합니다.
 
 ```text
 https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.persistence#unitytools-persistence/v1.0.0
@@ -83,7 +83,7 @@ if ((wasRecovered || wasMigrated) && !saves.TrySave(data))
 
 파일 교체는 파일 시스템과 플랫폼의 `File.Replace` 지원에 의존하며 지원되지 않으면 `TrySave`가 실패합니다. 배포 대상 Android 기기와 IL2CPP 빌드에서 저장·백업·강제 종료 후 복구를 별도로 확인하세요. 새 프로젝트에는 `Package Manager > Add package from disk...`에서 이 폴더의 `package.json`을 선택합니다.
 
-검증 대상은 Unity `2022.3.62f3`과 `6000.3.20f1`의 Windows Editor Play Mode 및 Windows Development Build(Mono)입니다. Android/iOS·IL2CPP·WebGL·실기기 강제 종료 복구는 아직 검증하지 않았습니다. 모든 저장 실패나 전원 손실에 대한 원자적 transaction 보장은 아닙니다. 상세 후보 검증과 tag 재검증 절차는 저장소의 `docs/RELEASE_PERSISTENCE.md`에 있습니다.
+검증 대상은 Unity `2022.3.62f3`과 `6000.3.20f1`의 Windows Editor Play Mode 및 Windows Development Build(Mono)입니다. Android/iOS·IL2CPP·WebGL·실기기 강제 종료 복구는 아직 검증하지 않았습니다. 모든 저장 실패나 전원 손실에 대한 원자적 transaction 보장은 아닙니다. 상세 릴리스 검증과 tag 재검증 절차는 저장소의 `docs/RELEASE_PERSISTENCE.md`에 있습니다.
 
 ## 라이선스
 

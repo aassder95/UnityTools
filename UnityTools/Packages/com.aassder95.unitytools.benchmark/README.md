@@ -2,6 +2,14 @@
 
 Unity 2022.3 이상에서 같은 게임 시나리오를 반복 측정하는 독립 UPM 패키지입니다. UI와 Timer 패키지에 의존하지 않습니다.
 
+## 설치
+
+```text
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.benchmark#unitytools-benchmark/v1.0.0
+```
+
+1.0.0의 공개 API와 코어 CSV 21열은 [계약 문서](Documentation~/api.md)에 있습니다. [변경 기록](CHANGELOG.md)과 [MIT 라이선스](LICENSE)를 함께 배포합니다.
+
 ## 측정값
 
 - 프레임 간격: 평균, 95백분위, 최대 (ms), 평균 간격에서 계산한 FPS
@@ -58,8 +66,8 @@ private void StartBenchmark(int agentCnt, int seed)
 
 private void Update()
 {
-    if (_benchmark.TryCaptureFrame(out BenchmarkResult result))
-        BenchmarkCsv.TryAppend(Path.Combine(Application.persistentDataPath, "airport-benchmark.csv"), result);
+    if (_benchmark.TryCaptureFrame(out BenchmarkResult result) && !BenchmarkCsv.TryAppend(Path.Combine(Application.persistentDataPath, "airport-benchmark.csv"), result))
+        Debug.LogWarning("벤치마크 CSV 저장에 실패했습니다.");
 }
 
 private void OnDestroy()
