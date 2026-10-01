@@ -1,0 +1,10 @@
+{
+  "includePlatforms": [
+    "Editor"
+  ],
+  "name": "UnityTools.Timer.SimulationLab.Editor",
+  "references": [
+    "UnityTools.Timer.SimulationLab",
+    "UnityEngine.UI"
+  ]
+}

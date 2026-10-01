@@ -60,6 +60,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\tools\test-upm-compati
 
 새 Save Recovery Lab은 `-Source Local -Scenarios save-lab`으로 검증합니다. 기본 원격 커밋에는 이 샘플이 포함되어 있지 않습니다. Persistence 코어 단독 검증은 uGUI 의존성 없이 유지하고, `save-lab`에서 uGUI와 샘플을 추가합니다.
 
+새 Timer Simulation Lab은 `-Source Local -Scenarios timer-lab`으로 검증합니다. 가상 UTC·오프라인 복원·역행 보정·저장 실패·수령 상태를 비교합니다. 기존 `timer` 시나리오는 기존 Timer Sample Scene만 Import하고, `timer-lab`에서 uGUI와 실험실을 추가합니다. 기본 원격 커밋과 기존 Timer release tag에는 실험실이 포함되어 있지 않습니다.
+
 2026-09-30, Unity `6000.3.20f1`에서 빈 프로젝트별 Git URL 설치를 검증했습니다. UI·Timer·Benchmark는 `18665ab98b9bc97c9f664a6a0407ba1353f59145`, Persistence는 `472a08ef24418e81045dcc66109c1a9b7c86606b` 기준입니다.
 
 | 시나리오 | 샘플 Import | PlayMode 테스트 | Windows Development Build |

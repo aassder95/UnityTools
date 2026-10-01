@@ -1,0 +1,15 @@
+{
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "name": "UnityTools.Timer.SimulationLab.Tests",
+  "autoReferenced": false,
+  "references": [
+    "UnityTools.Timer.SimulationLab",
+    "UnityTools.Timer",
+    "UnityEngine.UI"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

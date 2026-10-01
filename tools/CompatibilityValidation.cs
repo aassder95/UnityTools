@@ -17,6 +17,7 @@ public static class CompatibilityValidation
     {
         File.WriteAllText("editor-version.txt", Application.unityVersion);
         string[] requested = File.ReadAllLines("ValidationSamples.txt");
+        string[] sampleNames = File.Exists("ValidationSampleNames.txt") ? File.ReadAllLines("ValidationSampleNames.txt") : Array.Empty<string>();
         List<string> report = new List<string>();
         foreach (string name in requested)
         {
@@ -30,6 +31,9 @@ public static class CompatibilityValidation
             int cnt = 0;
             foreach (Sample sample in Sample.FindByPackage(package.name, package.version))
             {
+                if (sampleNames.Length > 0 && Array.IndexOf(sampleNames, sample.displayName) < 0)
+                    continue;
+
                 if (!sample.Import(Sample.ImportOptions.OverridePreviousImports | Sample.ImportOptions.HideImportWindow))
                 {
                     Fail("샘플 Import 실패: " + sample.displayName);
