@@ -88,7 +88,10 @@ namespace UnityTools.Persistence.Tests
         [Test]
         public void FuturePrimaryDoesNotFallBackToOlderBackup()
         {
-            Assert.That(CreateV1Store().TrySave(new SaveV1(1)), Is.True);
+            VersionedSaveStore<SaveV1> firstStore = CreateV1Store();
+            Assert.That(firstStore.TrySave(new SaveV1(1)), Is.True);
+            Assert.That(firstStore.TrySave(new SaveV1(2)), Is.True);
+            Assert.That(File.Exists(_path + ".bak"), Is.True);
             Assert.That(CreateV2Store(null).TrySave(new SaveV2(2, 3)), Is.True);
             VersionedSaveStore<SaveV1> oldStore = CreateV1Store();
 
@@ -115,6 +118,124 @@ namespace UnityTools.Persistence.Tests
             ISaveMigration[] migrations = { new V1ToV2Migration(), new V1ToV2Migration() };
             Assert.That(VersionedSaveStore<SaveV2>.TryCreate(_path, 2, new UnityJsonSaveCodec<SaveV2>(), IsValid,
                 migrations, out _), Is.False);
+        }
+
+        [TestCase(null, 1)]
+        [TestCase("", 1)]
+        [TestCase(" ", 1)]
+        [TestCase("save.json", 0)]
+        public void InvalidCreationReturnsNoStore(string path, int version)
+        {
+            Assert.That(VersionedSaveStore<SaveV1>.TryCreate(path, version, new UnityJsonSaveCodec<SaveV1>(), IsValid, null, out VersionedSaveStore<SaveV1> store), Is.False);
+            Assert.That(store, Is.Null);
+        }
+
+        [Test]
+        public void MissingFilesReturnEmptyOutputsWithoutCreatingFiles()
+        {
+            Assert.That(CreateV1Store().TryLoad(out SaveV1 data, out bool wasRecovered, out bool wasMigrated), Is.False);
+            Assert.That(data, Is.Null);
+            Assert.That(wasRecovered, Is.False);
+            Assert.That(wasMigrated, Is.False);
+            Assert.That(Directory.GetFiles(_directory), Is.Empty);
+        }
+
+        [Test]
+        public void RejectedSavePreservesPrimaryAndBackup()
+        {
+            VersionedSaveStore<SaveV1> store = CreateV1Store();
+            Assert.That(store.TrySave(new SaveV1(1)), Is.True);
+            Assert.That(store.TrySave(new SaveV1(2)), Is.True);
+            string primary = File.ReadAllText(_path);
+            string backup = File.ReadAllText(_path + ".bak");
+            Assert.That(store.TrySave(null), Is.False);
+            Assert.That(store.TrySave(new SaveV1(-1)), Is.False);
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(primary));
+            Assert.That(File.ReadAllText(_path + ".bak"), Is.EqualTo(backup));
+            Assert.That(File.Exists(_path + ".tmp"), Is.False);
+        }
+
+        [Test]
+        public void FailedTemporaryWritePreservesPrimaryAndBackup()
+        {
+            VersionedSaveStore<SaveV1> store = CreateV1Store();
+            Assert.That(store.TrySave(new SaveV1(1)), Is.True);
+            Assert.That(store.TrySave(new SaveV1(2)), Is.True);
+            string primary = File.ReadAllText(_path);
+            string backup = File.ReadAllText(_path + ".bak");
+            Directory.CreateDirectory(_path + ".tmp");
+            Assert.That(store.TrySave(new SaveV1(3)), Is.False);
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(primary));
+            Assert.That(File.ReadAllText(_path + ".bak"), Is.EqualTo(backup));
+            Assert.That(store.TryLoad(out SaveV1 data, out bool wasRecovered, out _), Is.True);
+            Assert.That(data.Level, Is.EqualTo(2));
+            Assert.That(wasRecovered, Is.False);
+        }
+
+        [Test]
+        public void SaveBeforeLoadCannotOverwriteFuturePrimary()
+        {
+            VersionedSaveStore<SaveV1> firstStore = CreateV1Store();
+            Assert.That(firstStore.TrySave(new SaveV1(1)), Is.True);
+            Assert.That(firstStore.TrySave(new SaveV1(2)), Is.True);
+            Assert.That(CreateV2Store(null).TrySave(new SaveV2(2, 3)), Is.True);
+            string primary = File.ReadAllText(_path);
+            string backup = File.ReadAllText(_path + ".bak");
+            Assert.That(CreateV1Store().TrySave(new SaveV1(9)), Is.False);
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(primary));
+            Assert.That(File.ReadAllText(_path + ".bak"), Is.EqualTo(backup));
+        }
+
+        [Test]
+        public void CompatibleLoadClearsFutureVersionProtection()
+        {
+            Assert.That(CreateV1Store().TrySave(new SaveV1(1)), Is.True);
+            string compatible = File.ReadAllText(_path);
+            Assert.That(CreateV2Store(null).TrySave(new SaveV2(2, 3)), Is.True);
+            VersionedSaveStore<SaveV1> oldStore = CreateV1Store();
+            Assert.That(oldStore.TryLoad(out _, out _, out _), Is.False);
+            File.WriteAllText(_path, compatible);
+            Assert.That(oldStore.TrySave(new SaveV1(3)), Is.False);
+            Assert.That(oldStore.TryLoad(out SaveV1 data, out _, out _), Is.True);
+            Assert.That(data.Level, Is.EqualTo(1));
+            Assert.That(oldStore.TrySave(new SaveV1(3)), Is.True);
+        }
+
+        [Test]
+        public void StoreOwnsMigrationArraySnapshot()
+        {
+            Assert.That(CreateV1Store().TrySave(new SaveV1(3)), Is.True);
+            ISaveMigration[] migrations = { new V1ToV2Migration() };
+            VersionedSaveStore<SaveV2> store = CreateV2Store(migrations);
+            migrations[0] = null;
+            Assert.That(store.TryLoad(out SaveV2 data, out _, out bool wasMigrated), Is.True);
+            Assert.That(data.BranchCnt, Is.EqualTo(4));
+            Assert.That(wasMigrated, Is.True);
+        }
+
+        [Test]
+        public void DevelopmentEnvelopeRemainsCompatibleWithoutMigration()
+        {
+            string envelope = "{\"_version\":1,\"_payload\":\"{\\\"_level\\\":7}\",\"_hash\":\"BTjsd/+D3D6UqPUkUR9WSEgUP1FH3bonSSn2pDwZsFY=\"}";
+            File.WriteAllText(_path, envelope);
+            VersionedSaveStore<SaveV1> store = CreateV1Store();
+            Assert.That(store.TryLoad(out SaveV1 data, out bool wasRecovered, out bool wasMigrated), Is.True);
+            Assert.That(data.Level, Is.EqualTo(7));
+            Assert.That(wasRecovered, Is.False);
+            Assert.That(wasMigrated, Is.False);
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(envelope));
+            Assert.That(store.TrySave(data), Is.True);
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(envelope));
+            Assert.That(File.ReadAllText(_path + ".bak"), Is.EqualTo(envelope));
+        }
+
+        [Test]
+        public void OverflowingMigrationVersionIsRejected()
+        {
+            ISaveMigration[] migrations = { new OverflowMigration() };
+            Assert.That(VersionedSaveStore<SaveV1>.TryCreate(_path, int.MaxValue, new UnityJsonSaveCodec<SaveV1>(), IsValid, migrations, out VersionedSaveStore<SaveV1> store), Is.False);
+            Assert.That(store, Is.Null);
+            Assert.That(Directory.GetFiles(_directory), Is.Empty);
         }
 
         //============================================================
@@ -181,6 +302,18 @@ namespace UnityTools.Persistence.Tests
 
                 migratedPayload = JsonUtility.ToJson(new SaveV2(oldData.Level, oldData.Level + 1));
                 return true;
+            }
+        }
+
+        private class OverflowMigration : ISaveMigration
+        {
+            public int FromVersion => int.MaxValue;
+            public int ToVersion => int.MinValue;
+
+            public bool TryMigrate(string payload, out string migratedPayload)
+            {
+                migratedPayload = null;
+                return false;
             }
         }
     }

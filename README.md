@@ -1,6 +1,6 @@
 # UnityTools
 
-Unity 2022.3 이상에서 UI, Timer, Benchmark, Persistence 기능을 각각 독립 설치할 수 있는 UPM 패키지입니다. 데모 프로젝트는 Unity 6.3 LTS를 사용하고 패키지의 최소 지원 버전은 2022.3을 유지합니다. 저장소는 하나지만 package assembly와 dependency는 분리되어 있습니다. Benchmark와 Persistence는 아직 개발 버전이며 release tag가 없습니다.
+Unity 2022.3 이상에서 UI, Timer, Benchmark, Persistence 기능을 각각 독립 설치할 수 있는 UPM 패키지입니다. 데모 프로젝트는 Unity 6.3 LTS를 사용하고 패키지의 최소 지원 버전은 2022.3을 유지합니다. 저장소는 하나지만 package assembly와 dependency는 분리되어 있습니다. Benchmark는 개발 버전이며 Persistence는 1.0.0 릴리스 후보를 준비 중입니다. 두 패키지의 release tag는 아직 없습니다.
 
 ## 포트폴리오 데모
 
@@ -21,7 +21,7 @@ Showcase는 개발 프로젝트 전용이며 개별 UPM 설치에는 포함되�
 | `com.aassder95.unitytools.ui` | `2.0.0` | `UnityTools.Ui` | MVP, navigation, transition, focus, safe area, DynamicScroll |
 | `com.aassder95.unitytools.timer` | `1.0.0` | `UnityTools.Timer` | Task/Period Timer, service/handle, UTC, persistence |
 | `com.aassder95.unitytools.benchmark` | `0.1.0` | `UnityTools.Benchmark` | Main Thread, GC, memory, custom marker 측정 및 CSV 출력 |
-| `com.aassder95.unitytools.persistence` | `0.1.0` | `UnityTools.Persistence` | 버전형 저장, migration, 검증, 백업 복구 |
+| `com.aassder95.unitytools.persistence` | `1.0.0` 후보 | `UnityTools.Persistence` | 버전형 저장, migration, 검증, 백업 복구 |
 
 ## 설치
 
@@ -41,7 +41,7 @@ https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassde
 
 Benchmark 개발 버전은 Package Manager의 `Add package from disk...`에서 현재 checkout의 `UnityTools/Packages/com.aassder95.unitytools.benchmark/package.json`을 선택합니다. 사용법은 [Benchmark README](UnityTools/Packages/com.aassder95.unitytools.benchmark/README.md)를 참고하세요.
 
-Persistence 개발 버전도 `Add package from disk...`에서 `UnityTools/Packages/com.aassder95.unitytools.persistence/package.json`을 선택합니다. 사용법은 [Persistence README](UnityTools/Packages/com.aassder95.unitytools.persistence/README.md)를 참고하세요.
+Persistence 릴리스 후보는 `Add package from disk...`에서 `UnityTools/Packages/com.aassder95.unitytools.persistence/package.json`을 선택합니다. [사용법과 API](UnityTools/Packages/com.aassder95.unitytools.persistence/README.md), [릴리스 검증 및 발행 절차](docs/RELEASE_PERSISTENCE.md)를 참고하세요. tag는 아직 발행하지 않았습니다.
 
 Persistence의 **Save Recovery Lab** 샘플은 변환·손상 복구·미래 버전 보호를 실행하고 입력/출력 파일을 비교하는 데모입니다. [샘플 안내](UnityTools/Packages/com.aassder95.unitytools.persistence/Samples~/Save%20Recovery%20Lab/README.md)에서 여섯 실험의 검증 조건을 확인할 수 있습니다.
 

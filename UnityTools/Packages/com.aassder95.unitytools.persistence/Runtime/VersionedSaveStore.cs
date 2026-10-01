@@ -63,8 +63,7 @@ namespace UnityTools.Persistence
             for (int idx = 0; idx < migrationItems.Length; ++idx)
             {
                 ISaveMigration migration = migrationItems[idx];
-                if (migration == null || migration.FromVersion < 1 || migration.ToVersion != migration.FromVersion + 1
-                    || migration.ToVersion > curVersion)
+                if (migration == null || migration.FromVersion < 1 || migration.FromVersion >= curVersion || migration.ToVersion != migration.FromVersion + 1 || migration.ToVersion > curVersion)
                     return false;
 
                 for (int prevIdx = 0; prevIdx < idx; ++prevIdx)
