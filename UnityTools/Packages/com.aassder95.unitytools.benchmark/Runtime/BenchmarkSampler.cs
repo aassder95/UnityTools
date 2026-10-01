@@ -64,7 +64,7 @@ namespace UnityTools.Benchmark
                     _gcRecorder.LastValue, _memoryRecorder.LastValue, markerNs))
                 return false;
 
-            if (!_session.TryGetResult(DateTime.UtcNow, out result))
+            if (!_session.IsComplete || !_session.TryGetResult(DateTime.UtcNow, out result))
                 return false;
 
             Release();

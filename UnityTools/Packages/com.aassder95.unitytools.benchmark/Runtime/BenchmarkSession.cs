@@ -5,8 +5,9 @@ namespace UnityTools.Benchmark
     public class BenchmarkSession
     {
         //============================================================
-        // Fields
+        // Readonly
         //============================================================
+        private static readonly Comparison<double> _sampleOrder = (left, right) => left.CompareTo(right);
         private readonly string _scenarioId;
         private readonly int _agentCnt;
         private readonly int _seed;
@@ -19,6 +20,10 @@ namespace UnityTools.Benchmark
         private readonly double[] _frameTimesMs;
         private readonly double[] _mainThreadTimesMs;
         private readonly double[] _markerTimesMs;
+
+        //============================================================
+        // Fields
+        //============================================================
         private int _warmupCnt;
         private int _sampleCnt;
         private double _frameTotalMs;
@@ -113,22 +118,19 @@ namespace UnityTools.Benchmark
             if (!IsComplete)
                 return false;
 
-            double[] sortedFramesMs = (double[])_frameTimesMs.Clone();
-            Array.Sort(sortedFramesMs);
-            double[] sortedMainThreadMs = (double[])_mainThreadTimesMs.Clone();
-            Array.Sort(sortedMainThreadMs);
+            Array.Sort(_frameTimesMs, _sampleOrder);
+            Array.Sort(_mainThreadTimesMs, _sampleOrder);
             int p95Idx = (int)Math.Ceiling(_sampleFrames * 0.95d) - 1;
             double p95MarkerMs = 0.0d;
             if (_markerTimesMs != null)
             {
-                double[] sortedMarkerMs = (double[])_markerTimesMs.Clone();
-                Array.Sort(sortedMarkerMs);
-                p95MarkerMs = sortedMarkerMs[p95Idx];
+                Array.Sort(_markerTimesMs, _sampleOrder);
+                p95MarkerMs = _markerTimesMs[p95Idx];
             }
 
             result = new BenchmarkResult(_scenarioId, _agentCnt, _seed, _warmupFrames, _sampleFrames, _markerName,
                 _unityVersion, _deviceModel, _platform, recordedUtc, _frameTotalMs / _sampleFrames,
-                sortedFramesMs[p95Idx], _maxFrameMs, _mainThreadTotalMs / _sampleFrames, sortedMainThreadMs[p95Idx],
+                _frameTimesMs[p95Idx], _maxFrameMs, _mainThreadTotalMs / _sampleFrames, _mainThreadTimesMs[p95Idx],
                 _gcTotalBytes / (double)_sampleFrames, _gcTotalBytes,
                 _peakMemoryBytes, _markerTotalMs / _sampleFrames, p95MarkerMs);
             return true;
