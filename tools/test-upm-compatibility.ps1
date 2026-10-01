@@ -41,7 +41,7 @@ function Invoke-Unity([string]$project, [string]$step, [string[]]$extra)
 $summaries = @()
 foreach ($scenario in $Scenarios)
 {
-    if ($scenario -notin @('timer','ui','ui-input','benchmark','persistence','ui-lab','save-lab')) { throw "알 수 없는 시나리오: $scenario" }
+    if ($scenario -notin @('timer','ui','ui-input','benchmark','persistence','ui-lab','save-lab','timer-lab')) { throw "알 수 없는 시나리오: $scenario" }
     $project = Join-Path $runRoot $scenario
     New-Item -ItemType Directory -Path "$project/Assets/Editor", "$project/Packages", "$project/ProjectSettings" -Force | Out-Null
     Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'CompatibilityValidation.cs') -Destination "$project/Assets/Editor/CompatibilityValidation.cs"
@@ -61,6 +61,7 @@ foreach ($scenario in $Scenarios)
         'ui-input' { $packages = @('ui'); $samples = @('ui'); $filter = 'UnityTools.Ui.Tests'; $dependencies['com.unity.inputsystem'] = '1.14.0' }
         'benchmark' { $packages = @('benchmark'); $filter = 'UnityTools.Benchmark.Tests' }
         'persistence' { $packages = @('persistence'); $filter = 'UnityTools.Persistence.Tests' }
+        'timer-lab' { $packages = @('timer'); $samples = @('timer'); $filter = 'UnityTools.Timer'; $dependencies['com.unity.ugui'] = '1.0.0' }
         'save-lab' { $packages = @('persistence'); $samples = @('persistence'); $filter = 'UnityTools.Persistence'; $dependencies['com.unity.ugui'] = '1.0.0' }
         'ui-lab' { $packages = @('benchmark','ui'); $samples = @('benchmark'); $filter = 'UnityTools.Benchmark' }
     }
@@ -73,6 +74,7 @@ foreach ($scenario in $Scenarios)
     [IO.File]::WriteAllText("$project/Packages/manifest.json", ($manifest | ConvertTo-Json -Depth 8), $utf8)
     [IO.File]::WriteAllText("$project/ProjectSettings/ProjectVersion.txt", "m_EditorVersion: $UnityVersion", $utf8)
     [IO.File]::WriteAllLines("$project/ValidationSamples.txt", [string[]]@($samples | ForEach-Object { "com.aassder95.unitytools.$_" }), $utf8)
+    if ($scenario -eq 'timer') { [IO.File]::WriteAllLines("$project/ValidationSampleNames.txt", [string[]]@('Timer Sample Scene'), $utf8) }
     Write-Host "$scenario : Git 설치 및 샘플 Import"
     Invoke-Unity $project 'import' @('-executeMethod','CompatibilityValidation.ImportSamples','-quit')
     if (!(Test-Path "$project/sample-imports.txt")) { throw "Import 완료 기록 누락: $project" }

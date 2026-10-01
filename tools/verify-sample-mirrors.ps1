@@ -53,3 +53,18 @@ foreach ($sourceFile in $saveFiles)
 }
 
 Write-Host "Save Recovery Lab sample mirrors match: $($saveFiles.Count) files"
+
+$timerSource = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Packages/com.aassder95.unitytools.timer/Samples~/Timer Simulation Lab')).Path
+$timerMirror = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Assets/TimerSimulationLab')).Path
+$timerFiles = @(Get-ChildItem -LiteralPath $timerSource -Recurse -File)
+foreach ($sourceFile in $timerFiles)
+{
+    $relativePath = $sourceFile.FullName.Substring($timerSource.Length + 1)
+    $projectFile = Join-Path $timerMirror $relativePath
+    if (!(Test-Path -LiteralPath $projectFile) -or (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $projectFile -Algorithm SHA256).Hash)
+    {
+        throw "Timer Simulation Lab sample differs or is missing: $relativePath"
+    }
+}
+
+Write-Host "Timer Simulation Lab sample mirrors match: $($timerFiles.Count) files"

@@ -13,6 +13,11 @@
       "displayName": "Timer Sample Scene",
       "description": "Standalone TaskTimerService lifecycle and persistence sample.",
       "path": "Samples~/Timer Sample Scene"
+    },
+    {
+      "displayName": "Timer Simulation Lab",
+      "description": "Virtual UTC, offline restoration, rollback, save failure and claim-state experiments.",
+      "path": "Samples~/Timer Simulation Lab"
     }
   ],
   "keywords": ["timer", "persistence", "utc"],

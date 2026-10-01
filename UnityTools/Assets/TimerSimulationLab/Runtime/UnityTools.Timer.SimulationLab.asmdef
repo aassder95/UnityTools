@@ -1,0 +1,7 @@
+{
+  "references": [
+    "UnityTools.Timer",
+    "UnityEngine.UI"
+  ],
+  "name": "UnityTools.Timer.SimulationLab"
+}

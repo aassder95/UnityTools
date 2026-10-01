@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Timer Simulation Lab 샘플에 가상 UTC·오프라인 복원·역행·저장 실패·수령 상태 실험 추가
+- 실험 상태·저장 snapshot과 장면 버튼 구독 수명 검증 추가
+
 ## [1.0.0] - 2026-07-24
 
 ### Added

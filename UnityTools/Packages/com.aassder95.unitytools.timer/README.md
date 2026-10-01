@@ -51,6 +51,8 @@ timerHost.Release();
 
 ## 샘플과 라이선스
 
+개발 checkout에는 **Timer Simulation Lab** 샘플도 있습니다. 가상 UTC, 오프라인 복원, 시계 역행, 저장 실패와 중복 수령 거절을 실행하고 실제 저장 snapshot과 상태를 비교합니다. 자세한 범위와 실행 방법은 [실험실 안내](Samples~/Timer%20Simulation%20Lab/README.md)를 확인하세요. 기존 `unitytools-timer/v1.0.0` release tag에는 새 샘플이 포함되지 않습니다.
+
 Package Manager에서 `Timer Sample Scene`을 Import하면 UI package 없이 `TaskTimerService`의 시작·완료·수령과 persistence를 확인할 수 있습니다.
 
 이 package의 자체 코드는 [MIT License](https://github.com/aassder95/UnityTools/blob/unitytools-timer/v1.0.0/LICENSE)로 배포됩니다.
