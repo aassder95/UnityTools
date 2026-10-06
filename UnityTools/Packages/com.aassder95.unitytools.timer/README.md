@@ -1,10 +1,10 @@
 # UnityTools Timer
 
-현재 manifest는 1.1.0 미게시 후보입니다. 아래 설치 주소는 기존 공개 버전 1.0.0이며, 새 기능은 후보에 포함됩니다. 새 tag 설치 주소는 공개 Git 설치 검증 후 갱신합니다.
+현재 버전은 1.1.0입니다. 아래 공개 tag로 고정 설치할 수 있습니다.
 
 ## 등록 목록 조회와 변경 알림
 
-현재 개발 소스의 `TaskTimerService`와 `PeriodTimerService`는 `TimerCnt`, `GetSnapshots()`, `OnTimersChanged`를 제공합니다. 기존 `unitytools-timer/v1.0.0` tag에는 포함되지 않습니다.
+현재 버전의 `TaskTimerService`와 `PeriodTimerService`는 `TimerCnt`, `GetSnapshots()`, `OnTimersChanged`를 제공합니다. 기존 `unitytools-timer/v1.0.0` tag에는 포함되지 않습니다.
 
 - `TimerCnt`는 초기화에 성공해 서비스에 등록된 타이머 수입니다. 생성만 한 handle과 저장소에만 남은 타이머는 포함하지 않습니다.
 - `GetSnapshots()`는 등록 목록을 데이터 사본 배열로 반환합니다. 배열과 각 데이터는 호출자가 보관할 수 있으며 이후 시간·목록 변경이 기존 사본을 바꾸지 않습니다. 순서는 보장하지 않으며 `Id`로 항목을 연결합니다.
@@ -22,7 +22,7 @@ Unity 2022.3 이상에서 사용하는 UTC 기반 Task / Period Timer package입
 Unity Package Manager의 `Add package from git URL...`에서 다음 주소를 사용합니다.
 
 ```text
-https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.0.0
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.1.0
 ```
 
 runtime assembly는 `UnityTools.Timer`이며 UI package에 의존하지 않습니다.
@@ -56,7 +56,7 @@ timerHost.Release();
 
 ## 작업 타이머 일시정지·재개
 
-개발 소스의 `TaskTimerService.TryPause(id)` / `TryResume(id)` 및 `TaskTimerHandle`의 같은 method로 처리 중인 작업을 정지·재개합니다. `Paused=3`을 추가했고 기존 None/Processing/Completed 숫자는 유지합니다. 정지 중에는 남은 시간·진행률이 고정되고 coroutine이 종료됩니다. 오프라인 시간과 정지 중 시계 역행은 남은 시간을 소비하지 않습니다. 재개 시 현재 UTC를 기준으로 종료 시각을 다시 구성합니다. EndTime은 정지 상태의 실시간 종료 예정 시각으로 사용하지 않습니다.
+현재 버전의 `TaskTimerService.TryPause(id)` / `TryResume(id)` 및 `TaskTimerHandle`의 같은 method로 처리 중인 작업을 정지·재개합니다. `Paused=3`을 추가했고 기존 None/Processing/Completed 숫자는 유지합니다. 정지 중에는 남은 시간·진행률이 고정되고 coroutine이 종료됩니다. 오프라인 시간과 정지 중 시계 역행은 남은 시간을 소비하지 않습니다. 재개 시 현재 UTC를 기준으로 종료 시각을 다시 구성합니다. EndTime은 정지 상태의 실시간 종료 예정 시각으로 사용하지 않습니다.
 
 정지·재개는 저장 성공 후에만 상태와 알림을 변경합니다. 중복 요청·다른 상태·미등록 ID·저장 실패는 false이며 기존 상태를 유지합니다. 정지 상태에서 시작·감소·강제 완료·수령은 거절합니다. 상태 변화는 기존 OnStateTransition과 서비스 OnTimersChanged로 전달합니다.
 

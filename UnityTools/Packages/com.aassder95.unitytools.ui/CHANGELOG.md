@@ -1,6 +1,6 @@
 # Changelog
 
-## [2.1.0] - Unreleased
+## [2.1.0] - 2026-10-06
 
 - 명시적인 좌표계·Motion asset·아이콘 재사용·도착/완료/취소 알림을 제공하는 UiRewardFlyer 추가
 - Reward Flyer Sample 장면·prefab·설정 asset과 좌표 변환·수명주기 회귀 테스트 추가
