@@ -1,5 +1,10 @@
 ﻿param(
-    [switch]$Release
+    [switch]$Release,
+    [switch]$Candidate,
+    [ValidatePattern('^\d+\.\d+\.\d+$')]
+    [string]$UiVersion = '2.0.0',
+    [ValidatePattern('^\d+\.\d+\.\d+$')]
+    [string]$TimerVersion = '1.0.0'
 )
 
 $ErrorActionPreference = 'Stop'
@@ -8,6 +13,7 @@ $OutputEncoding = [Console]::OutputEncoding
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $uiPackagePath = 'UnityTools/Packages/com.aassder95.unitytools.ui'
 $timerPackagePath = 'UnityTools/Packages/com.aassder95.unitytools.timer'
+if ($Release -and $Candidate) { throw 'Release와 Candidate는 함께 사용할 수 없습니다.' }
 
 function Get-DuplicatePackageGuids([string]$packagePath)
 {
@@ -47,11 +53,12 @@ try
     else
     {
         $originUri = $null
-        if (![Uri]::TryCreate($originUrl, [UriKind]::Absolute, [ref]$originUri) -or $originUri.Scheme -ne 'https')
+        $isGitHubSsh = $originUrl -match '^git@github\.com:[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git$'
+        if (!$isGitHubSsh -and (![Uri]::TryCreate($originUrl, [UriKind]::Absolute, [ref]$originUri) -or $originUri.Scheme -ne 'https'))
         {
-            $failures.Add('origin URL은 credential 없는 일반 HTTPS 주소여야 합니다.')
+            $failures.Add('origin URL은 credential 없는 HTTPS 또는 GitHub SSH 주소여야 합니다.')
         }
-        elseif (-not [string]::IsNullOrEmpty($originUri.UserInfo))
+        elseif (!$isGitHubSsh -and -not [string]::IsNullOrEmpty($originUri.UserInfo))
         {
             $failures.Add('origin URL에 credential이 포함되어 있습니다.')
         }
@@ -128,9 +135,9 @@ try
         }
     }
 
-    if ($Release)
+    if ($Release -or $Candidate)
     {
-        if ($uiManifest.version -ne '2.0.0' -or $timerManifest.version -ne '1.0.0')
+        if ($uiManifest.version -ne $UiVersion -or $timerManifest.version -ne $TimerVersion)
         {
             $failures.Add('UI 또는 Timer package version이 릴리스 버전과 일치하지 않습니다.')
         }
@@ -146,10 +153,26 @@ try
             $failures.Add('패키지 문서에 이동하는 develop 설치 주소가 남아 있습니다.')
         }
 
-        $rootReadme = Get-Content -LiteralPath 'README.md' -Raw
-        if ($rootReadme -notmatch 'unitytools-ui/v2\.0\.0' -or $rootReadme -notmatch 'unitytools-timer/v1\.0\.0')
+        if ($Candidate)
         {
-            $failures.Add('README에 package-scoped 고정 tag 설치 주소가 없습니다.')
+            foreach ($entry in @(@($uiPackagePath, $UiVersion, 'ui'), @($timerPackagePath, $TimerVersion, 'timer')))
+            {
+                $manifest = Get-Content -LiteralPath "$($entry[0])/package.json" -Raw | ConvertFrom-Json
+                $changelog = Get-Content -LiteralPath "$($entry[0])/CHANGELOG.md" -Raw
+                if (!$changelog.Contains("## [$($entry[1])] - Unreleased")) { $failures.Add("$($entry[2]) 후보 변경 기록이 없습니다.") }
+                foreach ($field in @('documentationUrl', 'changelogUrl', 'licensesUrl'))
+                {
+                    if (!$manifest.$field -or !$manifest.$field.Contains("unitytools-$($entry[2])/v$($entry[1])/")) { $failures.Add("$($entry[2]) 후보의 $field 버전이 일치하지 않습니다.") }
+                }
+            }
+        }
+        else
+        {
+            $rootReadme = Get-Content -LiteralPath 'README.md' -Raw
+            if (!$rootReadme.Contains("unitytools-ui/v$UiVersion") -or !$rootReadme.Contains("unitytools-timer/v$TimerVersion"))
+            {
+                $failures.Add('README에 package-scoped 고정 tag 설치 주소가 없습니다.')
+            }
         }
     }
 
@@ -159,7 +182,8 @@ try
         exit 1
     }
 
-    Write-Host 'Release security checks passed.'
+    if ($Candidate) { Write-Host 'Candidate security checks passed (not published).' }
+    else { Write-Host 'Release security checks passed.' }
 }
 finally
 {

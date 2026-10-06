@@ -30,10 +30,10 @@ jobs:
       - name: Verify UPM distribution
         id: distribution
         run: python tools/verify-upm.py --report "$env:RUNNER_TEMP/upm-static-report.json"
-      - name: Test static validator
+      - name: Test static validators and release gates
         id: regression
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
-        run: python -m unittest discover -s tools/tests -p 'test_verify_upm.py' -v
+        run: python -m unittest discover -s tools/tests -p 'test_verify_*.py' -v
       - name: Verify sample mirrors
         id: mirrors
         if: ${{ !cancelled() && steps.checkout.outcome == 'success' }}
