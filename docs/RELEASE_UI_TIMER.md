@@ -4,18 +4,19 @@
 
 ## 포함 범위
 
-- UI: 가변 높이 DynamicScroll, Canvas 전환 완료·취소 결과, 특정 Popup 닫기, UI Feature Demo.
-- Timer: 등록 목록 사본·개수·변경 알림과 Timer Simulation Lab.
-- 공개 API 추가에 따른 minor 후보입니다. 기존 공개 method와 저장 snapshot 형식은 유지하며 serialized field rename이나 migration은 추가하지 않습니다.
-- Benchmark와 Persistence는 별도 릴리스입니다. 커밋되지 않은 보상 연출 등 현재 working tree 변경은 후보에 포함하지 않습니다.
+- UI: 가변 높이 DynamicScroll, Canvas 전환 완료·취소 결과, 특정 Popup 닫기, 보상 아이콘 이동 연출, UI Feature Demo와 네 화면 비율의 raycast 검증.
+- Timer: 등록 목록 사본·개수·변경 알림, 작업 타이머 일시정지·재개와 Timer Simulation Lab.
+- 공개 API 추가에 따른 minor 후보입니다. 기존 공개 method·ITaskTimer 계약·enum 숫자를 유지합니다. Paused=3과 선택적 IPausableTaskTimer를 추가합니다. Inspector field rename은 없습니다.
+- 기존 v1·4키 저장 데이터를 읽습니다. 정지 상태만 남은 시간을 포함한 snapshot v2를 저장하고 재개 후 v1로 돌아갑니다. 정지 데이터를 가진 상태의 이전 패키지로의 downgrade는 지원하지 않습니다. 기존 데이터를 일괄 변환하는 migration은 없습니다.
+- Benchmark·Persistence·VFX·Sheets는 별도 릴리스입니다. 현재 working tree의 다른 작업은 후보에 포함하지 않습니다.
 
 ## 재현 가능한 후보 검증
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-ui-timer-release.ps1 -SourceRef 7d73c81
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-ui-timer-release.ps1 -SourceRef 44c7225
 ```
 
-이번 후보는 `7d73c81`로 고정합니다. 이후 추가된 보상 연출 커밋은 이 후보에 포함되지 않습니다. SourceRef를 생략하면 실행 시점의 HEAD를 사용하므로 포함 범위가 달라질 수 있습니다. 원본 index·branch·tag·manifest는 변경하지 않습니다. 커밋된 UI/Timer 폴더를 임시 Git 저장소로 복사하고 **그 사본에서만** version·문서 URL·미게시 변경 기록을 후보 버전으로 갱신합니다. 원본 파일을 덮어쓰지 않으며 기존 패키지의 dependency·GUID·저장 형식을 유지합니다.
+이번 후보는 `44c7225e7be53251631b32a9ac7cded668fa0b75`로 고정합니다. 보상 연출과 작업 타이머 정지·재개를 포함합니다. SourceRef를 생략하면 실행 시점의 HEAD를 사용하므로 포함 범위가 달라질 수 있습니다. 원본 index·branch·tag·manifest는 변경하지 않습니다. 커밋된 UI/Timer 폴더를 임시 Git 저장소로 복사하고 **그 사본에서만** version·문서 URL·미게시 변경 기록을 후보 버전으로 갱신합니다. 원본 파일을 덮어쓰지 않으며 기존 패키지의 dependency·GUID를 유지합니다.
 
 두 Unity 버전에서 후보 commit의 Git FILE URL을 빈 프로젝트에 설치합니다.
 
@@ -28,7 +29,33 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-ui-timer-release.
 
 패키지 cache의 실제 version과 lock의 `source=git`·정확한 후보 hash를 검사합니다. 임시 경로의 `release-validation.json`, candidate Git 저장소, 프로젝트별 XML·Editor 로그·lock·build를 보존합니다. 기능 데모 버튼 검증은 샘플 README의 별도 Play Mode 증거를 함께 확인합니다. 후보 검증은 공개 GitHub tag 설치 검증이나 실제 모바일·IL2CPP 검증을 대신하지 않습니다.
 
-## 2026-10-06 후보 검증 결과
+## 2026-10-06 최신 후보 검증 결과
+
+소스 `44c7225`를 UI 2.1.0 / Timer 1.1.0 후보로 검증했습니다. 두 버전에서 Git 설치·sample 장면 검사·Play Mode·Windows Development Build(Mono)가 모두 통과했습니다. 실제 package version과 Git lock hash도 확인했습니다.
+
+| 시나리오 | Unity 2022.3.62f3 | Unity 6000.3.20f1 |
+| --- | --- | --- |
+| ui | 57/57, build 성공 | 57/57, build 성공 |
+| ui-input | 58/58, build 성공 | 58/58, build 성공 |
+| timer | 28/28, build 성공 | 28/28, build 성공 |
+| timer-lab | 36/36, build 성공 | 36/36, build 성공 |
+
+보고서·고정 후보·XML·로그·설치 lock·build는 아래에 보존했습니다. 두 보고서의 SourceCommit은 동일합니다. 후보 저장소는 실행별로 분리됩니다.
+
+- `C:/Users/search/AppData/Local/Temp/ut-release-6291e8af` — Unity 2022.3
+- `C:/Users/search/AppData/Local/Temp/ut-release-aaa64bc8` — Unity 6
+
+고정 소스 사본의 패키지 정적 검사 5개와 validator 회귀 테스트 19개도 통과했습니다. 증거는 `C:/Users/search/AppData/Local/Temp/ut-static-fac5ef78/report.json`과 같은 폴더의 소스 사본입니다. 다른 working tree 변경은 이 사본에 포함하지 않았습니다.
+
+UI Feature Demo는 두 버전에서 Play Mode 2/2·Windows build를 별도로 통과했습니다. 1280×720, 1920×1080, 720×1280, 2560×1080에서 버튼 중심 좌표가 화면 안에 있고 GraphicRaycaster가 해당 버튼을 선택하는지 검사한 뒤 EventSystem pointer down/up/click을 전달했습니다. CanvasScaler Expand를 장면과 생성기에 반영했으며 기존 GUID와 참조를 유지했습니다. Unity 6의 네 렌더 이미지도 확인했습니다. 세로 화면에서는 데모 전체가 축소되며 모바일 전용 배치는 아닙니다.
+
+샘플 README의 검증 프로젝트 경로에 `screen-results.xml`, `screen-tests.log`, `screen-build.log`가 있습니다. Unity 6 프로젝트에는 `screen-capture.xml`, `screen-capture.log`, `screen-{width}x{height}.png`도 보존했습니다. 캡처 코드는 임시 검증 프로젝트에서만 사용했고 배포 소스에 추가하지 않았습니다.
+
+VFX는 별도 패키지로 두 버전에서 Edit Mode 12/12·skip 0, 미리보기 픽셀 검사와 Windows build를 다시 통과했습니다. Player에 Editor assembly가 제외되는 것도 확인했습니다. 결과는 `C:/Users/search/AppData/Local/Temp/UnityTools-Vfx-2022.3.62f3-3216623f65764146a27f89b3e11b81f8`과 `C:/Users/search/AppData/Local/Temp/UnityTools-Vfx-6000.3.20f1-1af5996310404349ae0b4674b881d954`의 summary.json·XML·로그에 보존했습니다.
+
+OS 마우스·기기 터치·Safe Area·모바일·IL2CPP는 미검증입니다. CI workflow와 실행 스크립트는 develop에 푸시했지만 등록된 GitHub runner는 0개이며 실제 job·artifact 업로드를 실행하지 않았습니다. 기본 branch인 main 반영과 격리된 실행 PC·라이선스 준비가 필요합니다. 연결 상태는 [CI 안내](CI.md)를 확인하세요. 공개 tag와 실제 manifest version은 아직 발행하지 않았습니다.
+
+## 2026-10-06 이전 후보 검증 결과
 
 소스 `7d73c81`에서 만든 UI 2.1.0 / Timer 1.1.0 후보를 검증했습니다. 두 버전에서 모든 시나리오의 Git 설치·sample 장면 검사·Play Mode·Windows Development Build(Mono)가 통과했습니다.
 
@@ -46,7 +73,7 @@ Windows PowerShell의 JSON 배열을 중첩 배열로 집계하던 오류를 제
 - `C:/Users/search/AppData/Local/Temp/ut-release-afe4131e` — Unity 2022.3
 - `C:/Users/search/AppData/Local/Temp/ut-release-f385b030` — Unity 6
 
-원본 manifest의 버전과 공개 tag는 변경하지 않았습니다. 보상 연출 등 후속 커밋을 포함해 발행하려면 그 소스로 새 후보를 검증해야 합니다.
+이전 후보는 보상 연출과 정지·재개를 포함하지 않습니다. 최신 후보와 별도로 보존합니다. 원본 manifest의 버전과 공개 tag는 변경하지 않았습니다.
 
 ## 발행 전 순서
 
