@@ -11,6 +11,7 @@ PACKAGES = {
     "timer": "UnityTools.Timer",
     "benchmark": "UnityTools.Benchmark",
     "persistence": "UnityTools.Persistence",
+    "vfx": "UnityTools.Vfx.Editor",
 }
 FORBIDDEN = re.compile(r"DOTween|Com\.ForbiddenByte|(?:^|/)OSA(?:/|$)", re.I)
 
@@ -138,6 +139,10 @@ def validate(root):
                     constraints = []
                 references_to_check.append((path, references))
                 name = definition.get("name")
+                if suffix == "vfx" and definition.get("includePlatforms") != ["Editor"]:
+                    reject(path, "VFX package assemblies must be Editor-only")
+                if suffix == "vfx" and name == assembly and references:
+                    reject(path, "VFX editor assembly must have no external references")
                 if not isinstance(name, str) or not name:
                     reject(path, "Assembly requires a name")
                 elif name in assemblies:
@@ -151,11 +156,13 @@ def validate(root):
                         if "Unity.InputSystem" not in references or "UNITYTOOLS_INPUT_SYSTEM" not in constraints:
                             reject(path, "Input System must remain a constrained optional assembly")
             if path.suffix == ".cs":
+                if suffix == "vfx" and "Editor" not in path.relative_to(package).parts:
+                    reject(path, "VFX package code must stay in Editor folders")
                 content = read_text(path)
                 if content is not None and re.search(r"UnityTools\.Util|OSA\.Core|Com\.ForbiddenByte|DOTweenPro", content):
                     reject(path, "Legacy or vendor namespace in package code")
 
-        expected_assembly = package / "Runtime" / f"{assembly}.asmdef"
+        expected_assembly = package / ("Editor" if suffix == "vfx" else "Runtime") / f"{assembly}.asmdef"
         if read_json(expected_assembly).get("name") != assembly:
             reject(expected_assembly, "Core assembly name does not match contract")
 
@@ -193,7 +200,7 @@ def main():
     if errors:
         print(f"UPM static checks failed: {len(errors)} issue(s).")
         return 1
-    print("UPM static checks passed: 4 packages (Unity runtime not tested).")
+    print(f"UPM static checks passed: {len(PACKAGES)} packages (Unity runtime not tested).")
     return 0
 
 

@@ -1,0 +1,9 @@
+{
+  "name": "UnityTools.Vfx.Editor.Tests",
+  "rootNamespace": "UnityTools.Vfx.Editor.Tests",
+  "references": ["UnityTools.Vfx.Editor"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false,
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "optionalUnityReferences": ["TestAssemblies"]
+}

@@ -102,7 +102,7 @@ class DistributionTests(unittest.TestCase):
         report = json.loads(report_path.read_text(encoding="utf-8"))
         self.assertEqual(report["schema_version"], 1)
         self.assertEqual(report["status"], "passed")
-        self.assertEqual(len(report["packages"]), 4)
+        self.assertEqual(len(report["packages"]), len(VALIDATOR.PACKAGES))
         self.assertEqual(report["error_count"], 0)
         self.assertEqual(report["errors"], [])
         self.assertFalse(report["unity_runtime_tested"])
@@ -122,6 +122,18 @@ class DistributionTests(unittest.TestCase):
         result = subprocess.run([sys.executable, str(REPO / "tools/verify-upm.py"), "--root", str(self.root), "--report", str(self.root)], capture_output=True, text=True)
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
         self.assertIn("Cannot write static report", result.stdout)
+
+    def test_vfx_editor_assembly_cannot_become_player_assembly(self):
+        path = self.root / "UnityTools/Packages/com.aassder95.unitytools.vfx/Editor/UnityTools.Vfx.Editor.asmdef"
+        self.change_json(path, lambda data: data.update(includePlatforms=[]))
+        self.assert_rejected("VFX package assemblies must be Editor-only")
+
+    def test_vfx_code_cannot_escape_editor_folder(self):
+        package = self.root / "UnityTools/Packages/com.aassder95.unitytools.vfx"
+        source = package / "Editor/VfxPrefabInfo.cs"
+        source.rename(package / "VfxPrefabInfo.cs")
+        source.with_suffix(".cs.meta").rename(package / "VfxPrefabInfo.cs.meta")
+        self.assert_rejected("VFX package code must stay in Editor folders")
 
 
 if __name__ == "__main__":

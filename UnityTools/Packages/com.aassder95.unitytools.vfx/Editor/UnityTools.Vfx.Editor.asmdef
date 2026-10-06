@@ -1,0 +1,7 @@
+{
+  "name": "UnityTools.Vfx.Editor",
+  "rootNamespace": "UnityTools.Vfx.Editor",
+  "references": [],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": true
+}
