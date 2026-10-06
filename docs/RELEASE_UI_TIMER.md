@@ -1,6 +1,6 @@
-# UI 2.1.0 / Timer 1.1.0 릴리스 후보
+# UI 2.1.0 / Timer 1.1.0 릴리스
 
-현재 원본 manifest에 UI 2.1.0 / Timer 1.1.0 미게시 후보를 반영했습니다. 예정 tag는 `unitytools-ui/v2.1.0`, `unitytools-timer/v1.1.0`이며 이 주소를 현재 설치 가능한 공개 tag로 안내하지 않습니다. 기존 UI 2.0.0 / Timer 1.0.0 설치는 유지합니다.
+2026-10-06 공개 tag `unitytools-ui/v2.1.0`과 `unitytools-timer/v1.1.0`을 발행했습니다. 두 tag의 peeled commit은 `2904a970e2e19960db3807a58b5e1e58ec6f9da1`입니다. 아래 후보·미게시 상태 설명은 발행 이전의 검증 기록이며, 최신 발행 결과는 문서 끝에 기록합니다. 기존 UI 2.0.0 / Timer 1.0.0 tag도 유지합니다.
 
 ## 포함 범위
 
@@ -139,3 +139,30 @@ TaskTimerService와 PeriodTimerService에 등록 개수·데이터 사본 조회
 ### 공통 검증 범위
 
 Unity 2022.3.62f3과 6000.3.20f1, Windows Mono Development Build를 대상으로 합니다. OS 마우스·기기 터치·Safe Area·모바일·IL2CPP와 실제 self-hosted Unity CI job은 별도 검증이 필요합니다. 고정 Git commit 설치와 공개 tag 설치 증거는 구분해서 기록합니다.
+
+## 공개 tag 발행 및 설치 검증 완료
+
+2026-10-06 발행 commit `2904a970e2e19960db3807a58b5e1e58ec6f9da1`에 두 annotated tag를 발행했습니다. 원격의 tag와 peeled commit을 확인했습니다. 발행 변경은 README 설치 안내와 changelog 날짜이며 runtime·Editor·샘플·테스트·meta는 검증 후보 `2b30181`과 동일합니다. 추가 중인 버튼 입력 기능은 이번 발행에 포함하지 않았습니다. 기존 tag를 이동하지 않았습니다.
+
+```text
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#unitytools-ui/v2.1.0
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.1.0
+```
+
+두 공개 tag 주소를 각각 빈 프로젝트에 설치했습니다. 모든 시나리오에서 정확한 Git URL·source·hash, cache의 패키지 이름·버전, 실제 Editor 버전, 테스트 XML, Windows Player 결과를 확인했습니다. 모든 XML은 passed=total, skipped=0입니다.
+
+| 시나리오 | Unity 2022.3.62f3 | Unity 6000.3.20f1 |
+| --- | --- | --- |
+| ui | 57/57, build 성공 | 57/57, build 성공 |
+| ui-input | 58/58, build 성공 | 58/58, build 성공 |
+| timer | 28/28, build 성공 | 28/28, build 성공 |
+| timer-lab | 36/36, build 성공 | 36/36, build 성공 |
+
+Release 보안 검사, 정적 패키지 검사 6개와 샘플 사본 검사를 통과했습니다. [발행 commit의 GitHub 정적 CI](https://github.com/aassder95/UnityTools/actions/runs/37431898925)도 통과했습니다. 실제 self-hosted Unity CI, OS 입력·기기 터치·Safe Area·모바일·IL2CPP는 검증하지 않았습니다.
+
+집계 보고서는 `C:/Users/search/AppData/Local/Temp/ut-public-ui-timer-tags.json`입니다. 각 시나리오의 XML·로그·lock·package cache·Player는 다음 경로에 보존했습니다.
+
+- `C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-2022.3.62f3-8f11e6df1da941a595b508f30927ddcd`
+- `C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-6000.3.20f1-9649cd9840874e00a1c00f698f3a5b4e`
+
+발행 브랜치 `codex/release-ui-timer`의 설치 안내·발행 기록은 develop 반영용 PR로 제공합니다. 이후 추가하는 검증 문서 commit은 공개 tag를 이동하지 않습니다.
