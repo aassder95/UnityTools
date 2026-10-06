@@ -28,6 +28,14 @@ namespace UnityTools.Timer
         private event UnityAction<TaskTimerData> _onCompleted;
         private event UnityAction<TaskTimerData> _onClaimed;
 
+        private event Action _onTimersChanged;
+        public event Action OnTimersChanged { add => _onTimersChanged += value; remove => _onTimersChanged -= value; }
+
+        //============================================================
+        // Properties
+        //============================================================
+        public int TimerCnt => _handles.Count;
+
         //============================================================
         // Constructors
         //============================================================
@@ -71,11 +79,13 @@ namespace UnityTools.Timer
 
             _handles[normalizedId] = handle;
             BindEvents(normalizedId, handle);
+            _onTimersChanged?.Invoke();
             return true;
         }
 
         public void Release()
         {
+            bool hasTimers = _handles.Count > 0;
             string[] ids = new string[_eventBinders.Count];
             _eventBinders.Keys.CopyTo(ids, 0);
             for (int i = 0; i < ids.Length; i++)
@@ -90,6 +100,8 @@ namespace UnityTools.Timer
 
             _handles.Clear();
             _eventBinders.Clear();
+            if (hasTimers)
+                _onTimersChanged?.Invoke();
         }
 
         //============================================================
@@ -133,6 +145,18 @@ namespace UnityTools.Timer
             return TryNormalizeId(id, out string normalizedId) && _handles.TryGetValue(normalizedId, out handle);
         }
 
+        public TaskTimerData[] GetSnapshots()
+        {
+            TaskTimerData[] snapshots = new TaskTimerData[_handles.Count];
+            int idx = 0;
+            foreach (TaskTimerHandle handle in _handles.Values)
+            {
+                snapshots[idx++] = handle.ToData();
+            }
+
+            return snapshots;
+        }
+
         private void BindEvents(string id, TaskTimerHandle handle)
         {
             TaskTimerEventBinder eventBinder = new(handle, OnRemainSecUpdatedCallback, OnCompletedCallback, OnClaimedCallback, OnStateTransitionCallback);
@@ -162,6 +186,7 @@ namespace UnityTools.Timer
                 return;
 
             _onRemainSecUpdated?.Invoke(handle.ToData());
+            _onTimersChanged?.Invoke();
         }
 
         private void OnCompletedCallback(TaskTimerHandle handle)
@@ -172,14 +197,18 @@ namespace UnityTools.Timer
         private void OnClaimedCallback(TaskTimerHandle handle)
         {
             _onClaimed?.Invoke(handle.ToData());
+            _onTimersChanged?.Invoke();
         }
 
         private void OnStateTransitionCallback(TaskTimerHandle handle, ETaskTimerType prevType, ETaskTimerType nextType)
         {
-            if (prevType == nextType || nextType != ETaskTimerType.Processing)
+            if (prevType == nextType)
                 return;
 
-            _onRemainSecUpdated?.Invoke(handle.ToData());
+            if (nextType == ETaskTimerType.Processing)
+                _onRemainSecUpdated?.Invoke(handle.ToData());
+
+            _onTimersChanged?.Invoke();
         }
 
         //============================================================

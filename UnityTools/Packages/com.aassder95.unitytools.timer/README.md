@@ -1,5 +1,18 @@
 # UnityTools Timer
 
+## 등록 목록 조회와 변경 알림
+
+현재 개발 소스의 `TaskTimerService`와 `PeriodTimerService`는 `TimerCnt`, `GetSnapshots()`, `OnTimersChanged`를 제공합니다. 기존 `unitytools-timer/v1.0.0` tag에는 포함되지 않습니다.
+
+- `TimerCnt`는 초기화에 성공해 서비스에 등록된 타이머 수입니다. 생성만 한 handle과 저장소에만 남은 타이머는 포함하지 않습니다.
+- `GetSnapshots()`는 등록 목록을 데이터 사본 배열로 반환합니다. 배열과 각 데이터는 호출자가 보관할 수 있으며 이후 시간·목록 변경이 기존 사본을 바꾸지 않습니다. 순서는 보장하지 않으며 `Id`로 항목을 연결합니다.
+- 작업 타이머 사본에는 상태·남은 초·전체 초·진행률, 주기 타이머 사본에는 기존 `PeriodTimerData`의 ID와 상태가 포함됩니다. 주기 타이머 남은 시간은 해당 handle에서 조회합니다.
+- `OnTimersChanged`는 등록·동일 ID 교체·등록된 주기 타이머 삭제·비어 있지 않은 서비스 해제와 기존 handle의 남은 시간·상태 알림 및 작업 타이머 수령을 전달합니다. 생성만 하거나 저장 실패로 동작이 거절되면 목록 변경 알림을 추가하지 않습니다.
+- 하나의 동작이 남은 시간과 상태 알림을 모두 발생시키면 여러 번 호출될 수 있습니다. 알림은 즉시 발생하므로 화면에서는 dirty flag를 설정하고 필요한 시점에 한 번 조회합니다. 이벤트 안에서 서비스나 handle을 변경하지 않습니다.
+- 배열과 DTO를 생성하는 조회는 매 프레임 호출에 적합하지 않습니다. 저장소 전체 검색, 일괄 실행·수령·저장 transaction은 제공하지 않습니다. 구독자는 자신의 Release/OnDisable에서 구독을 해제합니다.
+
+목록 화면은 처음 열 때 `GetSnapshots()`로 구성하고, 이후 `OnTimersChanged`에 등록한 명명된 callback에서 갱신을 예약합니다. 기존 개별 타이머 이벤트와 API도 유지됩니다.
+
 Unity 2022.3 이상에서 사용하는 UTC 기반 Task / Period Timer package입니다.
 
 ## 설치

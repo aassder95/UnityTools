@@ -31,6 +31,14 @@ namespace UnityTools.Timer
         public event UnityAction<PeriodTimerData> OnRemainMinUpdated { add => _onRemainMinUpdated += value; remove => _onRemainMinUpdated -= value; }
         private event UnityAction<PeriodTimerData> _onRemainMinUpdated;
 
+        private event Action _onTimersChanged;
+        public event Action OnTimersChanged { add => _onTimersChanged += value; remove => _onTimersChanged -= value; }
+
+        //============================================================
+        // Properties
+        //============================================================
+        public int TimerCnt => _handles.Count;
+
         //============================================================
         // Constructors
         //============================================================
@@ -74,11 +82,13 @@ namespace UnityTools.Timer
 
             _handles[normalizedId] = handle;
             BindEvents(normalizedId, handle);
+            _onTimersChanged?.Invoke();
             return true;
         }
 
         public void Release()
         {
+            bool hasTimers = _handles.Count > 0;
             string[] ids = new string[_eventBinders.Count];
             _eventBinders.Keys.CopyTo(ids, 0);
             for (int i = 0; i < ids.Length; i++)
@@ -93,6 +103,8 @@ namespace UnityTools.Timer
 
             _handles.Clear();
             _eventBinders.Clear();
+            if (hasTimers)
+                _onTimersChanged?.Invoke();
         }
 
         //============================================================
@@ -110,6 +122,7 @@ namespace UnityTools.Timer
             {
                 UnbindEvents(normalizedId, handle);
                 handle.Release();
+                _onTimersChanged?.Invoke();
             }
 
             return true;
@@ -121,17 +134,31 @@ namespace UnityTools.Timer
             return TryNormalizeId(id, out string normalizedId) && _handles.TryGetValue(normalizedId, out handle);
         }
 
+        public PeriodTimerData[] GetSnapshots()
+        {
+            PeriodTimerData[] snapshots = new PeriodTimerData[_handles.Count];
+            int idx = 0;
+            foreach (PeriodTimerHandle handle in _handles.Values)
+            {
+                snapshots[idx++] = handle.ToData();
+            }
+
+            return snapshots;
+        }
+
         private void BindEvents(string id, PeriodTimerHandle handle)
         {
-            PeriodTimerEventBinder eventBinder = new(handle, OnRemainMinUpdatedCallback);
+            PeriodTimerEventBinder eventBinder = new(handle, OnRemainMinUpdatedCallback, OnPeriodStateTransitionCallback);
             _eventBinders[id] = eventBinder;
             handle.OnRemainMinUpdated += eventBinder.OnRemainMinUpdatedCallback;
+            handle.OnPeriodStateTransition += eventBinder.OnPeriodStateTransitionCallback;
         }
 
         private void UnbindEvents(string id, PeriodTimerHandle handle)
         {
             PeriodTimerEventBinder eventBinder = _eventBinders[id];
             handle.OnRemainMinUpdated -= eventBinder.OnRemainMinUpdatedCallback;
+            handle.OnPeriodStateTransition -= eventBinder.OnPeriodStateTransitionCallback;
             _eventBinders.Remove(id);
         }
 
@@ -144,6 +171,15 @@ namespace UnityTools.Timer
                 return;
 
             _onRemainMinUpdated?.Invoke(handle.ToData());
+            _onTimersChanged?.Invoke();
+        }
+
+        private void OnPeriodStateTransitionCallback(PeriodTimerHandle handle, EPeriodTimerType prevType, EPeriodTimerType nextType)
+        {
+            if (prevType == nextType)
+                return;
+
+            _onTimersChanged?.Invoke();
         }
 
         //============================================================
@@ -170,19 +206,26 @@ namespace UnityTools.Timer
             //============================================================
             private readonly PeriodTimerHandle _handle;
             private readonly Action<PeriodTimerHandle, int> _onRemainMinUpdated;
+            private readonly Action<PeriodTimerHandle, EPeriodTimerType, EPeriodTimerType> _onPeriodStateTransition;
 
             //============================================================
             // Constructors
             //============================================================
-            public PeriodTimerEventBinder(PeriodTimerHandle handle, Action<PeriodTimerHandle, int> onRemainMinUpdated)
+            public PeriodTimerEventBinder(PeriodTimerHandle handle, Action<PeriodTimerHandle, int> onRemainMinUpdated, Action<PeriodTimerHandle, EPeriodTimerType, EPeriodTimerType> onPeriodStateTransition)
             {
                 _handle = handle;
                 _onRemainMinUpdated = onRemainMinUpdated;
+                _onPeriodStateTransition = onPeriodStateTransition;
             }
 
             //============================================================
             // Callbacks
             //============================================================
+            public void OnPeriodStateTransitionCallback(EPeriodTimerType prevType, EPeriodTimerType nextType)
+            {
+                _onPeriodStateTransition.Invoke(_handle, prevType, nextType);
+            }
+
             public void OnRemainMinUpdatedCallback(int remainMin)
             {
                 _onRemainMinUpdated.Invoke(_handle, remainMin);

@@ -17,6 +17,7 @@ namespace UnityTools.Timer.Tests.Timer
         private GameObject _goRunner;
         private TestRunner _runner;
         private DateTime _utcNow;
+        private int _changedCnt;
 
         //============================================================
         // Init/Register
@@ -27,6 +28,7 @@ namespace UnityTools.Timer.Tests.Timer
             _goRunner = new GameObject("TimerTestRunner");
             _runner = _goRunner.AddComponent<TestRunner>();
             _utcNow = new DateTime(2026, 7, 24, 0, 0, 0, DateTimeKind.Utc);
+            _changedCnt = 0;
         }
 
         [TearDown]
@@ -333,6 +335,102 @@ namespace UnityTools.Timer.Tests.Timer
 
             Assert.That(host.TaskTimers, Is.Null);
             Assert.That(host.PeriodTimers, Is.Null);
+        }
+
+        [Test]
+        public void TaskSnapshotsOwnTheirDataAndReflectRegisteredTimers()
+        {
+            TaskTimerService service = new(_runner, new MemoryStorage(), GetUtcNow);
+            Assert.That(service.TryCreate("A", out TaskTimerHandle first), Is.True);
+            Assert.That(service.TimerCnt, Is.Zero);
+            Assert.That(service.TryInit(first), Is.True);
+            Assert.That(service.TryCreate("B", out TaskTimerHandle second), Is.True);
+            Assert.That(service.TryInit(second), Is.True);
+            Assert.That(service.TryStart("A", 120.0d), Is.True);
+            TaskTimerData[] snapshots = service.GetSnapshots();
+            Assert.That(snapshots.Length, Is.EqualTo(2));
+            TaskTimerData initial = Array.Find(snapshots, data => data.Id == "A");
+            Assert.That(initial.RemainingSec, Is.EqualTo(120));
+            _utcNow = _utcNow.AddSeconds(30.0d);
+            Assert.That(Array.Find(service.GetSnapshots(), data => data.Id == "A").RemainingSec, Is.EqualTo(90));
+            Assert.That(initial.RemainingSec, Is.EqualTo(120));
+            snapshots[0] = null;
+            Assert.That(service.GetSnapshots(), Has.None.Null);
+            service.Release();
+            Assert.That(service.TimerCnt, Is.Zero);
+            Assert.That(service.GetSnapshots(), Is.Empty);
+        }
+
+        [Test]
+        public void TaskListNotificationsReflectCommittedChangesAndUnsubscribeOnRelease()
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            service.OnTimersChanged += OnTimersChanged;
+            Assert.That(service.TryCreate("A", out TaskTimerHandle handle), Is.True);
+            Assert.That(_changedCnt, Is.Zero);
+            Assert.That(service.TryInit(handle), Is.True);
+            Assert.That(_changedCnt, Is.EqualTo(1));
+            storage.DisableSave();
+            Assert.That(service.TryStart("A", 60.0d), Is.False);
+            Assert.That(_changedCnt, Is.EqualTo(1));
+            storage.EnableSave();
+            Assert.That(handle.TryStart(60.0d), Is.True);
+            Assert.That(_changedCnt, Is.GreaterThan(1));
+            int prevCnt = _changedCnt;
+            Assert.That(handle.TryComplete(), Is.True);
+            Assert.That(_changedCnt, Is.GreaterThan(prevCnt));
+            prevCnt = _changedCnt;
+            Assert.That(handle.TryClaim(), Is.True);
+            Assert.That(_changedCnt, Is.GreaterThan(prevCnt));
+            service.Release();
+            prevCnt = _changedCnt;
+            handle.NotifyCurType();
+            service.Release();
+            Assert.That(_changedCnt, Is.EqualTo(prevCnt));
+            service.OnTimersChanged -= OnTimersChanged;
+        }
+
+        [Test]
+        public void PeriodSnapshotsAndNotificationsFollowDeletionAndReplacement()
+        {
+            MemoryStorage storage = new();
+            PeriodTimerService service = new(_runner, storage, GetUtcNow);
+            service.OnTimersChanged += OnTimersChanged;
+            Assert.That(service.TryCreate("A", out PeriodTimerHandle first), Is.True);
+            Assert.That(service.TryInit(first, 1.0d, 2.0d), Is.True);
+            Assert.That(service.TimerCnt, Is.EqualTo(1));
+            Assert.That(service.TryCreate("A", out PeriodTimerHandle second), Is.True);
+            Assert.That(service.TryInit(second, 1.0d, 2.0d), Is.True);
+            Assert.That(service.TimerCnt, Is.EqualTo(1));
+            Assert.That(service.GetSnapshots().Length, Is.EqualTo(1));
+            int prevCnt = _changedCnt;
+            Assert.That(second.TryForceClosed(), Is.True);
+            Assert.That(_changedCnt, Is.GreaterThan(prevCnt));
+            Assert.That(service.GetSnapshots()[0].CurType, Is.EqualTo(second.CurType));
+            prevCnt = _changedCnt;
+            storage.DisableSave();
+            Assert.That(service.TryDelete("A"), Is.False);
+            Assert.That(_changedCnt, Is.EqualTo(prevCnt));
+            Assert.That(service.TimerCnt, Is.EqualTo(1));
+            storage.EnableSave();
+            Assert.That(service.TryDelete("A"), Is.True);
+            Assert.That(_changedCnt, Is.EqualTo(prevCnt + 1));
+            Assert.That(service.GetSnapshots(), Is.Empty);
+            prevCnt = _changedCnt;
+            Assert.That(first.TryForceOpen(), Is.False);
+            Assert.That(second.TryForceOpen(), Is.False);
+            service.Release();
+            Assert.That(_changedCnt, Is.EqualTo(prevCnt));
+            service.OnTimersChanged -= OnTimersChanged;
+        }
+
+        //============================================================
+        // Callbacks
+        //============================================================
+        private void OnTimersChanged()
+        {
+            _changedCnt++;
         }
 
         //============================================================
