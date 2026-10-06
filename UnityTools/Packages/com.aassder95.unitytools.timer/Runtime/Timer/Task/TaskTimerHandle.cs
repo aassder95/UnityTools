@@ -102,6 +102,9 @@ namespace UnityTools.Timer.Task
             return _timer.TryReduce(reduceSec);
         }
 
+        public bool TryPause() => _timer is IPausableTaskTimer timer && timer.TryPause();
+        public bool TryResume() => _timer is IPausableTaskTimer timer && timer.TryResume();
+
         public bool TryComplete()
         {
             return _timer.TryComplete();

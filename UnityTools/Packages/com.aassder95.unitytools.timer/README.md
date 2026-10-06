@@ -52,6 +52,16 @@ timerHost.Release();
 
 `TimerHost`는 static `Instance`를 제공하지 않습니다.
 
+## 작업 타이머 일시정지·재개
+
+개발 소스의 `TaskTimerService.TryPause(id)` / `TryResume(id)` 및 `TaskTimerHandle`의 같은 method로 처리 중인 작업을 정지·재개합니다. `Paused=3`을 추가했고 기존 None/Processing/Completed 숫자는 유지합니다. 정지 중에는 남은 시간·진행률이 고정되고 coroutine이 종료됩니다. 오프라인 시간과 정지 중 시계 역행은 남은 시간을 소비하지 않습니다. 재개 시 현재 UTC를 기준으로 종료 시각을 다시 구성합니다. EndTime은 정지 상태의 실시간 종료 예정 시각으로 사용하지 않습니다.
+
+정지·재개는 저장 성공 후에만 상태와 알림을 변경합니다. 중복 요청·다른 상태·미등록 ID·저장 실패는 false이며 기존 상태를 유지합니다. 정지 상태에서 시작·감소·강제 완료·수령은 거절합니다. 상태 변화는 기존 OnStateTransition과 서비스 OnTimersChanged로 전달합니다.
+
+기존 `ITaskTimer` 구현 계약은 유지합니다. 선택적 `IPausableTaskTimer` 역할을 구현한 타이머만 handle에서 정지·재개할 수 있습니다. UTC 주기 경계에 따른 Period Timer에는 일시정지를 추가하지 않습니다.
+
+정지 snapshot은 `2|startTicks|durationSec|3|updatedTicks|0|remainingSec`입니다. 기존 v1·4키 저장 데이터를 읽으며, 정지하지 않은 상태와 재개 후에는 기존 v1 형식을 씁니다. 정지 snapshot은 구버전 패키지에서 읽을 수 없으므로 저장 상태가 정지인 채로 downgrade하지 않습니다. 읽을 수 없는 snapshot을 덮어쓰지 않습니다. 기존 데이터의 일괄 변환은 필요하지 않습니다.
+
 ## Persistence
 
 - 외부 저장소는 `IStorage`로 주입합니다.
@@ -69,3 +79,5 @@ timerHost.Release();
 Package Manager에서 `Timer Sample Scene`을 Import하면 UI package 없이 `TaskTimerService`의 시작·완료·수령과 persistence를 확인할 수 있습니다.
 
 이 package의 자체 코드는 [MIT License](https://github.com/aassder95/UnityTools/blob/unitytools-timer/v1.0.0/LICENSE)로 배포됩니다.
+
+2026-10-06: Unity 2022.3.62f3 / 6000.3.20f1에서 Timer Play Mode 28/28과 Windows Mono Development Build를 통과했습니다. 정지 후 오프라인 복원·재개, 시계 역행, 저장 실패 시 상태 보존, 잘못된 정지 snapshot 거절을 검사했습니다.

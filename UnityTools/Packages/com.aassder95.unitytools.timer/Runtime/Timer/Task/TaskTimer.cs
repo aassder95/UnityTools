@@ -7,7 +7,7 @@ using UnityTools.Timer.Persistence;
 
 namespace UnityTools.Timer.Task
 {
-    public class TaskTimer : ITaskTimer
+    public class TaskTimer : IPausableTaskTimer
     {
         //============================================================
         // Constants
@@ -32,6 +32,7 @@ namespace UnityTools.Timer.Task
         //============================================================
         private bool _isInit;
         private double _durationSec;
+        private double _pausedRemainSec;
         private DateTime _startTime;
         private DateTime _updatedTime;
         private int _savedStateType;
@@ -58,7 +59,7 @@ namespace UnityTools.Timer.Task
         //============================================================
         public string Id => _id;
         public ETaskTimerType CurType => _curType;
-        public int RemainingSec => GetRemainingSec(EndTime, GetUtcNow());
+        public int RemainingSec => _curType == ETaskTimerType.Paused ? Mathf.CeilToInt((float)_pausedRemainSec) : GetRemainingSec(EndTime, GetUtcNow());
         public int DurationSec => (int)_durationSec;
         public float Progress => CalculateProgress();
         public DateTime EndTime => _startTime.AddSeconds(_durationSec);
@@ -125,11 +126,12 @@ namespace UnityTools.Timer.Task
                 if (!_storage.TryLoad(GetSnapshotKey(_id), out string snapshot))
                     return false;
 
-                if (!TryParseSnapshot(snapshot, out DateTime startTime, out double durationSec, out int stateType, out DateTime updatedTime, out _))
+                if (!TryParseSnapshot(snapshot, out DateTime startTime, out double durationSec, out int stateType, out DateTime updatedTime, out _, out double pausedRemainSec))
                     return false;
 
                 _startTime = startTime;
                 _durationSec = durationSec;
+                _pausedRemainSec = pausedRemainSec;
                 _savedStateType = stateType;
                 _updatedTime = updatedTime;
                 return true;
@@ -139,12 +141,15 @@ namespace UnityTools.Timer.Task
             bool isDurationLoaded = TryLoadDouble(GetDurationKey(_id), out _durationSec);
             bool isUpdatedLoaded = TryLoadDate(GetUpdatedKey(_id), out _updatedTime);
             bool isStateLoaded = TryLoadInt(GetStateKey(_id), out _savedStateType);
-            return isStartLoaded && isDurationLoaded && isUpdatedLoaded && isStateLoaded;
+            return isStartLoaded && isDurationLoaded && isUpdatedLoaded && isStateLoaded && _savedStateType != (int)ETaskTimerType.Paused;
         }
 
-        private bool TrySaveSnapshot(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime)
+        private bool TrySaveSnapshot(DateTime startTime, double durationSec, ETaskTimerType stateType, DateTime updatedTime, double pausedRemainSec = 0.0d)
         {
             string snapshot = $"1|{startTime.Ticks.ToString(CultureInfo.InvariantCulture)}|{durationSec.ToString(CultureInfo.InvariantCulture)}|{((int)stateType).ToString(CultureInfo.InvariantCulture)}|{updatedTime.Ticks.ToString(CultureInfo.InvariantCulture)}|0";
+            if (stateType == ETaskTimerType.Paused)
+                snapshot = "2" + snapshot.Substring(1) + "|" + pausedRemainSec.ToString(CultureInfo.InvariantCulture);
+
             return _storage.TrySave(GetSnapshotKey(_id), snapshot);
         }
 
@@ -152,6 +157,7 @@ namespace UnityTools.Timer.Task
         {
             _startTime = DateTime.MinValue;
             _durationSec = 0.0d;
+            _pausedRemainSec = 0.0d;
             _savedStateType = 0;
         }
 
@@ -196,15 +202,15 @@ namespace UnityTools.Timer.Task
             }
 
             StopUpdate();
-            if (!_hasCurState || _curType != ETaskTimerType.Completed)
-                ChangeState(ETaskTimerType.Completed);
+            if (!_hasCurState || _curType != type)
+                ChangeState(type);
 
             return true;
         }
 
         public bool TryStart(double durationSec)
         {
-            if (!_isInit || _curType == ETaskTimerType.Processing || !IsPositiveFinite(durationSec))
+            if (!_isInit || _curType == ETaskTimerType.Processing || _curType == ETaskTimerType.Paused || !IsPositiveFinite(durationSec))
                 return false;
 
             DateTime now = GetUtcNow();
@@ -245,6 +251,48 @@ namespace UnityTools.Timer.Task
             if (IsPeriodExpired)
                 return TryUpdateCompletionTime();
 
+            return true;
+        }
+
+        public bool TryPause()
+        {
+            if (!_isInit || _curType != ETaskTimerType.Processing)
+                return false;
+
+            DateTime now = GetUtcNow();
+            double remainingSec = Math.Min(_durationSec, (EndTime - now).TotalSeconds);
+            if (remainingSec <= 0.0d || !TrySaveSnapshot(_startTime, _durationSec, ETaskTimerType.Paused, now, remainingSec))
+                return false;
+
+            _pausedRemainSec = remainingSec;
+            _updatedTime = now;
+            _savedStateType = (int)ETaskTimerType.Paused;
+            StopUpdate();
+            ChangeState(ETaskTimerType.Paused);
+            _onRemainSecUpdated?.Invoke(RemainingSec);
+            return true;
+        }
+
+        public bool TryResume()
+        {
+            if (!_isInit || _curType != ETaskTimerType.Paused)
+                return false;
+
+            DateTime now = GetUtcNow();
+            double elapsedSec = _durationSec - _pausedRemainSec;
+            if (elapsedSec > (now - DateTime.MinValue).TotalSeconds || _pausedRemainSec > (DateTime.MaxValue - now).TotalSeconds)
+                return false;
+
+            DateTime startTime = now.AddSeconds(-elapsedSec);
+            if (!TrySaveSnapshot(startTime, _durationSec, ETaskTimerType.Processing, now))
+                return false;
+
+            _startTime = startTime;
+            _updatedTime = now;
+            _savedStateType = (int)ETaskTimerType.Processing;
+            _pausedRemainSec = 0.0d;
+            ChangeState(ETaskTimerType.Processing);
+            StartUpdate();
             return true;
         }
 
@@ -360,6 +408,9 @@ namespace UnityTools.Timer.Task
         {
             if (_startTime == DateTime.MinValue)
                 return 0.0f;
+
+            if (_curType == ETaskTimerType.Paused)
+                return _durationSec <= 0.0d ? 0.0f : Mathf.Clamp01((float)((_durationSec - _pausedRemainSec) / _durationSec));
 
             if (_curType == ETaskTimerType.Completed || IsPeriodExpired)
                 return 1.0f;
@@ -496,7 +547,7 @@ namespace UnityTools.Timer.Task
                 if (!storage.TryLoad(GetSnapshotKey(id), out string snapshot))
                     return false;
 
-                if (!TryParseSnapshot(snapshot, out _, out _, out _, out _, out isClaimed))
+                if (!TryParseSnapshot(snapshot, out _, out _, out _, out _, out isClaimed, out _))
                     return false;
 
                 return true;
@@ -513,19 +564,30 @@ namespace UnityTools.Timer.Task
             return true;
         }
 
-        private static bool TryParseSnapshot(string snapshot, out DateTime startTime, out double durationSec, out int stateType, out DateTime updatedTime, out bool isClaimed)
+        private static bool TryParseSnapshot(string snapshot, out DateTime startTime, out double durationSec, out int stateType, out DateTime updatedTime, out bool isClaimed, out double pausedRemainSec)
         {
             startTime = DateTime.MinValue;
             durationSec = 0.0d;
             stateType = 0;
             updatedTime = DateTime.MinValue;
             isClaimed = false;
+            pausedRemainSec = 0.0d;
             string[] parts = snapshot?.Split('|');
-            if (parts == null || parts.Length != 6 || parts[0] != "1" || (parts[5] != "0" && parts[5] != "1"))
+            if (parts == null || (parts.Length != 6 || parts[0] != "1") && (parts.Length != 7 || parts[0] != "2") || (parts[5] != "0" && parts[5] != "1"))
                 return false;
 
             if (!long.TryParse(parts[1], NumberStyles.Integer, CultureInfo.InvariantCulture, out long startTicks) || !double.TryParse(parts[2], NumberStyles.Float, CultureInfo.InvariantCulture, out durationSec) || !int.TryParse(parts[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out stateType) || !long.TryParse(parts[4], NumberStyles.Integer, CultureInfo.InvariantCulture, out long updatedTicks))
                 return false;
+
+            if (stateType == (int)ETaskTimerType.Paused)
+            {
+                if (parts[0] != "2" || parts[5] != "0" || !double.TryParse(parts[6], NumberStyles.Float, CultureInfo.InvariantCulture, out pausedRemainSec) || !IsPositiveFinite(pausedRemainSec) || pausedRemainSec > durationSec || startTicks == DateTime.MinValue.Ticks)
+                    return false;
+            }
+            else if (parts[0] != "1")
+            {
+                return false;
+            }
 
             if (startTicks < DateTime.MinValue.Ticks || startTicks > DateTime.MaxValue.Ticks || updatedTicks < DateTime.MinValue.Ticks || updatedTicks > DateTime.MaxValue.Ticks || durationSec < 0.0d || double.IsNaN(durationSec) || double.IsInfinity(durationSec) || !IsKnownState((ETaskTimerType)stateType))
                 return false;
@@ -542,7 +604,7 @@ namespace UnityTools.Timer.Task
 
         private static bool IsKnownState(ETaskTimerType type)
         {
-            return type == ETaskTimerType.None || type == ETaskTimerType.Processing || type == ETaskTimerType.Completed;
+            return type == ETaskTimerType.None || type == ETaskTimerType.Processing || type == ETaskTimerType.Completed || type == ETaskTimerType.Paused;
         }
 
         private static DateTime RemoveMs(DateTime time)

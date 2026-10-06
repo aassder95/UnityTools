@@ -425,6 +425,101 @@ namespace UnityTools.Timer.Tests.Timer
             service.OnTimersChanged -= OnTimersChanged;
         }
 
+        [Test]
+        public void PausedTimerSurvivesOfflineAndResumesWithSameProgress()
+        {
+            MemoryStorage storage = new();
+            Assert.That(TaskTimer.TryCreate("Pause", _runner, out TaskTimer timer, storage, () => _utcNow), Is.True);
+            Assert.That(timer.TryInit(), Is.True);
+            Assert.That(timer.TryStart(60.5d), Is.True);
+            _utcNow = _utcNow.AddSeconds(20.0d);
+            Assert.That(timer.TryPause(), Is.True);
+            Assert.That(timer.CurType, Is.EqualTo(ETaskTimerType.Paused));
+            Assert.That(timer.RemainingSec, Is.EqualTo(41));
+            float progress = timer.Progress;
+            timer.Release();
+            _utcNow = _utcNow.AddDays(2.0d);
+            Assert.That(TaskTimer.TryCreate("Pause", _runner, out TaskTimer restored, storage, () => _utcNow), Is.True);
+            Assert.That(restored.TryInit(), Is.True);
+            Assert.That(restored.CurType, Is.EqualTo(ETaskTimerType.Paused));
+            Assert.That(restored.RemainingSec, Is.EqualTo(41));
+            Assert.That(restored.Progress, Is.EqualTo(progress));
+            Assert.That(restored.TryStart(10.0d), Is.False);
+            Assert.That(restored.TryReduce(10.0d), Is.False);
+            Assert.That(restored.TryComplete(), Is.False);
+            Assert.That(restored.TryClaim(), Is.False);
+            Assert.That(restored.TryResume(), Is.True);
+            Assert.That(restored.Progress, Is.EqualTo(progress).Within(0.02f));
+            Assert.That(restored.RemainingSec, Is.EqualTo(41));
+            _utcNow = _utcNow.AddSeconds(41.0d);
+            Assert.That(restored.RemainingSec, Is.Zero);
+            Assert.That(restored.TryComplete(), Is.True);
+            Assert.That(restored.TryClaim(), Is.True);
+            restored.Release();
+        }
+
+        [Test]
+        public void PauseResumeSaveFailurePreservesStateAndSnapshot()
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, () => _utcNow);
+            Assert.That(service.TryCreate("Pause", out TaskTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle), Is.True);
+            Assert.That(service.TryStart("Pause", 60.0d), Is.True);
+            service.OnTimersChanged += OnTimersChanged;
+            try
+            {
+                Assert.That(storage.TryLoad("TaskTimer_Pause_SNAPSHOT", out string processing), Is.True);
+                storage.DisableSave();
+                Assert.That(service.TryPause("Pause"), Is.False);
+                Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.Processing));
+                Assert.That(_changedCnt, Is.Zero);
+                Assert.That(storage.TryLoad("TaskTimer_Pause_SNAPSHOT", out string unchanged), Is.True);
+                Assert.That(unchanged, Is.EqualTo(processing));
+                storage.EnableSave();
+                Assert.That(service.TryPause("Pause"), Is.True);
+                Assert.That(service.TryPause("Pause"), Is.False);
+                Assert.That(storage.TryLoad("TaskTimer_Pause_SNAPSHOT", out string paused), Is.True);
+                _changedCnt = 0;
+                _utcNow = _utcNow.AddHours(-1.0d);
+                storage.DisableSave();
+                Assert.That(service.TryResume("Pause"), Is.False);
+                Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.Paused));
+                Assert.That(handle.RemainingSec, Is.EqualTo(60));
+                Assert.That(_changedCnt, Is.Zero);
+                Assert.That(storage.TryLoad("TaskTimer_Pause_SNAPSHOT", out unchanged), Is.True);
+                Assert.That(unchanged, Is.EqualTo(paused));
+                storage.EnableSave();
+                Assert.That(service.TryResume("Pause"), Is.True);
+                Assert.That(handle.RemainingSec, Is.EqualTo(60));
+                Assert.That(_changedCnt, Is.GreaterThan(0));
+                Assert.That(service.TryResume("Pause"), Is.False);
+                Assert.That(service.TryPause("missing"), Is.False);
+            }
+            finally
+            {
+                service.OnTimersChanged -= OnTimersChanged;
+                service.Release();
+            }
+        }
+
+        [TestCase("1", "30")]
+        [TestCase("2", "-1")]
+        [TestCase("2", "NaN")]
+        [TestCase("2", "Infinity")]
+        [TestCase("2", "61")]
+        [TestCase("2", "0")]
+        public void InvalidPauseSnapshotIsRejectedWithoutOverwrite(string version, string remaining)
+        {
+            MemoryStorage storage = new();
+            string snapshot = $"{version}|{_utcNow.Ticks}|60|3|{_utcNow.Ticks}|0|{remaining}";
+            storage.Seed("TaskTimer_Pause_SNAPSHOT", snapshot);
+            Assert.That(TaskTimer.TryCreate("Pause", _runner, out TaskTimer timer, storage, () => _utcNow), Is.True);
+            Assert.That(timer.TryInit(), Is.False);
+            Assert.That(storage.SaveCnt, Is.Zero);
+            timer.Release();
+        }
+
         //============================================================
         // Callbacks
         //============================================================
