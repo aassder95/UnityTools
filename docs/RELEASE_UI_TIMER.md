@@ -95,3 +95,47 @@ python -m unittest discover -s tools/tests -p test_verify_release.py
 3. 원본 repo의 staged 범위·diff check·커밋 메시지와 배포 보안 검사를 확인합니다. 후보는 위의 Candidate mode를 사용합니다. 공개 설치 안내 갱신 후에는 `verify-release.ps1 -Release -UiVersion 2.1.0 -TimerVersion 1.1.0`으로 검사합니다.
 4. 릴리스 commit을 푸시한 후 새 tag를 발행합니다. 이 준비 작업에서는 tag를 만들지 않습니다.
 5. 공개 Git URL을 대상으로 빈 프로젝트 설치·테스트·build를 재실행한 뒤 설치 안내를 새 tag로 바꿉니다.
+
+## 공개 Git commit 설치 검증
+
+2026-10-06, 공개 HTTPS Git URL에서 `2b301812d0bb64c2f482c5c88dadf5eb8afd6bec`를 새 프로젝트에 설치했습니다. 임시 FILE URL 후보 설치와는 별도의 검증입니다. 각 패키지의 lock source=git, 정확한 URL·hash, cache의 이름·version, 실제 Editor version, 성공한 테스트 XML과 Windows Player 결과를 교차 확인했습니다.
+
+| 시나리오 | Unity 2022.3.62f3 | Unity 6000.3.20f1 |
+| --- | --- | --- |
+| ui 2.1.0 | 57/57, build 성공 | 57/57, build 성공 |
+| ui-input 2.1.0 | 58/58, build 성공 | 58/58, build 성공 |
+| timer 1.1.0 | 28/28, build 성공 | 28/28, build 성공 |
+| timer-lab 1.1.0 | 36/36, build 성공 | 36/36, build 성공 |
+
+모든 XML의 skipped=0을 확인했습니다. Windows Mono Development Build 검증이며 실제 기기·IL2CPP·공개 tag 설치를 검증한 것은 아닙니다. 공개 tag 조회 결과 `unitytools-ui/v2.1.0`과 `unitytools-timer/v1.1.0`은 아직 없습니다. 원본 runtime·샘플·meta·Git 상태를 변경하지 않고 이 문서에 결과와 발행 설명 초안만 추가했습니다. 추가 중인 버튼 입력 기능 등 working tree의 다른 변경은 포함하지 않습니다.
+
+집계 보고서는 `C:/Users/search/AppData/Local/Temp/ut-public-ui-timer-2b30181.json`입니다. 각 시나리오의 XML·로그·lock·sample import·build 증거는 아래 프로젝트에 보존했습니다.
+
+- `C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-2022.3.62f3-5204293585a34140b3635996e0cb787d`
+- `C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-6000.3.20f1-1b06d5b8244a48cf9fc8353007860662`
+
+재현 명령은 아래와 같습니다. UnityVersion을 바꿔 두 버전에서 각각 실행합니다.
+
+```powershell
+& ./tools/test-upm-compatibility.ps1 -UnityVersion '2022.3.62f3' -Source Remote -UiRef '2b301812d0bb64c2f482c5c88dadf5eb8afd6bec' -TimerRef '2b301812d0bb64c2f482c5c88dadf5eb8afd6bec' -Scenarios @('ui','ui-input','timer','timer-lab')
+```
+
+## 발행 설명 초안
+
+아래는 현재 검증 대상으로 고정한 `2b30181`의 범위입니다. 이후 커밋의 새 기능은 포함하지 않습니다. 공개 tag는 아직 발행하지 않았으며 실제 발행 날짜와 최종 commit을 확정한 뒤 사용합니다.
+
+### UI 2.1.0
+
+가변 높이의 세로 단일 열 DynamicScroll에 초기화·높이 변경·삽입 API를 추가했습니다. 목록 변경 시 보이는 항목의 위치를 유지합니다. Canvas 전환은 ShowAsync/HideAsync로 완료 또는 취소 결과를 받을 수 있고, Popup은 지정한 entry만 닫아 다른 팝업을 유지할 수 있습니다. UiRewardFlyer와 Reward Flyer Sample은 보상 아이콘의 분산·HUD 이동·재사용과 도착·완료·취소 알림을 제공합니다.
+
+UI Feature Demo에서 목록·전환·팝업 기능을 시연합니다. 네 해상도의 EventSystem raycast 경로를 검증했습니다. 기본 패키지는 Timer와 Input System을 필수 의존성으로 추가하지 않습니다. 기존 API와 serialized 참조를 유지합니다.
+
+### Timer 1.1.0
+
+TaskTimerService와 PeriodTimerService에 등록 개수·데이터 사본 조회·OnTimersChanged를 추가했습니다. 작업 타이머는 TryPause/TryResume으로 남은 시간과 진행률을 고정하고, 오프라인에서도 정지 상태를 복원합니다. 저장 성공 후에만 runtime 상태를 변경하며 저장 실패는 기존 상태를 유지합니다. Timer Simulation Lab에서 UTC·오프라인·시계 역행·저장 실패·수령 상태를 실험할 수 있습니다.
+
+기존 ITaskTimer 계약과 enum 숫자를 유지하며 선택적 IPausableTaskTimer와 Paused=3을 추가했습니다. 기존 v1·4키 저장 데이터를 읽습니다. 정지 상태는 remainingSec를 포함하는 v2 snapshot을 사용하고 재개 후 v1로 저장합니다. 정지 데이터가 남은 상태로 구버전 패키지로 downgrade하는 것은 지원하지 않습니다. Period Timer는 UTC 주기 경계를 유지하며 일시정지를 제공하지 않습니다.
+
+### 공통 검증 범위
+
+Unity 2022.3.62f3과 6000.3.20f1, Windows Mono Development Build를 대상으로 합니다. OS 마우스·기기 터치·Safe Area·모바일·IL2CPP와 실제 self-hosted Unity CI job은 별도 검증이 필요합니다. 고정 Git commit 설치와 공개 tag 설치 증거는 구분해서 기록합니다.
