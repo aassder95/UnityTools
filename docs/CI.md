@@ -35,9 +35,39 @@ python tools/verify-upm.py --report "$env:TEMP/upm-static-report.json"
 
 정적 검사는 Unity compile·Play Mode·Player build 성공을 의미하지 않습니다. `verify-release.ps1 -Release`는 별도의 release 보안·Git 이력·원격 URL 검사이며 PR 검사와 구분합니다. 현재 SSH origin은 release 도구의 HTTPS URL 계약과 다르므로 임의로 origin을 변경하지 않습니다.
 
-## Unity 실행 조건과 후속 연결
+## Unity 수동 CI
 
-2026-10-01 저장소 runner API 확인 결과 등록된 self-hosted runner는 0개입니다. 이 작업에서 runner 등록, 계정 연결, 라이선스/secret 저장은 수행하지 않습니다. 라이선스가 활성화된 현재 PC에서는 기존 `test-upm-compatibility.ps1 -Source Local`로 Unity 검증을 실행할 수 있습니다.
+`.github/workflows/unity-validation.yml`은 `workflow_dispatch` 전용입니다. 두 Editor 버전을 matrix로 구성하고 기존 `test-upm-compatibility.ps1 -Source Local`을 `tools/run-unity-ci.ps1`에서 실행합니다. PR·push·schedule로 Unity 작업을 자동 실행하지 않습니다. [GitHub workflow 문법](https://docs.github.com/en/actions/reference/workflows-and-actions/workflow-syntax)에 맞추어 구성했고 actionlint로 검사했습니다.
+
+| Suite | 시나리오 |
+| --- | --- |
+| core (기본) | ui, timer, benchmark, persistence |
+| samples | ui-input, ui-lab, save-lab, timer-lab |
+| timer | Timer 단독 검증과 실행 환경 확인 |
+
+매 실행은 선택한 브랜치의 checkout 소스를 검증합니다. 공개 tag Git 설치나 미게시 버전 후보 검증과는 다릅니다. 새 VFX Editor 패키지와 별도 Feature Demo 버튼 테스트는 이 Play Mode suite에 포함되지 않습니다.
+
+필요한 runner 조건은 Windows x64, PowerShell 7, Git, Unity `2022.3.62f3`·`6000.3.20f1`, Windows Mono Build Support, 두 Editor에서 사용할 수 있는 활성 라이선스입니다. Hub 기본 설치 경로인 `C:/Program Files/Unity/Hub/Editor/<version>/Editor/Unity.exe`를 사용합니다. Unity editor 설치·라이선스 활성화는 workflow에서 수행하지 않습니다.
+
+runner에 `unitytools-ci` label을 지정하고 `unity-validation` environment의 실행 가능한 브랜치와 reviewer를 설정한 뒤 Actions에서 **Unity runtime validation > Run workflow**로 신뢰하는 브랜치와 suite를 선택합니다. 수동 workflow는 GitHub 기본 브랜치에 파일이 있어야 목록에 나타납니다. [수동 실행 안내](https://docs.github.com/en/actions/how-tos/manage-workflow-runs/manually-run-a-workflow)를 참고하세요. 현재 개인 작업 PC를 runner로 등록하지 않았습니다.
+
+matrix는 한 번에 한 버전을 실행하고, 한 버전 실패로 다른 버전을 취소하지 않습니다. 실행별 출력 경로를 분리하며, 이전 출력이 있는 폴더를 재사용하면 실패합니다. `ci-summary.md`에는 완료한 시나리오의 테스트·빌드와 미완료 시나리오를 구분합니다. 실패 시 script는 nonzero로 종료하며 성공한 일부 결과를 suite 전체 성공으로 표시하지 않습니다.
+
+Summary와 Editor log, 테스트 XML, summary.json, lock, build-result, 실제 Editor 버전 기록을 artifact로 14일 보관합니다. Library·Player 실행 파일은 업로드하지 않습니다. [Artifact action 안내](https://github.com/actions/upload-artifact)를 참고하세요. checkout 및 artifact action은 기존 정적 CI와 같은 고정 SHA이며 credential을 checkout에 남기지 않습니다.
+
+로컬에서도 같은 실행 경로를 사용할 수 있습니다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/run-unity-ci.ps1 -UnityVersion 2022.3.62f3 -Suite timer
+```
+
+## Unity 실행 환경 연결 상태
+
+2026-10-06 로컬 검증: actionlint 1.7.12에서 새 workflow가 통과했습니다. 같은 실행 스크립트의 Timer suite는 Unity 2022.3에서 Play Mode 20/20·Windows Mono build 및 Passed Summary 생성이 통과했습니다. 격리된 검증 fixture에서 강제 실패 시 nonzero 종료와 네 core 시나리오의 Incomplete Summary도 확인했습니다. 실제 GitHub job·artifact 업로드는 아직 실행하지 않았습니다.
+
+로컬 성공 증거는 `C:/Users/search/AppData/Local/Temp/unity-ci-85c41d86`의 `ci-summary.md`와 하위 프로젝트 XML·Editor log·summary.json·build-result.txt에 보존했습니다.
+
+2026-10-06 저장소 runner API 확인 결과 등록된 self-hosted runner는 0개입니다. workflow·로컬 실행 스크립트만 준비했으며 GitHub에서 Unity 실행 성공을 확인하지 않았습니다. 이 작업에서 runner 등록, 계정 연결, 라이선스/secret 저장은 수행하지 않습니다. 라이선스가 활성화된 현재 PC에서는 기존 `test-upm-compatibility.ps1 -Source Local`로 Unity 검증을 실행할 수 있습니다.
 
 GitHub에서 Unity를 실행하려면 먼저 격리된 실행 환경, Editor 설치·Windows Build Support 및 해당 환경에서 사용할 수 있는 활성 라이선스를 마련해야 합니다. Unity Personal에 수동 `.ulf` 활성화를 일괄 적용할 수 있다고 가정하지 않습니다. [Unity 수동 활성화 조건](https://docs.unity3d.com/6000.0/Documentation/Manual/ManualActivationGuide.html)을 확인하세요.
 

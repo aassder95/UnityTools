@@ -1,0 +1,73 @@
+name: Unity runtime validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      suite:
+        description: Validation suite
+        type: choice
+        options: [core, samples, timer]
+        default: core
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: unity-validation-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Unity ${{ matrix.unity }} / ${{ inputs.suite }}
+    runs-on: [self-hosted, Windows, X64, unitytools-ci]
+    environment: unity-validation
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        unity: ['2022.3.62f3', '6000.3.20f1']
+    defaults:
+      run:
+        shell: pwsh
+    env:
+      UNITY_VERSION: ${{ matrix.unity }}
+      VALIDATION_SUITE: ${{ inputs.suite }}
+      VALIDATION_DIRECTORY: unity-ci-${{ github.run_id }}-${{ github.run_attempt }}-${{ matrix.unity }}
+    steps:
+      - name: Initialize output path
+        run: |
+          $output = Join-Path $env:RUNNER_TEMP $env:VALIDATION_DIRECTORY
+          "VALIDATION_OUTPUT=$output" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+      - name: Checkout
+        uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Validate Unity packages
+        run: ./tools/run-unity-ci.ps1 -UnityVersion $env:UNITY_VERSION -Suite $env:VALIDATION_SUITE -OutputBase $env:VALIDATION_OUTPUT
+      - name: Publish validation summary
+        if: ${{ always() }}
+        run: |
+          $report = Join-Path $env:VALIDATION_OUTPUT 'ci-summary.md'
+          if (Test-Path -LiteralPath $report) {
+            Get-Content -LiteralPath $report | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          } else {
+            "Unity $env:UNITY_VERSION: validation did not produce a report. Check checkout and runner logs." | Out-File -FilePath $env:GITHUB_STEP_SUMMARY -Append -Encoding utf8
+          }
+      - name: Upload Unity validation evidence
+        if: ${{ always() }}
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: unity-${{ matrix.unity }}-${{ inputs.suite }}-${{ github.run_attempt }}
+          path: |
+            ${{ env.VALIDATION_OUTPUT }}/**/*.log
+            ${{ env.VALIDATION_OUTPUT }}/**/results.xml
+            ${{ env.VALIDATION_OUTPUT }}/**/summary.json
+            ${{ env.VALIDATION_OUTPUT }}/**/packages-lock.json
+            ${{ env.VALIDATION_OUTPUT }}/**/build-result.txt
+            ${{ env.VALIDATION_OUTPUT }}/**/editor-version.txt
+            ${{ env.VALIDATION_OUTPUT }}/ci-summary.md
+            !${{ env.VALIDATION_OUTPUT }}/**/Library/**
+          if-no-files-found: warn
+          retention-days: 14
