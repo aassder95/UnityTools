@@ -1,0 +1,7 @@
+{
+    "name": "UnityTools.FeatureDemo.Tests",
+    "references": ["UnityTools.Samples", "UnityTools.Ui"],
+    "optionalUnityReferences": ["TestAssemblies"],
+    "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+    "autoReferenced": false
+}

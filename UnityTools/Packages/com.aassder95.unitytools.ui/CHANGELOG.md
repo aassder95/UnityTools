@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- 가변 높이·전환 결과·특정 Popup 닫기를 시연하는 UiFeatureDemo 장면과 Editor 생성기 추가
+
+- 지정한 Popup만 닫는 TryClosePopup overload와 하위 Popup 제거 시 활성 포커스 보존
+
 - Canvas fade 요청별 완료 대기 Task와 Completed/Cancelled 결과 추가
 - 요청 교체·명시적 취소·비활성화·파괴 시 대기 종료와 입력 상태 정리
 

@@ -133,6 +133,105 @@ namespace UnityTools.Ui.Tests.UiFramework
             Assert.That(changedCnt, Is.EqualTo(4));
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CloseLowerPopupPreservesTopFocus(bool isTopModal)
+        {
+            UiNavigator navigator = new();
+            NavigationTestEntry screen = new();
+            NavigationTestEntry lower = new(true);
+            NavigationTestEntry top = new(isTopModal);
+            Assert.That(navigator.TryPushScreen(screen.Entry), Is.True);
+            Assert.That(navigator.TryOpenPopup(lower.Entry), Is.True);
+            Assert.That(navigator.TryOpenPopup(top.Entry), Is.True);
+            int restoreCnt = top.Control.RestoreFocusCnt;
+
+            Assert.That(navigator.TryClosePopup(lower.Entry), Is.True);
+
+            Assert.That(navigator.PopupCnt, Is.EqualTo(1));
+            Assert.That(navigator.TopPopup, Is.SameAs(top.Entry));
+            Assert.That(lower.Presenter.IsVisible, Is.False);
+            Assert.That(lower.Control.IsInteractionEnabled, Is.False);
+            Assert.That(top.Presenter.IsVisible, Is.True);
+            Assert.That(top.Control.IsInteractionEnabled, Is.True);
+            Assert.That(top.Control.RestoreFocusCnt, Is.EqualTo(restoreCnt));
+            Assert.That(screen.Control.IsInteractionEnabled, Is.EqualTo(!isTopModal));
+            Assert.That(navigator.TryHandleBack(), Is.True);
+            Assert.That(navigator.PopupCnt, Is.Zero);
+            Assert.That(screen.Control.IsInteractionEnabled, Is.True);
+        }
+
+        [Test]
+        public void CloseSpecificTopPopupRestoresPreviousFocus()
+        {
+            UiNavigator navigator = new();
+            NavigationTestEntry lower = new();
+            NavigationTestEntry top = new();
+            Assert.That(navigator.TryOpenPopup(lower.Entry), Is.True);
+            Assert.That(navigator.TryOpenPopup(top.Entry), Is.True);
+            int restoreCnt = lower.Control.RestoreFocusCnt;
+
+            Assert.That(navigator.TryClosePopup(top.Entry), Is.True);
+
+            Assert.That(navigator.TopPopup, Is.SameAs(lower.Entry));
+            Assert.That(lower.Control.IsInteractionEnabled, Is.True);
+            Assert.That(lower.Control.RestoreFocusCnt, Is.EqualTo(restoreCnt + 1));
+            Assert.That(top.Presenter.IsVisible, Is.False);
+            Assert.That(top.Control.IsInteractionEnabled, Is.False);
+        }
+
+        [Test]
+        public void CloseSpecificPopupNotifiesOnlyOnRemoval()
+        {
+            UiNavigator navigator = new();
+            NavigationTestEntry popup = new();
+            NavigationTestEntry missing = new();
+            int changedCnt = 0;
+            void OnChanged() => changedCnt++;
+            navigator.OnChanged += OnChanged;
+            try
+            {
+                Assert.That(navigator.TryClosePopup(null), Is.False);
+                Assert.That(navigator.TryClosePopup(missing.Entry), Is.False);
+                Assert.That(navigator.TryOpenPopup(popup.Entry), Is.True);
+                Assert.That(navigator.TryClosePopup(missing.Entry), Is.False);
+                Assert.That(navigator.TopPopup, Is.SameAs(popup.Entry));
+                Assert.That(popup.Control.IsInteractionEnabled, Is.True);
+                Assert.That(navigator.TryClosePopup(popup.Entry), Is.True);
+                Assert.That(navigator.TryClosePopup(popup.Entry), Is.False);
+                Assert.That(navigator.TryClosePopup(), Is.False);
+                Assert.That(changedCnt, Is.EqualTo(2));
+                Assert.That(missing.Control.SaveFocusCnt, Is.Zero);
+            }
+            finally
+            {
+                navigator.OnChanged -= OnChanged;
+            }
+        }
+
+        [Test]
+        public void CloseLowerPopupKeepsModalOverlayActive()
+        {
+            UiNavigator navigator = new();
+            NavigationTestEntry screen = new();
+            NavigationTestEntry lower = new();
+            NavigationTestEntry top = new();
+            NavigationTestEntry overlay = new();
+            Assert.That(navigator.TryPushScreen(screen.Entry), Is.True);
+            Assert.That(navigator.TryOpenPopup(lower.Entry), Is.True);
+            Assert.That(navigator.TryOpenPopup(top.Entry), Is.True);
+            Assert.That(navigator.TryShowOverlay(overlay.Entry), Is.True);
+            int restoreCnt = overlay.Control.RestoreFocusCnt;
+
+            Assert.That(navigator.TryClosePopup(lower.Entry), Is.True);
+
+            Assert.That(navigator.TopPopup, Is.SameAs(top.Entry));
+            Assert.That(screen.Control.IsInteractionEnabled, Is.False);
+            Assert.That(top.Control.IsInteractionEnabled, Is.False);
+            Assert.That(overlay.Control.IsInteractionEnabled, Is.True);
+            Assert.That(overlay.Control.RestoreFocusCnt, Is.EqualTo(restoreCnt));
+        }
+
         //============================================================
         // Nested Types
         //============================================================

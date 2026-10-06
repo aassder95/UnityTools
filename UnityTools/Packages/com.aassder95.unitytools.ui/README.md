@@ -41,6 +41,12 @@ bool isConfirmOpened = isSettingsShown && navigator.TryOpenPopup(confirm);
 bool isBackHandled = isConfirmOpened && navigator.TryHandleBack();
 ```
 
+현재 개발 소스에서는 `TryClosePopup(entry)`로 등록했던 `UiNavigationEntry`의 팝업만 닫을 수 있습니다. 위에 열린 다른 팝업은 유지하며, 남은 모달 팝업에 따라 화면 입력을 다시 계산합니다. 아래 팝업을 닫을 때 활성 팝업·오버레이의 포커스를 다시 설정하지 않습니다. 맨 위 팝업을 닫으면 기존 방식으로 포커스를 복원합니다. null·미등록·이미 닫은 entry는 상태 변경이나 알림 없이 false를 반환하고, 성공하면 `OnChanged`를 한 번 호출합니다.
+
+기존 `TryClosePopup()`과 Back은 맨 위 팝업을 닫습니다. 동일 Presenter로 만든 새 entry가 아니라 등록에 사용한 entry를 전달하세요. 이 overload는 기존 `unitytools-ui/v2.0.0` tag에 포함되지 않습니다.
+
+2026-10-06, Local UPM 설치로 Unity `2022.3.62f3`과 `6000.3.20f1` 각각 Play Mode 43/43 및 Windows Development Build(Mono)를 통과했습니다. 특정 팝업 닫기의 회귀 검증 5건이 포함됩니다. 직접 화면 조작·모바일·IL2CPP 검증은 포함하지 않습니다.
+
 ## 전환 완료 대기와 취소
 
 현재 개발 소스의 `UiCanvasTransition.ShowAsync()`와 `HideAsync()`는 `Task<EUiTransitionResult>`를 반환합니다. 기존 `Show()`·`Hide()`와 동일한 fade 경로를 사용하고, 완료 시 `Completed`, 요청 교체·명시적 취소·비활성화·파괴 시 `Cancelled`를 반환합니다. 기존 `unitytools-ui/v2.0.0` tag에는 포함되지 않습니다.
@@ -112,6 +118,8 @@ rankScroll.ScrollTo(targetIdx, alignment: EDynamicScrollAlignment.Center);
 ## 샘플
 
 Package Manager에서 `UI Sample Scene`을 Import하면 Inventory와 Rank navigation 예제가 복사됩니다. Timer sample은 Timer package에 별도로 포함됩니다.
+
+개발 소스의 `Scenes/UiFeatureDemo.unity`에서는 가변 높이 목록, 전환 완료·취소 결과, 특정 팝업 닫기를 버튼으로 시연합니다. `Tools > UnityTools > Create UI Feature Demo`로 같은 장면을 새 위치에 생성할 수 있습니다. [실행 순서와 확인 사항](Samples~/UI%20Sample%20Scene/README.md)을 참고하세요.
 
 저장소에서 UI sample C#을 변경할 때는 `Samples~`와 `Assets/Samples`를 함께 갱신하고 `tools/verify-sample-mirrors.ps1`로 일치 여부를 확인합니다. 두 위치의 asmdef는 Timer 참조 때문에 의도적으로 다릅니다.
 

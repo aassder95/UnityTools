@@ -96,10 +96,19 @@ namespace UnityTools.Ui
             if (_popups.Count <= 0)
                 return false;
 
-            UiNavigationEntry popup = TopPopup;
+            return TryClosePopup(TopPopup);
+        }
+
+        public bool TryClosePopup(UiNavigationEntry popup)
+        {
+            int popupIdx = _popups.IndexOf(popup);
+            if (popupIdx < 0)
+                return false;
+
+            bool isTopPopup = popupIdx == _popups.Count - 1;
             HideEntry(popup);
-            _popups.RemoveAt(_popups.Count - 1);
-            RefreshNavigationState();
+            _popups.RemoveAt(popupIdx);
+            RefreshNavigationState(isTopPopup);
             return true;
         }
 
@@ -160,10 +169,12 @@ namespace UnityTools.Ui
             _onChanged?.Invoke();
         }
 
-        private void RefreshNavigationState()
+        private void RefreshNavigationState(bool shouldRestoreFocus = true)
         {
             RefreshInteraction();
-            RestoreActiveFocus();
+            if (shouldRestoreFocus)
+                RestoreActiveFocus();
+
             _onChanged?.Invoke();
         }
 
