@@ -21,6 +21,11 @@
       "displayName": "Reward Flyer Sample",
       "description": "Pooled reward icons with scatter, moving HUD targets, completion notifications, and cancellation.",
       "path": "Samples~/Reward Flyer Sample"
+    },
+    {
+      "displayName": "Button Input Sample",
+      "description": "Single clicks, accelerating hold repeat, unscaled press feedback, and cancellation.",
+      "path": "Samples~/Button Input Sample"
     }
   ],
   "keywords": ["ui", "mvp", "navigation", "transition", "scroll", "safe-area"],

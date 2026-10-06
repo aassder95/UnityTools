@@ -1,0 +1,11 @@
+{
+  "name": "UnityTools.Ui.ButtonSample.Editor",
+  "rootNamespace": "UnityTools.Ui.ButtonSample.Editor",
+  "references": [
+    "UnityTools.Ui",
+    "UnityTools.Ui.ButtonSample"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ]
+}
