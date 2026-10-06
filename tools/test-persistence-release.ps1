@@ -13,6 +13,7 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 $packagePath = 'UnityTools/Packages/com.aassder95.unitytools.persistence'
 $utf8 = [Text.UTF8Encoding]::new($false)
+$strictUtf8 = [Text.UTF8Encoding]::new($false, $true)
 $runRoot = if ($ResumeFrom) { [IO.Path]::GetFullPath($ResumeFrom) } else { Join-Path $OutputBase ('UTP-' + [Guid]::NewGuid().ToString('N').Substring(0, 12)) }
 if ($ResumeFrom)
 {
@@ -104,6 +105,30 @@ foreach ($unityVersion in $UnityVersions)
         $installedManifest = Get-Content -LiteralPath "$($cached[0].FullName)/package.json" -Raw | ConvertFrom-Json
         if ($installedManifest.name -ne 'com.aassder95.unitytools.persistence' -or $installedManifest.version -ne $Version) { throw '설치된 패키지 이름 또는 버전이 다릅니다.' }
         if (@($installedManifest.dependencies.PSObject.Properties).Count -ne 0) { throw '코어 패키지에 외부 dependency가 있습니다.' }
+        if ($Source -eq 'Candidate')
+        {
+            $cachedFiles = @(Get-ChildItem -LiteralPath $cached[0].FullName -Recurse -File)
+            if ($cachedFiles.Count -ne $fingerprints.Count) { throw '설치된 후보 파일 구성이 고정 소스와 다릅니다.' }
+            foreach ($fingerprint in $fingerprints)
+            {
+                $filePath = Join-Path $cached[0].FullName $fingerprint.Path
+                if (!(Test-Path -LiteralPath $filePath -PathType Leaf)) { throw "설치된 후보 파일이 누락됐습니다: $($fingerprint.Path)" }
+                if ((Get-FileHash -LiteralPath $filePath -Algorithm SHA256).Hash -ne $fingerprint.Sha256)
+                {
+                    $sourceText = $strictUtf8.GetString([IO.File]::ReadAllBytes((Join-Path $packageRoot $fingerprint.Path))).Replace("`r`n", "`n")
+                    $cachedText = $strictUtf8.GetString([IO.File]::ReadAllBytes($filePath)).Replace("`r`n", "`n")
+                    if ($fingerprint.Path -eq 'package.json')
+                    {
+                        $sourceJson = $sourceText | ConvertFrom-Json
+                        $cachedJson = $cachedText | ConvertFrom-Json
+                        $cachedJson.PSObject.Properties.Remove('_fingerprint')
+                        $sourceText = $sourceJson | ConvertTo-Json -Depth 32 -Compress
+                        $cachedText = $cachedJson | ConvertTo-Json -Depth 32 -Compress
+                    }
+                    if ($sourceText -cne $cachedText) { throw "설치된 후보 파일 내용이 고정 소스와 다릅니다: $($fingerprint.Path)" }
+                }
+            }
+        }
         $results += $summary
     }
 }
