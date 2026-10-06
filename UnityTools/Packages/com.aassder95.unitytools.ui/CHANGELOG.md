@@ -6,7 +6,7 @@
 - 포인터 눌림 스케일·빠른 재입력·비활성화/포커스 손실 복원을 제공하는 UiButtonPressScale 추가
 - Button Input Sample과 전용 Inspector·입력/수명주기 회귀 테스트 추가
 
-## [2.1.0] - Unreleased
+## [2.1.0] - 2026-10-06
 
 - 명시적인 좌표계·Motion asset·아이콘 재사용·도착/완료/취소 알림을 제공하는 UiRewardFlyer 추가
 - Reward Flyer Sample 장면·prefab·설정 asset과 좌표 변환·수명주기 회귀 테스트 추가

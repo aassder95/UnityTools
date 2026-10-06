@@ -1,6 +1,6 @@
 # UnityTools UI Framework
 
-현재 manifest는 2.1.0 미게시 후보입니다. 아래 설치 주소는 기존 공개 버전 2.0.0이며, 새 기능은 후보에 포함됩니다. 새 tag 설치 주소는 공개 Git 설치 검증 후 갱신합니다.
+현재 버전은 2.1.0입니다. 아래 공개 tag로 고정 설치할 수 있습니다.
 
 Unity 2022.3 이상에서 사용하는 uGUI 기반 UI 패키지입니다.
 
@@ -16,7 +16,7 @@ Unity 2022.3 이상에서 사용하는 uGUI 기반 UI 패키지입니다.
 - DynamicScrollView 전용 Inspector
 - 보상 아이콘의 분산·HUD 이동·내부 재사용을 제공하는 `UiRewardFlyer`
 
-보상 연출의 Inspector 연결과 API 계약은 [Reward Flyer 안내](Documentation~/reward-flyer.md)를 참고하세요. Package Manager의 **Reward Flyer Sample**을 Import하거나, 데모 프로젝트의 `Assets/RewardFlyerSample/RewardFlyerSample.unity`를 열어 실행합니다. 이 기능은 현재 개발 소스에만 있으며 기존 `unitytools-ui/v2.0.0` tag에는 포함되지 않습니다.
+보상 연출의 Inspector 연결과 API 계약은 [Reward Flyer 안내](Documentation~/reward-flyer.md)를 참고하세요. Package Manager의 **Reward Flyer Sample**을 Import하거나, 데모 프로젝트의 `Assets/RewardFlyerSample/RewardFlyerSample.unity`를 열어 실행합니다. 이 기능은 현재 버전에만 있으며 기존 `unitytools-ui/v2.0.0` tag에는 포함되지 않습니다.
 
 Timer, 범용 singleton, logging, persistence, pooling API는 포함하지 않습니다.
 
@@ -25,7 +25,7 @@ Timer, 범용 singleton, logging, persistence, pooling API는 포함하지 않�
 Unity Package Manager의 `Add package from git URL...`에서 다음 주소를 사용합니다.
 
 ```text
-https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#unitytools-ui/v2.0.0
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#unitytools-ui/v2.1.0
 ```
 
 런타임 assembly는 `UnityTools.Ui`, Editor assembly는 `UnityTools.Ui.Editor`입니다.
@@ -47,7 +47,7 @@ bool isConfirmOpened = isSettingsShown && navigator.TryOpenPopup(confirm);
 bool isBackHandled = isConfirmOpened && navigator.TryHandleBack();
 ```
 
-현재 개발 소스에서는 `TryClosePopup(entry)`로 등록했던 `UiNavigationEntry`의 팝업만 닫을 수 있습니다. 위에 열린 다른 팝업은 유지하며, 남은 모달 팝업에 따라 화면 입력을 다시 계산합니다. 아래 팝업을 닫을 때 활성 팝업·오버레이의 포커스를 다시 설정하지 않습니다. 맨 위 팝업을 닫으면 기존 방식으로 포커스를 복원합니다. null·미등록·이미 닫은 entry는 상태 변경이나 알림 없이 false를 반환하고, 성공하면 `OnChanged`를 한 번 호출합니다.
+현재 버전에서는 `TryClosePopup(entry)`로 등록했던 `UiNavigationEntry`의 팝업만 닫을 수 있습니다. 위에 열린 다른 팝업은 유지하며, 남은 모달 팝업에 따라 화면 입력을 다시 계산합니다. 아래 팝업을 닫을 때 활성 팝업·오버레이의 포커스를 다시 설정하지 않습니다. 맨 위 팝업을 닫으면 기존 방식으로 포커스를 복원합니다. null·미등록·이미 닫은 entry는 상태 변경이나 알림 없이 false를 반환하고, 성공하면 `OnChanged`를 한 번 호출합니다.
 
 기존 `TryClosePopup()`과 Back은 맨 위 팝업을 닫습니다. 동일 Presenter로 만든 새 entry가 아니라 등록에 사용한 entry를 전달하세요. 이 overload는 기존 `unitytools-ui/v2.0.0` tag에 포함되지 않습니다.
 
@@ -55,7 +55,7 @@ bool isBackHandled = isConfirmOpened && navigator.TryHandleBack();
 
 ## 전환 완료 대기와 취소
 
-현재 개발 소스의 `UiCanvasTransition.ShowAsync()`와 `HideAsync()`는 `Task<EUiTransitionResult>`를 반환합니다. 기존 `Show()`·`Hide()`와 동일한 fade 경로를 사용하고, 완료 시 `Completed`, 요청 교체·명시적 취소·비활성화·파괴 시 `Cancelled`를 반환합니다. 기존 `unitytools-ui/v2.0.0` tag에는 포함되지 않습니다.
+현재 버전의 `UiCanvasTransition.ShowAsync()`와 `HideAsync()`는 `Task<EUiTransitionResult>`를 반환합니다. 기존 `Show()`·`Hide()`와 동일한 fade 경로를 사용하고, 완료 시 `Completed`, 요청 교체·명시적 취소·비활성화·파괴 시 `Cancelled`를 반환합니다. 기존 `unitytools-ui/v2.0.0` tag에는 포함되지 않습니다.
 
 ```csharp
 EUiTransitionResult result = await transition.ShowAsync();
@@ -78,7 +78,7 @@ if (result == EUiTransitionResult.Cancelled)
 
 ## DynamicScroll
 
-현재 개발 소스는 **가변 높이의 세로 단일 열 목록**을 지원합니다. 아래 API는 기존 `unitytools-ui/v2.0.0` tag에 포함되지 않습니다. 항목의 높이를 데이터에서 계산해 전달하며 기존 `InitView(int)`는 고정 크기 목록을 유지합니다.
+현재 버전는 **가변 높이의 세로 단일 열 목록**을 지원합니다. 아래 API는 기존 `unitytools-ui/v2.0.0` tag에 포함되지 않습니다. 항목의 높이를 데이터에서 계산해 전달하며 기존 `InitView(int)`는 고정 크기 목록을 유지합니다.
 
 ```csharp
 float[] heights = { 80.0f, 160.0f, 100.0f, 240.0f };
@@ -127,7 +127,7 @@ rankScroll.ScrollTo(targetIdx, alignment: EDynamicScrollAlignment.Center);
 
 Package Manager에서 `UI Sample Scene`을 Import하면 Inventory와 Rank navigation 예제가 복사됩니다. Timer sample은 Timer package에 별도로 포함됩니다.
 
-개발 소스의 `Scenes/UiFeatureDemo.unity`에서는 가변 높이 목록, 전환 완료·취소 결과, 특정 팝업 닫기를 버튼으로 시연합니다. `Tools > UnityTools > Create UI Feature Demo`로 같은 장면을 새 위치에 생성할 수 있습니다. [실행 순서와 확인 사항](Samples~/UI%20Sample%20Scene/README.md)을 참고하세요.
+현재 버전의 `Scenes/UiFeatureDemo.unity`에서는 가변 높이 목록, 전환 완료·취소 결과, 특정 팝업 닫기를 버튼으로 시연합니다. `Tools > UnityTools > Create UI Feature Demo`로 같은 장면을 새 위치에 생성할 수 있습니다. [실행 순서와 확인 사항](Samples~/UI%20Sample%20Scene/README.md)을 참고하세요.
 
 저장소에서 UI sample C#을 변경할 때는 `Samples~`와 `Assets/Samples`를 함께 갱신하고 `tools/verify-sample-mirrors.ps1`로 일치 여부를 확인합니다. 두 위치의 asmdef는 Timer 참조 때문에 의도적으로 다릅니다.
 
