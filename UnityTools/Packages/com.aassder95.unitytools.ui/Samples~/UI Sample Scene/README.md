@@ -36,9 +36,9 @@
 
 `Tools > UnityTools > Create UI Feature Demo`는 새 위치에 장면을 생성하고 모든 필수 참조를 연결합니다. 생성기는 Editor에서만 포함됩니다. 실행 중 오브젝트 검색으로 참조를 복구하지 않습니다. Inspector의 행 높이와 transition 지속 시간으로 데이터를 조정할 수 있습니다.
 
-`Scripts/Features/Tests`의 Play Mode 테스트는 `UiFeatureDemo`를 Build Settings에 등록한 상태에서 실행합니다. 목록 위치·전환 결과·팝업 수·비활성화 후 재활성화를 검사하며, 화면 배치·실제 입력·모바일 Safe Area 검증과는 구분합니다.
+`Scripts/Features/Tests`의 Play Mode 테스트는 `UiFeatureDemo`를 Build Settings에 등록한 상태에서 실행합니다. 목록 위치·전환 결과·팝업 수·비활성화 후 재활성화를 검사합니다. 추가 테스트는 1280×720, 1920×1080, 720×1280, 2560×1080 RenderTexture에서 버튼 중심 좌표와 GraphicRaycaster hit 대상을 확인한 뒤 EventSystem pointer down/up/click을 전달합니다. CanvasScaler Expand는 세로 화면에서도 데모 전체가 들어오도록 합니다. OS 마우스·실제 터치·Safe Area 검증과는 구분합니다.
 
-2026-10-06, Unity `2022.3.62f3`과 `6000.3.20f1`에서 생성 장면의 버튼 시나리오 Play Mode 테스트 1/1 및 Windows Development Build(Mono)를 통과했습니다. 필수 참조의 YAML 연결과 장면/스크립트 사본 일치를 확인했습니다. Unity 6에서 1280×720 Canvas 렌더도 확인했습니다. 실제 포인터·터치 조작, 다른 화면 비율·모바일 Safe Area·IL2CPP는 미검증입니다.
+2026-10-06, Unity `2022.3.62f3`과 `6000.3.20f1`에서 생성 장면의 버튼 시나리오·네 해상도 raycast Play Mode 테스트 2/2 및 Windows Development Build(Mono)를 통과했습니다. 필수 참조의 YAML 연결과 장면/스크립트 사본 일치를 확인했습니다. Unity 6에서 1280×720 Canvas 렌더도 확인했습니다. OS 포인터·기기 터치 조작, 모바일 Safe Area·IL2CPP는 미검증입니다. 추가 결과는 같은 경로의 screen-results.xml, screen-tests.log, screen-build.log에 보존했습니다.
 
 검증 증거는 아래 임시 프로젝트의 `feature-builder.log`, `feature-results.xml`, `feature-tests.log`, `feature-build.log`, `build-result.txt`에 보존했습니다.
 

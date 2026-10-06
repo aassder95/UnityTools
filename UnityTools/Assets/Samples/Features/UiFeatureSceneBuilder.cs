@@ -39,6 +39,7 @@ namespace UnityTools.Samples.Features
             CanvasScaler scaler = goCanvas.GetComponent<CanvasScaler>();
             scaler.uiScaleMode = CanvasScaler.ScaleMode.ScaleWithScreenSize;
             scaler.referenceResolution = new Vector2(1280.0f, 720.0f);
+            scaler.screenMatchMode = CanvasScaler.ScreenMatchMode.Expand;
             scaler.matchWidthOrHeight = 0.5f;
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
             RectTransform root = (RectTransform)goCanvas.transform;
