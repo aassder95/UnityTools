@@ -1,6 +1,6 @@
 # UnityTools Sheets
 
-Unity 2022.3 이상을 지원하는 0.1.0 개발 버전입니다. CSV 파싱과 C# 데이터 타입 생성을 제공하며 release tag는 아직 없습니다. UI·Timer·Persistence·UniTask·네트워크·Addressables 의존성이 없습니다. Runtime은 UnityEngine 참조가 없는 일반 C# assembly이며 생성 도구는 Editor 전용 assembly입니다.
+Unity 2022.3 이상을 지원하는 0.1.0 개발 버전입니다. CSV 파싱, C# 데이터 타입 생성과 키 기반 조회를 제공하며 release tag는 아직 없습니다. UI·Timer·Persistence·UniTask·네트워크·Addressables 의존성이 없습니다. Runtime은 UnityEngine 참조가 없는 일반 C# assembly이며 생성 도구는 Editor 전용 assembly입니다.
 
 ## 설치와 생성
 
@@ -37,6 +37,24 @@ for (int idx = 0; idx < table.Rows.Count; idx++)
 
 `ItemData`는 사용자 CSV에서 생성한 타입 예시입니다. 생성 전에 이 코드를 붙여 넣으면 컴파일되지 않습니다. `CsvRow.TryGetCell`로 문자열을 직접 읽거나 `CsvValue.TryParse`의 int·long·float·double·bool overload로 변환할 수도 있습니다. 실패한 out 값은 사용하지 않습니다. `CsvTable`·`CsvRow` 생성자는 유효한 non-null collection을 전달하는 데이터 구성 API이며 외부 CSV 입력은 `TryParse`로 검증합니다.
 
+## 키 기반 데이터 조회
+
+생성 클래스의 `TryRead`를 그대로 전달해 모든 행을 변환하고 키로 조회할 수 있습니다.
+
+```csharp
+if (!CsvDataSet<Game.Data.ItemData>.TryRead(table, "Id", Game.Data.ItemData.TryRead, out CsvDataSet<Game.Data.ItemData> items, out string loadError))
+    return;
+
+if (items.TryGet("001", out Game.Data.ItemData item))
+{
+    // item을 사용합니다. items.Items는 원본 CSV 행 순서의 읽기 전용 목록입니다.
+}
+```
+
+키는 CSV 셀의 원본 문자열입니다. `001`과 `1`, `A`와 `a`, 앞뒤 공백은 서로 다른 키이며 trim·숫자 변환을 하지 않습니다. 키 헤더는 빈 테이블에서도 필요합니다. 빈 키·공백뿐인 키·중복 키, 변환 실패·null 결과는 전체 로드를 실패시키며 dataSet은 null이고 부분 목록을 반환하지 않습니다. 오류에는 CSV의 물리적 행 번호가 포함됩니다. 없는 키나 null 키 조회는 false를 반환합니다.
+
+`CsvRowReader<T>`는 참조 타입을 반환하는 동기 변환 함수입니다. 실패하면 false와 오류를 반환하고 외부 상태를 변경하지 않는 함수를 전달하세요. 이 API는 사용자 변환 함수의 부작용을 되돌리거나 예외를 처리하지 않습니다. 목록과 키 색인은 변경할 수 없지만 사용자 타입 내부 상태를 복제하거나 동결하지는 않습니다. 숫자 키·그룹 조회·기존 데이터 재로드는 호출자에게 맡깁니다. 새 데이터가 성공했을 때 기존 참조를 교체하면 이전 정상 데이터가 유지됩니다.
+
 ## CSV 계약
 
 - 구분자는 쉼표이고 첫 번째 비어 있지 않은 레코드는 헤더입니다. 헤더만 있는 CSV도 허용합니다.
@@ -47,7 +65,7 @@ for (int idx = 0; idx < table.Rows.Count; idx++)
 - 실패하면 table은 null이고 부분 결과를 반환하지 않습니다. 행 번호는 여러 줄 셀을 반영한 물리적 시작 행입니다.
 - int·long은 정수, float·double은 invariant culture의 소수점과 지수 표기만 허용합니다. 천 단위 쉼표, NaN, Infinity, 범위 초과는 거부합니다. bool은 true/false(대소문자 무관)와 1/0을 지원합니다. 빈 숫자/bool 셀에 기본값을 넣지 않습니다.
 
-문자열 전체를 메모리에서 파싱하므로 초기 데이터 로드에 사용하세요. frame loop용 streaming parser가 아닙니다. 파일 읽기·TextAsset 전달·실패 처리·저장소·키 중복 검사·목록 유지 책임은 호출자에게 있습니다. enum, 배열, Vector, 날짜, 암호화, 다운로드, 코드 hot reload는 이번 버전에 포함하지 않습니다.
+문자열 전체를 메모리에서 파싱하므로 초기 데이터 로드에 사용하세요. frame loop용 streaming parser가 아닙니다. 파일 읽기·TextAsset 전달·실패 처리·데이터 수명은 호출자에게 있습니다. 키 중복 검사와 타입별 목록은 선택적으로 CsvDataSet을 사용합니다. enum, 배열, Vector, 날짜, 암호화, 다운로드, 코드 hot reload는 이번 버전에 포함하지 않습니다.
 
 ## 검증
 
@@ -57,7 +75,7 @@ for (int idx = 0; idx < table.Rows.Count; idx++)
 
 | Unity | Editor | Runtime Play Mode | 생성 코드 | Windows Development |
 | --- | --- | --- | --- | --- |
-| 2022.3.62f3 | 22/22 통과 | 25/25 통과 | 컴파일·읽기 통과 | 빌드·Player 실행 통과 |
-| 6000.3.20f1 | 22/22 통과 | 25/25 통과 | 컴파일·읽기 통과 | 빌드·Player 실행 통과 |
+| 2022.3.62f3 | 22/22 통과 | 34/34 통과 | 컴파일·읽기·키 조회 통과 | 빌드·Player 실행 통과 |
+| 6000.3.20f1 | 22/22 통과 | 34/34 통과 | 컴파일·읽기·키 조회 통과 | 빌드·Player 실행 통과 |
 
-각 테스트의 skip은 0이며 Player에는 Sheets Editor assembly가 포함되지 않았습니다. 생성 코드에서 모든 지원 타입·한글·쉼표·따옴표·여러 줄 헤더/셀을 읽고, 잘못된 타입과 누락된 열의 실패 반환을 확인했습니다. 테스트의 문화권은 fr-FR로 바꿔 소수점 파싱을 검증했습니다. 창 열기·CSV 읽기·열 매핑·창 닫기 테스트도 포함합니다. 정적 검사는 6개 패키지, 검증 도구 회귀 테스트는 21개 통과했습니다. 자동 테스트의 창 열기는 그래픽 장치가 필요하여 최종 실행은 그래픽 모드로 진행했습니다.
+각 테스트의 skip은 0이며 Player에는 Sheets Editor assembly가 포함되지 않았습니다. 생성 코드에서 모든 지원 타입·한글·쉼표·따옴표·여러 줄 헤더/셀을 읽고, 잘못된 타입과 누락된 열의 실패 반환을 확인했습니다. 키 조회·중복 키 거부도 생성 타입으로 Editor와 실제 Player에서 실행했습니다. Runtime 테스트는 원본 키·순서·읽기 전용 목록, 빈 키·변환 실패·null 결과·중복 키의 부분 결과 거부와 물리적 행 번호를 확인합니다. 테스트의 문화권은 fr-FR로 바꿔 소수점 파싱을 검증했습니다. 창 열기·CSV 읽기·열 매핑·창 닫기 테스트도 포함합니다. 정적 검사는 6개 패키지, 검증 도구 회귀 테스트는 30개 통과했습니다. 자동 테스트의 창 열기는 그래픽 장치가 필요하여 최종 실행은 그래픽 모드로 진행했습니다.

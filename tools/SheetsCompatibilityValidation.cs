@@ -118,6 +118,19 @@ public class SheetsSmoke : MonoBehaviour
             if (data.Id != 7 || data.Name != ""피자, \""맛\"""" || data.Price != 1.25f || data.Weight != 2.5 || !data.IsEnabled || data.Total != long.MaxValue || data.Description != ""한글\n설명"")
                 return ""생성 타입의 값이 일치하지 않습니다."";
 
+            if (!CsvDataSet<ItemData>.TryRead(table, ""Id"", ItemData.TryRead, out CsvDataSet<ItemData> dataSet, out error))
+                return error;
+
+            if (dataSet.Items.Count != 1 || !dataSet.TryGet(""7"", out ItemData found) || found.Name != data.Name || dataSet.TryGet(""missing"", out found))
+                return ""생성 타입의 키 조회 결과가 일치하지 않습니다."";
+
+            string duplicateCsv = csv + ""\n"" + csv.Substring(csv.IndexOf(""\n7,"", StringComparison.Ordinal) + 1);
+            if (!CsvParser.TryParse(duplicateCsv, out CsvTable duplicateTable, out error))
+                return error;
+
+            if (CsvDataSet<ItemData>.TryRead(duplicateTable, ""Id"", ItemData.TryRead, out dataSet, out error) || dataSet != null || string.IsNullOrEmpty(error))
+                return ""중복 키 데이터가 부분 결과로 공개됐습니다."";
+
             string[] badValues = { ""wrong"", ""피자"", ""NaN"", ""Infinity"", ""yes"", ""9223372036854775808"", ""내용"" };
             for (int idx = 0; idx < 6; idx++)
             {
