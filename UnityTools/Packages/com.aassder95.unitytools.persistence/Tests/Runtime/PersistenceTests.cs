@@ -117,6 +117,116 @@ namespace UnityTools.Persistence.Tests
                 migrations, out _), Is.False);
         }
 
+        [Test]
+        public void DetailedLoadDistinguishesMissingCorruptAndFutureFiles()
+        {
+            VersionedSaveStore<SaveV1> store = CreateV1Store();
+            Assert.That(store.TryLoad(out _, out _, out _, out ESaveFailure failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.FileNotFound));
+            File.WriteAllText(_path, "{}");
+            Assert.That(store.TryLoad(out SaveV1 data, out bool wasRecovered, out bool wasMigrated, out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.CorruptData));
+            Assert.That(data, Is.Null);
+            Assert.That(wasRecovered || wasMigrated, Is.False);
+            File.WriteAllText(_path, "{\"_version\":2}");
+            string primary = File.ReadAllText(_path);
+            Assert.That(store.TryLoad(out _, out _, out _, out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.FutureVersion));
+            Assert.That(store.TrySave(new SaveV1(2), out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.FutureVersion));
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(primary));
+        }
+
+        [Test]
+        public void DetailedRecoveryReportsSuccessAndPreservesBackup()
+        {
+            VersionedSaveStore<SaveV1> store = CreateV1Store();
+            Assert.That(store.TrySave(new SaveV1(1), out ESaveFailure failure), Is.True);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.None));
+            Assert.That(store.TrySave(new SaveV1(2)), Is.True);
+            string backup = File.ReadAllText(_path + ".bak");
+            File.WriteAllText(_path, "{}");
+            Assert.That(store.TryLoad(out SaveV1 data, out bool wasRecovered, out bool wasMigrated, out failure), Is.True);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.None));
+            Assert.That(data.Level, Is.EqualTo(1));
+            Assert.That(wasRecovered, Is.True);
+            Assert.That(wasMigrated, Is.False);
+            Assert.That(store.TrySave(data, out failure), Is.True);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.None));
+            Assert.That(File.ReadAllText(_path + ".bak"), Is.EqualTo(backup));
+        }
+
+        [Test]
+        public void DetailedLoadReportsBackupFailureWhenPrimaryIsMissing()
+        {
+            File.WriteAllText(_path + ".bak", "{}");
+            Assert.That(CreateV1Store().TryLoad(out _, out _, out _, out ESaveFailure failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.CorruptData));
+        }
+
+        [Test]
+        public void DetailedMigrationDistinguishesMissingAndRejectedSteps()
+        {
+            Assert.That(CreateV1Store().TrySave(new SaveV1(3)), Is.True);
+            string primary = File.ReadAllText(_path);
+            Assert.That(CreateV2Store(null).TryLoad(out _, out _, out _, out ESaveFailure failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.MigrationMissing));
+            Assert.That(CreateV2Store(new ISaveMigration[] { new RejectedMigration() }).TryLoad(out _, out _, out _, out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.MigrationFailed));
+            Assert.That(CreateV2Store(new ISaveMigration[] { new V1ToV2Migration() }).TryLoad(out _, out _, out bool wasMigrated, out failure), Is.True);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.None));
+            Assert.That(wasMigrated, Is.True);
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(primary));
+        }
+
+        [Test]
+        public void DetailedSaveReportsInvalidDataAndWriteFailureWithoutChangingFiles()
+        {
+            VersionedSaveStore<SaveV1> store = CreateV1Store();
+            Assert.That(store.TrySave(null, out ESaveFailure failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.InvalidArgument));
+            Assert.That(store.TrySave(new SaveV1(-1), out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.ValidationFailed));
+            Assert.That(store.TrySave(new SaveV1(1)), Is.True);
+            Assert.That(store.TrySave(new SaveV1(2)), Is.True);
+            string primary = File.ReadAllText(_path);
+            string backup = File.ReadAllText(_path + ".bak");
+            Directory.CreateDirectory(_path + ".tmp");
+            Assert.That(store.TrySave(new SaveV1(3), out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.AccessDenied).Or.EqualTo(ESaveFailure.IoError));
+            Assert.That(File.ReadAllText(_path), Is.EqualTo(primary));
+            Assert.That(File.ReadAllText(_path + ".bak"), Is.EqualTo(backup));
+        }
+
+        [Test]
+        public void DetailedCodecAndValidationFailuresAreDistinct()
+        {
+            Assert.That(CreateV1Store().TrySave(new SaveV1(1)), Is.True);
+            Assert.That(VersionedSaveStore<SaveV1>.TryCreate(_path, 1, new RejectedCodec(), IsValid, null, out VersionedSaveStore<SaveV1> store), Is.True);
+            Assert.That(store.TrySave(new SaveV1(1), out ESaveFailure failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.SerializationFailed));
+            Assert.That(store.TryLoad(out _, out _, out _, out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.DeserializationFailed));
+            Assert.That(VersionedSaveStore<SaveV1>.TryCreate(_path, 1, new UnityJsonSaveCodec<SaveV1>(), data => data.Level > 1, null, out store), Is.True);
+            Assert.That(store.TryLoad(out _, out _, out _, out failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.ValidationFailed));
+        }
+
+        [Test]
+        public void DetailedFileReadDistinguishesMissingFromLockedFiles()
+        {
+            SaveFileStore files = new SaveFileStore(_path);
+            Assert.That(files.TryRead(false, out _, out ESaveFailure failure), Is.False);
+            Assert.That(failure, Is.EqualTo(ESaveFailure.FileNotFound));
+            File.WriteAllText(_path, "{}");
+            using (FileStream stream = new FileStream(_path, FileMode.Open, FileAccess.ReadWrite, FileShare.None))
+            {
+                Assert.That(files.TryRead(false, out string content, out failure), Is.False);
+                Assert.That(content, Is.Null);
+                Assert.That(failure, Is.EqualTo(ESaveFailure.IoError));
+            }
+        }
+
         //============================================================
         // Utilities
         //============================================================
@@ -183,5 +293,32 @@ namespace UnityTools.Persistence.Tests
                 return true;
             }
         }
+        private class RejectedCodec : ISaveCodec<SaveV1>
+        {
+            public bool TrySerialize(SaveV1 data, out string payload)
+            {
+                payload = null;
+                return false;
+            }
+
+            public bool TryDeserialize(string payload, out SaveV1 data)
+            {
+                data = null;
+                return false;
+            }
+        }
+
+        private class RejectedMigration : ISaveMigration
+        {
+            public int FromVersion => 1;
+            public int ToVersion => 2;
+
+            public bool TryMigrate(string payload, out string migratedPayload)
+            {
+                migratedPayload = null;
+                return false;
+            }
+        }
+
     }
 }

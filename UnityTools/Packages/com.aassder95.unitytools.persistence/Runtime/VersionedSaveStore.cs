@@ -80,15 +80,42 @@ namespace UnityTools.Persistence
 
         public bool TrySave(T data)
         {
-            if (_isFutureVersion || data == null || !_validate(data) || !_codec.TrySerialize(data, out string payload)
-                || string.IsNullOrEmpty(payload))
-                return false;
+            return TrySave(data, out _);
+        }
 
-            if (_files.TryRead(false, out string primary) && !TryDecode(primary, out _, out _, out bool isFutureVersion))
+        public bool TrySave(T data, out ESaveFailure failure)
+        {
+            failure = ESaveFailure.None;
+            if (_isFutureVersion)
             {
-                if (isFutureVersion)
+                failure = ESaveFailure.FutureVersion;
+                return false;
+            }
+
+            if (data == null)
+            {
+                failure = ESaveFailure.InvalidArgument;
+                return false;
+            }
+
+            if (!_validate(data))
+            {
+                failure = ESaveFailure.ValidationFailed;
+                return false;
+            }
+
+            if (!_codec.TrySerialize(data, out string payload) || string.IsNullOrEmpty(payload))
+            {
+                failure = ESaveFailure.SerializationFailed;
+                return false;
+            }
+
+            if (_files.TryRead(false, out string primary) && !TryDecode(primary, out _, out _, out ESaveFailure decodeFailure))
+            {
+                if (decodeFailure == ESaveFailure.FutureVersion)
                 {
                     _isFutureVersion = true;
+                    failure = decodeFailure;
                     return false;
                 }
 
@@ -96,7 +123,7 @@ namespace UnityTools.Persistence
             }
 
             SaveEnvelope envelope = new SaveEnvelope(_curVersion, payload, CalculateHash(_curVersion, payload));
-            if (!_files.TryWrite(JsonUtility.ToJson(envelope), _shouldPreserveBackup))
+            if (!_files.TryWrite(JsonUtility.ToJson(envelope), _shouldPreserveBackup, out failure))
                 return false;
 
             _shouldPreserveBackup = false;
@@ -105,25 +132,34 @@ namespace UnityTools.Persistence
 
         public bool TryLoad(out T data, out bool wasRecovered, out bool wasMigrated)
         {
+            return TryLoad(out data, out wasRecovered, out wasMigrated, out _);
+        }
+
+        public bool TryLoad(out T data, out bool wasRecovered, out bool wasMigrated, out ESaveFailure failure)
+        {
             data = null;
             wasRecovered = false;
             wasMigrated = false;
-            bool isFutureVersion = false;
-            if (_files.TryRead(false, out string primary) && TryDecode(primary, out data, out wasMigrated, out isFutureVersion))
+            failure = ESaveFailure.None;
+            if (_files.TryRead(false, out string primary, out ESaveFailure primaryFailure) && TryDecode(primary, out data, out wasMigrated, out primaryFailure))
             {
                 _shouldPreserveBackup = false;
                 _isFutureVersion = false;
                 return true;
             }
 
-            if (isFutureVersion)
+            if (primaryFailure == ESaveFailure.FutureVersion)
             {
                 _isFutureVersion = true;
+                failure = primaryFailure;
                 return false;
             }
 
-            if (!_files.TryRead(true, out string backup) || !TryDecode(backup, out data, out wasMigrated, out _))
+            if (!_files.TryRead(true, out string backup, out ESaveFailure backupFailure) || !TryDecode(backup, out data, out wasMigrated, out backupFailure))
+            {
+                failure = primaryFailure == ESaveFailure.FileNotFound ? backupFailure : primaryFailure;
                 return false;
+            }
 
             wasRecovered = true;
             _shouldPreserveBackup = true;
@@ -134,11 +170,11 @@ namespace UnityTools.Persistence
         //============================================================
         // Utilities
         //============================================================
-        private bool TryDecode(string content, out T data, out bool wasMigrated, out bool isFutureVersion)
+        private bool TryDecode(string content, out T data, out bool wasMigrated, out ESaveFailure failure)
         {
             data = null;
             wasMigrated = false;
-            isFutureVersion = false;
+            failure = ESaveFailure.None;
             SaveEnvelope envelope;
             try
             {
@@ -146,18 +182,21 @@ namespace UnityTools.Persistence
             }
             catch (ArgumentException)
             {
+                failure = ESaveFailure.CorruptData;
                 return false;
             }
 
             if (envelope != null && envelope.Version > _curVersion)
             {
-                isFutureVersion = true;
+                failure = ESaveFailure.FutureVersion;
                 return false;
             }
 
-            if (envelope == null || envelope.Version < 1
-                || string.IsNullOrEmpty(envelope.Payload) || envelope.Hash != CalculateHash(envelope.Version, envelope.Payload))
+            if (envelope == null || envelope.Version < 1 || string.IsNullOrEmpty(envelope.Payload) || envelope.Hash != CalculateHash(envelope.Version, envelope.Payload))
+            {
+                failure = ESaveFailure.CorruptData;
                 return false;
+            }
 
             int version = envelope.Version;
             string payload = envelope.Payload;
@@ -173,16 +212,33 @@ namespace UnityTools.Persistence
                     }
                 }
 
-                if (migration == null || !migration.TryMigrate(payload, out string migratedPayload)
-                    || string.IsNullOrEmpty(migratedPayload))
+                if (migration == null)
+                {
+                    failure = ESaveFailure.MigrationMissing;
                     return false;
+                }
+
+                if (!migration.TryMigrate(payload, out string migratedPayload) || string.IsNullOrEmpty(migratedPayload))
+                {
+                    failure = ESaveFailure.MigrationFailed;
+                    return false;
+                }
 
                 payload = migratedPayload;
                 version = migration.ToVersion;
             }
 
-            if (!_codec.TryDeserialize(payload, out T loadedData) || loadedData == null || !_validate(loadedData))
+            if (!_codec.TryDeserialize(payload, out T loadedData) || loadedData == null)
+            {
+                failure = ESaveFailure.DeserializationFailed;
                 return false;
+            }
+
+            if (!_validate(loadedData))
+            {
+                failure = ESaveFailure.ValidationFailed;
+                return false;
+            }
 
             data = loadedData;
             wasMigrated = envelope.Version != _curVersion;

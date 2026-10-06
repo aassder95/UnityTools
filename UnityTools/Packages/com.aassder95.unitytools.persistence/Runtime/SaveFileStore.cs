@@ -26,41 +26,70 @@ namespace UnityTools.Persistence
         //============================================================
         public bool TryRead(bool isBackup, out string content)
         {
+            return TryRead(isBackup, out content, out _);
+        }
+
+        public bool TryRead(bool isBackup, out string content, out ESaveFailure failure)
+        {
+            failure = ESaveFailure.None;
             content = null;
             string targetPath = isBackup ? _backupPath : _path;
             if (string.IsNullOrWhiteSpace(_path))
+            {
+                failure = ESaveFailure.InvalidPath;
                 return false;
+            }
 
             try
             {
-                if (!File.Exists(targetPath))
-                    return false;
-
                 content = File.ReadAllText(targetPath, Encoding.UTF8);
                 return true;
             }
+            catch (FileNotFoundException)
+            {
+                failure = ESaveFailure.FileNotFound;
+                return false;
+            }
+            catch (DirectoryNotFoundException)
+            {
+                failure = ESaveFailure.FileNotFound;
+                return false;
+            }
             catch (IOException)
             {
+                failure = ESaveFailure.IoError;
                 return false;
             }
             catch (UnauthorizedAccessException)
             {
+                failure = ESaveFailure.AccessDenied;
                 return false;
             }
             catch (ArgumentException)
             {
+                failure = ESaveFailure.InvalidPath;
                 return false;
             }
             catch (NotSupportedException)
             {
+                failure = ESaveFailure.UnsupportedOperation;
                 return false;
             }
         }
 
         public bool TryWrite(string content, bool shouldPreserveBackup)
         {
+            return TryWrite(content, shouldPreserveBackup, out _);
+        }
+
+        public bool TryWrite(string content, bool shouldPreserveBackup, out ESaveFailure failure)
+        {
+            failure = ESaveFailure.None;
             if (string.IsNullOrWhiteSpace(_path) || content == null)
+            {
+                failure = string.IsNullOrWhiteSpace(_path) ? ESaveFailure.InvalidPath : ESaveFailure.InvalidArgument;
                 return false;
+            }
 
             string tmpPath = _path + ".tmp";
             try
@@ -83,18 +112,22 @@ namespace UnityTools.Persistence
             }
             catch (IOException)
             {
+                failure = ESaveFailure.IoError;
                 return false;
             }
             catch (UnauthorizedAccessException)
             {
+                failure = ESaveFailure.AccessDenied;
                 return false;
             }
             catch (ArgumentException)
             {
+                failure = ESaveFailure.InvalidPath;
                 return false;
             }
             catch (NotSupportedException)
             {
+                failure = ESaveFailure.UnsupportedOperation;
                 return false;
             }
             finally

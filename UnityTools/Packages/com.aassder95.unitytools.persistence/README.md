@@ -32,7 +32,23 @@ if (isReady && saves.TryLoad(out AirportSaveV2 data, out bool wasRecovered, out 
 }
 ```
 
-`TryLoad`의 `false`는 새 설치로 파일이 없는 경우와 복구 불가능한 실패를 모두 포함합니다. 게임에서는 새 게임 생성 전에 파일 존재 여부나 별도 사용자 흐름을 확인하세요. 저장 실패 시 기존 파일을 성공으로 처리하지 말고 호출자에게 알려야 합니다.
+기존 bool API를 유지하며 상세 실패 원인이 필요하면 `ESaveFailure`를 받는 overload를 사용합니다.
+
+```csharp
+if (!saves.TryLoad(out AirportSaveV2 data, out bool wasRecovered, out bool wasMigrated, out ESaveFailure failure))
+{
+    if (failure == ESaveFailure.FileNotFound)
+    {
+        // 본문과 백업이 모두 없을 때 새 게임 생성 흐름으로 이동합니다.
+    }
+    else
+    {
+        // 손상·미래 버전·변환·입출력 실패에 맞는 사용자 선택을 제공합니다.
+    }
+}
+```
+
+`TrySave(data, out failure)`도 검증·직렬화·파일 쓰기 실패와 미래 버전 보호를 구분합니다. 성공 시 원인은 `None`입니다. 백업 복구에 성공하면 `None`과 `wasRecovered=true`를 반환합니다. 두 파일이 모두 실패하면 본문 원인을 우선하고, 본문이 없으면 백업 원인을 반환합니다. 상세 분류는 [API 계약](Documentation~/failures.md)을 참고하세요. 실패 원인만으로 기존 데이터를 덮어써도 된다고 판단하지 않습니다.
 
 `UnityJsonSaveCodec<T>`는 Unity `JsonUtility`의 직렬화 규칙을 따릅니다. Dictionary·다형성·property 중심 데이터 등은 프로젝트의 `ISaveCodec<T>` 구현을 사용하세요. Migration은 이전 payload를 받아 다음 버전 payload를 반환하며, 누락된 단계나 최종 검증 실패는 로드를 중단합니다. 저장 모델의 새 enum 값은 문자열로 저장하는 편이 변경에 안전합니다.
 
