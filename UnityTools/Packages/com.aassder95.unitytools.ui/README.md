@@ -47,6 +47,25 @@ bool isBackHandled = isConfirmOpened && navigator.TryHandleBack();
 
 ## DynamicScroll
 
+현재 개발 소스는 **가변 높이의 세로 단일 열 목록**을 지원합니다. 아래 API는 기존 `unitytools-ui/v2.0.0` tag에 포함되지 않습니다. 항목의 높이를 데이터에서 계산해 전달하며 기존 `InitView(int)`는 고정 크기 목록을 유지합니다.
+
+```csharp
+float[] heights = { 80.0f, 160.0f, 100.0f, 240.0f };
+if (!scrollView.TryInitView(heights))
+    return;
+
+bool isResized = scrollView.TrySetItemHeight(1, 200.0f);
+bool isInserted = scrollView.TryInsertItems(0, new float[] { 120.0f, 180.0f });
+scrollView.RemoveItems(0, 2);
+```
+
+- `TryInitView(IReadOnlyList<float>)`는 높이를 복사해 초기화합니다. 가로 목록, null, 0 이하·NaN·무한 높이, 음수 세로 간격과 표현 가능한 범위를 넘는 전체 높이는 거절합니다. 실패 시 기존 높이와 항목 수를 유지합니다.
+- `TrySetItemHeight`와 높이 목록을 받는 `TryInsertItems`는 기본적으로 첫 표시 항목의 화면 위치를 보존합니다. 제거된 anchor는 다음 항목으로 이동하며 마지막 항목 제거·목록 끝에서는 스크롤 범위로 제한합니다. 위치 보존을 끄려면 `shouldPreserveAnchor: false`를 전달합니다.
+- 기존 개수 기반 `InsertItems`와 `UpdateItemCnt`로 추가되는 항목에는 prefab의 기본 높이를 사용합니다. 빈 목록, `InitView(int)`로의 고정 크기 복귀와 `ReleaseView` 후 재초기화를 지원합니다.
+- 항목 위치는 누적 높이로 계산하고 표시 범위는 이진 검색으로 찾습니다. 스크롤에서는 기존 pool/deque를 재사용합니다. 표시 항목 수가 pool 용량을 넘으면 추가 객체가 생성될 수 있습니다.
+- 높이·개수 변경은 배열 복사와 누적 높이 재계산으로 O(n)이며 매 프레임 호출에 적합하지 않습니다. 텍스트 높이 자동 측정과 가변 높이 다중 열·가로 목록은 제공하지 않습니다. 텍스트·화면 폭 변경 후 호출자가 높이를 다시 전달합니다.
+- `ScrollRect` content의 LayoutGroup/ContentSizeFitter가 이 배치와 크기를 덮어쓰지 않도록 구성합니다. 항목 크기와 위치는 이 스크롤이 소유합니다.
+
 item은 `IDynamicScrollItem`을 구현하며 pool 입출고 수명주기를 직접 받습니다.
 
 ```csharp

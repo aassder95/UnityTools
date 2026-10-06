@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -19,10 +21,14 @@ namespace UnityTools.Ui
         // Fields
         //============================================================
         private int _itemCntPerLine;
+        private float[] _itemHeights;
+        private float[] _itemOffsets;
 
         //============================================================
         // Properties
         //============================================================
+        public bool HasVariableHeights => _itemHeights != null;
+        public int ItemCnt => _itemHeights == null ? 0 : _itemHeights.Length;
         private Vector2 ContentSize => new(_padding.left + LineSize.x + _padding.right, _padding.top + LineSize.y + _padding.bottom);
         private Vector2 LineSize => new(ItemSize.x * _itemCntPerLine - _spacing.x, ItemSize.y * _itemCntPerLine - _spacing.y);
         private Vector2 ItemSize => new(_rtItem.sizeDelta.x + _spacing.x, _rtItem.sizeDelta.y + _spacing.y);
@@ -50,8 +56,13 @@ namespace UnityTools.Ui
             int line = itemIdx / _itemCntPerLine;
             if (_scrollRect.vertical)
             {
-                float alignmentOffset = GetAlignmentOffset(alignment, _rtViewport.rect.height, _rtItem.sizeDelta.y);
-                return new Vector2(_rtContent.anchoredPosition.x, _padding.top + (line * ItemSize.y) - alignmentOffset + offset);
+                float itemHeight = HasVariableHeights ? _itemHeights[itemIdx] : _rtItem.sizeDelta.y;
+                float itemTop = HasVariableHeights ? _itemOffsets[itemIdx] : line * ItemSize.y;
+                float alignmentOffset = GetAlignmentOffset(alignment, _rtViewport.rect.height, itemHeight);
+                if (HasVariableHeights && itemHeight > _rtViewport.rect.height)
+                    alignmentOffset = alignment == EDynamicScrollAlignment.Center ? (_rtViewport.rect.height - itemHeight) / 2.0f : alignment == EDynamicScrollAlignment.End ? _rtViewport.rect.height - itemHeight : 0.0f;
+
+                return new Vector2(_rtContent.anchoredPosition.x, _padding.top + itemTop - alignmentOffset + offset);
             }
 
             float horizontalAlignmentOffset = GetAlignmentOffset(alignment, _rtViewport.rect.width, _rtItem.sizeDelta.x);
@@ -65,6 +76,9 @@ namespace UnityTools.Ui
 
         public Vector2 GetContentSize(int totalLineCnt)
         {
+            if (HasVariableHeights)
+                return new Vector2(ContentSize.x, _padding.top + _itemOffsets[ItemCnt] + _padding.bottom);
+
             if (totalLineCnt <= 0)
                 return _scrollRect.vertical ? new Vector2(ContentSize.x, _padding.top + _padding.bottom) : new Vector2(_padding.left + _padding.right, ContentSize.y);
 
@@ -73,6 +87,9 @@ namespace UnityTools.Ui
 
         public Vector2 ClampContentPos(Vector2 contentPos, int totalLineCnt)
         {
+            if (HasVariableHeights)
+                return new Vector2(contentPos.x, Mathf.Clamp(contentPos.y, 0.0f, Mathf.Max(0.0f, GetContentSize(ItemCnt).y - _rtViewport.rect.height)));
+
             if (_scrollRect.vertical)
             {
                 float minY = _padding.top;
@@ -105,6 +122,23 @@ namespace UnityTools.Ui
 
         public int GetFirstVisibleLine(int lastLine)
         {
+            if (HasVariableHeights)
+            {
+                int low = 0;
+                int high = ItemCnt;
+                float top = _rtContent.anchoredPosition.y - _padding.top;
+                while (low < high)
+                {
+                    int mid = low + (high - low) / 2;
+                    if (_itemOffsets[mid] + _itemHeights[mid] <= top)
+                        low = mid + 1;
+                    else
+                        high = mid;
+                }
+
+                return Mathf.Min(low, Mathf.Max(0, ItemCnt - 1));
+            }
+
             float pos = _scrollRect.vertical ? _rtContent.anchoredPosition.y - _padding.top : -_rtContent.anchoredPosition.x - _padding.left;
             float itemSize = _scrollRect.vertical ? ItemSize.y : ItemSize.x;
             int idx = Mathf.FloorToInt((pos / itemSize) + 0.0001f);
@@ -118,7 +152,9 @@ namespace UnityTools.Ui
                 int x = itemIdx % _itemCntPerLine;
                 int y = itemIdx / _itemCntPerLine;
                 float posX = (x - ((_itemCntPerLine - 1) / 2.0f)) * ItemSize.x - CenterOffset.x;
-                float posY = (_rtContent.sizeDelta.y - _rtItem.sizeDelta.y) * (1 - _rtItem.pivot.y) - (y * ItemSize.y);
+                float height = HasVariableHeights ? _itemHeights[itemIdx] : _rtItem.sizeDelta.y;
+                float itemTop = HasVariableHeights ? _itemOffsets[itemIdx] : y * ItemSize.y;
+                float posY = (_rtContent.sizeDelta.y - height) * (1.0f - _rtItem.pivot.y) - itemTop;
                 return new Vector2(_padding.left + posX, posY - _padding.top);
             }
 
@@ -145,6 +181,66 @@ namespace UnityTools.Ui
 
             return _itemCntPerLine;
         }
+
+        public bool TrySetItemHeights(IReadOnlyList<float> heights)
+        {
+            if (heights == null || !_scrollRect.vertical || _spacing.y < 0.0f)
+                return false;
+
+            double totalHeight = 0.0d;
+            for (int idx = 0; idx < heights.Count; ++idx)
+            {
+                if (float.IsNaN(heights[idx]) || float.IsInfinity(heights[idx]) || heights[idx] <= 0.0f)
+                    return false;
+
+                totalHeight += heights[idx] + (idx > 0 ? (double)_spacing.y : 0.0d);
+                if (totalHeight > float.MaxValue - (double)_padding.top - _padding.bottom)
+                    return false;
+            }
+
+            _itemHeights = new float[heights.Count];
+            _itemOffsets = new float[heights.Count + 1];
+            double offset = 0.0d;
+            for (int idx = 0; idx < heights.Count; ++idx)
+            {
+                _itemHeights[idx] = heights[idx];
+                _itemOffsets[idx] = (float)offset;
+                offset += heights[idx] + (idx < heights.Count - 1 ? (double)_spacing.y : 0.0d);
+            }
+
+            _itemOffsets[heights.Count] = (float)offset;
+            return true;
+        }
+
+        public void ClearItemHeights()
+        {
+            _itemHeights = null;
+            _itemOffsets = null;
+        }
+
+        public float[] CopyItemHeights()
+        {
+            return HasVariableHeights ? (float[])_itemHeights.Clone() : Array.Empty<float>();
+        }
+
+        public int GetVisibleItemCnt(int firstIdx)
+        {
+            float bottom = _rtContent.anchoredPosition.y - _padding.top + _rtViewport.rect.height;
+            int low = firstIdx;
+            int high = ItemCnt;
+            while (low < high)
+            {
+                int mid = low + (high - low) / 2;
+                if (_itemOffsets[mid] < bottom)
+                    low = mid + 1;
+                else
+                    high = mid;
+            }
+
+            return Mathf.Min(ItemCnt, low + 1) - firstIdx;
+        }
+
+        public float GetItemHeight(int itemIdx) => HasVariableHeights ? _itemHeights[itemIdx] : _rtItem.sizeDelta.y;
 
         //============================================================
         // Utilities

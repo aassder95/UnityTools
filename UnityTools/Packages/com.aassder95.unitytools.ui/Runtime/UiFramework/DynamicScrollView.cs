@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -86,7 +87,7 @@ namespace UnityTools.Ui
             int prevLineItemCnt = _itemCntPerLine;
             int prevVisibleLineCnt = _visibleLineCnt;
             UpdateLayoutConfig();
-            if (prevLineItemCnt == _itemCntPerLine && prevVisibleLineCnt == _visibleLineCnt)
+            if (!_context.HasVariableHeights && prevLineItemCnt == _itemCntPerLine && prevVisibleLineCnt == _visibleLineCnt)
                 return;
 
             UpdateContentLayout();
@@ -135,12 +136,36 @@ namespace UnityTools.Ui
             }
 
             PrepareComponents();
+            bool hasVariableHeights = _context.HasVariableHeights;
+            _context.ClearItemHeights();
             _isInitialized = true;
             UpdateLayoutConfig();
             bool isSameItemCnt = totalItemCnt == _totalItemCnt;
             SetTotalItemCnt(totalItemCnt);
             if (isSameItemCnt)
+            {
+                if (hasVariableHeights)
+                    UpdateContentLayout();
+
                 RebuildVisibleItems();
+            }
+        }
+
+        public bool TryInitView(IReadOnlyList<float> itemHeights)
+        {
+            if (!IsVertical || itemHeights == null)
+                return false;
+
+            PrepareComponents();
+            if (!_context.TrySetItemHeights(itemHeights))
+                return false;
+
+            StopSmoothScroll();
+            _isInitialized = true;
+            UpdateLayoutConfig();
+            ApplyTotalItemCnt(itemHeights.Count);
+            RebuildVisibleItems();
+            return true;
         }
 
         public void ReleaseView()
@@ -191,6 +216,53 @@ namespace UnityTools.Ui
             _itemCtrl.UpdateRange(startIdx, cnt);
         }
 
+        public bool TrySetItemHeight(int itemIdx, float height, bool shouldPreserveAnchor = true)
+        {
+            if (!_isInitialized || !_context.HasVariableHeights || itemIdx < 0 || itemIdx >= _totalItemCnt)
+                return false;
+
+            int anchorIdx = GetFirstVisibleItemIdx();
+            Vector2 prevAnchorPos = _context.GetContentPos(anchorIdx);
+            float[] heights = _context.CopyItemHeights();
+            heights[itemIdx] = height;
+            if (!_context.TrySetItemHeights(heights))
+                return false;
+
+            StopSmoothScroll();
+            UpdateContentLayout();
+            if (shouldPreserveAnchor)
+                _rtContent.anchoredPosition += _context.GetContentPos(anchorIdx) - prevAnchorPos;
+
+            RebuildVisibleItems();
+            return true;
+        }
+
+        public bool TryInsertItems(int itemIdx, IReadOnlyList<float> itemHeights, bool shouldPreserveAnchor = true)
+        {
+            if (!_isInitialized || !_context.HasVariableHeights || itemHeights == null || itemHeights.Count == 0 || itemIdx < 0 || itemIdx > _totalItemCnt || itemHeights.Count > int.MaxValue - _totalItemCnt)
+                return false;
+
+            int anchorIdx = GetFirstVisibleItemIdx();
+            Vector2 prevAnchorPos = _totalItemCnt > 0 ? _context.GetContentPos(anchorIdx) : Vector2.zero;
+            float[] prevHeights = _context.CopyItemHeights();
+            float[] heights = new float[_totalItemCnt + itemHeights.Count];
+            for (int idx = 0; idx < heights.Length; ++idx)
+            {
+                heights[idx] = idx < itemIdx ? prevHeights[idx] : idx < itemIdx + itemHeights.Count ? itemHeights[idx - itemIdx] : prevHeights[idx - itemHeights.Count];
+            }
+
+            if (!_context.TrySetItemHeights(heights))
+                return false;
+
+            StopSmoothScroll();
+            if (shouldPreserveAnchor && _totalItemCnt > 0 && itemIdx <= anchorIdx)
+                _rtContent.anchoredPosition += _context.GetContentPos(anchorIdx + itemHeights.Count) - prevAnchorPos;
+
+            ApplyTotalItemCnt(heights.Length);
+            RebuildVisibleItems();
+            return true;
+        }
+
         public void UpdateItemCnt(int totalItemCnt, bool shouldPreserveScrollPos = true)
         {
             if (!_isInitialized || totalItemCnt < 0)
@@ -199,10 +271,23 @@ namespace UnityTools.Ui
                 return;
             }
 
+            if (_context.HasVariableHeights)
+            {
+                float[] prevHeights = _context.CopyItemHeights();
+                float[] heights = new float[totalItemCnt];
+                for (int idx = 0; idx < heights.Length; ++idx)
+                {
+                    heights[idx] = idx < prevHeights.Length ? prevHeights[idx] : _rtItem.sizeDelta.y;
+                }
+
+                if (!_context.TrySetItemHeights(heights))
+                    return;
+            }
+
             StopSmoothScroll();
             ApplyTotalItemCnt(totalItemCnt);
             if (!shouldPreserveScrollPos)
-                _rtContent.anchoredPosition = _context.GetContentPos(0);
+                _rtContent.anchoredPosition = _totalItemCnt > 0 ? _context.GetContentPos(0) : Vector2.zero;
 
             _rtContent.anchoredPosition = _context.ClampContentPos(_rtContent.anchoredPosition, _totalLineCnt);
             RebuildVisibleItems();
@@ -213,6 +298,20 @@ namespace UnityTools.Ui
             if (!_isInitialized || itemIdx < 0 || itemIdx > _totalItemCnt || itemCnt <= 0)
             {
                 Debug.LogError("삽입할 DynamicScroll Item 범위가 유효하지 않습니다. 초기화=" + _isInitialized + ", 인덱스=" + itemIdx + ", 개수=" + itemCnt + ", 전체 개수=" + _totalItemCnt, this);
+                return;
+            }
+
+            if (_context.HasVariableHeights)
+            {
+                float[] heights = new float[itemCnt];
+                for (int idx = 0; idx < heights.Length; ++idx)
+                {
+                    heights[idx] = _rtItem.sizeDelta.y;
+                }
+
+                if (!TryInsertItems(itemIdx, heights, shouldPreserveAnchor))
+                    return;
+
                 return;
             }
 
@@ -243,11 +342,24 @@ namespace UnityTools.Ui
             int anchorIdx = GetFirstVisibleItemIdx();
             int nextTotalItemCnt = _totalItemCnt - itemCnt;
             Vector2 contentPos = _rtContent.anchoredPosition;
+            Vector2 prevAnchorPos = _context.GetContentPos(anchorIdx);
+            if (_context.HasVariableHeights)
+            {
+                float[] prevHeights = _context.CopyItemHeights();
+                float[] heights = new float[nextTotalItemCnt];
+                for (int idx = 0; idx < heights.Length; ++idx)
+                {
+                    heights[idx] = prevHeights[idx < itemIdx ? idx : idx + itemCnt];
+                }
+
+                if (!_context.TrySetItemHeights(heights))
+                    return;
+            }
+
             ApplyTotalItemCnt(nextTotalItemCnt);
             if (shouldPreserveAnchor && itemIdx <= anchorIdx && nextTotalItemCnt > 0)
             {
                 int nextAnchorIdx = itemIdx + itemCnt <= anchorIdx ? anchorIdx - itemCnt : Mathf.Min(itemIdx, nextTotalItemCnt - 1);
-                Vector2 prevAnchorPos = _context.GetContentPos(anchorIdx);
                 Vector2 nextAnchorPos = _context.GetContentPos(nextAnchorIdx);
                 contentPos += nextAnchorPos - prevAnchorPos;
             }
@@ -316,6 +428,13 @@ namespace UnityTools.Ui
             }
 
             _lastScrollPos = curScrollPos;
+            if (_context.HasVariableHeights)
+            {
+                UpdateVariableItems();
+                HandleScrollValueChanged(value);
+                return;
+            }
+
             int curLine = _itemCtrl.FirstIdx / _itemCntPerLine;
             int visibleLine = _context.GetFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
             if (curLine != visibleLine)
@@ -387,6 +506,9 @@ namespace UnityTools.Ui
 
         private int GetItemCntPerLine()
         {
+            if (_context != null && _context.HasVariableHeights)
+                return 1;
+
             switch (_layoutMode)
             {
                 case EDynamicScrollLayoutMode.Single:
@@ -432,7 +554,7 @@ namespace UnityTools.Ui
             if (_totalItemCnt <= 0)
                 return 0;
 
-            int lastLine = Mathf.Max(0, _totalLineCnt - _visibleLineCnt);
+            int lastLine = _context.HasVariableHeights ? _totalItemCnt - 1 : Mathf.Max(0, _totalLineCnt - _visibleLineCnt);
             return Mathf.Min(_context.GetFirstVisibleItemIdx(lastLine), _totalItemCnt - 1);
         }
 
@@ -444,6 +566,12 @@ namespace UnityTools.Ui
                 return;
 
             _rtContent.anchoredPosition = _context.ClampContentPos(_rtContent.anchoredPosition, _totalLineCnt);
+            if (_context.HasVariableHeights)
+            {
+                UpdateVariableItems();
+                return;
+            }
+
             int firstLine = _context.GetFirstVisibleLine(Mathf.Max(0, _totalLineCnt - _visibleLineCnt));
             int firstIdx = firstLine * _itemCntPerLine;
             if (firstIdx >= _totalItemCnt)
@@ -452,6 +580,39 @@ namespace UnityTools.Ui
             int visibleItemCnt = Mathf.Min(_visibleLineCnt * _itemCntPerLine, _totalItemCnt - firstIdx);
             if (visibleItemCnt > 0)
                 _itemCtrl.AddRange(visibleItemCnt, firstIdx, true);
+        }
+
+        private void UpdateVariableItems()
+        {
+            int firstIdx = _context.GetFirstVisibleLine(_totalItemCnt - 1);
+            int cnt = _context.GetVisibleItemCnt(firstIdx);
+            int endIdx = firstIdx + cnt;
+            if (_itemCtrl.Cnt > 0 && (firstIdx >= _itemCtrl.FirstIdx + _itemCtrl.Cnt || endIdx <= _itemCtrl.FirstIdx))
+                _itemCtrl.Clear();
+
+            while (_itemCtrl.Cnt > 0 && _itemCtrl.FirstIdx < firstIdx)
+            {
+                _itemCtrl.RemoveRange(1, false);
+            }
+
+            while (_itemCtrl.Cnt > 0 && _itemCtrl.FirstIdx + _itemCtrl.Cnt > endIdx)
+            {
+                _itemCtrl.RemoveRange(1, true);
+            }
+
+            if (_itemCtrl.Cnt == 0)
+            {
+                _itemCtrl.AddRange(cnt, firstIdx, true);
+                return;
+            }
+
+            int frontCnt = _itemCtrl.FirstIdx - firstIdx;
+            if (frontCnt > 0)
+                _itemCtrl.AddRange(frontCnt, firstIdx, false);
+
+            int backCnt = endIdx - _itemCtrl.FirstIdx - _itemCtrl.Cnt;
+            if (backCnt > 0)
+                _itemCtrl.AddRange(backCnt, endIdx - backCnt, true);
         }
 
         private void StartSmoothScroll(Vector2 targetPos, float durationSec)

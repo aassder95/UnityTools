@@ -14,6 +14,11 @@ namespace UnityTools.Ui
         private readonly ItemDeque<TView> _items;
 
         //============================================================
+        // Fields
+        //============================================================
+        private bool _hasResizedItems;
+
+        //============================================================
         // Events
         //============================================================
         private event UnityAction<TView> _onItemUpdated;
@@ -68,7 +73,7 @@ namespace UnityTools.Ui
             for (int i = 0; i < _items.Count; i++)
             {
                 TView item = _items.GetAt(i);
-                item.SetPos(_context.GetItemPos(item.Idx));
+                ApplyItemLayout(item);
             }
         }
 
@@ -197,12 +202,24 @@ namespace UnityTools.Ui
         //============================================================
         // Utilities
         //============================================================
+        private void ApplyItemLayout(TView item)
+        {
+            _hasResizedItems |= _context.HasVariableHeights;
+            if (_hasResizedItems)
+            {
+                RectTransform rtItem = item.transform as RectTransform;
+                rtItem.SetSizeWithCurrentAnchors(RectTransform.Axis.Vertical, _context.GetItemHeight(item.Idx));
+            }
+
+            item.SetPos(_context.GetItemPos(item.Idx));
+        }
+
         private TView Create(int idx)
         {
             TView item = _pool.Get();
             item.Init();
             item.SetIdx(idx);
-            item.SetPos(_context.GetItemPos(idx));
+            ApplyItemLayout(item);
             _onItemUpdated?.Invoke(item);
             return item;
         }
