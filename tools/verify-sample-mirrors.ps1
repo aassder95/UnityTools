@@ -83,3 +83,18 @@ foreach ($sourceFile in $rewardFiles)
 }
 
 Write-Host "Reward Flyer sample mirrors match: $($rewardFiles.Count) files"
+
+$buttonSource = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Packages/com.aassder95.unitytools.ui/Samples~/Button Input Sample')).Path
+$buttonMirror = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Assets/ButtonInputSample')).Path
+$buttonFiles = @(Get-ChildItem -LiteralPath $buttonSource -Recurse -File)
+foreach ($sourceFile in $buttonFiles)
+{
+    $relativePath = $sourceFile.FullName.Substring($buttonSource.Length + 1)
+    $projectFile = Join-Path $buttonMirror $relativePath
+    if (!(Test-Path -LiteralPath $projectFile) -or (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $projectFile -Algorithm SHA256).Hash)
+    {
+        throw "Button Input sample differs or is missing: $relativePath"
+    }
+}
+
+Write-Host "Button Input sample mirrors match: $($buttonFiles.Count) files"

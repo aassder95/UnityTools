@@ -12,6 +12,7 @@ Unity 2022.3 이상에서 사용하는 uGUI 기반 UI 패키지입니다.
 - pool을 내부 구현으로 사용하는 DynamicScroll 증분 갱신
 - 세로 / 가로, Start / Center / End 정렬 이동
 - 해상도와 회전 변경을 추적하는 Safe Area
+- 짧은 클릭·길게 누르기·가속 반복을 제공하는 `UiRepeatButton`과 unscaled 눌림 연출 `UiButtonPressScale`
 - DynamicScrollView 전용 Inspector
 - 보상 아이콘의 분산·HUD 이동·내부 재사용을 제공하는 `UiRewardFlyer`
 
@@ -119,6 +120,8 @@ rankScroll.InsertItems(insertIdx, addedCnt);
 rankScroll.RemoveItems(removeIdx, removedCnt);
 rankScroll.ScrollTo(targetIdx, alignment: EDynamicScrollAlignment.Center);
 ```
+
+버튼 입력과 연출의 사용법은 [Button Input 안내](Documentation~/button-input.md)를 참고하세요. **Button Input Sample**을 Import하거나 `Assets/ButtonInputSample/ButtonInputSample.unity`를 실행합니다. 새 버튼 기능은 로컬 개발 소스에 추가된 기능이며 기존 공개 tag에는 포함되지 않습니다.
 
 ## 샘플
 

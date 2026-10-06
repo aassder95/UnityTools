@@ -1,0 +1,8 @@
+{
+  "name": "UnityTools.Ui.ButtonSample",
+  "rootNamespace": "UnityTools.Ui.ButtonSample",
+  "references": [
+    "UnityTools.Ui"
+  ],
+  "includePlatforms": []
+}
