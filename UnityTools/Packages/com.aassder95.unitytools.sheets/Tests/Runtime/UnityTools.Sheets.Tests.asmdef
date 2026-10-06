@@ -1,0 +1,16 @@
+{
+  "name": "UnityTools.Sheets.Tests",
+  "rootNamespace": "UnityTools.Sheets.Tests",
+  "references": [
+    "UnityTools.Sheets"
+  ],
+  "includePlatforms": [],
+  "autoReferenced": false,
+  "noEngineReferences": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}

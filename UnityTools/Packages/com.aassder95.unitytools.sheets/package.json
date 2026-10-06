@@ -1,0 +1,17 @@
+{
+  "name": "com.aassder95.unitytools.sheets",
+  "version": "0.1.0",
+  "displayName": "UnityTools Sheets",
+  "description": "Strict CSV tables and Editor C# data type generation, without networking or Addressables dependencies.",
+  "unity": "2022.3",
+  "dependencies": {},
+  "keywords": [
+    "csv",
+    "data",
+    "code-generation"
+  ],
+  "author": {
+    "name": "aassder95",
+    "url": "https://github.com/aassder95"
+  }
+}

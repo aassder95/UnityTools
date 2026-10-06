@@ -1,6 +1,6 @@
 # UnityTools
 
-Unity 2022.3 이상에서 UI, Timer, Benchmark, Persistence, VFX Browser 기능을 각각 독립 설치할 수 있는 UPM 패키지입니다. 데모 프로젝트는 Unity 6.3 LTS를 사용하고 패키지의 최소 지원 버전은 2022.3을 유지합니다. 저장소는 하나지만 package assembly와 dependency는 분리되어 있습니다. Benchmark와 Persistence는 아직 개발 버전이며 release tag가 없습니다.
+Unity 2022.3 이상에서 UI, Timer, Benchmark, Persistence, VFX Browser, Sheets 기능을 각각 독립 설치할 수 있는 UPM 패키지입니다. 데모 프로젝트는 Unity 6.3 LTS를 사용하고 패키지의 최소 지원 버전은 2022.3을 유지합니다. 저장소는 하나지만 package assembly와 dependency는 분리되어 있습니다. Benchmark와 Persistence는 아직 개발 버전이며 release tag가 없습니다.
 
 ## 포트폴리오 데모
 
@@ -23,8 +23,11 @@ Showcase는 개발 프로젝트 전용이며 개별 UPM 설치에는 포함되�
 | `com.aassder95.unitytools.benchmark` | `0.1.0` | `UnityTools.Benchmark` | Main Thread, GC, memory, custom marker 측정 및 CSV 출력 |
 | `com.aassder95.unitytools.persistence` | `0.1.0` | `UnityTools.Persistence` | 버전형 저장, migration, 검증, 백업 복구 |
 | `com.aassder95.unitytools.vfx` | `0.1.0` 개발 | `UnityTools.Vfx.Editor` | Editor 전용 파티클 prefab 검색·즐겨찾기·독립 미리보기 |
+| `com.aassder95.unitytools.sheets` | `0.1.0` 개발 | `UnityTools.Sheets` | CSV 파싱·타입 검증·C# 데이터 타입 생성 |
 
 VFX Browser는 `Add package from disk...`로 해당 `package.json`을 선택해 설치하고 `Tools > UnityTools > VFX Browser`로 엽니다. [설치와 지원 범위](UnityTools/Packages/com.aassder95.unitytools.vfx/README.md)를 참고하세요. 기존 네 패키지와 독립적이며 아직 release tag가 없습니다.
+
+Sheets는 독립 설치한 뒤 `Tools > UnityTools > CSV Generator`에서 사용합니다. [CSV 계약과 사용법](UnityTools/Packages/com.aassder95.unitytools.sheets/README.md)을 참고하세요.
 
 ## 설치
 

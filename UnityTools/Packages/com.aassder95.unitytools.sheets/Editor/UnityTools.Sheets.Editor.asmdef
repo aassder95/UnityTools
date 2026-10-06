@@ -1,0 +1,12 @@
+{
+  "name": "UnityTools.Sheets.Editor",
+  "rootNamespace": "UnityTools.Sheets.Editor",
+  "references": [
+    "UnityTools.Sheets"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true,
+  "noEngineReferences": false
+}

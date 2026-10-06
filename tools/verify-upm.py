@@ -12,6 +12,7 @@ PACKAGES = {
     "benchmark": "UnityTools.Benchmark",
     "persistence": "UnityTools.Persistence",
     "vfx": "UnityTools.Vfx.Editor",
+    "sheets": "UnityTools.Sheets",
 }
 FORBIDDEN = re.compile(r"DOTween|Com\.ForbiddenByte|(?:^|/)OSA(?:/|$)", re.I)
 
@@ -139,6 +140,10 @@ def validate(root):
                     constraints = []
                 references_to_check.append((path, references))
                 name = definition.get("name")
+                if suffix == "sheets" and name == assembly and not definition.get("noEngineReferences"):
+                    reject(path, "Sheets runtime must not reference UnityEngine")
+                if suffix == "sheets" and name == "UnityTools.Sheets.Editor" and definition.get("includePlatforms") != ["Editor"]:
+                    reject(path, "Sheets generator must be Editor-only")
                 if suffix == "vfx" and definition.get("includePlatforms") != ["Editor"]:
                     reject(path, "VFX package assemblies must be Editor-only")
                 if suffix == "vfx" and name == assembly and references:

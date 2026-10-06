@@ -1,0 +1,19 @@
+{
+  "name": "UnityTools.Sheets.Editor.Tests",
+  "rootNamespace": "UnityTools.Sheets.Editor.Tests",
+  "references": [
+    "UnityTools.Sheets",
+    "UnityTools.Sheets.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": false,
+  "noEngineReferences": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ]
+}
