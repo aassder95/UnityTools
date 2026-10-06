@@ -1,6 +1,6 @@
 # UI 2.1.0 / Timer 1.1.0 릴리스 후보
 
-현재는 미게시 후보입니다. 예정 tag는 `unitytools-ui/v2.1.0`, `unitytools-timer/v1.1.0`이며 이 주소를 현재 설치 가능한 공개 tag로 안내하지 않습니다. 기존 UI 2.0.0 / Timer 1.0.0 설치는 유지합니다.
+현재 원본 manifest에 UI 2.1.0 / Timer 1.1.0 미게시 후보를 반영했습니다. 예정 tag는 `unitytools-ui/v2.1.0`, `unitytools-timer/v1.1.0`이며 이 주소를 현재 설치 가능한 공개 tag로 안내하지 않습니다. 기존 UI 2.0.0 / Timer 1.0.0 설치는 유지합니다.
 
 ## 포함 범위
 
@@ -75,10 +75,23 @@ Windows PowerShell의 JSON 배열을 중첩 배열로 집계하던 오류를 제
 
 이전 후보는 보상 연출과 정지·재개를 포함하지 않습니다. 최신 후보와 별도로 보존합니다. 원본 manifest의 버전과 공개 tag는 변경하지 않았습니다.
 
+## 후보의 실제 소스 반영
+
+manifest의 version과 세 문서 URL, 통합한 후보 changelog는 앞서 검증한 `ut-release-6291e8af/candidate` 사본과 일치합니다. 후보 기록은 `Unreleased`로 유지하고 공개 설치 안내는 기존 tag를 사용합니다. 패키지 README에 이 구분을 명시했습니다. 원본의 runtime·Editor·샘플·테스트·meta는 검증 소스 `44c7225` 이후 변경하지 않았습니다. 이 단계에서는 Unity 테스트를 반복하지 않았습니다.
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File tools/verify-release.ps1 -Candidate -UiVersion 2.1.0 -TimerVersion 1.1.0
+python -m unittest discover -s tools/tests -p test_verify_release.py
+```
+
+실제 소스의 후보 보안 검사와 모든 샘플 사본 검사가 통과했습니다. 회귀 테스트 9개는 SSH/HTTPS, credential 거절과 출력 보호, 버전·문서 URL·변경 기록 불일치, 검사 mode 충돌, 기존 Release 기본 버전 호환, 새 Release 설치 안내 요구를 검사합니다. 격리된 Git fixture에서 실행하며 원본 Git 설정은 변경하지 않습니다.
+
+`-Candidate`는 미게시 변경 기록과 후보 문서 URL을 검사합니다. `-Release`는 설치 안내를 포함한 기존 공개 준비 검사를 유지하며 원하는 버전을 인자로 지정할 수 있습니다. 기본값은 기존 UI 2.0.0 / Timer 1.0.0입니다. 두 mode는 함께 사용할 수 없습니다. 이 정적 검사는 공개 tag 존재나 원격 Git 설치 성공을 보장하지 않습니다.
+
 ## 발행 전 순서
 
 1. 후보 source commit과 실제 포함 기능을 확정합니다. 추가 기능이 합쳐졌으면 새 후보로 재검증합니다.
-2. 확정한 manifest·changelog를 실제 소스에 반영하고 문서의 개발 소스/기존 tag 구분을 새 릴리스에 맞춥니다. 후보의 `Unreleased`는 실제 발행 날짜로 변경합니다.
-3. 원본 repo의 staged 범위·diff check·커밋 메시지와 배포 보안 검사를 확인합니다. 기존 `verify-release.ps1 -Release`는 UI 2.0.0 / Timer 1.0.0 계약이므로 그대로 새 후보 검증에 사용하지 않습니다.
+2. manifest·후보 changelog 반영은 완료했습니다. 발행 시 `Unreleased`를 실제 발행 날짜로 변경합니다.
+3. 원본 repo의 staged 범위·diff check·커밋 메시지와 배포 보안 검사를 확인합니다. 후보는 위의 Candidate mode를 사용합니다. 공개 설치 안내 갱신 후에는 `verify-release.ps1 -Release -UiVersion 2.1.0 -TimerVersion 1.1.0`으로 검사합니다.
 4. 릴리스 commit을 푸시한 후 새 tag를 발행합니다. 이 준비 작업에서는 tag를 만들지 않습니다.
 5. 공개 Git URL을 대상으로 빈 프로젝트 설치·테스트·build를 재실행한 뒤 설치 안내를 새 tag로 바꿉니다.

@@ -1,5 +1,7 @@
 # UnityTools Timer
 
+현재 manifest는 1.1.0 미게시 후보입니다. 아래 설치 주소는 기존 공개 버전 1.0.0이며, 새 기능은 후보에 포함됩니다. 새 tag 설치 주소는 공개 Git 설치 검증 후 갱신합니다.
+
 ## 등록 목록 조회와 변경 알림
 
 현재 개발 소스의 `TaskTimerService`와 `PeriodTimerService`는 `TimerCnt`, `GetSnapshots()`, `OnTimersChanged`를 제공합니다. 기존 `unitytools-timer/v1.0.0` tag에는 포함되지 않습니다.

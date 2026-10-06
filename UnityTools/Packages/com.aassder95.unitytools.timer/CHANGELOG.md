@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## [1.1.0] - Unreleased
 
 - 작업 타이머의 일시정지·재개와 오프라인 정지 상태 복원 추가
 - 기존 상태 숫자·ITaskTimer 계약·v1 저장 호환 유지, 정지 snapshot v2와 저장 실패 회귀 검증 추가
@@ -8,8 +8,6 @@
 - 작업·주기 서비스의 등록 개수와 전체 데이터 사본 조회 추가
 - 등록·교체·삭제·해제 및 시간·상태·수령 변경을 알리는 OnTimersChanged 추가
 - 저장 실패 시 변경 알림과 기존 상태·사본 보존 회귀 테스트 추가
-
-## Unreleased
 
 - Timer Simulation Lab 샘플에 가상 UTC·오프라인 복원·역행·저장 실패·수령 상태 실험 추가
 - 실험 상태·저장 snapshot과 장면 버튼 구독 수명 검증 추가
