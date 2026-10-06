@@ -7,11 +7,18 @@ namespace UnityTools.Vfx.Editor
     public class VfxBrowserWindow : EditorWindow
     {
         //============================================================
+        // Constants
+        //============================================================
+        private const int PAGE_SIZE = 12;
+
+        //============================================================
         // Readonly
         //============================================================
         private readonly VfxPrefabCatalog _catalog = new VfxPrefabCatalog();
         private readonly List<VfxPrefabInfo> _results = new List<VfxPrefabInfo>();
         private readonly HashSet<string> _favoriteGuids = new HashSet<string>();
+        private readonly VfxThumbnailIndex _thumbnails = new VfxThumbnailIndex();
+        private readonly HashSet<string> _failedGuids = new HashSet<string>();
 
         //============================================================
         // Inspector Fields
@@ -23,6 +30,9 @@ namespace UnityTools.Vfx.Editor
         [SerializeField] private bool _isFavoritesOnly;
         [SerializeField] private float _durationSec = 5.0f;
         [SerializeField] private float _speed = 1.0f;
+        [Header("Thumbnails")]
+        [SerializeField] private EVfxColor _colorFilter;
+        [SerializeField] private float _thumbnailTimeSec = 1.0f;
 
         //============================================================
         // Fields
@@ -35,6 +45,11 @@ namespace UnityTools.Vfx.Editor
         private bool _isIndexDirty;
         private double _lastTickSec;
         private float _pendingSec;
+        private int _pageIdx;
+        private int _scanIdx;
+        private bool _isIndexingColors;
+        private double _nextThumbnailSec;
+        private string _thumbnailError = string.Empty;
 
         //============================================================
         // Unity Methods
@@ -57,6 +72,8 @@ namespace UnityTools.Vfx.Editor
             EditorApplication.projectChanged += HandleProjectChanged;
             EditorApplication.playModeStateChanged += HandlePlayModeChanged;
             AssemblyReloadEvents.beforeAssemblyReload += ReleasePreview;
+            AssemblyReloadEvents.beforeAssemblyReload += ClearThumbnails;
+            EditorApplication.update += TickThumbnails;
         }
 
         private void OnDisable()
@@ -65,7 +82,10 @@ namespace UnityTools.Vfx.Editor
             EditorApplication.projectChanged -= HandleProjectChanged;
             EditorApplication.playModeStateChanged -= HandlePlayModeChanged;
             AssemblyReloadEvents.beforeAssemblyReload -= ReleasePreview;
+            AssemblyReloadEvents.beforeAssemblyReload -= ClearThumbnails;
+            EditorApplication.update -= TickThumbnails;
             ReleasePreview();
+            ClearThumbnails();
         }
 
         private void OnGUI()
@@ -93,8 +113,43 @@ namespace UnityTools.Vfx.Editor
                 _loopFilter = (EVfxLoopFilter)EditorGUILayout.EnumPopup(_loopFilter, EditorStyles.toolbarPopup, GUILayout.Width(90.0f));
                 _isFavoritesOnly = GUILayout.Toggle(_isFavoritesOnly, "Favorites", EditorStyles.toolbarButton, GUILayout.Width(80.0f));
                 if (EditorGUI.EndChangeCheck())
+                {
+                    _pageIdx = 0;
                     FilterCatalog();
+                }
             }
+
+            using (new EditorGUILayout.HorizontalScope())
+            {
+                EditorGUI.BeginChangeCheck();
+                _colorFilter = (EVfxColor)EditorGUILayout.EnumPopup("Color", _colorFilter);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    _pageIdx = 0;
+                    FilterCatalog();
+                }
+
+                EditorGUI.BeginChangeCheck();
+                _thumbnailTimeSec = EditorGUILayout.Slider("Frame (sec)", _thumbnailTimeSec, 0.0f, 10.0f);
+                if (EditorGUI.EndChangeCheck())
+                {
+                    ClearThumbnails();
+                    FilterCatalog();
+                }
+
+                using (new EditorGUI.DisabledScope(_isIndexDirty || EditorApplication.isPlayingOrWillChangePlaymode))
+                {
+                    if (GUILayout.Button(_isIndexingColors ? "Stop analysis" : "Analyze colors"))
+                    {
+                        _isIndexingColors = !_isIndexingColors;
+                        _scanIdx = 0;
+                    }
+                }
+            }
+
+            EditorGUILayout.LabelField("Analyzed: " + _thumbnails.AnalyzedCnt + " / " + _catalog.Items.Count + " · textures: " + _thumbnails.TextureCnt + " / " + VfxThumbnailIndex.MAX_TEXTURE_CNT, EditorStyles.miniLabel);
+            if (!string.IsNullOrEmpty(_thumbnailError))
+                EditorGUILayout.HelpBox(_thumbnailError, MessageType.Warning);
 
             if (_isIndexDirty)
                 EditorGUILayout.HelpBox("에셋이 변경되었습니다. Refresh로 목록을 갱신하세요.", MessageType.Info);
@@ -135,6 +190,8 @@ namespace UnityTools.Vfx.Editor
             }
 
             _isIndexDirty = false;
+            ClearThumbnails();
+            _pageIdx = 0;
             FilterCatalog();
             ReleasePreview();
             for (int idx = 0; idx < _catalog.Items.Count; idx++)
@@ -150,6 +207,16 @@ namespace UnityTools.Vfx.Editor
         private void FilterCatalog()
         {
             _catalog.Filter(_query, _loopFilter, _favoriteGuids, _isFavoritesOnly, _results);
+            if (_colorFilter != EVfxColor.All)
+            {
+                for (int idx = _results.Count - 1; idx >= 0; idx--)
+                {
+                    if (_thumbnails.ColorOf(_results[idx].Guid) != _colorFilter)
+                        _results.RemoveAt(idx);
+                }
+            }
+
+            _pageIdx = Mathf.Clamp(_pageIdx, 0, Mathf.Max(0, (_results.Count - 1) / PAGE_SIZE));
         }
 
         private void SelectItem(VfxPrefabInfo item)
@@ -179,13 +246,28 @@ namespace UnityTools.Vfx.Editor
             using (new EditorGUILayout.VerticalScope(GUILayout.Width(280.0f)))
             {
                 EditorGUILayout.LabelField(_results.Count + " / " + _catalog.Items.Count + " prefabs", EditorStyles.boldLabel);
+                using (new EditorGUILayout.HorizontalScope())
+                {
+                    if (GUILayout.Button("<") && _pageIdx > 0)
+                        _pageIdx--;
+
+                    EditorGUILayout.LabelField((_pageIdx + 1) + " / " + Mathf.Max(1, (_results.Count + PAGE_SIZE - 1) / PAGE_SIZE), GUILayout.Width(80.0f));
+                    if (GUILayout.Button(">") && (_pageIdx + 1) * PAGE_SIZE < _results.Count)
+                        _pageIdx++;
+                }
+
                 _scrollPos = EditorGUILayout.BeginScrollView(_scrollPos);
                 string toggledGuid = null;
-                for (int idx = 0; idx < _results.Count; idx++)
+                int endIdx = Mathf.Min(_results.Count, (_pageIdx + 1) * PAGE_SIZE);
+                for (int idx = _pageIdx * PAGE_SIZE; idx < endIdx; idx++)
                 {
                     VfxPrefabInfo item = _results[idx];
                     using (new EditorGUILayout.HorizontalScope())
                     {
+                        Rect thumbnailRect = GUILayoutUtility.GetRect(48.0f, 48.0f, GUILayout.Width(48.0f));
+                        if (_thumbnails.TryGetTexture(item.Guid, out Texture2D thumbnail))
+                            GUI.DrawTexture(thumbnailRect, thumbnail, ScaleMode.ScaleToFit);
+
                         bool isFavorite = _favoriteGuids.Contains(item.Guid);
                         bool shouldFavorite = GUILayout.Toggle(isFavorite, "★", EditorStyles.miniButton, GUILayout.Width(28.0f));
                         if (shouldFavorite != isFavorite)
@@ -196,7 +278,7 @@ namespace UnityTools.Vfx.Editor
                             SelectItem(item);
                     }
 
-                    EditorGUILayout.LabelField(item.ParticleSystemCnt + " systems · " + (item.IsLooping ? "Loop" : "One shot"), EditorStyles.miniLabel);
+                    EditorGUILayout.LabelField(item.ParticleSystemCnt + " systems · " + (item.IsLooping ? "Loop" : "One shot") + " · " + _thumbnails.ColorOf(item.Guid), EditorStyles.miniLabel);
                 }
 
                 EditorGUILayout.EndScrollView();
@@ -310,14 +392,83 @@ namespace UnityTools.Vfx.Editor
         {
             _isIndexDirty = true;
             ReleasePreview();
+            ClearThumbnails();
             Repaint();
         }
 
         private void HandlePlayModeChanged(PlayModeStateChange state)
         {
             ReleasePreview();
+            ClearThumbnails();
             if (state == PlayModeStateChange.EnteredEditMode)
                 RefreshCatalog();
+        }
+
+        private void ClearThumbnails()
+        {
+            _thumbnails.Dispose();
+            _failedGuids.Clear();
+            _isIndexingColors = false;
+            _scanIdx = 0;
+            _thumbnailError = string.Empty;
+        }
+
+        private void TickThumbnails()
+        {
+            if (!hasFocus || _isIndexDirty || EditorApplication.isPlayingOrWillChangePlaymode || EditorApplication.timeSinceStartup < _nextThumbnailSec)
+                return;
+
+            _nextThumbnailSec = EditorApplication.timeSinceStartup + 0.1;
+            VfxPrefabInfo item = null;
+            if (_isIndexingColors)
+            {
+                while (_scanIdx < _catalog.Items.Count)
+                {
+                    VfxPrefabInfo candidate = _catalog.Items[_scanIdx++];
+                    if (_thumbnails.ColorOf(candidate.Guid) == EVfxColor.Unanalyzed && !_failedGuids.Contains(candidate.Guid))
+                    {
+                        item = candidate;
+                        break;
+                    }
+                }
+
+                if (item == null)
+                    _isIndexingColors = false;
+            }
+            else
+            {
+                int endIdx = Mathf.Min(_results.Count, (_pageIdx + 1) * PAGE_SIZE);
+                for (int idx = _pageIdx * PAGE_SIZE; idx < endIdx; idx++)
+                {
+                    VfxPrefabInfo candidate = _results[idx];
+                    if (!_failedGuids.Contains(candidate.Guid) && !_thumbnails.TryGetTexture(candidate.Guid, out Texture2D texture))
+                    {
+                        item = candidate;
+                        break;
+                    }
+                }
+            }
+
+            if (item == null)
+                return;
+
+            GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(item.Guid));
+            try
+            {
+                if (!_thumbnails.TryCapture(item.Guid, prefab, _thumbnailTimeSec))
+                {
+                    _failedGuids.Add(item.Guid);
+                    _thumbnailError = "썸네일을 생성하지 못했습니다. 그래픽 장치와 prefab을 확인한 뒤 Refresh하세요.";
+                }
+            }
+            catch (UnityException ex)
+            {
+                _failedGuids.Add(item.Guid);
+                _thumbnailError = "썸네일 렌더링에 실패했습니다: " + ex.Message;
+            }
+
+            FilterCatalog();
+            Repaint();
         }
     }
 }

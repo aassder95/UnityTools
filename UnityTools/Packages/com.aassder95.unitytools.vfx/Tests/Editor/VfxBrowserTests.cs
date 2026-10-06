@@ -282,6 +282,98 @@ namespace UnityTools.Vfx.Editor.Tests
             }
         }
 
+        [TestCase(0.0f, EVfxColor.Red)]
+        [TestCase(0.08f, EVfxColor.Orange)]
+        [TestCase(0.16f, EVfxColor.Yellow)]
+        [TestCase(0.3f, EVfxColor.Green)]
+        [TestCase(0.5f, EVfxColor.Cyan)]
+        [TestCase(0.65f, EVfxColor.Blue)]
+        [TestCase(0.8f, EVfxColor.Purple)]
+        [TestCase(0.9f, EVfxColor.Pink)]
+        public void ColorAnalysisClassifiesHue(float hue, EVfxColor expected)
+        {
+            Assert.That(VfxColorAnalyzer.Analyze(new[] { Color.HSVToRGB(hue, 1.0f, 1.0f) }, Color.black), Is.EqualTo(expected));
+        }
+
+        [Test]
+        public void ColorAnalysisIgnoresBackgroundDarkAndTransparentPixels()
+        {
+            Color[] pixels = { Color.black, new Color(0.02f, 0.0f, 0.0f), new Color(1.0f, 0.0f, 0.0f, 0.0f) };
+            Assert.That(VfxColorAnalyzer.Analyze(pixels, Color.black), Is.EqualTo(EVfxColor.Invisible));
+            Assert.That(VfxColorAnalyzer.Analyze(new[] { Color.white }, Color.black), Is.EqualTo(EVfxColor.White));
+            Assert.That(VfxColorAnalyzer.Analyze(new[] { Color.red, Color.green, Color.green }, Color.black), Is.EqualTo(EVfxColor.Green));
+        }
+
+        [Test]
+        public void ThumbnailRenderingBoundsTexturesAndRetainsEvictedColors()
+        {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+                Assert.Ignore("그래픽 장치가 없는 실행에서는 썸네일 렌더링을 검증할 수 없습니다.");
+
+            using (VfxThumbnailIndex thumbnails = new VfxThumbnailIndex())
+            {
+                byte[] source = File.ReadAllBytes(AssetDatabase.GetAssetPath(_prefab));
+                Assert.That(thumbnails.TryCapture("first", _prefab, 1.0f), Is.True);
+                Assert.That(thumbnails.ColorOf("first"), Is.EqualTo(EVfxColor.Orange));
+                Assert.That(thumbnails.TryGetTexture("first", out Texture2D first), Is.True);
+                Assert.That(first.width, Is.EqualTo(96));
+                Assert.That(thumbnails.TryCapture("first", _prefab, 1.0f), Is.True);
+                Assert.That(first == null, Is.True);
+                Assert.That(thumbnails.TryGetTexture("first", out Texture2D replacement), Is.True);
+                for (int idx = 0; idx < VfxThumbnailIndex.MAX_TEXTURE_CNT; idx++)
+                {
+                    Assert.That(thumbnails.TryCapture("item" + idx, _prefab, 1.0f), Is.True);
+                }
+
+                Assert.That(replacement == null, Is.True);
+                Assert.That(thumbnails.TryGetTexture("first", out Texture2D evicted), Is.False);
+                Assert.That(thumbnails.ColorOf("first"), Is.EqualTo(EVfxColor.Orange));
+                Assert.That(thumbnails.TextureCnt, Is.EqualTo(VfxThumbnailIndex.MAX_TEXTURE_CNT));
+                Assert.That(thumbnails.AnalyzedCnt, Is.EqualTo(VfxThumbnailIndex.MAX_TEXTURE_CNT + 1));
+                Assert.That(thumbnails.TryCapture("invalid", _prefab, float.NaN), Is.False);
+                Assert.That(File.ReadAllBytes(AssetDatabase.GetAssetPath(_prefab)), Is.EqualTo(source));
+                Assert.That(thumbnails.TryGetTexture("item0", out Texture2D owned), Is.True);
+                thumbnails.Dispose();
+                Assert.That(owned == null, Is.True);
+                Assert.That(thumbnails.TextureCnt, Is.Zero);
+                Assert.That(thumbnails.AnalyzedCnt, Is.Zero);
+                Assert.That(thumbnails.ColorOf("first"), Is.EqualTo(EVfxColor.Unanalyzed));
+            }
+        }
+
+        [Test]
+        public void BrowserColorFilterAndProjectChangeReleaseThumbnails()
+        {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+                Assert.Ignore("그래픽 장치가 없는 실행에서는 썸네일 렌더링을 검증할 수 없습니다.");
+
+            VfxBrowserWindow window = ScriptableObject.CreateInstance<VfxBrowserWindow>();
+            try
+            {
+                BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                VfxPrefabCatalog catalog = (VfxPrefabCatalog)typeof(VfxBrowserWindow).GetField("_catalog", flags).GetValue(window);
+                Assert.That(catalog.TryRefresh(_folderPath), Is.True);
+                VfxThumbnailIndex thumbnails = (VfxThumbnailIndex)typeof(VfxBrowserWindow).GetField("_thumbnails", flags).GetValue(window);
+                string guid = catalog.Items[0].Guid;
+                Assert.That(thumbnails.TryCapture(guid, _prefab, 1.0f), Is.True);
+                typeof(VfxBrowserWindow).GetField("_colorFilter", flags).SetValue(window, EVfxColor.Blue);
+                typeof(VfxBrowserWindow).GetMethod("FilterCatalog", flags).Invoke(window, null);
+                List<VfxPrefabInfo> results = (List<VfxPrefabInfo>)typeof(VfxBrowserWindow).GetField("_results", flags).GetValue(window);
+                Assert.That(results, Is.Empty);
+                typeof(VfxBrowserWindow).GetField("_colorFilter", flags).SetValue(window, EVfxColor.Orange);
+                typeof(VfxBrowserWindow).GetMethod("FilterCatalog", flags).Invoke(window, null);
+                Assert.That(results.Count, Is.EqualTo(1));
+                Assert.That(thumbnails.TryGetTexture(guid, out Texture2D owned), Is.True);
+                typeof(VfxBrowserWindow).GetMethod("HandleProjectChanged", flags).Invoke(window, null);
+                Assert.That(owned == null, Is.True);
+                Assert.That(thumbnails.AnalyzedCnt, Is.Zero);
+            }
+            finally
+            {
+                Object.DestroyImmediate(window);
+            }
+        }
+
         //============================================================
         // Utilities
         //============================================================
