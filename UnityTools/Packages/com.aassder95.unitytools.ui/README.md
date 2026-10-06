@@ -41,6 +41,25 @@ bool isConfirmOpened = isSettingsShown && navigator.TryOpenPopup(confirm);
 bool isBackHandled = isConfirmOpened && navigator.TryHandleBack();
 ```
 
+## 전환 완료 대기와 취소
+
+현재 개발 소스의 `UiCanvasTransition.ShowAsync()`와 `HideAsync()`는 `Task<EUiTransitionResult>`를 반환합니다. 기존 `Show()`·`Hide()`와 동일한 fade 경로를 사용하고, 완료 시 `Completed`, 요청 교체·명시적 취소·비활성화·파괴 시 `Cancelled`를 반환합니다. 기존 `unitytools-ui/v2.0.0` tag에는 포함되지 않습니다.
+
+```csharp
+EUiTransitionResult result = await transition.ShowAsync();
+if (result == EUiTransitionResult.Cancelled)
+    return;
+
+// 전환 후 로딩 화면이나 다음 동작을 이어갑니다.
+```
+
+- `IsTransitioning`으로 진행 여부를 확인하고 `CancelTransition()`으로 현재 fade를 중단합니다. 명시적 취소는 직전 요청의 목표 화면 상태로 즉시 맞춥니다. Show 취소는 alpha=1, Hide 취소는 alpha=0과 비활성화입니다. 결과는 Cancelled이며 이전 화면 상태로 되돌리지 않습니다.
+- 새 Show/Hide 요청은 기존 대기를 Cancelled로 끝내고 현재 alpha에서 새 전환을 시작합니다. 요청별 Task가 있어 이전 요청을 기다리던 코드가 새 요청의 완료를 성공으로 오인하지 않습니다.
+- component·GameObject·부모 비활성화와 파괴는 진행 중 대기를 끝내고 화면 입력을 해제합니다. 비활성화 중인 component 또는 부모 아래 Show 요청은 Cancelled, 이미 비활성인 화면의 Hide 요청은 Completed입니다. 부모는 자동 활성화하지 않습니다.
+- duration이 0이면 즉시 완료합니다. fade는 unscaled time을 사용하며 진행 중에는 입력을 차단하고 완료 후 기존 `SetInteractionEnabled` 정책을 적용합니다.
+- Unity 메인 스레드에서 호출하고 await합니다. `.Wait()`·미완료 Task의 `.Result`로 Unity 스레드를 막지 않습니다. 취소 결과는 예외가 아니며 CancellationToken은 받지 않습니다.
+- 이 API는 Canvas fade의 완료만 나타냅니다. `UiNavigator`와 Presenter의 화면 stack·모델 수명은 기존 동기 API가 소유하므로 취소가 navigation을 되돌리거나 새로 등록하지 않습니다.
+
 ## 선택적 Input System
 
 기본 UI package는 Input System을 요구하지 않습니다. Back action이 필요하면 프로젝트에 `com.unity.inputsystem`을 추가하고 `UnityTools.Ui.InputSystem` assembly를 참조합니다. `UiBackInput.Init(navigator)`로 Back action을 같은 navigation 흐름에 연결할 수 있습니다.

@@ -1,8 +1,10 @@
+using System.Collections;
 using System.Reflection;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.TestTools;
 using UnityTools.Ui;
 
 namespace UnityTools.Ui.Tests.UiFramework
@@ -62,6 +64,102 @@ namespace UnityTools.Ui.Tests.UiFramework
 
             Assert.That(cgView.interactable, Is.False);
             Assert.That(cgView.blocksRaycasts, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator AsyncTransitionCompletesAndRestoresInput()
+        {
+            UiCanvasTransition transition = CreateTransition(out CanvasGroup cgView);
+            SetField(transition, "_showDurationSec", 0.03f);
+            SetField(transition, "_hideDurationSec", 0.03f);
+            var show = transition.ShowAsync();
+            Assert.That(transition.IsTransitioning, Is.True);
+            Assert.That(cgView.interactable, Is.False);
+            for (int attempt = 0; attempt < 10 && !show.IsCompleted; ++attempt)
+            {
+                yield return new WaitForSecondsRealtime(0.02f);
+            }
+
+            Assert.That(show.IsCompleted, Is.True);
+            Assert.That(show.Result, Is.EqualTo(EUiTransitionResult.Completed));
+            Assert.That(transition.IsTransitioning, Is.False);
+            Assert.That(cgView.alpha, Is.EqualTo(1.0f));
+            Assert.That(cgView.interactable, Is.True);
+            var hide = transition.HideAsync();
+            for (int attempt = 0; attempt < 10 && !hide.IsCompleted; ++attempt)
+            {
+                yield return new WaitForSecondsRealtime(0.02f);
+            }
+
+            Assert.That(hide.IsCompleted, Is.True);
+            Assert.That(hide.Result, Is.EqualTo(EUiTransitionResult.Completed));
+            Assert.That(transition.gameObject.activeSelf, Is.False);
+            Assert.That(cgView.blocksRaycasts, Is.False);
+        }
+
+        [Test]
+        public void ReplacedTransitionCancelsOnlyPreviousRequest()
+        {
+            UiCanvasTransition transition = CreateTransition(out CanvasGroup cgView);
+            SetField(transition, "_showDurationSec", 10.0f);
+            SetField(transition, "_hideDurationSec", 0.0f);
+            var show = transition.ShowAsync();
+            var hide = transition.HideAsync();
+            Assert.That(show.Result, Is.EqualTo(EUiTransitionResult.Cancelled));
+            Assert.That(hide.Result, Is.EqualTo(EUiTransitionResult.Completed));
+            Assert.That(transition.IsTransitioning, Is.False);
+            Assert.That(cgView.alpha, Is.Zero);
+            Assert.That(transition.gameObject.activeSelf, Is.False);
+        }
+
+        [Test]
+        public void CancellationFinishesRequestedVisualStateAndRetainsInputPolicy()
+        {
+            UiCanvasTransition transition = CreateTransition(out CanvasGroup cgView);
+            SetField(transition, "_showDurationSec", 10.0f);
+            SetField(transition, "_hideDurationSec", 10.0f);
+            transition.SetInteractionEnabled(false);
+            var show = transition.ShowAsync();
+            transition.CancelTransition();
+            Assert.That(show.Result, Is.EqualTo(EUiTransitionResult.Cancelled));
+            Assert.That(cgView.alpha, Is.EqualTo(1.0f));
+            Assert.That(cgView.interactable, Is.False);
+            var hide = transition.HideAsync();
+            transition.CancelTransition();
+            Assert.That(hide.Result, Is.EqualTo(EUiTransitionResult.Cancelled));
+            Assert.That(transition.gameObject.activeSelf, Is.False);
+            Assert.That(cgView.alpha, Is.Zero);
+            transition.CancelTransition();
+            Assert.That(transition.IsTransitioning, Is.False);
+        }
+
+        [Test]
+        public void DisableAndDestructionResolveOutstandingWaits()
+        {
+            UiCanvasTransition transition = CreateTransition(out CanvasGroup cgView);
+            SetField(transition, "_showDurationSec", 10.0f);
+            var first = transition.ShowAsync();
+            transition.enabled = false;
+            Assert.That(first.Result, Is.EqualTo(EUiTransitionResult.Cancelled));
+            Assert.That(transition.IsVisible, Is.False);
+            Assert.That(cgView.blocksRaycasts, Is.False);
+            Assert.That(transition.ShowAsync().Result, Is.EqualTo(EUiTransitionResult.Cancelled));
+            transition.enabled = true;
+            var second = transition.ShowAsync();
+            Object.DestroyImmediate(transition.gameObject);
+            Assert.That(second.Result, Is.EqualTo(EUiTransitionResult.Cancelled));
+        }
+
+        [Test]
+        public void InactiveParentRejectsShowWithoutLeavingPendingWait()
+        {
+            UiCanvasTransition transition = CreateTransition(out _);
+            _goTestRoot.SetActive(false);
+            var show = transition.ShowAsync();
+            Assert.That(show.IsCompleted, Is.True);
+            Assert.That(show.Result, Is.EqualTo(EUiTransitionResult.Cancelled));
+            Assert.That(transition.IsTransitioning, Is.False);
+            Assert.That(transition.HideAsync().Result, Is.EqualTo(EUiTransitionResult.Completed));
         }
 
         [Test]
@@ -147,6 +245,15 @@ namespace UnityTools.Ui.Tests.UiFramework
         //============================================================
         // Utilities
         //============================================================
+        private UiCanvasTransition CreateTransition(out CanvasGroup cgView)
+        {
+            GameObject goView = new("AsyncTransitionView");
+            goView.transform.SetParent(_goTestRoot.transform);
+            cgView = goView.AddComponent<CanvasGroup>();
+            cgView.alpha = 0.0f;
+            return goView.AddComponent<UiCanvasTransition>();
+        }
+
         private static Button CreateButton(string objectName, Transform parent)
         {
             GameObject goButton = new(objectName);

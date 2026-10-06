@@ -1,4 +1,5 @@
 using System.Collections;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace UnityTools.Ui
@@ -17,12 +18,14 @@ namespace UnityTools.Ui
         //============================================================
         private CanvasGroup _cgTarget;
         private Coroutine _coFade;
+        private TaskCompletionSource<EUiTransitionResult> _completion;
         private bool _isVisible;
         private bool _isInteractionEnabled = true;
 
         //============================================================
         // Properties
         //============================================================
+        public bool IsTransitioning => _completion != null;
         public bool IsVisible => _isVisible;
         public bool IsInteractionEnabled => _isInteractionEnabled;
 
@@ -36,6 +39,16 @@ namespace UnityTools.Ui
             ApplyInteraction(_isVisible && _isInteractionEnabled);
         }
 
+        private void OnDisable()
+        {
+            StopFade();
+            _isVisible = false;
+            if (_cgTarget != null)
+                _cgTarget.alpha = 0.0f;
+
+            ApplyInteraction(false);
+        }
+
         private void OnDestroy()
         {
             StopFade();
@@ -46,41 +59,82 @@ namespace UnityTools.Ui
         //============================================================
         public void Show()
         {
-            StopFade();
-            gameObject.SetActive(true);
-            _isVisible = true;
-            ApplyInteraction(false);
-
-            if (_showDurationSec <= 0.0f)
-            {
-                _cgTarget.alpha = 1.0f;
-                ApplyInteraction(_isInteractionEnabled);
-                return;
-            }
-
-            _coFade = StartCoroutine(CoFade(1.0f, _showDurationSec, false));
+            BeginTransition(true);
         }
 
         public void Hide()
         {
-            if (!gameObject.activeSelf)
+            BeginTransition(false);
+        }
+
+        public Task<EUiTransitionResult> ShowAsync()
+        {
+            return BeginTransition(true);
+        }
+
+        public Task<EUiTransitionResult> HideAsync()
+        {
+            return BeginTransition(false);
+        }
+
+        public void CancelTransition()
+        {
+            if (!IsTransitioning)
+                return;
+
+            bool isVisible = _isVisible;
+            StopFade();
+            _cgTarget.alpha = isVisible ? 1.0f : 0.0f;
+            ApplyInteraction(isVisible && _isInteractionEnabled);
+            if (!isVisible)
+                gameObject.SetActive(false);
+        }
+
+        private Task<EUiTransitionResult> BeginTransition(bool shouldShow)
+        {
+            StopFade();
+            if (shouldShow)
+                gameObject.SetActive(true);
+
+            if (!isActiveAndEnabled)
             {
                 _isVisible = false;
-                return;
+                if (_cgTarget != null)
+                    _cgTarget.alpha = 0.0f;
+
+                ApplyInteraction(false);
+                if (!shouldShow)
+                    gameObject.SetActive(false);
+
+                return Task.FromResult(shouldShow ? EUiTransitionResult.Cancelled : EUiTransitionResult.Completed);
             }
 
-            StopFade();
-            _isVisible = false;
+            _isVisible = shouldShow;
             ApplyInteraction(false);
-
-            if (_hideDurationSec <= 0.0f)
+            _completion = new TaskCompletionSource<EUiTransitionResult>(TaskCreationOptions.RunContinuationsAsynchronously);
+            Task<EUiTransitionResult> task = _completion.Task;
+            float durationSec = shouldShow ? _showDurationSec : _hideDurationSec;
+            if (durationSec <= 0.0f)
             {
-                _cgTarget.alpha = 0.0f;
-                gameObject.SetActive(false);
-                return;
+                CompleteTransition(shouldShow);
+                return task;
             }
 
-            _coFade = StartCoroutine(CoFade(0.0f, _hideDurationSec, true));
+            _coFade = StartCoroutine(CoFade(shouldShow ? 1.0f : 0.0f, durationSec, !shouldShow));
+            return task;
+        }
+
+        private void CompleteTransition(bool shouldShow)
+        {
+            _cgTarget.alpha = shouldShow ? 1.0f : 0.0f;
+            _coFade = null;
+            TaskCompletionSource<EUiTransitionResult> completion = _completion;
+            _completion = null;
+            ApplyInteraction(shouldShow && _isInteractionEnabled);
+            if (!shouldShow)
+                gameObject.SetActive(false);
+
+            completion.TrySetResult(EUiTransitionResult.Completed);
         }
 
         public void SetInteractionEnabled(bool isEnabled)
@@ -91,11 +145,15 @@ namespace UnityTools.Ui
 
         private void StopFade()
         {
-            if (_coFade == null)
-                return;
+            if (_coFade != null)
+            {
+                StopCoroutine(_coFade);
+                _coFade = null;
+            }
 
-            StopCoroutine(_coFade);
-            _coFade = null;
+            TaskCompletionSource<EUiTransitionResult> completion = _completion;
+            _completion = null;
+            completion?.TrySetResult(EUiTransitionResult.Cancelled);
         }
 
         private void ApplyInteraction(bool isEnabled)
@@ -124,15 +182,7 @@ namespace UnityTools.Ui
                 yield return null;
             }
 
-            _cgTarget.alpha = targetAlpha;
-            _coFade = null;
-            if (shouldDeactivate)
-            {
-                gameObject.SetActive(false);
-                yield break;
-            }
-
-            ApplyInteraction(_isInteractionEnabled);
+            CompleteTransition(!shouldDeactivate);
         }
     }
 }

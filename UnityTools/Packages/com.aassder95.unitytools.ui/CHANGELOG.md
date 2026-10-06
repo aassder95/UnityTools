@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- Canvas fade 요청별 완료 대기 Task와 Completed/Cancelled 결과 추가
+- 요청 교체·명시적 취소·비활성화·파괴 시 대기 종료와 입력 상태 정리
+
 - 세로 단일 열 DynamicScroll의 가변 높이 초기화·변경·삽입 API 추가
 - 누적 높이 기반 표시 범위 검색과 높이·목록 변경 시 anchor 보존
 - 기존 항목 재사용과 고정 크기 목록 복귀 회귀 테스트 추가
