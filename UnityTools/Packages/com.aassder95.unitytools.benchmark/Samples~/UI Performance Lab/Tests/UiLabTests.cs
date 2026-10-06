@@ -107,6 +107,7 @@ namespace UnityTools.Benchmark.Samples.Tests
         {
             yield return SceneManager.LoadSceneAsync("UiPerformanceLab");
             UiLabController controller = Object.FindFirstObjectByType<UiLabController>();
+            GetField<InputField>(controller, "_inputPairCnt").text = "1";
             SetField(controller, "_warmupFrames", 3);
             SetField(controller, "_sampleFrames", 12);
             SetField(controller, "_mutationIntervalFrames", 1);
@@ -192,6 +193,108 @@ namespace UnityTools.Benchmark.Samples.Tests
             scroll.ScrollTo(50, true);
             Assert.That(GetField<RectTransform>(baseline, "_rtContent").anchoredPosition.y, Is.EqualTo(initialPos).Within(0.1f));
             scroll.ReleaseView();
+        }
+
+        [UnityTest]
+        public IEnumerator SeriesAlternatesAndPreservesCompletedPairs()
+        {
+            yield return SceneManager.LoadSceneAsync("UiPerformanceLab");
+            UiLabController controller = Object.FindFirstObjectByType<UiLabController>();
+            SetField(controller, "_warmupFrames", 1);
+            SetField(controller, "_sampleFrames", 3);
+            GetField<InputField>(controller, "_inputItemCnt").text = "100";
+            InputField pairs = GetField<InputField>(controller, "_inputPairCnt");
+            pairs.text = "4";
+            GetField<Dropdown>(controller, "_orderChoice").value = 1;
+            GetField<Button>(controller, "_btnCompare").onClick.Invoke();
+            float deadlineSec = Time.realtimeSinceStartup + 30.0f;
+            while (controller.IsRunning && Time.realtimeSinceStartup < deadlineSec)
+            {
+                yield return null;
+            }
+
+            Assert.That(controller.IsRunning, Is.False);
+            Assert.That(controller.Series.ComparisonCnt, Is.EqualTo(4), GetField<Text>(controller, "_txtResult").text);
+            for (int idx = 0; idx < 4; ++idx)
+            {
+                Assert.That(controller.Series.TryGetComparison(idx, out UiLabComparison pair), Is.True);
+                Assert.That(pair.IsBaselineFirst, Is.EqualTo(idx % 2 != 0));
+            }
+
+            Assert.That(controller.Series.TrySummarize(out _), Is.True);
+            Assert.That(GetField<Button>(controller, "_btnExport").interactable, Is.True);
+            pairs.text = "4";
+            controller.Compare();
+            deadlineSec = Time.realtimeSinceStartup + 30.0f;
+            while (controller.IsRunning && controller.Series.ComparisonCnt == 0 && Time.realtimeSinceStartup < deadlineSec)
+            {
+                yield return null;
+            }
+
+            Assert.That(controller.Series.ComparisonCnt, Is.EqualTo(1));
+            controller.Stop();
+            Assert.That(controller.IsRunning, Is.False);
+            Assert.That(controller.Series.ComparisonCnt, Is.EqualTo(1));
+            Assert.That(controller.Series.IsComplete, Is.False);
+            Assert.That(controller.Series.TrySummarize(out _), Is.True);
+            Assert.That(GetField<Button>(controller, "_btnExport").interactable, Is.True);
+            string path = Path.Combine(Application.temporaryCachePath, "ui-series-partial-" + System.Guid.NewGuid().ToString("N") + ".csv");
+            try
+            {
+                Assert.That(controller.Series.TryExport(path), Is.True);
+                Assert.That(File.ReadAllLines(path).Length, Is.EqualTo(8));
+            }
+            finally
+            {
+                File.Delete(path);
+            }
+
+            controller.Compare();
+            yield return null;
+            controller.enabled = false;
+            Assert.That(controller.IsRunning, Is.False);
+            Assert.That(controller.Series.ComparisonCnt, Is.Zero);
+            controller.enabled = true;
+            pairs.text = "0";
+            controller.Compare();
+            Assert.That(controller.IsRunning, Is.False);
+        }
+
+        [UnityTest]
+        public IEnumerator SeriesRejectsChangedEnvironment()
+        {
+            yield return SceneManager.LoadSceneAsync("UiPerformanceLab");
+            UiLabController controller = Object.FindFirstObjectByType<UiLabController>();
+            SetField(controller, "_warmupFrames", 1);
+            SetField(controller, "_sampleFrames", 3);
+            GetField<InputField>(controller, "_inputItemCnt").text = "100";
+            GetField<InputField>(controller, "_inputPairCnt").text = "4";
+            int originalRate = Application.targetFrameRate;
+            try
+            {
+                controller.Compare();
+                float deadlineSec = Time.realtimeSinceStartup + 30.0f;
+                while (controller.IsRunning && controller.Series.ComparisonCnt == 0 && Time.realtimeSinceStartup < deadlineSec)
+                {
+                    yield return null;
+                }
+
+                Assert.That(controller.Series.ComparisonCnt, Is.EqualTo(1));
+                Application.targetFrameRate = originalRate == 60 ? 30 : 60;
+                while (controller.IsRunning && Time.realtimeSinceStartup < deadlineSec)
+                {
+                    yield return null;
+                }
+
+                Assert.That(controller.IsRunning, Is.False);
+                Assert.That(controller.Series.ComparisonCnt, Is.EqualTo(1));
+                Assert.That(GetField<Button>(controller, "_btnExport").interactable, Is.True);
+            }
+            finally
+            {
+                controller.Stop();
+                Application.targetFrameRate = originalRate;
+            }
         }
 
         //============================================================

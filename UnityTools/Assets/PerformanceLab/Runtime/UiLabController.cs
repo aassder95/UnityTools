@@ -35,6 +35,7 @@ namespace UnityTools.Benchmark.Samples
         [SerializeField] private Button _btnExport;
         [SerializeField] private Button _btnCompare;
         [SerializeField] private Dropdown _orderChoice;
+        [SerializeField] private InputField _inputPairCnt;
         [SerializeField] private Text _txtResult;
         [Header("Measurement")]
         [SerializeField, Min(1)] private int _warmupFrames = 120;
@@ -55,6 +56,8 @@ namespace UnityTools.Benchmark.Samples
         private int _peakLiveItemCnt;
         private long _bindCnt;
         private UiLabComparison _comparison;
+        private UiLabSeries _series;
+        private UiLabSeriesSummary _seriesSummary;
         private bool _isComparing;
         private bool _isBaseline;
 
@@ -64,6 +67,7 @@ namespace UnityTools.Benchmark.Samples
         public bool IsRunning => _coRun != null;
         public UiLabReport Report => _report;
         public UiLabComparison Comparison => _comparison;
+        public UiLabSeries Series => _series;
 
         //============================================================
         // Unity Methods
@@ -104,6 +108,8 @@ namespace UnityTools.Benchmark.Samples
             _scenario = scenario;
             _report = null;
             _comparison = null;
+            _series = null;
+            _seriesSummary = null;
             _isBaseline = false;
             _baseline.Release();
             Canvas.ForceUpdateCanvases();
@@ -149,17 +155,19 @@ namespace UnityTools.Benchmark.Samples
                 _scroll.SetInputEnabled(true);
             }
             SetControls(false);
-            _txtResult.text = "측정을 취소했습니다. 완료되지 않은 결과는 저장하지 않습니다.";
+            RefreshSummary();
+            _txtResult.text = "측정을 취소했습니다. 완료되지 않은 쌍은 제외합니다." + (_seriesSummary != null ? "\n" + FormatSeries() : string.Empty);
         }
 
         public void Export()
         {
-            if (IsRunning || (_report == null && _comparison == null))
+            if (IsRunning || (_report == null && (_series == null || _series.ComparisonCnt == 0)))
                 return;
 
-            string path = Path.Combine(Application.persistentDataPath, _comparison == null ? "ui-performance-lab.csv" : "ui-performance-comparison.csv");
-            bool isSaved = _comparison == null ? _report.TryExport(path) : _comparison.TryExport(path);
-            string result = _comparison == null ? FormatResult() : FormatComparison();
+            bool hasSeries = _series != null && _series.ComparisonCnt > 0;
+            string path = Path.Combine(Application.persistentDataPath, hasSeries ? "ui-performance-series-v1.csv" : "ui-performance-lab.csv");
+            bool isSaved = hasSeries ? _series.TryExport(path) : _report.TryExport(path);
+            string result = hasSeries ? FormatSeries() : FormatResult();
             _txtResult.text = result + (isSaved ? "\nCSV 저장: " + path : "\nCSV 저장에 실패했습니다. 저장 경로와 권한을 확인하세요.");
         }
 
@@ -168,23 +176,48 @@ namespace UnityTools.Benchmark.Samples
             if (IsRunning)
                 return;
 
-            if (!int.TryParse(_inputItemCnt.text, out int itemCnt) || !int.TryParse(_inputSeed.text, out int seed) || itemCnt > _maxCompareItemCnt || itemCnt > 10000 || _warmupFrames < 1 || _sampleFrames < 1 || _timeoutSec <= 0.0f || !UiLabScenario.TryCreate(itemCnt, seed, (EUiLabScenario)_scenarioChoice.value, _itemStep, _mutationCnt, _mutationIntervalFrames, out _))
+            if (!int.TryParse(_inputPairCnt.text, out int pairCnt) || pairCnt < 1 || pairCnt > UiLabSeries.MaxPairCnt || !int.TryParse(_inputItemCnt.text, out int itemCnt) || !int.TryParse(_inputSeed.text, out int seed) || itemCnt > _maxCompareItemCnt || itemCnt > 10000 || _warmupFrames < 1 || _sampleFrames < 1 || _timeoutSec <= 0.0f || !UiLabScenario.TryCreate(itemCnt, seed, (EUiLabScenario)_scenarioChoice.value, _itemStep, _mutationCnt, _mutationIntervalFrames, out _))
             {
-                _txtResult.text = "비교 항목 수는 삽입 개수 이상, " + Mathf.Min(_maxCompareItemCnt, 10000) + " 이하로 입력하세요. 시드와 측정 설정도 확인하세요.";
+                _txtResult.text = "비교 항목 수는 삽입 개수 이상, " + Mathf.Min(_maxCompareItemCnt, 10000) + " 이하, 반복 쌍은 1~20으로 입력하세요. 시드와 측정 설정도 확인하세요.";
                 return;
             }
 
             _report = null;
             _comparison = null;
+            _seriesSummary = null;
+            if (!UiLabSeries.TryCreate(pairCnt, _orderChoice.value == 0, UiLabEnvironment.Capture(), out _series))
+                return;
+
             _isComparing = true;
             SetControls(true);
             _txtResult.text = "두 방식을 같은 조건으로 순차 측정합니다. UI 초기화와 정리를 완료한 뒤 프레임을 측정합니다.";
-            _coRun = StartCoroutine(CoCompare(itemCnt, seed, (EUiLabScenario)_scenarioChoice.value, _orderChoice.value == 0));
+            _coRun = StartCoroutine(CoSeries(itemCnt, seed, (EUiLabScenario)_scenarioChoice.value));
         }
 
         //============================================================
         // Coroutines
         //============================================================
+        private IEnumerator CoSeries(int itemCnt, int seed, EUiLabScenario mode)
+        {
+            while (!_series.IsComplete)
+            {
+                _txtResult.text = "A/B 반복 " + (_series.ComparisonCnt + 1) + "/" + _series.RequestedPairCnt + " · " + (_series.IsNextBaselineFirst ? "Baseline → Virtualized" : "Virtualized → Baseline");
+                _comparison = null;
+                yield return CoCompare(itemCnt, seed, mode, _series.IsNextBaselineFirst);
+                if (!_isComparing)
+                    yield break;
+
+                if (!_series.Environment.MatchesCurrent() || !_series.TryAdd(_comparison))
+                {
+                    _comparison = null;
+                    CompleteComparison("비교 조건이 변경됐습니다. 완료된 이전 쌍만 집계합니다.");
+                    yield break;
+                }
+            }
+
+            CompleteComparison("반복 비교를 완료했습니다.");
+        }
+
         private IEnumerator CoCompare(int itemCnt, int seed, EUiLabScenario mode, bool isBaselineFirst)
         {
             UiLabReport baselineReport = null;
@@ -193,6 +226,12 @@ namespace UnityTools.Benchmark.Samples
             double virtualInitMs = 0.0d;
             for (int phase = 0; phase < 2; ++phase)
             {
+                if (!_series.Environment.MatchesCurrent())
+                {
+                    CompleteComparison("해상도 또는 품질 설정이 변경됐습니다. 완료된 이전 쌍만 집계합니다.");
+                    yield break;
+                }
+
                 ReleaseComparisonViews();
                 yield return null;
                 System.GC.Collect();
@@ -264,7 +303,7 @@ namespace UnityTools.Benchmark.Samples
 
             Rect viewport = ((RectTransform)_scroll.transform).rect;
             _comparison = new UiLabComparison(baselineReport, virtualReport, baselineInitMs, virtualInitMs, isBaselineFirst, viewport.width, viewport.height);
-            CompleteComparison(FormatComparison());
+            ReleaseComparisonViews();
         }
 
         private IEnumerator CoRun()
@@ -353,14 +392,26 @@ namespace UnityTools.Benchmark.Samples
             _coRun = null;
             _isComparing = false;
             SetControls(false);
-            _txtResult.text = message;
+            RefreshSummary();
+            _txtResult.text = message + (_seriesSummary != null ? "\n" + FormatSeries() : string.Empty);
         }
 
-        private string FormatComparison()
+        private void RefreshSummary()
         {
-            UiLabReport baseline = _comparison.Baseline;
-            UiLabReport virtualized = _comparison.Virtualized;
-            return string.Format(CultureInfo.InvariantCulture, "A/B · {0:N0} items · seed {1}\nOrder: {2}\n                       Baseline / Virtualized\nInit + layout: {3:F2} / {4:F2} ms\nFrame P95: {5:F2} / {6:F2} ms\nMain Thread P95: {7:F2} / {8:F2} ms\nGC mean: {9:F0} / {10:F0} B/frame\nProcess peak: {11:F1} / {12:F1} MiB\nCreated objects: {13:N0} / {14:N0}\nPeak active: {15:N0} / {16:N0}\nFrame P95 delta (V - B): {17:+0.00;-0.00;0.00} ms\nMemory is process-wide, not UI-only.\nRepeat both orders in the same Player.\nExport CSV for paired raw results.", baseline.Measurement.AgentCnt, baseline.Measurement.Seed, _comparison.IsBaselineFirst ? "Baseline -> Virtualized" : "Virtualized -> Baseline", _comparison.BaselineInitMs, _comparison.VirtualizedInitMs, baseline.Measurement.P95FrameMs, virtualized.Measurement.P95FrameMs, baseline.Measurement.P95MainThreadMs, virtualized.Measurement.P95MainThreadMs, baseline.Measurement.MeanGcBytes, virtualized.Measurement.MeanGcBytes, baseline.Measurement.PeakMemoryBytes / 1048576.0d, virtualized.Measurement.PeakMemoryBytes / 1048576.0d, baseline.CreatedItemCnt, virtualized.CreatedItemCnt, baseline.PeakLiveItemCnt, virtualized.PeakLiveItemCnt, virtualized.Measurement.P95FrameMs - baseline.Measurement.P95FrameMs);
+            _seriesSummary = null;
+            if (_series != null && _series.TrySummarize(out UiLabSeriesSummary summary))
+                _seriesSummary = summary;
+        }
+
+        private string FormatSeries()
+        {
+            return "A/B 완료 " + _series.ComparisonCnt + "/" + _series.RequestedPairCnt + " 쌍 · 순서 교대\n중앙값 ± 모집단 표준편차 · B / V\n" + FormatMetric("Init ms", _seriesSummary.Initialization) + FormatMetric("Frame P95 ms", _seriesSummary.FrameP95) + FormatMetric("Main P95 ms", _seriesSummary.MainThreadP95) + FormatMetric("GC B/frame", _seriesSummary.GcMean) + FormatMetric("Process peak B", _seriesSummary.PeakMemory) + "개선율은 완료된 각 쌍의 비율을 요약합니다.\n양수: 감소 / 음수: 증가 · 기준 0은 N/A\nCSV에 개별 실행과 요약을 함께 저장합니다.";
+        }
+
+        private static string FormatMetric(string label, UiLabMetricSummary summary)
+        {
+            string improvement = summary.HasImprovement ? summary.ImprovementMedian.ToString("F1", CultureInfo.InvariantCulture) + "% (n=" + summary.ImprovementCnt + ")" : "N/A";
+            return string.Format(CultureInfo.InvariantCulture, "{0}: {1:F2} ± {2:F2} / {3:F2} ± {4:F2}\n개선율 중앙값: {5}\n", label, summary.BaselineMedian, summary.BaselineDeviation, summary.VirtualizedMedian, summary.VirtualizedDeviation, improvement);
         }
 
         private void SetControls(bool isRunning)
@@ -371,8 +422,9 @@ namespace UnityTools.Benchmark.Samples
             _btnRun.interactable = !isRunning;
             _btnCompare.interactable = !isRunning;
             _orderChoice.interactable = !isRunning;
+            _inputPairCnt.interactable = !isRunning;
             _btnStop.interactable = isRunning;
-            _btnExport.interactable = !isRunning && (_report != null || _comparison != null);
+            _btnExport.interactable = !isRunning && (_report != null || (_series != null && _series.ComparisonCnt > 0));
         }
 
         private string FormatResult()
