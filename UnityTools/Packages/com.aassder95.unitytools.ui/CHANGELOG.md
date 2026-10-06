@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+- 명시적인 좌표계·Motion asset·아이콘 재사용·도착/완료/취소 알림을 제공하는 UiRewardFlyer 추가
+- Reward Flyer Sample 장면·prefab·설정 asset과 좌표 변환·수명주기 회귀 테스트 추가
+
 - 가변 높이·전환 결과·특정 Popup 닫기를 시연하는 UiFeatureDemo 장면과 Editor 생성기 추가
 
 - 지정한 Popup만 닫는 TryClosePopup overload와 하위 Popup 제거 시 활성 포커스 보존

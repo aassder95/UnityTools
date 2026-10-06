@@ -1,0 +1,6 @@
+{
+    "name": "UnityTools.Ui.RewardSample",
+    "rootNamespace": "UnityTools.Ui.Samples.Rewards",
+    "references": ["UnityTools.Ui", "Unity.ugui"],
+    "autoReferenced": true
+}

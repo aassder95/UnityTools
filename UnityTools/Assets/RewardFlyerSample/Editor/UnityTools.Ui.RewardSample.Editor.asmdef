@@ -1,0 +1,7 @@
+{
+    "name": "UnityTools.Ui.RewardSample.Editor",
+    "rootNamespace": "UnityTools.Ui.Samples.Rewards.Editor",
+    "references": ["UnityTools.Ui", "UnityTools.Ui.RewardSample", "Unity.ugui"],
+    "includePlatforms": ["Editor"],
+    "autoReferenced": true
+}

@@ -11,6 +11,9 @@ Unity 2022.3 이상에서 사용하는 uGUI 기반 UI 패키지입니다.
 - 세로 / 가로, Start / Center / End 정렬 이동
 - 해상도와 회전 변경을 추적하는 Safe Area
 - DynamicScrollView 전용 Inspector
+- 보상 아이콘의 분산·HUD 이동·내부 재사용을 제공하는 `UiRewardFlyer`
+
+보상 연출의 Inspector 연결과 API 계약은 [Reward Flyer 안내](Documentation~/reward-flyer.md)를 참고하세요. Package Manager의 **Reward Flyer Sample**을 Import하거나, 데모 프로젝트의 `Assets/RewardFlyerSample/RewardFlyerSample.unity`를 열어 실행합니다. 이 기능은 현재 개발 소스에만 있으며 기존 `unitytools-ui/v2.0.0` tag에는 포함되지 않습니다.
 
 Timer, 범용 singleton, logging, persistence, pooling API는 포함하지 않습니다.
 

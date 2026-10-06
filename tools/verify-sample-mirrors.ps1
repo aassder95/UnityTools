@@ -68,3 +68,18 @@ foreach ($sourceFile in $timerFiles)
 }
 
 Write-Host "Timer Simulation Lab sample mirrors match: $($timerFiles.Count) files"
+
+$rewardSource = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Packages/com.aassder95.unitytools.ui/Samples~/Reward Flyer Sample')).Path
+$rewardMirror = (Resolve-Path -LiteralPath (Join-Path $repoRoot 'UnityTools/Assets/RewardFlyerSample')).Path
+$rewardFiles = @(Get-ChildItem -LiteralPath $rewardSource -Recurse -File)
+foreach ($sourceFile in $rewardFiles)
+{
+    $relativePath = $sourceFile.FullName.Substring($rewardSource.Length + 1)
+    $projectFile = Join-Path $rewardMirror $relativePath
+    if (!(Test-Path -LiteralPath $projectFile) -or (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath $projectFile -Algorithm SHA256).Hash)
+    {
+        throw "Reward Flyer sample differs or is missing: $relativePath"
+    }
+}
+
+Write-Host "Reward Flyer sample mirrors match: $($rewardFiles.Count) files"

@@ -16,6 +16,11 @@
       "displayName": "UI Sample Scene",
       "description": "UiNavigator-based lobby with inventory and dynamic rank modules.",
       "path": "Samples~/UI Sample Scene"
+    },
+    {
+      "displayName": "Reward Flyer Sample",
+      "description": "Pooled reward icons with scatter, moving HUD targets, completion notifications, and cancellation.",
+      "path": "Samples~/Reward Flyer Sample"
     }
   ],
   "keywords": ["ui", "mvp", "navigation", "transition", "scroll", "safe-area"],
