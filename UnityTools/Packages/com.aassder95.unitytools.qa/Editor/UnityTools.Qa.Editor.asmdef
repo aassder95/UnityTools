@@ -1,0 +1,9 @@
+{
+  "name": "UnityTools.Qa.Editor",
+  "references": [
+    "UnityTools.Qa"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ]
+}

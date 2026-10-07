@@ -1,0 +1,8 @@
+{
+  "name": "com.aassder95.unitytools.qa",
+  "version": "0.1.0",
+  "displayName": "UnityTools Qa",
+  "description": "Reusable qa tools.",
+  "unity": "2022.3",
+  "dependencies": {}
+}

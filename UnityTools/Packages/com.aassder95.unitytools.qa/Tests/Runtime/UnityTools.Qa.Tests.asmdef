@@ -1,0 +1,13 @@
+{
+  "name": "UnityTools.Qa.Tests",
+  "references": [
+    "UnityTools.Qa"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ]
+}
