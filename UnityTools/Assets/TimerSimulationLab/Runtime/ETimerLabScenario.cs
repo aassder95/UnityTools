@@ -9,6 +9,7 @@ namespace UnityTools.Timer.Samples
         DuplicateClaim,
         PauseResume,
         CancelRestart,
-        UnregisterRestore
+        UnregisterRestore,
+        DeleteRestore
     }
 }

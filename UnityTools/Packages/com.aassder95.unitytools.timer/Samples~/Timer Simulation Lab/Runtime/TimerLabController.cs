@@ -17,6 +17,7 @@ namespace UnityTools.Timer.Samples
         [SerializeField] private Button _btnPause;
         [SerializeField] private Button _btnCancel;
         [SerializeField] private Button _btnUnregister;
+        [SerializeField] private Button _btnDelete;
         [Header("Results")]
         [SerializeField] private Text _txtBefore;
         [SerializeField] private Text _txtAfter;
@@ -47,6 +48,7 @@ namespace UnityTools.Timer.Samples
             _btnPause.onClick.AddListener(RunPause);
             _btnCancel.onClick.AddListener(RunCancel);
             _btnUnregister.onClick.AddListener(RunUnregister);
+            _btnDelete.onClick.AddListener(RunDelete);
         }
 
         private void OnDisable()
@@ -59,6 +61,7 @@ namespace UnityTools.Timer.Samples
             _btnPause.onClick.RemoveListener(RunPause);
             _btnCancel.onClick.RemoveListener(RunCancel);
             _btnUnregister.onClick.RemoveListener(RunUnregister);
+            _btnDelete.onClick.RemoveListener(RunDelete);
         }
 
         //============================================================
@@ -90,5 +93,6 @@ namespace UnityTools.Timer.Samples
         private void RunPause() => Run(ETimerLabScenario.PauseResume);
         private void RunCancel() => Run(ETimerLabScenario.CancelRestart);
         private void RunUnregister() => Run(ETimerLabScenario.UnregisterRestore);
+        private void RunDelete() => Run(ETimerLabScenario.DeleteRestore);
     }
 }

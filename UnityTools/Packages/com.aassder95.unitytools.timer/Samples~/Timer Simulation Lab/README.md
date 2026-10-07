@@ -30,3 +30,7 @@ powershell -ExecutionPolicy Bypass -File tools/test-upm-compatibility.ps1 -Sourc
 2026-10-07, Timer 1.2.0 미게시 후보의 빈 프로젝트 설치에서 Unity `2022.3.62f3`·`6000.3.20f1` 모두 Play Mode **46/46**(코어 35 + 실험실 11), skip 0, Windows Mono Development Build를 통과했습니다. 기존 장면 오브젝트 ID 94개와 .meta GUID를 유지하고 버튼 오브젝트를 추가한 최종 장면으로 다시 검사했습니다. 여덟 버튼의 실행·비활성화 해제와 결과 텍스트 높이 검사를 포함합니다. Unity 2022.3의 1440×900 렌더 이미지에서 새 세 실험과 저장 실패 결과의 배치도 확인했습니다. OS 마우스·실제 터치 조작 검증과는 별개입니다.
 
 2026-10-01, 빈 프로젝트에 로컬 Timer를 설치하고 Package Manager Sample API로 Import했습니다. Unity `2022.3.62f3`과 `6000.3.20f1` 모두 Play Mode **25/25**(코어 17 + 실험실 8), Windows Development Build(Mono)가 통과했습니다. 장면의 누락 스크립트 검사와 버튼·구독 테스트를 포함합니다. 직접 화면 조작·배치 확인, Android/iOS, IL2CPP는 검증하지 않았습니다.
+
+## Delete / Restore
+
+DELETE / RESTORE는 저장 실패 시 진행 상태와 snapshot 보존, 삭제 재시도 후 등록 해제·미수령 상태, 하루 뒤 재등록 시 None 상태와 새 30초 작업 시작을 확인합니다. 기존 Unregister / Restore는 작업 기록을 유지하며 Delete / Restore는 기록을 초기화합니다. 기존 enum 숫자는 유지하고 DeleteRestore를 마지막에 추가했습니다.

@@ -48,16 +48,16 @@ namespace UnityTools.Timer.Samples.Editor
             CreateText(rtRoot, "Title", "UNITYTOOLS / TIMER SIMULATION LAB", 30, 28.0f, 22.0f, 1384.0f, 46.0f);
             CreateText(rtRoot, "Help", "Choose a controlled fixture. Inspect virtual UTC, storage snapshots and timer transitions. OS time stays unchanged.", 18, 28.0f, 76.0f, 1384.0f, 30.0f);
             TimerLabController controller = goCanvas.AddComponent<TimerLabController>();
-            string[] labels = { "FORWARD TIME", "OFFLINE RESTORE", "CLOCK ROLLBACK", "SAVE FAILURE", "DUPLICATE CLAIM", "PAUSE / RESUME", "CANCEL / RESTART", "UNREGISTER / RESTORE" };
-            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister" };
+            string[] labels = { "FORWARD TIME", "OFFLINE RESTORE", "CLOCK ROLLBACK", "SAVE FAILURE", "DUPLICATE CLAIM", "PAUSE / RESUME", "CANCEL / RESTART", "UNREGISTER / RESTORE", "DELETE / RESTORE" };
+            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister", "_btnDelete" };
             for (int idx = 0; idx < labels.Length; ++idx)
             {
-                RectTransform rtButton = CreateRect(labels[idx], rtRoot, 28.0f + idx % 4 * 352.0f, 124.0f + idx / 4 * 60.0f, 328.0f, 50.0f);
+                RectTransform rtButton = CreateRect(labels[idx], rtRoot, 28.0f + idx % 5 * 280.0f, 124.0f + idx / 5 * 60.0f, 264.0f, 50.0f);
                 Image img = rtButton.gameObject.AddComponent<Image>();
                 img.color = new Color(0.10f, 0.27f, 0.38f);
                 Button btn = rtButton.gameObject.AddComponent<Button>();
                 btn.targetGraphic = img;
-                Text label = CreateText(rtButton, "Label", labels[idx], 17, 0.0f, 0.0f, 328.0f, 50.0f);
+                Text label = CreateText(rtButton, "Label", labels[idx], 15, 0.0f, 0.0f, 264.0f, 50.0f);
                 label.alignment = TextAnchor.MiddleCenter;
                 Assign(controller, fields[idx], btn);
             }

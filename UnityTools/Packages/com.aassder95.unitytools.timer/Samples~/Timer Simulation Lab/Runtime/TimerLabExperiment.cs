@@ -36,7 +36,7 @@ namespace UnityTools.Timer.Samples
         public bool TryRun(ETimerLabScenario scenario, out TimerLabReport report)
         {
             report = null;
-            if (_runner == null || !_runner.isActiveAndEnabled || scenario < ETimerLabScenario.ForwardTime || scenario > ETimerLabScenario.UnregisterRestore)
+            if (_runner == null || !_runner.isActiveAndEnabled || scenario < ETimerLabScenario.ForwardTime || scenario > ETimerLabScenario.DeleteRestore)
                 return false;
 
             _utcNow = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -174,6 +174,23 @@ namespace UnityTools.Timer.Samples
                     bool isRestarted = service.TryStart(TIMER_ID, 30.0d);
                     isPassed = isPaused && isCancelled && isFlagRead && !hasClaimed && isReset && !isCancelledAgain && isRestored && isPreserved && isRestarted && handle.RemainingSec == 30 && service.TimerCnt == 1;
                     result = $"Pause={isPaused}, cancel={isCancelled}, reset={isReset}\nCANCELLED STORAGE\n{cancelled}\nClaim flag read={isFlagRead}, claimed={hasClaimed}\nDuplicate cancel={isCancelledAgain}\nAdvance one day, restore={isRestored}, None preserved={isPreserved}\nRestart={isRestarted}, remaining={handle.RemainingSec} sec, registered={service.TimerCnt}";
+                }
+                else if (scenario == ETimerLabScenario.DeleteRestore)
+                {
+                    string saved = storage.Capture();
+                    storage.SetSaving(false);
+                    bool isRejected = !service.TryDelete(TIMER_ID);
+                    bool isPreserved = storage.Capture() == saved && service.TimerCnt == 1 && handle.CurType == ETaskTimerType.Processing;
+                    storage.SetSaving(true);
+                    bool isDeleted = service.TryDelete(TIMER_ID);
+                    int deletedCnt = service.TimerCnt;
+                    bool isClaimRead = service.TryGetClaimed(TIMER_ID, out bool isClaimed);
+                    _utcNow = _utcNow.AddDays(1.0d);
+                    bool isRestored = service.TryInit(handle);
+                    bool isReset = handle.CurType == ETaskTimerType.None && handle.ToData().DurationSec == 0;
+                    bool isRestarted = service.TryStart(TIMER_ID, 30.0d);
+                    isPassed = isRejected && isPreserved && isDeleted && deletedCnt == 0 && isClaimRead && !isClaimed && isRestored && isReset && isRestarted && handle.RemainingSec == 30;
+                    result = $"Rejected delete={isRejected}, state + snapshot preserved={isPreserved}\nDelete retry={isDeleted}, registered count={deletedCnt}\nClaim flag read={isClaimRead}, claimed={isClaimed}\nAdvance one day, restore={isRestored}, reset None={isReset}\nRestart={isRestarted}, remaining={handle.RemainingSec} sec\nDelete resets stored history; unregister preserves it.";
                 }
                 else
                 {

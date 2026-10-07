@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Timer Simulation Lab에 삭제 실패·재등록·재시작 실험 추가
+
 - 주기 타이머 snapshot에 남은 초·분과 준비 상태 추가
 
 - 작업 서비스에 저장 기록 초기화와 등록 해제를 함께 수행하는 TryDelete 추가

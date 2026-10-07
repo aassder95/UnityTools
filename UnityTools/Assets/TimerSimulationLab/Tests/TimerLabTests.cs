@@ -21,6 +21,7 @@ namespace UnityTools.Timer.Samples.Tests
         [TestCase(ETimerLabScenario.PauseResume)]
         [TestCase(ETimerLabScenario.CancelRestart)]
         [TestCase(ETimerLabScenario.UnregisterRestore)]
+        [TestCase(ETimerLabScenario.DeleteRestore)]
         public void FixtureChecksTimerStateAndPersistence(ETimerLabScenario scenario)
         {
             GameObject go = new GameObject("ClockFixture", typeof(RectTransform));
@@ -61,6 +62,12 @@ namespace UnityTools.Timer.Samples.Tests
                 {
                     Assert.That(report.Result, Does.Contain("claimed=False"));
                     Assert.That(report.Result, Does.Contain("None preserved=True"));
+                    Assert.That(report.After, Does.Contain("Remaining: 30 sec"));
+                }
+                else if (scenario == ETimerLabScenario.DeleteRestore)
+                {
+                    Assert.That(report.Result, Does.Contain("state + snapshot preserved=True"));
+                    Assert.That(report.Result, Does.Contain("reset None=True"));
                     Assert.That(report.After, Does.Contain("Remaining: 30 sec"));
                 }
                 else
@@ -115,7 +122,7 @@ namespace UnityTools.Timer.Samples.Tests
         {
             yield return SceneManager.LoadSceneAsync("TimerSimulationLab");
             TimerLabController controller = Object.FindFirstObjectByType<TimerLabController>();
-            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister" };
+            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister", "_btnDelete" };
             for (int idx = 0; idx < fields.Length; ++idx)
             {
                 ReadField<Button>(controller, fields[idx]).onClick.Invoke();
