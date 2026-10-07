@@ -26,6 +26,9 @@ Unity 클라이언트 프로젝트에서 Claude가 따라야 할 공용 작업 �
 #### 커밋 메시지
 
 - 회사 프로젝트 기록에 맞는 의미 있는 문장으로 작성한다.
+- 커밋 메시지는 제목 한 줄만 작성한다. 변경 목록, 세부 항목 bullet, 부연 설명을 본문에 나열하지 않는다.
+- 상세 변경 내용이 필요하면 PR 본문에 작성하고 커밋 메시지에는 남기지 않는다.
+- 커밋 메시지에 `Co-Authored-By: Claude ...` 트레일러를 추가하지 않는다.
 - Conventional Commit의 type/scope는 영어, 설명문은 기본적으로 한글로 작성한다.
 - 예: `feat(express): 오브젝트 변경 타입 활성화`, `fix(conveyor): 수신 예약 해제 누락 수정`
 - 외부 라이브러리, API, 프로토콜, 파일명 같은 기술 식별자만 필요한 범위에서 영어로 유지한다.
@@ -116,6 +119,7 @@ commit 전 변경 범위를 다음 기준으로 자체 검수한다.
 - 승인된 예외의 주석은 예외라는 사실이 아니라 코드만으로 알 수 없는 제약이나 invariant를 설명한다.
 - 코드에서 바로 드러나는 타입 성격/함수 동작/구현 형태를 반복 설명하지 않는다.
 - 파일과 타입 위에 같은 설명을 중복하지 않는다.
+- 다른 클래스/시스템의 숨은 동작(콜백 호출 조건, 내부 예외 처리 등)을 주석으로 설명하지 않는다. 그런 동작에 의존해야 하면 해당 API 자체에 문서화하거나 호출부 코드/이름으로 의도가 드러나게 작성한다.
 
 ## 3. 네이밍
 
@@ -133,7 +137,8 @@ commit 전 변경 범위를 다음 기준으로 자체 검수한다.
 
 ### Unity 참조 필드
 
-- Unity 객체/컴포넌트 필드는 의미에 맞는 접두사를 사용한다: `rt`, `tr`, `go`, `img`, `txt`, `cg`, `btn`, `ani`, `ps`, `col`, `col2d`, `spr`
+- Unity 객체/컴포넌트 필드는 의미에 맞는 접두사를 사용한다: `rt`, `tr`, `go`, `img`, `txt`, `cg`, `btn`, `ani`, `anim`, `ps`, `col`, `col2d`, `spr`
+- `Animation` 컴포넌트는 `ani`, `Animator` 컴포넌트는 `anim`을 사용한다.
 - 접두사가 타입 의미를 포함하므로 같은 타입명을 뒤에 반복하지 않는다.
 - `BoxCollider[]`는 `_colVisualBounds`로 작성하며 `_colVisualBoundsColliders`는 금지한다.
 
@@ -166,6 +171,7 @@ commit 전 변경 범위를 다음 기준으로 자체 검수한다.
 | Original / Destination | `Origin` / `Dest` |
 | Background / UI / HP | `Bg` / `Ui` / `Hp` |
 
+- 이 축약어 표는 field뿐 아니라 지역 변수, 매개 변수에도 동일하게 적용한다. 예: `count` → `cnt`, `index` → `idx`.
 - 사용자 작성 식별자의 약어와 initialism은 일반 단어처럼 취급한다. PascalCase에서는 `Bg/Ui/Hp`, camelCase에서는 `bg/ui/hp`로 작성한다.
 - 예: `InventoryUi`, `BgColor`, `MaxHp`, `_curHp`
 - 전체 대문자는 `MAX_HP`, `UI_FADE_DURATION_SEC` 같은 `UPPER_SNAKE_CASE` 상수에서만 사용한다.
@@ -215,6 +221,7 @@ public event Action<Type> OnXxx { add => _onXxx += value; remove => _onXxx -= va
 - 노출 순서는 핵심 → 보조 UI → 옵션을 기본으로 한다.
 - 필드가 5개를 초과하거나 역할이 2개 이상이면 기능/역할 기반 `[Header]`로 나눈다.
 - 부모에 Inspector 필드가 있고 자식이 추가하면 자식 역할을 나타내는 `[Header]`를 반드시 사용한다. `Settings`, `Options` 같은 일반명만 쓰지 않는다.
+- `Header` 텍스트는 그룹의 역할을 나타내는 짧은 명사구로 작성한다. 순서/알고리즘/동작 설명(`A > B > C` 나열, 콜론 뒤 부연 설명, 괄호 부연 설명)을 담지 않는다. 상세 설명은 `Tooltip`으로 옮긴다.
 - 런타임 상태나 디버그 값을 상시 serialized field로 노출하지 않는다.
 
 ### 명시적 참조
@@ -452,13 +459,25 @@ public static void LogTest(string owner, string method, string msg)
 
 ### 조건과 block
 
-- 논리적으로 하나인 조건은 하나의 if로 합친다: `if (a || b) return;`
+- 논리적으로 하나인 조건은 하나의 if로 합친다.
+- bool 조건은 `== true`/`== false` 비교 대신 `!`나 값 자체로 작성한다. 예: `if (!string.IsNullOrEmpty(x))`
+- 비교 연산에서 상수/리터럴을 왼쪽에 두지 않는다(Yoda condition 금지). 변수나 표현식을 왼쪽, `null`/숫자/enum/문자열 같은 상수를 오른쪽에 둔다. 예: `if (_stageObjectData == null)`, `if (_hp <= 0)`, `if (_state == EState.Idle)`
 - 단순 if의 실행문이 한 줄이면 braces를 생략한다.
+- braces를 생략해도 실행문은 조건과 같은 줄에 쓰지 않고 다음 줄에 줄바꿈해서 작성한다.
+- braces 없는 guard/early-return 조건문 다음에는 빈 줄을 넣어 다음 코드와 구분한다. 바로 이어 붙이지 않는다.
 - 실행문이 2줄 이상이거나 가독성이 좋아지는 경우 braces를 사용한다.
 - 같은 `if/else if/else` chain에서 한 branch가 braces를 쓰면 모든 branch에 braces를 사용한다.
 - `for/foreach/while/do` 반복문은 실행문이 한 줄이어도 항상 braces를 사용한다.
 
 ```csharp
+if (Time.unscaledTime < _nextAreaStateRefreshTime)
+    return;
+
+_nextAreaStateRefreshTime = Time.unscaledTime + AreaStateRefreshInterval;
+
+if (_takeOutTable == null)
+    return;
+
 if (receiveReservationId == 0)
 {
     if (trItem == null || IsReceiveCapacityFull)
