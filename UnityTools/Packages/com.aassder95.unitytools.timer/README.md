@@ -1,6 +1,6 @@
 # UnityTools Timer
 
-현재 checkout은 1.2.0 미게시 후보입니다. 개별 등록 해제·작업 취소와 확장된 Timer Simulation Lab을 포함합니다. 후보 검증과 발행 준비는 [다음 릴리스 안내](../../../docs/RELEASE_UI_TIMER_NEXT.md)를 참고하세요. 아래 설치 주소는 공개 안정 버전 1.1.0이며 후보 tag는 아직 없습니다.
+현재 버전은 1.2.0입니다. 아래 공개 tag로 고정 설치할 수 있습니다. 포함 범위와 검증 기록은 [릴리스 안내](../../../docs/RELEASE_UI_TIMER_NEXT.md)를 참고하세요.
 
 ## 등록 목록 조회와 변경 알림
 
@@ -22,7 +22,7 @@ Unity 2022.3 이상에서 사용하는 UTC 기반 Task / Period Timer package입
 Unity Package Manager의 `Add package from git URL...`에서 다음 주소를 사용합니다.
 
 ```text
-https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.1.0
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.2.0
 ```
 
 runtime assembly는 `UnityTools.Timer`이며 UI package에 의존하지 않습니다.
@@ -42,7 +42,7 @@ taskTimers.TryStart("BUILD", 60.0d);
 
 같은 ID를 다시 등록하면 service가 이전 handle의 event와 coroutine을 해제하고 새 handle을 소유합니다. `Release`는 service가 소유한 모든 handle을 정리합니다.
 
-## 개별 등록 해제 (개발 버전)
+## 개별 등록 해제
 
 `TaskTimerService.TryUnregister(id)`와 `PeriodTimerService.TryUnregister(id)`는 등록된 타이머 하나의 coroutine과 이벤트 연결을 정리하고 서비스 목록에서 제외합니다. 성공하면 `OnTimersChanged`를 한 번 호출하며, 빈 ID·미등록 ID·중복 해제는 false입니다. 저장소를 읽거나 쓰지 않으므로 저장소 장애 중에도 해제할 수 있습니다.
 
@@ -70,7 +70,7 @@ timerHost.Release();
 
 정지 snapshot은 `2|startTicks|durationSec|3|updatedTicks|0|remainingSec`입니다. 기존 v1·4키 저장 데이터를 읽으며, 정지하지 않은 상태와 재개 후에는 기존 v1 형식을 씁니다. 정지 snapshot은 구버전 패키지에서 읽을 수 없으므로 저장 상태가 정지인 채로 downgrade하지 않습니다. 읽을 수 없는 snapshot을 덮어쓰지 않습니다. 기존 데이터의 일괄 변환은 필요하지 않습니다.
 
-## 작업 취소 (개발 버전)
+## 작업 취소
 
 `TaskTimerService.TryCancel(id)`와 `TaskTimerHandle.TryCancel()`은 Processing·Paused 작업을 취소해 None 상태로 돌립니다. 서비스 등록은 유지하며 새 작업을 시작할 수 있습니다. 완료·수령 알림은 발생하지 않고 기존 상태 변경 및 서비스 `OnTimersChanged`로 취소를 알립니다. None·Completed 상태, 미등록 ID, 저장 실패는 false이며 기존 상태를 유지합니다. 완료된 보상을 버리는 기능은 포함하지 않습니다.
 

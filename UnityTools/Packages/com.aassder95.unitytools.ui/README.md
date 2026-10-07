@@ -1,6 +1,6 @@
 # UnityTools UI Framework
 
-현재 checkout은 2.2.0 미게시 후보입니다. 반복 버튼·눌림 연출과 Button Input Sample을 포함합니다. 후보 검증과 발행 준비는 [다음 릴리스 안내](../../../docs/RELEASE_UI_TIMER_NEXT.md)를 참고하세요. 아래 설치 주소는 공개 안정 버전 2.1.0이며 후보 tag는 아직 없습니다.
+현재 버전은 2.2.0입니다. 아래 공개 tag로 고정 설치할 수 있습니다. 포함 범위와 검증 기록은 [릴리스 안내](../../../docs/RELEASE_UI_TIMER_NEXT.md)를 참고하세요.
 
 Unity 2022.3 이상에서 사용하는 uGUI 기반 UI 패키지입니다.
 
@@ -25,7 +25,7 @@ Timer, 범용 singleton, logging, persistence, pooling API는 포함하지 않�
 Unity Package Manager의 `Add package from git URL...`에서 다음 주소를 사용합니다.
 
 ```text
-https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#unitytools-ui/v2.1.0
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#unitytools-ui/v2.2.0
 ```
 
 런타임 assembly는 `UnityTools.Ui`, Editor assembly는 `UnityTools.Ui.Editor`입니다.
@@ -121,7 +121,7 @@ rankScroll.RemoveItems(removeIdx, removedCnt);
 rankScroll.ScrollTo(targetIdx, alignment: EDynamicScrollAlignment.Center);
 ```
 
-버튼 입력과 연출의 사용법은 [Button Input 안내](Documentation~/button-input.md)를 참고하세요. **Button Input Sample**을 Import하거나 `Assets/ButtonInputSample/ButtonInputSample.unity`를 실행합니다. 새 버튼 기능은 로컬 개발 소스에 추가된 기능이며 기존 공개 tag에는 포함되지 않습니다.
+버튼 입력과 연출의 사용법은 [Button Input 안내](Documentation~/button-input.md)를 참고하세요. **Button Input Sample**을 Import하거나 `Assets/ButtonInputSample/ButtonInputSample.unity`를 실행합니다. 새 버튼 기능은 unitytools-ui/v2.2.0부터 포함되며 기존 2.1.0 이하 tag에는 포함되지 않습니다.
 
 ## 샘플
 

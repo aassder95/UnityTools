@@ -1,6 +1,6 @@
-# UI 2.2.0 / Timer 1.2.0 미게시 후보
+# UI 2.2.0 / Timer 1.2.0 릴리스
 
-이 문서는 다음 릴리스 준비 기록입니다. 공개 안정 버전은 UI 2.1.0 / Timer 1.1.0이며 기존 tag를 유지합니다. 후보 manifest의 문서 URL은 발행할 tag를 가리키므로 발행 전에는 해당 URL이 존재하지 않습니다. 로컬 후보 설치는 각 package.json의 Add package from disk를 사용합니다.
+2026-10-07 발행용 기록입니다. UI 2.2.0 / Timer 1.2.0의 설치 주소와 변경 기록을 갱신했습니다. 기존 UI 2.1.0 / Timer 1.1.0 tag는 유지합니다. 아래 후보 검증 기록은 발행 이전 검증을 설명하며 공개 tag 검증 결과는 문서 끝에 별도로 기록합니다.
 
 ## 포함 범위
 
@@ -48,3 +48,13 @@ XML·로그·build·lock·summary는 다음 임시 프로젝트에 보존합니�
 5. GitHub release에 결과와 한계를 기록합니다. 기존 tag는 이동하지 않습니다.
 
 현재 공개 tag·GitHub release는 발행하지 않았습니다.
+
+## 고정 Git 후보 검증
+
+2026-10-07: fc6ce8e0d48df4254e639f5b59a552d2de110fdb를 GitHub Git URL로 빈 프로젝트에 설치했습니다. Unity 2022.3.62f3 / 6000.3.20f1 각각 UI 69/69, UI+Input System 70/70, Timer 35/35, Timer Lab 46/46, skip 0 및 네 Windows Mono Development build가 통과했습니다. 여덟 프로젝트의 lock hash·source=git와 cache의 UI 2.2.0 / Timer 1.2.0을 검사했습니다.
+
+결과 경로:
+- C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-2022.3.62f3-3ca2430c15b74a50a37c704467fd81de
+- C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-6000.3.20f1-e35a4293f9754664a8f7878554bafd07
+
+발행 commit은 이 후보와 runtime·Editor·sample·test·manifest·meta가 동일하며 설치 문서와 변경 기록만 갱신합니다.

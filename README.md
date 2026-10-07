@@ -18,8 +18,8 @@ Showcase는 개발 프로젝트 전용이며 개별 UPM 설치에는 포함되�
 
 | 패키지 | 버전 | Assembly | 주요 책임 |
 | --- | --- | --- | --- |
-| `com.aassder95.unitytools.ui` | `2.1.0` | `UnityTools.Ui` | MVP, navigation, transition, focus, safe area, DynamicScroll |
-| `com.aassder95.unitytools.timer` | `1.1.0` | `UnityTools.Timer` | Task/Period Timer, service/handle, UTC, persistence |
+| `com.aassder95.unitytools.ui` | `2.2.0` | `UnityTools.Ui` | MVP, navigation, transition, focus, safe area, DynamicScroll |
+| `com.aassder95.unitytools.timer` | `1.2.0` | `UnityTools.Timer` | Task/Period Timer, service/handle, UTC, persistence |
 | `com.aassder95.unitytools.benchmark` | `0.1.0` | `UnityTools.Benchmark` | Main Thread, GC, memory, custom marker 측정 및 CSV 출력 |
 | `com.aassder95.unitytools.persistence` | `0.1.0` | `UnityTools.Persistence` | 버전형 저장, migration, 검증, 백업 복구 |
 | `com.aassder95.unitytools.vfx` | `0.1.0` 개발 | `UnityTools.Vfx.Editor` | Editor 전용 파티클 prefab 검색·즐겨찾기·독립 미리보기 |
@@ -36,13 +36,13 @@ Unity Package Manager의 `Add package from git URL...`에 필요한 패키지 �
 UI:
 
 ```text
-https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#unitytools-ui/v2.1.0
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.ui#unitytools-ui/v2.2.0
 ```
 
 Timer:
 
 ```text
-https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.1.0
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.timer#unitytools-timer/v1.2.0
 ```
 
 Benchmark 개발 버전은 Package Manager의 `Add package from disk...`에서 현재 checkout의 `UnityTools/Packages/com.aassder95.unitytools.benchmark/package.json`을 선택합니다. 사용법은 [Benchmark README](UnityTools/Packages/com.aassder95.unitytools.benchmark/README.md)를 참고하세요.
