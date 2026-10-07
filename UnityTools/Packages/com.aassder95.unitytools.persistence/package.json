@@ -1,8 +1,9 @@
 {
   "name": "com.aassder95.unitytools.persistence",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "displayName": "UnityTools Persistence",
-  "description": "Versioned local saves with migration, validation, backup, and atomic replacement.",
+  "description": "Versioned local saves with migration, validation, backup recovery, and file replacement.",
+  "license": "MIT",
   "unity": "2022.3",
   "dependencies": {},
   "keywords": ["save", "persistence", "migration"],
