@@ -119,6 +119,18 @@ namespace UnityTools.Vfx.Editor
 
                 if (GUILayout.Button("Fit together"))
                     _comparison.Fit();
+
+                if (GUILayout.Button("Export PNG"))
+                {
+                    _isPlaying = false;
+                    string path = EditorUtility.SaveFilePanel("Save VFX comparison", "", "VfxComparison-" + _comparison.TimeSec.ToString("F2", System.Globalization.CultureInfo.InvariantCulture) + "sec", "png");
+                    if (!string.IsNullOrEmpty(path))
+                    {
+                        bool isSaved = VfxComparisonExport.TrySave(_comparison, path, 512, out _error);
+                        if (isSaved)
+                            _error = "비교 이미지를 저장했습니다: " + path;
+                    }
+                }
             }
 
             _durationSec = EditorGUILayout.Slider("Replay (sec)", _durationSec, 0.1f, VfxPreviewSession.MAX_PREVIEW_SEC);

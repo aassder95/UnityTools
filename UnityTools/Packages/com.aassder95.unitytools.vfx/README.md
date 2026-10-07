@@ -73,3 +73,7 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 ## 비용 요약
 
 Browser의 Analyze cost summary는 선택한 prefab의 파티클 시스템, 지원 renderer(Particle/Mesh/Sprite), material 슬롯/고유 material 수, 설정상 maxParticles 합을 표시합니다. 비활성 자식도 구조 수에 포함합니다. Replay 구간을 151개 고정 시점에서 별도 PreviewScene으로 샘플링해 관측 최대 생존 파티클 수도 표시합니다. 원본/사용자 스크립트는 실행하지 않습니다. 이 수치는 GPU 시간, draw call, overdraw 또는 기기 성능 측정이 아닙니다. 샘플 사이의 짧은 peak는 놓칠 수 있으며 prefab 선택/에셋 변경 시 초기화합니다. Replay를 바꾸면 다시 분석하세요.
+
+## 비교 이미지 내보내기
+
+VFX Compare의 Export PNG는 재생을 멈추고 현재 시간·카메라의 좌/우 이미지를 각각 512×512로 캡처해 가로 1024×512 PNG로 저장합니다. 왼쪽/오른쪽 배치는 창과 같습니다. 저장 대화상자에서 경로와 덮어쓰기를 선택합니다. 원본 prefab과 비교 시간은 변경하지 않으며 캡처 텍스처는 저장 후 해제합니다. 동일 시점의 비교 캡처이며 애니메이션/GIF 내보내기는 포함하지 않습니다.

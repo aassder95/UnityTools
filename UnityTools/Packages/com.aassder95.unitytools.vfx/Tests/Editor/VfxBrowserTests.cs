@@ -224,6 +224,51 @@ namespace UnityTools.Vfx.Editor.Tests
         }
 
         [Test]
+        public void ComparisonExportCombinesBothSidesWithoutChangingTimeOrSources()
+        {
+            string path = Path.Combine(Path.GetTempPath(), "UnityTools-Export-" + Guid.NewGuid().ToString("N") + ".png");
+            byte[] original = File.ReadAllBytes(AssetDatabase.GetAssetPath(_prefab));
+            using (VfxComparison comparison = new VfxComparison())
+            {
+                try
+                {
+                    Assert.That(comparison.TrySetPrefabs(_prefab, _prefab), Is.True);
+                    Assert.That(comparison.TrySeek(1.0f), Is.True);
+                    Assert.That(VfxComparisonExport.TrySave(comparison, path, 128, out string error), Is.True, error);
+                    Texture2D image = new Texture2D(2, 2);
+                    Texture2D expected = comparison.Left.Capture(128, 128);
+                    try
+                    {
+                        Assert.That(image.LoadImage(File.ReadAllBytes(path)), Is.True);
+                        Assert.That(image.width, Is.EqualTo(256));
+                        Assert.That(image.height, Is.EqualTo(128));
+                        Assert.That(image.GetPixels(0, 0, 128, 128), Is.EqualTo(expected.GetPixels()));
+                        Assert.That(image.GetPixels(128, 0, 128, 128), Is.EqualTo(expected.GetPixels()));
+                        Assert.That(comparison.Left.TimeSec, Is.EqualTo(1.0f));
+                        Assert.That(comparison.Right.TimeSec, Is.EqualTo(1.0f));
+                        Assert.That(File.ReadAllBytes(AssetDatabase.GetAssetPath(_prefab)), Is.EqualTo(original));
+                    }
+                    finally
+                    {
+                        Object.DestroyImmediate(image);
+                        Object.DestroyImmediate(expected);
+                    }
+
+                    byte[] saved = File.ReadAllBytes(path);
+                    Assert.That(VfxComparisonExport.TrySave(comparison, path, 2048, out error), Is.False);
+                    Assert.That(File.ReadAllBytes(path), Is.EqualTo(saved));
+                    Assert.That(VfxComparisonExport.TrySave(comparison, path + ".txt", 128, out error), Is.False);
+                    Assert.That(File.Exists(path + ".txt"), Is.False);
+                }
+                finally
+                {
+                    if (File.Exists(path))
+                        File.Delete(path);
+                }
+            }
+        }
+
+        [Test]
         public void CatalogIncludesOnlyParticlePrefabs()
         {
             GameObject go = new GameObject("Plain");

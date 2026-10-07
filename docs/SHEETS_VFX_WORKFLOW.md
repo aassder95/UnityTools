@@ -11,3 +11,7 @@ Unity 2022.3.62f3: Editor 29/29, skip 0, Windows Mono Development build 통과/E
 ## CSV 변경 비교
 
 Unity 2022.3.62f3: Editor 57/57, PlayMode 56/56, 생성 코드/Windows Mono build/Player 통과. 행/열 순서 무시, 한글 multiline 값, 셀 추가/삭제/변경과 헤더 차이, 빈/중복/없는 키 거부 확인. 비교는 원문 문자열이며 숫자 의미 비교가 아니다.
+
+## VFX 비교 이미지 내보내기
+
+Unity 2022.3.62f3: Editor 30/30, skip 0, Windows Mono Development build/Editor DLL 제외 통과. PNG 재로드 후 좌/우 픽셀 배치와 크기, 비교 시간 유지, 원본 보존, 잘못된 크기/확장자 거부와 기존 파일 보존 확인. 수동 저장 대화상자와 overwrite 선택은 별도 확인 대상.
