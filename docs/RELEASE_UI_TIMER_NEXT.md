@@ -47,7 +47,7 @@ XML·로그·build·lock·summary는 다음 임시 프로젝트에 보존합니�
 4. 검증한 commit에 unitytools-ui/v2.2.0, unitytools-timer/v1.2.0 tag를 발행하고 공개 tag 설치를 재검증합니다.
 5. GitHub release에 결과와 한계를 기록합니다. 기존 tag는 이동하지 않습니다.
 
-현재 공개 tag·GitHub release는 발행하지 않았습니다.
+2026-10-07 공개 tag·GitHub release 발행을 완료했습니다. 아래 공개 tag 검증 결과를 참고하세요.
 
 ## 고정 Git 후보 검증
 
@@ -58,3 +58,16 @@ XML·로그·build·lock·summary는 다음 임시 프로젝트에 보존합니�
 - C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-6000.3.20f1-e35a4293f9754664a8f7878554bafd07
 
 발행 commit은 이 후보와 runtime·Editor·sample·test·manifest·meta가 동일하며 설치 문서와 변경 기록만 갱신합니다.
+
+## 공개 tag 검증 및 발행 결과
+
+2026-10-07: UI `unitytools-ui/v2.2.0`, Timer `unitytools-timer/v1.2.0`은 모두 `cf83ef4377611d7c80a78544da34be3f2f60b33d`를 가리킵니다. 기존 태그는 이동하지 않았습니다.
+
+빈 프로젝트에 공개 tag Git URL로 설치하여 Unity 2022.3.62f3 / 6000.3.20f1 각각 UI 69/69, UI+Input System 70/70, Timer 35/35, Timer Lab 46/46 테스트와 네 Windows Mono Development build를 통과했습니다. 모든 skip은 0이며 여덟 프로젝트의 lock source=git·정확한 commit hash·cache 버전(UI 2.2.0 / Timer 1.2.0)을 확인했습니다. 발행 커밋의 GitHub 정적 CI도 통과했습니다.
+
+- [UI 2.2.0 GitHub release](https://github.com/aassder95/UnityTools/releases/tag/unitytools-ui/v2.2.0)
+- [Timer 1.2.0 GitHub release](https://github.com/aassder95/UnityTools/releases/tag/unitytools-timer/v1.2.0)
+- 2022.3 결과: `C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-2022.3.62f3-2a0d56bde1f3465d99f38ef884e10f3e`
+- 6.3 결과: `C:/Users/search/AppData/Local/Temp/UnityTools-Compatibility-6000.3.20f1-c8f12f64a15a4a818e094a05ecbecc95`
+
+Runtime·Editor·샘플·테스트·manifest·meta는 검증한 고정 후보와 동일합니다. 새 `[TEST]` 로그는 없습니다. 모바일 기기 조작과 IL2CPP는 이번 검증에 포함하지 않았습니다.
