@@ -14,6 +14,7 @@ Unity 2022.3 이상에서 사용하는 uGUI 기반 UI 패키지입니다.
 - 해상도와 회전 변경을 추적하는 Safe Area
 - 짧은 클릭·길게 누르기·가속 반복을 제공하는 `UiRepeatButton`과 unscaled 눌림 연출 `UiButtonPressScale`
 - Sprite·Texture·Atlas의 UI 프리팹 사용처와 누락 설정을 조회하는 [UI Asset Report](Editor/ASSET_REPORT.md)
+- 저장 숫자값을 유지하는 [Enum 표시명·Inspector 드롭다운](Runtime/ENUM_DISPLAY.md)
 - DynamicScrollView 전용 Inspector
 - 보상 아이콘의 분산·HUD 이동·내부 재사용을 제공하는 `UiRewardFlyer`
 
