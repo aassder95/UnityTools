@@ -141,3 +141,7 @@ Package Manager에서 `UI Sample Scene`을 Import하면 Inventory와 Rank naviga
 `UiToastQueue`의 CanvasGroup과 Text를 Inspector에 명시적으로 연결합니다. `TryEnqueue(key, message, durationSec)`로 알림을 넣으면 FIFO 순서로 표시하고 unscaled 시간으로 숨깁니다. 현재 표시 중이거나 대기 중인 같은 key는 거절하며, 표시 종료 후에는 key를 재사용할 수 있습니다. 대기 개수 상한에 도달하면 false를 반환합니다. `TryDismiss()`는 현재 메시지를 닫고 다음 메시지를 표시하고, `Clear()`와 비활성화는 전체 대기를 정리합니다.
 
 입력을 차단하지 않으며 `OnShown`·`OnDismissed`로 표시 상태를 알립니다. 이벤트 구독자는 해제 책임을 가집니다. 알림은 보상 지급·저장 성공의 증거가 아니며 호출자는 Try 반환값을 처리해야 합니다. 공개 UI 2.2.0에는 포함되지 않습니다.
+
+### UiSafeArea (개발 브랜치)
+
+Canvas 바로 아래의 Safe Area RectTransform을 `_rtSafeArea`에 명시적으로 연결합니다. `Screen.safeArea`를 정규화한 anchor로 적용하고 화면 크기/여백 변경 시에만 갱신합니다. 자식 UI의 배치나 CanvasScaler 정책은 변경하지 않습니다. `TryApplyViewport`로 합성 viewport를 검증할 수 있으며 잘못된 크기/NaN/화면 밖 영역은 이전 배치를 보존하고 거절합니다.

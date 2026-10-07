@@ -18,6 +18,8 @@ namespace UnityTools.Timer.Samples
         [SerializeField] private Button _btnCancel;
         [SerializeField] private Button _btnUnregister;
         [SerializeField] private Button _btnDelete;
+        [Header("Viewport")]
+        [SerializeField] private TimerLabLayout _layout;
         [Header("Results")]
         [SerializeField] private Text _txtBefore;
         [SerializeField] private Text _txtAfter;
@@ -80,6 +82,7 @@ namespace UnityTools.Timer.Samples
             _txtBefore.text = _report.Before;
             _txtAfter.text = _report.After;
             _txtResult.text = (_report.IsPassed ? "PASS" : "FAIL") + " / " + scenario + "\n\n" + _report.Result;
+            _layout.Refresh();
         }
 
         //============================================================

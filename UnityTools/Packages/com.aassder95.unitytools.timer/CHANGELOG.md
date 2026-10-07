@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- Timer Simulation Lab의 세로/가로 재배치·Safe Area·긴 결과 스크롤 추가
+
 - Timer Simulation Lab에 삭제 실패·재등록·재시작 실험 추가
 
 - 주기 타이머 snapshot에 남은 초·분과 준비 상태 추가

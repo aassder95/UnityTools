@@ -156,6 +156,53 @@ namespace UnityTools.Timer.Samples.Tests
             Assert.That(controller.Report.IsPassed, Is.True);
         }
 
+        [UnityTest]
+        public IEnumerator PortraitSafeAreaAndRotationKeepAllFixturesReadable()
+        {
+            yield return SceneManager.LoadSceneAsync("TimerSimulationLab");
+            TimerLabController controller = Object.FindFirstObjectByType<TimerLabController>();
+            TimerLabLayout layout = controller.GetComponent<TimerLabLayout>();
+            Vector2[] sizes = { new Vector2(1080.0f, 2400.0f), new Vector2(2400.0f, 1080.0f), new Vector2(1440.0f, 900.0f) };
+            Rect[] areas = { new Rect(0.0f, 100.0f, 1080.0f, 2180.0f), new Rect(120.0f, 0.0f, 2220.0f, 1080.0f), new Rect(0.0f, 0.0f, 1440.0f, 900.0f) };
+            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister", "_btnDelete" };
+            for (int idx = 0; idx < sizes.Length; ++idx)
+            {
+                for (int scenario = 0; scenario < fields.Length; ++scenario)
+                {
+                    ReadField<Button>(controller, fields[scenario]).onClick.Invoke();
+                    Assert.That(layout.TryApplyViewport(sizes[idx], areas[idx]), Is.True);
+                    Canvas.ForceUpdateCanvases();
+                    RectTransform safe = (RectTransform)controller.transform.Find("SafeArea");
+                    Assert.That(safe.anchorMin.x, Is.EqualTo(areas[idx].xMin / sizes[idx].x).Within(0.001f));
+                    Assert.That(safe.anchorMax.y, Is.EqualTo(areas[idx].yMax / sizes[idx].y).Within(0.001f));
+                    RectTransform content = safe.GetComponent<ScrollRect>().content;
+                    foreach (string field in fields)
+                    {
+                        RectTransform button = (RectTransform)ReadField<Button>(controller, field).transform;
+                        Assert.That(button.sizeDelta.x, Is.GreaterThan(220.0f));
+                        Assert.That(button.anchoredPosition.x + button.sizeDelta.x, Is.LessThanOrEqualTo(1440.0f));
+                        Assert.That(-button.anchoredPosition.y + button.sizeDelta.y, Is.LessThan(content.sizeDelta.y));
+                    }
+
+                    foreach (string field in new[] { "_txtBefore", "_txtAfter", "_txtResult" })
+                    {
+                        Text txt = ReadField<Text>(controller, field);
+                        Assert.That(txt.preferredHeight, Is.LessThanOrEqualTo(txt.rectTransform.rect.height + 0.1f), field);
+                        Assert.That(-txt.rectTransform.anchoredPosition.y + txt.rectTransform.sizeDelta.y, Is.LessThan(content.sizeDelta.y));
+                    }
+
+                    RectTransform before = ReadField<Text>(controller, "_txtBefore").rectTransform;
+                    RectTransform after = ReadField<Text>(controller, "_txtAfter").rectTransform;
+                    if (idx == 0)
+                        Assert.That(-after.anchoredPosition.y, Is.GreaterThan(-before.anchoredPosition.y + before.sizeDelta.y));
+                    else
+                        Assert.That(after.anchoredPosition.x, Is.GreaterThan(before.anchoredPosition.x + before.sizeDelta.x));
+                }
+            }
+
+            Assert.That(layout.TryApplyViewport(Vector2.zero, new Rect()), Is.False);
+        }
+
         //============================================================
         // Utilities
         //============================================================

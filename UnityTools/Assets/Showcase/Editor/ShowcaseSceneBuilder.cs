@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using UnityTools.Ui;
 
 namespace UnityTools.Showcase.Editor
 {
@@ -78,11 +79,27 @@ namespace UnityTools.Showcase.Editor
             Image bg = canvas.gameObject.AddComponent<Image>();
             bg.color = new Color(0.025f, 0.035f, 0.06f);
             bg.raycastTarget = false;
-            Transform parent = canvas.transform;
+            RectTransform safe = CreateRect(canvas.transform, "SafeArea", 0.0f, 0.0f, 1440.0f, 900.0f);
+            safe.gameObject.AddComponent<RectMask2D>();
+            safe.gameObject.AddComponent<Image>().color = Color.clear;
+            ScrollRect scroll = safe.gameObject.AddComponent<ScrollRect>();
+            RectTransform content = CreateRect(safe, "Content", 0.0f, 0.0f, 1440.0f, 900.0f);
+            scroll.viewport = safe;
+            scroll.content = content;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            UiSafeArea area = canvas.gameObject.AddComponent<UiSafeArea>();
+            Assign(area, "_rtSafeArea", safe);
+            ShowcaseLayout layout = canvas.gameObject.AddComponent<ShowcaseLayout>();
+            Assign(layout, "_canvas", canvas);
+            Assign(layout, "_scaler", canvas.GetComponent<CanvasScaler>());
+            Assign(layout, "_safeArea", area);
+            Assign(layout, "_rtContent", content);
+            Transform parent = content;
             Color accent = new Color(0.32f, 0.91f, 0.77f);
-            CreateText(parent, "Eyebrow", "UNITYTOOLS  /  ENGINEERING SHOWCASE", 19, accent, 48.0f, 34.0f, 1344.0f, 32.0f);
-            CreateText(parent, "Title", "Explore the design. Run the evidence.", 42, Color.white, 48.0f, 92.0f, 1344.0f, 64.0f);
-            CreateText(parent, "Intro", "Independent Unity packages. Three reproducible labs for performance, data recovery and time-based state.", 21, new Color(0.65f, 0.72f, 0.83f), 48.0f, 170.0f, 1344.0f, 60.0f);
+            Text eyebrow = CreateText(parent, "Eyebrow", "UNITYTOOLS  /  ENGINEERING SHOWCASE", 19, accent, 48.0f, 34.0f, 1344.0f, 32.0f);
+            Text heading = CreateText(parent, "Title", "Explore the design. Run the evidence.", 42, Color.white, 48.0f, 92.0f, 1344.0f, 64.0f);
+            Text intro = CreateText(parent, "Intro", "Independent Unity packages. Three reproducible labs for performance, data recovery and time-based state.", 21, new Color(0.65f, 0.72f, 0.83f), 48.0f, 170.0f, 1344.0f, 60.0f);
             string[] titles = { "UI PERFORMANCE", "SAVE RECOVERY", "TIMER SIMULATION" };
             string[] tags = { "01  /  COST & SCALE", "02  /  DATA INTEGRITY", "03  /  TIME & STATE" };
             string[] descriptions = {
@@ -92,9 +109,11 @@ namespace UnityTools.Showcase.Editor
             };
             string[] limits = { "Performance depends on device and workload.", "Integrity checks are not encryption.", "Claim state is not a reward transaction." };
             string[] fields = { "_btnUi", "_btnSave", "_btnTimer" };
+            RectTransform[] cards = new RectTransform[titles.Length];
             for (int idx = 0; idx < titles.Length; ++idx)
             {
                 RectTransform card = CreateRect(parent, titles[idx], 48.0f + idx * 456.0f, 260.0f, 432.0f, 438.0f);
+                cards[idx] = card;
                 card.gameObject.AddComponent<Image>().color = new Color(0.065f, 0.09f, 0.14f);
                 CreateText(card, "Tag", tags[idx], 16, accent, 24.0f, 24.0f, 384.0f, 28.0f);
                 CreateText(card, "Title", titles[idx], 27, Color.white, 24.0f, 70.0f, 384.0f, 44.0f);
@@ -102,13 +121,26 @@ namespace UnityTools.Showcase.Editor
                 CreateText(card, "Limit", limits[idx], 16, new Color(0.60f, 0.68f, 0.79f), 24.0f, 332.0f, 384.0f, 42.0f);
                 Button button = CreateButton(card, "OPEN LAB", 24.0f, 382.0f, 384.0f, 40.0f);
                 Assign(controller, fields[idx], button);
+                for (int childIdx = 0; childIdx < card.childCount; ++childIdx)
+                {
+                    RectTransform child = (RectTransform)card.GetChild(childIdx);
+                    child.anchorMax = new Vector2(1.0f, 1.0f);
+                    child.sizeDelta = new Vector2(-48.0f, child.sizeDelta.y);
+                }
+
+                RectTransform rtLabel = (RectTransform)button.transform.GetChild(0);
+                rtLabel.anchorMax = new Vector2(1.0f, 1.0f);
+                rtLabel.sizeDelta = new Vector2(0.0f, rtLabel.sizeDelta.y);
             }
 
             Text status = CreateText(parent, "Status", "Choose a lab. Each visit starts with a fresh scene.", 19, accent, 48.0f, 742.0f, 1344.0f, 36.0f);
-            CreateText(parent, "Footer", "Design notes and reproducible commands: docs/SHOWCASE.md\nLab results expose measured behavior and limitations. No preset performance claims.", 17, new Color(0.56f, 0.63f, 0.74f), 48.0f, 810.0f, 1344.0f, 62.0f);
+            Text footer = CreateText(parent, "Footer", "Design notes and reproducible commands: docs/SHOWCASE.md\nLab results expose measured behavior and limitations. No preset performance claims.", 17, new Color(0.56f, 0.63f, 0.74f), 48.0f, 810.0f, 1344.0f, 62.0f);
             GameObject input = new GameObject("HubInput", typeof(EventSystem), typeof(StandaloneInputModule));
             Canvas returnCanvas = CreateCanvas("ReturnNavigation", 100);
-            RectTransform returnRoot = (RectTransform)returnCanvas.transform;
+            returnCanvas.GetComponent<CanvasScaler>().referenceResolution = new Vector2(720.0f, 900.0f);
+            RectTransform returnRoot = CreateRect(returnCanvas.transform, "SafeArea", 0.0f, 0.0f, 720.0f, 900.0f);
+            UiSafeArea returnArea = returnCanvas.gameObject.AddComponent<UiSafeArea>();
+            Assign(returnArea, "_rtSafeArea", returnRoot);
             Button back = CreateButton(returnRoot, "< SHOWCASE", 1214.0f, 16.0f, 210.0f, 38.0f);
             RectTransform rtBack = (RectTransform)back.transform;
             rtBack.anchorMin = rtBack.anchorMax = Vector2.one;
@@ -127,6 +159,23 @@ namespace UnityTools.Showcase.Editor
                 paths.GetArrayElementAtIndex(idx).stringValue = labPaths[idx];
             }
             data.ApplyModifiedPropertiesWithoutUndo();
+            Assign(layout, "_txtEyebrow", eyebrow);
+            Assign(layout, "_txtTitle", heading);
+            Assign(layout, "_txtIntro", intro);
+            Assign(layout, "_txtStatus", status);
+            Assign(layout, "_txtFooter", footer);
+            SerializedObject layoutData = new SerializedObject(layout);
+            SerializedProperty cardRefs = layoutData.FindProperty("_rtCards");
+            cardRefs.arraySize = cards.Length;
+            for (int idx = 0; idx < cards.Length; ++idx)
+            {
+                cardRefs.GetArrayElementAtIndex(idx).objectReferenceValue = cards[idx];
+            }
+
+            layoutData.ApplyModifiedPropertiesWithoutUndo();
+            if (!layout.TryApplyViewport(new Vector2(Screen.width, Screen.height), Screen.safeArea))
+                return false;
+
             returnCanvas.gameObject.SetActive(false);
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             return EditorSceneManager.SaveScene(scene, path);

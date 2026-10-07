@@ -20,10 +20,19 @@ namespace UnityTools.TimerDashboard.Editor
             if (!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())
                 return;
 
-            BuildValidationScene();
+            string path = EditorUtility.SaveFilePanelInProject("Timer Dashboard", "TimerDashboard", "unity", "관리 장면 저장 위치를 선택하세요.");
+            if (string.IsNullOrEmpty(path))
+                return;
+
+            BuildScene(path);
         }
 
         public static void BuildValidationScene()
+        {
+            BuildScene("Assets/TimerDashboard/TimerDashboard.unity");
+        }
+
+        public static void BuildScene(string path)
         {
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             GameObject goCanvas = new GameObject("TimerDashboard", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler), typeof(GraphicRaycaster));
@@ -36,9 +45,26 @@ namespace UnityTools.TimerDashboard.Editor
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
             TimerDashboardController controller = goCanvas.AddComponent<TimerDashboardController>();
             goCanvas.AddComponent<TimerDashboardBootstrap>();
-            Transform parent = goCanvas.transform;
-            CreateText(parent, "Title", "UNITYTOOLS / TIMER DASHBOARD", 30, 28.0f, 22.0f, 1384.0f, 48.0f);
-            CreateText(parent, "Help", "Enter a task ID. Register before starting. Data survives unregister / re-enable in this session only.", 18, 28.0f, 78.0f, 1384.0f, 50.0f);
+            RectTransform safe = CreateRect("SafeArea", goCanvas.transform, 0.0f, 0.0f, 1440.0f, 900.0f);
+            safe.gameObject.AddComponent<RectMask2D>();
+            safe.gameObject.AddComponent<Image>().color = Color.clear;
+            ScrollRect outer = safe.gameObject.AddComponent<ScrollRect>();
+            RectTransform content = CreateRect("Content", safe, 0.0f, 0.0f, 1440.0f, 900.0f);
+            outer.viewport = safe;
+            outer.content = content;
+            outer.horizontal = false;
+            outer.movementType = ScrollRect.MovementType.Clamped;
+            UiSafeArea safeArea = goCanvas.AddComponent<UiSafeArea>();
+            Assign(safeArea, "_rtSafeArea", safe);
+            TimerDashboardLayout layout = goCanvas.AddComponent<TimerDashboardLayout>();
+            Assign(layout, "_canvas", goCanvas.GetComponent<Canvas>());
+            Assign(layout, "_scaler", scaler);
+            Assign(layout, "_safeArea", safeArea);
+            Assign(layout, "_rtContent", content);
+            Assign(controller, "_layout", layout);
+            Transform parent = content;
+            Text title = CreateText(parent, "Title", "UNITYTOOLS / TIMER DASHBOARD", 30, 28.0f, 22.0f, 1384.0f, 48.0f);
+            Text help = CreateText(parent, "Help", "Enter a task ID. Register before starting. Data survives unregister / re-enable in this session only.", 18, 28.0f, 78.0f, 1384.0f, 50.0f);
             GameObject goInput = DefaultControls.CreateInputField(new DefaultControls.Resources());
             goInput.name = "TaskId";
             RectTransform rtInput = (RectTransform)goInput.transform;
@@ -55,6 +81,7 @@ namespace UnityTools.TimerDashboard.Editor
 
             Array actions = Enum.GetValues(typeof(ETimerDashboardAction));
             Button[] buttons = new Button[actions.Length];
+            Text[] labels = new Text[actions.Length];
             for (int idx = 0; idx < buttons.Length; ++idx)
             {
                 RectTransform rt = CreateRect(actions.GetValue(idx).ToString(), parent, 28.0f + idx % 4 * 350.0f, 210.0f + idx / 4 * 64.0f, 334.0f, 54.0f);
@@ -64,6 +91,7 @@ namespace UnityTools.TimerDashboard.Editor
                 buttons[idx].targetGraphic = img;
                 Text label = CreateText(rt, "Label", actions.GetValue(idx).ToString(), 22, 0.0f, 0.0f, 334.0f, 54.0f);
                 label.alignment = TextAnchor.MiddleCenter;
+                labels[idx] = label;
             }
 
             Text status = CreateText(parent, "Status", "Ready / 60 sec task / SHOP opens 1 min, closes 2 min", 20, 28.0f, 410.0f, 1384.0f, 48.0f);
@@ -80,11 +108,18 @@ namespace UnityTools.TimerDashboard.Editor
             scroll.viewport = viewport;
             scroll.content = rtTimers;
             scroll.horizontal = false;
-            RectTransform toastView = CreateRect("Toast", parent, 28.0f, 806.0f, 1384.0f, 66.0f);
+            scroll.vertical = false;
+            RectTransform toastView = CreateRect("Toast", safe, 28.0f, 806.0f, 1384.0f, 66.0f);
             toastView.gameObject.AddComponent<Image>().color = new Color(0.10f, 0.27f, 0.38f);
             CanvasGroup group = toastView.gameObject.AddComponent<CanvasGroup>();
             group.alpha = 0.0f;
             Text toastText = CreateText(toastView, "Message", "", 20, 12.0f, 8.0f, 1360.0f, 50.0f);
+            toastText.resizeTextForBestFit = true;
+            toastText.resizeTextMinSize = 14;
+            toastText.resizeTextMaxSize = 20;
+            status.resizeTextForBestFit = true;
+            status.resizeTextMinSize = 14;
+            status.resizeTextMaxSize = 20;
             UiToastQueue toast = toastView.gameObject.AddComponent<UiToastQueue>();
             Assign(toast, "_cgToast", group);
             Assign(toast, "_txtToast", toastText);
@@ -101,8 +136,28 @@ namespace UnityTools.TimerDashboard.Editor
             }
 
             data.ApplyModifiedPropertiesWithoutUndo();
-            Directory.CreateDirectory("Assets/TimerDashboard");
-            EditorSceneManager.SaveScene(scene, "Assets/TimerDashboard/TimerDashboard.unity");
+            Assign(layout, "_txtTitle", title);
+            Assign(layout, "_txtHelp", help);
+            Assign(layout, "_rtInput", rtInput);
+            Assign(layout, "_txtStatus", status);
+            Assign(layout, "_rtTimers", viewport);
+            Assign(layout, "_txtTimers", timers);
+            Assign(layout, "_rtToast", toastView);
+            Assign(layout, "_txtToast", toastText);
+            SerializedObject layoutData = new SerializedObject(layout);
+            SerializedProperty buttonRefs = layoutData.FindProperty("_rtButtons");
+            SerializedProperty labelRefs = layoutData.FindProperty("_txtButtonLabels");
+            buttonRefs.arraySize = labelRefs.arraySize = buttons.Length;
+            for (int idx = 0; idx < buttons.Length; ++idx)
+            {
+                buttonRefs.GetArrayElementAtIndex(idx).objectReferenceValue = buttons[idx].transform;
+                labelRefs.GetArrayElementAtIndex(idx).objectReferenceValue = labels[idx];
+            }
+
+            layoutData.ApplyModifiedPropertiesWithoutUndo();
+            layout.Refresh();
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            EditorSceneManager.SaveScene(scene, path);
         }
 
         //============================================================

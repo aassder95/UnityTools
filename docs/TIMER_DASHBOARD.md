@@ -19,3 +19,9 @@ powershell -ExecutionPolicy Bypass -File tools/test-upm-compatibility.ps1 -Sourc
 ```
 
 버튼 생명주기, 빈/중복 ID, 저장 실패 시 삭제 보존, 재등록/재활성화 복원을 Play Mode에서 검증합니다. Windows Development Build 결과와 실제 모바일 입력 검증을 구분합니다.
+
+## 화면 대응
+
+세로 2열/가로 4열 버튼과 Safe Area 내부 스크롤을 사용합니다. 목록 갱신은 스크롤 위치를 유지하며 여러 ID의 긴 목록 전체를 스크롤할 수 있습니다. 토스트는 Safe Area 하단에 고정합니다. 합성 viewport의 노치 여백/회전/30개 ID를 검증하며 실제 기기 키보드/터치 검증과 구분합니다.
+
+[세로 화면 미리보기](images/timer-dashboard-portrait.png): Unity 2022.3 실제 렌더이며, 배치 확인용 고정 표시 데이터를 사용했습니다. 버튼/서비스 동작은 별도의 Play Mode 테스트로 검증합니다.

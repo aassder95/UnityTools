@@ -4,7 +4,7 @@
 
 ![Showcase 선택 화면](images/showcase.png)
 
-Unity 2022.3에서 1440×900 Canvas를 실제 렌더한 미리보기입니다. Windows 가로 화면을 기준으로 구성했으며 모바일 Safe Area와 모든 종횡비의 배치를 검증한 화면은 아닙니다.
+Unity 2022.3에서 1440×900 Canvas를 실제 렌더한 미리보기입니다. 기존 가로 화면 미리보기이며, 개발 브랜치에서는 세로 카드 배치·Safe Area·스크롤과 회전을 추가했습니다.
 
 ## 실행
 
@@ -63,7 +63,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-upm-compatibility
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-upm-compatibility.ps1 -Source Local -Scenarios showcase -UnityVersion 6000.3.20f1
 ```
 
-테스트 범위는 세 실험실 반복 진입·복귀, 저장/시간 실험 실행, 중복 요청, 성능 실행 중 해제·재진입, EventSystem 중복 방지, 미등록 장면과 구독 해제입니다. 결과 XML·로그·빌드와 `summary.json`은 출력된 임시 프로젝트에 보존합니다. Showcase 시나리오는 현재 `-Source Local`만 지원합니다.
+테스트 범위는 합성 세로/가로 viewport의 카드 배치·Safe Area와 세 실험실 반복 진입·복귀, 저장/시간 실험 실행, 중복 요청, 성능 실행 중 해제·재진입, EventSystem 중복 방지, 미등록 장면과 구독 해제입니다. 결과 XML·로그·빌드와 `summary.json`은 출력된 임시 프로젝트에 보존합니다. Showcase 시나리오는 현재 `-Source Local`만 지원합니다.
 
 2026-10-01, 빈 프로젝트에서 로컬 패키지 설치·샘플 Import·누락 스크립트 검사 후 검증했습니다.
 
@@ -77,3 +77,15 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-upm-compatibility
 이전 실험실 검증 기록은 각 [UI Performance Lab](../UnityTools/Assets/PerformanceLab/README.md), [Save Recovery Lab](../UnityTools/Assets/SaveRecoveryLab/README.md), [Timer Simulation Lab](../UnityTools/Assets/TimerSimulationLab/README.md)에 있습니다. [정적 CI 실행](https://github.com/aassder95/UnityTools/actions/runs/36803052811)은 배포 계약 검사이며 Unity 테스트 결과와 구분합니다.
 
 설계 선택과 대안은 [DESIGN.md](DESIGN.md)를 참고하세요.
+
+## 모바일 배치 보완 (2026-10-07)
+
+Showcase 선택 화면은 세로 1열/가로 3열 카드와 세로 스크롤을 사용하고, 복귀 버튼은 Safe Area 안쪽에 고정합니다. Timer Simulation Lab과 별도의 Timer Dashboard도 Safe Area와 회전을 지원합니다. UI Performance/Save Recovery 실험실 내부 화면은 이번 배치 변경 대상에 포함하지 않습니다.
+
+1080×2400/2400×1080 합성 viewport를 검증하며 실제 Android/iOS 터치·키보드와 기기별 스크롤 동작은 아직 검증하지 않았습니다.
+
+Timer Lab의 Unity 2022.3 실제 렌더 캡처입니다. 노치 영역은 합성 viewport로 지정했습니다. 가로 화면의 아래 결과는 세로 스크롤로 확인합니다.
+
+[세로 화면](images/timer-lab-portrait.png) · [가로 화면](images/timer-lab-landscape.png)
+
+[Showcase 세로 화면](images/showcase-portrait.png): 하단 카드는 스크롤로 접근합니다.

@@ -12,6 +12,8 @@ Unity 2022.3 이상에서 UI, Timer, Benchmark, Persistence, VFX Browser, Sheets
 - [설계 선택](docs/DESIGN.md): 패키지 경계, deque·pool 재사용, 저장 보호, 시간 주입
 - [통과한 정적 CI](https://github.com/aassder95/UnityTools/actions/runs/36803052811): 배포 계약·회귀 테스트·샘플 사본 검사
 
+[Timer Dashboard](docs/TIMER_DASHBOARD.md)는 ID별 작업 타이머 목록·주기 상태·조작 버튼·토스트 알림을 제공하는 별도 개발 장면입니다. `Assets/TimerDashboard/TimerDashboard.unity`에서 실행하며, `-Source Local -Scenarios timer-dashboard`로 검증합니다.
+
 Showcase는 개발 프로젝트 전용이며 개별 UPM 설치에는 포함되지 않습니다. 실제 기기에서 측정한 성능 결과를 함께 기록할 수 있도록 각 실험실에서 입력·출력과 측정 조건을 제공합니다.
 
 ## 패키지

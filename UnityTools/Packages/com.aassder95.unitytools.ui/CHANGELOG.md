@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 회전·노치 여백을 반영하는 명시 참조 UiSafeArea 추가
+
 - FIFO·중복 key 억제·unscaled 표시 시간을 제공하는 UiToastQueue 추가
 
 ## [2.2.0] - 2026-10-07

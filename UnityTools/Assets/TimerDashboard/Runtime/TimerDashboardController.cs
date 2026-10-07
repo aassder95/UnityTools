@@ -21,6 +21,8 @@ namespace UnityTools.TimerDashboard
         [SerializeField] private Text _txtStatus;
         [SerializeField] private InputField _inputId;
         [SerializeField] private UiToastQueue _toast;
+        [Header("Viewport")]
+        [SerializeField] private TimerDashboardLayout _layout;
         [Header("Actions")]
         [SerializeField] private Button[] _btnActions;
         [Header("Timer Fixture")]
@@ -178,6 +180,7 @@ namespace UnityTools.TimerDashboard
             }
 
             _txtTimers.text = text.ToString();
+            _layout.Refresh();
             _coRender = null;
         }
 

@@ -45,14 +45,31 @@ namespace UnityTools.Timer.Samples.Editor
             Image imgBg = goCanvas.AddComponent<Image>();
             imgBg.color = new Color(0.025f, 0.04f, 0.07f);
             imgBg.raycastTarget = false;
-            CreateText(rtRoot, "Title", "UNITYTOOLS / TIMER SIMULATION LAB", 30, 28.0f, 22.0f, 1384.0f, 46.0f);
-            CreateText(rtRoot, "Help", "Choose a controlled fixture. Inspect virtual UTC, storage snapshots and timer transitions. OS time stays unchanged.", 18, 28.0f, 76.0f, 1384.0f, 30.0f);
+            RectTransform safeArea = CreateRect("SafeArea", rtRoot, 0.0f, 0.0f, 1440.0f, 900.0f);
+            safeArea.gameObject.AddComponent<RectMask2D>();
+            safeArea.gameObject.AddComponent<Image>().color = Color.clear;
+            ScrollRect scroll = safeArea.gameObject.AddComponent<ScrollRect>();
+            RectTransform content = CreateRect("Content", safeArea, 0.0f, 0.0f, 1440.0f, 900.0f);
+            scroll.viewport = safeArea;
+            scroll.content = content;
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            TimerLabLayout layout = goCanvas.AddComponent<TimerLabLayout>();
+            Assign(layout, "_canvas", goCanvas.GetComponent<Canvas>());
+            Assign(layout, "_scaler", scaler);
+            Assign(layout, "_rtSafeArea", safeArea);
+            Assign(layout, "_rtContent", content);
+            Text title = CreateText(content, "Title", "UNITYTOOLS / TIMER SIMULATION LAB", 30, 28.0f, 22.0f, 1384.0f, 46.0f);
+            Text help = CreateText(content, "Help", "Choose a controlled fixture. Inspect virtual UTC, storage snapshots and timer transitions. OS time stays unchanged.", 18, 28.0f, 76.0f, 1384.0f, 30.0f);
             TimerLabController controller = goCanvas.AddComponent<TimerLabController>();
+            Assign(controller, "_layout", layout);
+            RectTransform[] buttons = new RectTransform[9];
+            Text[] buttonLabels = new Text[9];
             string[] labels = { "FORWARD TIME", "OFFLINE RESTORE", "CLOCK ROLLBACK", "SAVE FAILURE", "DUPLICATE CLAIM", "PAUSE / RESUME", "CANCEL / RESTART", "UNREGISTER / RESTORE", "DELETE / RESTORE" };
             string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister", "_btnDelete" };
             for (int idx = 0; idx < labels.Length; ++idx)
             {
-                RectTransform rtButton = CreateRect(labels[idx], rtRoot, 28.0f + idx % 5 * 280.0f, 124.0f + idx / 5 * 60.0f, 264.0f, 50.0f);
+                RectTransform rtButton = CreateRect(labels[idx], content, 28.0f + idx % 5 * 280.0f, 124.0f + idx / 5 * 60.0f, 264.0f, 50.0f);
                 Image img = rtButton.gameObject.AddComponent<Image>();
                 img.color = new Color(0.10f, 0.27f, 0.38f);
                 Button btn = rtButton.gameObject.AddComponent<Button>();
@@ -60,17 +77,30 @@ namespace UnityTools.Timer.Samples.Editor
                 Text label = CreateText(rtButton, "Label", labels[idx], 15, 0.0f, 0.0f, 264.0f, 50.0f);
                 label.alignment = TextAnchor.MiddleCenter;
                 Assign(controller, fields[idx], btn);
+                buttons[idx] = rtButton;
+                buttonLabels[idx] = label;
             }
 
-            CreateText(rtRoot, "BeforeTitle", "01 / INITIAL STATE", 20, 28.0f, 254.0f, 670.0f, 32.0f);
-            CreateText(rtRoot, "AfterTitle", "03 / FINAL STATE", 20, 742.0f, 254.0f, 670.0f, 32.0f);
-            Text before = CreateText(rtRoot, "Before", "VIRTUAL UTC + STATE + STORAGE\n\nSelect a scenario to inspect its input.", 17, 28.0f, 294.0f, 670.0f, 270.0f);
-            Text after = CreateText(rtRoot, "After", "VIRTUAL UTC + STATE + STORAGE\n\nCaptured after clock changes / initialization / claim.", 17, 742.0f, 294.0f, 670.0f, 270.0f);
-            CreateText(rtRoot, "ResultTitle", "02 / OBSERVED OPERATIONS", 20, 28.0f, 590.0f, 1384.0f, 32.0f);
-            Text result = CreateText(rtRoot, "Result", "PASS means the observed behavior matches the scenario invariant, including expected failures.\nEach fixture uses a fresh injected clock and in-memory storage.\nService recreation simulates restart; this is not a disk persistence or anti-cheat demo.", 17, 28.0f, 634.0f, 1384.0f, 240.0f);
+            Text beforeTitle = CreateText(content, "BeforeTitle", "01 / INITIAL STATE", 20, 28.0f, 254.0f, 670.0f, 32.0f);
+            Text afterTitle = CreateText(content, "AfterTitle", "03 / FINAL STATE", 20, 742.0f, 254.0f, 670.0f, 32.0f);
+            Text before = CreateText(content, "Before", "VIRTUAL UTC + STATE + STORAGE\n\nSelect a scenario to inspect its input.", 17, 28.0f, 294.0f, 670.0f, 270.0f);
+            Text after = CreateText(content, "After", "VIRTUAL UTC + STATE + STORAGE\n\nCaptured after clock changes / initialization / claim.", 17, 742.0f, 294.0f, 670.0f, 270.0f);
+            Text resultTitle = CreateText(content, "ResultTitle", "02 / OBSERVED OPERATIONS", 20, 28.0f, 590.0f, 1384.0f, 32.0f);
+            Text result = CreateText(content, "Result", "PASS means the observed behavior matches the scenario invariant, including expected failures.\nEach fixture uses a fresh injected clock and in-memory storage.\nService recreation simulates restart; this is not a disk persistence or anti-cheat demo.", 17, 28.0f, 634.0f, 1384.0f, 240.0f);
             Assign(controller, "_txtBefore", before);
             Assign(controller, "_txtAfter", after);
             Assign(controller, "_txtResult", result);
+            Assign(layout, "_txtTitle", title);
+            Assign(layout, "_txtHelp", help);
+            Assign(layout, "_txtBeforeTitle", beforeTitle);
+            Assign(layout, "_txtAfterTitle", afterTitle);
+            Assign(layout, "_txtResultTitle", resultTitle);
+            Assign(layout, "_txtBefore", before);
+            Assign(layout, "_txtAfter", after);
+            Assign(layout, "_txtResult", result);
+            AssignArray(layout, "_rtButtons", buttons);
+            AssignArray(layout, "_txtButtonLabels", buttonLabels);
+            layout.Refresh();
             Directory.CreateDirectory(Path.GetDirectoryName(path));
             EditorSceneManager.SaveScene(scene, path);
         }
@@ -101,6 +131,19 @@ namespace UnityTools.Timer.Samples.Editor
             txt.horizontalOverflow = HorizontalWrapMode.Wrap;
             txt.verticalOverflow = VerticalWrapMode.Truncate;
             return txt;
+        }
+
+        private static void AssignArray(UnityEngine.Object target, string field, UnityEngine.Object[] values)
+        {
+            SerializedObject data = new SerializedObject(target);
+            SerializedProperty entries = data.FindProperty(field);
+            entries.arraySize = values.Length;
+            for (int idx = 0; idx < values.Length; ++idx)
+            {
+                entries.GetArrayElementAtIndex(idx).objectReferenceValue = values[idx];
+            }
+
+            data.ApplyModifiedPropertiesWithoutUndo();
         }
 
         private static void Assign(UnityEngine.Object target, string field, UnityEngine.Object value)

@@ -1,6 +1,6 @@
 {
   "name": "UnityTools.Showcase.Tests",
-  "references": ["UnityTools.Showcase", "UnityTools.Benchmark.UiLab", "UnityTools.Persistence.SaveLab", "UnityTools.Timer.SimulationLab", "UnityEngine.UI"],
+  "references": ["UnityTools.Showcase", "UnityTools.Benchmark.UiLab", "UnityTools.Persistence.SaveLab", "UnityTools.Timer.SimulationLab", "UnityEngine.UI", "UnityTools.Ui"],
   "optionalUnityReferences": ["TestAssemblies"],
   "defineConstraints": ["UNITY_INCLUDE_TESTS"],
   "autoReferenced": false

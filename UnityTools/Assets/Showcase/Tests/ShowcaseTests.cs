@@ -6,6 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using UnityEngine.UI;
+using UnityTools.Ui;
 using UnityTools.Benchmark.Samples;
 using UnityTools.Persistence.Samples;
 using UnityTools.Timer.Samples;
@@ -126,6 +127,40 @@ namespace UnityTools.Showcase.Tests
             controller.ReturnToHub();
             yield return WaitForNavigation(controller);
             AssertSingleInput();
+        }
+
+        [UnityTest]
+        public IEnumerator PortraitCardsAndSafeAreaRemainReachableAfterRotation()
+        {
+            yield return SceneManager.LoadSceneAsync("Showcase");
+            ShowcaseLayout layout = Object.FindFirstObjectByType<ShowcaseLayout>();
+            Vector2[] sizes = { new Vector2(1080.0f, 2400.0f), new Vector2(2400.0f, 1080.0f) };
+            Rect[] areas = { new Rect(0.0f, 100.0f, 1080.0f, 2180.0f), new Rect(120.0f, 0.0f, 2220.0f, 1080.0f) };
+            string[] names = { "UI PERFORMANCE", "SAVE RECOVERY", "TIMER SIMULATION" };
+            for (int idx = 0; idx < sizes.Length; ++idx)
+            {
+                Assert.That(layout.TryApplyViewport(sizes[idx], areas[idx]), Is.True);
+                Canvas.ForceUpdateCanvases();
+                ScrollRect scroll = layout.transform.Find("SafeArea").GetComponent<ScrollRect>();
+                RectTransform previous = null;
+                foreach (string name in names)
+                {
+                    RectTransform card = (RectTransform)scroll.content.Find(name);
+                    Assert.That(-card.anchoredPosition.y + card.sizeDelta.y, Is.LessThan(scroll.content.sizeDelta.y));
+                    foreach (Text text in card.GetComponentsInChildren<Text>())
+                    {
+                        Assert.That(text.preferredHeight, Is.LessThanOrEqualTo(text.rectTransform.rect.height + 0.1f), name + " / " + text.name);
+                    }
+
+                    if (previous != null && idx == 0)
+                        Assert.That(-card.anchoredPosition.y, Is.GreaterThan(-previous.anchoredPosition.y + previous.sizeDelta.y));
+
+                    previous = card;
+                }
+
+                Assert.That(scroll.viewport.anchorMin.x, Is.EqualTo(areas[idx].xMin / sizes[idx].x).Within(0.001f));
+                Assert.That(scroll.viewport.anchorMax.y, Is.EqualTo(areas[idx].yMax / sizes[idx].y).Within(0.001f));
+            }
         }
 
         //============================================================

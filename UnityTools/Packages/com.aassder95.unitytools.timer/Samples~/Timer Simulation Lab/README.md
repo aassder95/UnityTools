@@ -34,3 +34,9 @@ powershell -ExecutionPolicy Bypass -File tools/test-upm-compatibility.ps1 -Sourc
 ## Delete / Restore
 
 DELETE / RESTORE는 저장 실패 시 진행 상태와 snapshot 보존, 삭제 재시도 후 등록 해제·미수령 상태, 하루 뒤 재등록 시 None 상태와 새 30초 작업 시작을 확인합니다. 기존 Unregister / Restore는 작업 기록을 유지하며 Delete / Restore는 기록을 초기화합니다. 기존 enum 숫자는 유지하고 DeleteRestore를 마지막에 추가했습니다.
+
+## 화면 크기와 Safe Area
+
+세로 화면에서는 버튼을 2열로, 초기/최종 상태를 위아래로 표시합니다. 가로 화면에서는 버튼 5열과 상태 2열을 사용합니다. Safe Area 내부를 세로 스크롤하며 긴 결과의 실제 글자 높이에 맞춰 콘텐츠를 확장합니다. 화면 회전과 Safe Area 변경에만 배치를 재계산하므로 Update에서 검색이나 할당을 하지 않습니다.
+
+1080×2400 세로, 2400×1080 가로와 1440×900 일반 화면을 합성 viewport로 검증합니다. 이는 실제 Android/iOS 터치, 키보드, 디바이스 테스트 결과가 아닙니다.
