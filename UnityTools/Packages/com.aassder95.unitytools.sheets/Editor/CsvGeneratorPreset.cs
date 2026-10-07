@@ -13,6 +13,7 @@ namespace UnityTools.Sheets.Editor
         [SerializeField] private List<CsvPresetColumn> _columns = new List<CsvPresetColumn>();
         [SerializeField] private string _keyHeader = string.Empty;
         [SerializeField] private List<CsvReferenceRule> _references = new List<CsvReferenceRule>();
+        [SerializeField] private List<CsvValueRule> _rules = new List<CsvValueRule>();
         [Header("Output")]
         [SerializeField] private string _namespaceName;
         [SerializeField] private string _className;
@@ -21,6 +22,7 @@ namespace UnityTools.Sheets.Editor
         //============================================================
         // Properties
         //============================================================
+        public IReadOnlyList<CsvValueRule> Rules => _rules.AsReadOnly();
         public string KeyHeader => _keyHeader;
         public IReadOnlyList<CsvReferenceRule> References => _references.AsReadOnly();
         public TextAsset Csv => _csv;
@@ -31,8 +33,17 @@ namespace UnityTools.Sheets.Editor
         //============================================================
         // Logic
         //============================================================
-        public void Capture(TextAsset csv, IReadOnlyList<CsvColumn> columns, IReadOnlyList<string> enumNames, string namespaceName, string className, string outputPath, string keyHeader = "", IReadOnlyList<CsvReferenceRule> references = null)
+        public void Capture(TextAsset csv, IReadOnlyList<CsvColumn> columns, IReadOnlyList<string> enumNames, string namespaceName, string className, string outputPath, string keyHeader = "", IReadOnlyList<CsvReferenceRule> references = null, IReadOnlyList<CsvValueRule> rules = null)
         {
+            _rules.Clear();
+            if (rules != null)
+            {
+                for (int idx = 0; idx < rules.Count; idx++)
+                {
+                    _rules.Add(rules[idx]);
+                }
+            }
+
             _keyHeader = keyHeader;
             _references.Clear();
             if (references != null)

@@ -15,3 +15,9 @@ Unity 2022.3.62f3: Editor 57/57, PlayMode 56/56, 생성 코드/Windows Mono buil
 ## VFX 비교 이미지 내보내기
 
 Unity 2022.3.62f3: Editor 30/30, skip 0, Windows Mono Development build/Editor DLL 제외 통과. PNG 재로드 후 좌/우 픽셀 배치와 크기, 비교 시간 유지, 원본 보존, 잘못된 크기/확장자 거부와 기존 파일 보존 확인. 수동 저장 대화상자와 overwrite 선택은 별도 확인 대상.
+
+## 값 검증 규칙
+
+필수 값(공백 포함), 숫자 범위(양끝 포함/유한 숫자/invariant culture), 문자열 길이(UTF-16 단위/양끝 포함) 규칙을 프리셋에 저장한다. CSV Generator와 CSV Batch에 함께 적용한다. 기본 목록은 비어 있으며 기존 serialized 필드명/GUID는 변경하지 않는다. Capture API에 optional rules 인자를 추가해 기존 소스 호출은 유지한다. 규칙이 있으면 셀 전체에 적용하며 배열 원소별 검증은 포함하지 않는다.
+
+Unity 2022.3.62f3: Editor 63/63, PlayMode 56/56, 생성 코드 컴파일/읽기, Windows Mono Development build/Player 통과. Required/Range/Length 복수 오류, 양끝 경계, 잘못된 범위와 빈 테이블, 프리셋 직렬화와 Batch 차단 확인.

@@ -112,6 +112,7 @@ namespace UnityTools.Sheets.Editor
 
             issues.AddRange(CsvCodeGenerator.Validate(table, columns, preset.NamespaceName, preset.ClassName));
             CsvConstraintValidator.Validate(table, preset.KeyHeader, preset.References, issues);
+            CsvRuleValidator.Validate(table, preset.Rules, issues);
             if (issues.Count > 0)
                 return false;
 
