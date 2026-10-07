@@ -135,6 +135,11 @@ class DistributionTests(unittest.TestCase):
         source.with_suffix(".cs.meta").rename(package / "VfxPrefabInfo.cs.meta")
         self.assert_rejected("VFX package code must stay in Editor folders")
 
+    def test_build_assembly_cannot_become_player_assembly(self):
+        path = self.root / "UnityTools/Packages/com.aassder95.unitytools.build/Editor/UnityTools.Build.Editor.asmdef"
+        self.change_json(path, lambda data: data.update(includePlatforms=[]))
+        self.assert_rejected("Build package assemblies must be Editor-only")
+
     def test_sheets_runtime_must_not_reference_engine(self):
         path = self.root / "UnityTools/Packages/com.aassder95.unitytools.sheets/Runtime/UnityTools.Sheets.asmdef"
         self.change_json(path, lambda data: data.update(noEngineReferences=False))

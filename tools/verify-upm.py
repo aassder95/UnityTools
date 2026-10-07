@@ -13,6 +13,9 @@ PACKAGES = {
     "persistence": "UnityTools.Persistence",
     "vfx": "UnityTools.Vfx.Editor",
     "sheets": "UnityTools.Sheets",
+    "qa": "UnityTools.Qa",
+    "build": "UnityTools.Build.Editor",
+    "vat": "UnityTools.Vat",
 }
 FORBIDDEN = re.compile(r"DOTween|Com\.ForbiddenByte|(?:^|/)OSA(?:/|$)", re.I)
 
@@ -144,8 +147,8 @@ def validate(root):
                     reject(path, "Sheets runtime must not reference UnityEngine")
                 if suffix == "sheets" and name == "UnityTools.Sheets.Editor" and definition.get("includePlatforms") != ["Editor"]:
                     reject(path, "Sheets generator must be Editor-only")
-                if suffix == "vfx" and definition.get("includePlatforms") != ["Editor"]:
-                    reject(path, "VFX package assemblies must be Editor-only")
+                if suffix in {"vfx", "build"} and definition.get("includePlatforms") != ["Editor"]:
+                    reject(path, f"{'VFX' if suffix == 'vfx' else 'Build'} package assemblies must be Editor-only")
                 if suffix == "vfx" and name == assembly and references:
                     reject(path, "VFX editor assembly must have no external references")
                 if not isinstance(name, str) or not name:
@@ -167,7 +170,7 @@ def validate(root):
                 if content is not None and re.search(r"UnityTools\.Util|OSA\.Core|Com\.ForbiddenByte|DOTweenPro", content):
                     reject(path, "Legacy or vendor namespace in package code")
 
-        expected_assembly = package / ("Editor" if suffix == "vfx" else "Runtime") / f"{assembly}.asmdef"
+        expected_assembly = package / ("Editor" if suffix in {"vfx", "build"} else "Runtime") / f"{assembly}.asmdef"
         if read_json(expected_assembly).get("name") != assembly:
             reject(expected_assembly, "Core assembly name does not match contract")
 
