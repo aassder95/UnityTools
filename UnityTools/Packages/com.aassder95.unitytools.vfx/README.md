@@ -23,7 +23,7 @@ Package Manager의 `Add package from disk...`에서 이 폴더의 `package.json`
 
 prefab 내부 sub-emitter, custom simulation space, shape의 MeshRenderer/SpriteRenderer 참조를 복제본으로 연결합니다. 비활성 root는 미리보기에서 활성화하고 자식의 활성 상태는 유지합니다. sub-emitter는 부모 시뮬레이션에서 실행하며 직접 중복 실행하지 않습니다. seed는 고정하고 시간 탐색은 처음부터 다시 시뮬레이션합니다. 탐색 시간 상한은 30초입니다.
 
-VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외부 오브젝트 참조, 충돌 대상, 오디오, 원본의 동적 위치 이동은 지원 범위에 포함하지 않습니다. prefab 외부 sub-emitter 연결은 복제하지 않습니다. shader는 현재 프로젝트의 render pipeline과 material에 의존하며 모든 커스텀 shader의 재생을 보장하지 않습니다. shader의 글로벌 시간은 별도로 덮어쓰지 않습니다.
+VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외부 오브젝트 참조, 충돌 대상, 오디오, 원본의 동적 위치 이동은 지원 범위에 포함하지 않습니다. Canvas·CanvasRenderer·Image·Mask·RectMask2D도 복제하지 않으며 Canvas 마스크의 stencil·clip rect를 재현하지 않습니다. prefab 외부 sub-emitter 연결은 복제하지 않습니다. shader는 현재 프로젝트의 render pipeline과 material에 의존하며 모든 커스텀 shader의 재생을 보장하지 않습니다. shader의 글로벌 시간은 별도로 덮어쓰지 않습니다.
 
 썸네일은 정지 이미지이고 선택한 항목 하나만 실시간 재생합니다. 색상은 렌더링된 단일 프레임에서 밝기와 알파를 가중한 HSV 분류입니다. 좌측 아래 픽셀을 배경으로 추정하므로 화면을 가득 채우는 효과, 어두운 효과, 여러 색이 섞인 효과는 예상과 다르게 분류될 수 있습니다. 낮은 채도의 회색도 White로 분류합니다. 지연 시작·짧은 효과는 Frame을 조정하세요. 자연어 의미 검색은 포함하지 않습니다.
 
@@ -54,6 +54,6 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 
 원본 프로젝트에 설치하거나 scene·prefab을 저장하지 않습니다. 검증은 Built-in pipeline의 격리된 프로젝트를 사용합니다. Pizza-Idle 원본도 Built-in입니다. 실제 UI Canvas·stencil·마스크, 창의 수동 조작과 다른 커스텀 shader는 별도 확인 대상입니다.
 
-추가로 `tools/test-vfx-urp.ps1`에서 Unity 2022.3.62f3 / URP 14.0.12와 Unity 6000.3.20f1 / URP 17.3.0의 파티클 썸네일·시간 탐색·orbit·zoom 후 캡처를 확인했습니다. 두 환경 모두 URP Particles/Unlit 녹색 probe가 통과했고, 기존 분수와 Molip/UI_Additive도 표시됐습니다. 별도 검증 프로젝트의 캡처 결과이며 실제 Canvas·stencil·마스크, 다른 shader, 전체 URP 테스트와 Player build를 확인한 결과는 아닙니다. 자세한 결과와 보존 경로는 `docs/RELEASE_SHEETS_VFX.md`에 기록했습니다.
+추가로 `tools/test-vfx-urp.ps1`에서 Unity 2022.3.62f3 / URP 14.0.12와 Unity 6000.3.20f1 / URP 17.3.0의 파티클 썸네일·시간 탐색·orbit·zoom 후 캡처를 확인했습니다. 두 환경 모두 URP Particles/Unlit 녹색 probe가 통과했고, 기존 분수와 Molip/UI_Additive도 표시됐습니다. `-FullValidation`에서는 두 환경 각각 전체 테스트 24/24, skip 0과 Windows Mono Development build 성공·VFX Editor DLL 제외를 확인했습니다. 빈 SmokeScene의 빌드 호환성 검사이며 실제 Canvas·stencil·마스크, 다른 shader와 Player 실행을 확인한 결과는 아닙니다. 자세한 결과와 보존 경로는 `docs/RELEASE_SHEETS_VFX.md`에 기록했습니다.
 
 2026-10-07, Unity 2022.3.62f3과 6000.3.20f1에서 위 실제 prefab 두 개의 썸네일(White)과 Molip/UI_Additive의 녹색 파티클 캡처가 통과했습니다. 두 버전 모두 VFX 테스트 23/23, skip 0, Windows Development build 성공과 Editor assembly 제외를 확인했습니다. 원본·사본 12개 파일의 SHA-256이 복사 전과 일치했습니다. fixture 복사 도구의 GUID 의존성·파일 보존, 소스/목적지 중첩 거부, 누락 의존성 실패 테스트도 통과했습니다.

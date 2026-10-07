@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using UnityEditor;
+using UnityEditor.Build.Reporting;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
@@ -113,5 +114,39 @@ public static class VfxUrpValidation
         }
 
         File.WriteAllText(Path.Combine(outputPath, "result.txt"), report.ToString());
+    }
+
+    public static void BuildPlayer()
+    {
+        string outputPath = File.ReadAllText("UrpOutput.txt").Trim();
+        if (!(GraphicsSettings.currentRenderPipeline is UniversalRenderPipelineAsset))
+        {
+            Debug.LogError("URP 빌드 파이프라인이 활성화되지 않았습니다.");
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        CompatibilityValidation.PrepareScenes();
+        string[] scenes = new string[EditorBuildSettings.scenes.Length];
+        for (int idx = 0; idx < scenes.Length; idx++)
+        {
+            scenes[idx] = EditorBuildSettings.scenes[idx].path;
+        }
+
+        BuildReport report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
+        {
+            scenes = scenes,
+            locationPathName = Path.Combine(outputPath, "Build/Compatibility.exe"),
+            target = BuildTarget.StandaloneWindows64,
+            options = BuildOptions.Development
+        });
+        if (report.summary.result != BuildResult.Succeeded)
+        {
+            Debug.LogError("URP Windows 빌드 실패: " + report.summary.result);
+            EditorApplication.Exit(1);
+            return;
+        }
+
+        File.WriteAllText(Path.Combine(outputPath, "build-result.txt"), Application.unityVersion + " | URP | " + report.summary.result + " | " + report.summary.totalSize + " bytes");
     }
 }

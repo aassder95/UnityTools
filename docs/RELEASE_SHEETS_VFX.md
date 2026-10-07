@@ -109,7 +109,7 @@ Pizza-Idle 원본은 Built-in pipeline입니다. manifest에 URP가 없고 Graph
 | 2022.3.62f3 | 14.0.12 | Green 통과 | Green 통과 |
 | 6000.3.20f1 | 17.3.0 | Green 통과 | Green 통과 |
 
-고정 VFX 소스는 이전과 같은 `f9c1cf1b48086b04572ec0399bc284a0909625a2`입니다. 활성 pipeline, 실행한 Editor/URP 버전과 lock을 확인했습니다. 원본·사본 12개 파일의 SHA-256은 유지됐습니다. 두 버전에서 기존 분수 2개는 White, Molip/UI_Additive probe는 Green으로 관측했습니다. 기존 shader의 이번 미리보기 결과이며 URP용 shader 전반이나 실제 UI Canvas·stencil·마스크의 호환성을 보장하지 않습니다. 이번 추가 검증은 기존 24개 테스트 전체나 URP Player build를 다시 실행한 결과가 아닙니다.
+고정 VFX 소스는 이전과 같은 `f9c1cf1b48086b04572ec0399bc284a0909625a2`입니다. 활성 pipeline, 실행한 Editor/URP 버전과 lock을 확인했습니다. 원본·사본 12개 파일의 SHA-256은 유지됐습니다. 두 버전에서 기존 분수 2개는 White, Molip/UI_Additive probe는 Green으로 관측했습니다. 기존 shader의 이번 미리보기 결과이며 URP용 shader 전반이나 실제 UI Canvas·stencil·마스크의 호환성을 보장하지 않습니다.
 
 Unity 2022.3 최초 시도는 요청 URP 14.0.11과 Editor가 설치한 실제 14.0.12가 달라 버전 검증에서 거절됐습니다. 도구의 요청을 실제 버전에 맞추고 재실행해 위 결과를 확인했습니다. 미검증 소스 입력의 변경 전 거절과 PowerShell 구문 검사도 통과했습니다. 제품 VFX 코드는 변경하지 않았습니다.
 
@@ -120,13 +120,103 @@ C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-2022.3.62f3-5ac43e4750664f3d97
 C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa119b64b57e05e8d\Urp-66b98e602e8944e5897aef87c1e6ef28
 ```
 
+### URP 전체 테스트와 Player 빌드
+
+2026-10-07 `-FullValidation` 옵션으로 두 URP 환경에서 VFX Editor 테스트 전체와 Windows Mono Development build를 추가 실행했습니다. 미리보기 검사·전체 테스트·빌드 결과를 같은 실행 폴더에 보존합니다. 기본 옵션은 미리보기만 검사합니다.
+
+```powershell
+& tools/test-vfx-urp.ps1 -Project '<VFX 검증 프로젝트 절대 경로>' -FullValidation
+```
+
+| Unity / URP | Editor 테스트 | skip | Windows 빌드 | VFX Editor DLL 제외 |
+| --- | --- | --- | --- | --- |
+| 2022.3.62f3 / 14.0.12 | 24/24 통과 | 0 | Succeeded, 97,402,834 bytes | 확인 |
+| 6000.3.20f1 / 17.3.0 | 24/24 통과 | 0 | Succeeded, 157,760,417 bytes | 확인 |
+
+테스트는 창 표시·닫기, 썸네일·색상·리소스 정리를 포함합니다. URP 활성 프로젝트에서도 제품 VFX 코드를 변경하지 않고 통과했습니다. 테스트 후 원본·사본 12개 파일 hash를 다시 확인했습니다. 빌드는 비어 있는 SmokeScene을 사용한 패키지 빌드 호환성 검사입니다. Player 실행·실제 게임 VFX 렌더링·Canvas·마스크 검사로 해석하지 않습니다.
+
+`summary.json`, `results.xml`, `tests.log`, `build.log`, `Build`와 캡처:
+
+```text
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-2022.3.62f3-5ac43e4750664f3d97700315c08f87b0\Urp-fff8e63614904a489c02ed4d14209ac2
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa119b64b57e05e8d\Urp-556ea0be4f5147c3bd43452ed994255b
+```
+
+## Canvas shader와 마스크 범위 검증
+
+2026-10-07 원본 UIAdditive.mat·Molip/UI_Additive shader 사본을 임시 World Space Canvas의 Image에 연결하고 stencil Mask·RectMask2D를 검사했습니다. Unity 2022.3.62f3 / uGUI 1.0.0, Unity 6000.3.20f1 / uGUI 2.0.0에서 Built-in과 URP를 각각 실행해 네 검사 모두 1/1 통과, 실패·skip 0입니다.
+
+```powershell
+& tools/test-vfx-canvas.ps1 -Project '<실제 VFX fixture가 포함된 검증 프로젝트 절대 경로>' -Pipeline BuiltIn
+& tools/test-vfx-canvas.ps1 -Project '<실제 VFX fixture와 URP가 설정된 검증 프로젝트 절대 경로>' -Pipeline Urp
+```
+
+실행마다 테스트용 uGUI 의존성과 검사 assembly를 임시 프로젝트에 추가합니다. 제품 프로젝트에서는 실행하지 않습니다. 테스트 종료 시 Graphics·Quality pipeline을 복구합니다. 원본·사본 12개 파일 SHA-256, 실행한 Editor·pipeline과 uGUI lock 버전을 확인했습니다.
+
+| 환경 | 마스크 전 녹색 픽셀 | stencil Mask | RectMask2D | UI 전용 Canvas 미리보기 |
+| --- | --- | --- | --- | --- |
+| 2022.3 Built-in | 12,288 | 4,096 | 4,092 | Invisible 확인 |
+| 2022.3 URP 14.0.12 | 12,288 | 4,096 | 4,092 | Invisible 확인 |
+| Unity 6 Built-in | 12,288 | 4,096 | 4,092 | Invisible 확인 |
+| Unity 6 URP 17.3.0 | 12,288 | 4,096 | 4,092 | Invisible 확인 |
+
+각 마스크가 표시 영역을 줄이고 Image의 렌더링용 stencil 비교가 Equal로 설정되는 것을 확인했습니다. VFXPreviewSession은 ParticleSystem·MeshRenderer·SpriteRenderer만 복제합니다. Canvas·CanvasRenderer·Image·Mask·RectMask2D를 복제하지 않으므로 UI 전용 Canvas는 미리보기에서 제외됩니다. 이 제외 동작도 검사했습니다. Canvas 마스크를 VFX Browser가 재현한다는 의미가 아닙니다.
+
+이번 검사는 실제 shader 사본의 합성 Canvas 검사입니다. 게임의 실제 prefab·scene 계층, 중첩 마스크, Screen Space Canvas, UI 파티클 연동 플러그인과 런타임 stencil material 전달은 미검증입니다. 해당 기능이 필요하면 별도 기능 범위로 검토해야 합니다.
+
+각 폴더의 `summary.json`, `results.xml`, `tests.log`, 마스크 전후 PNG와 `CanvasPreviewExcluded.png`:
+
+```text
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-2022.3.62f3-5ac43e4750664f3d97700315c08f87b0\Canvas-BuiltIn-39adda9c5a634671b3ed92baaf0b8383
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-2022.3.62f3-5ac43e4750664f3d97700315c08f87b0\Canvas-Urp-f79e7f9090ad455093e7815e1d69d7e1
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa119b64b57e05e8d\Canvas-BuiltIn-affe5fee62134011b3cd2f84e002a983
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa119b64b57e05e8d\Canvas-Urp-27417f06038f48bc8ad247eb76180fef
+```
+
 ## 사용 흐름과 남은 확인
+
+### GUI 재현 프로젝트
+
+`tools/prepare-package-gui.ps1`은 Sheets Git 설치·Player 검증을 완료한 임시 프로젝트에 같은 고정 commit의 VFX를 설치하고 GUI용 CSV와 15개 파티클 prefab을 준비합니다. 제품 프로젝트에서는 실행하지 않습니다. 준비된 fixture가 있으면 거절하며 다시 생성하지 않습니다.
+
+```powershell
+& tools/prepare-package-gui.ps1 -Project '<Sheets 검증 프로젝트 절대 경로>'
+```
+
+Unity에서 해당 임시 프로젝트를 열고 `Tools > UnityTools > GUI Validation > Open Windows`를 선택합니다. CSV GUI Validation과 VFX GUI Validation 창이 열립니다. 검증 fixture는 두 창의 초기 CSV·클래스 이름·탐색 폴더만 설정합니다. Read CSV, 입력 수정, 생성·저장과 VFX 조작은 실제 UI에서 확인해야 합니다.
+
+Unity 2022.3.62f3에서 CSV·15개 prefab 생성과 같은 고정 commit의 VFX 설치 확인을 완료했습니다. 기존 fixture 재생성을 변경 전에 거절하는 검사도 통과했습니다. 준비 결과와 컴파일 로그는 다음 프로젝트의 `gui-fixture-result.txt`, `gui-prepare.log`에 보존했습니다. 두 창의 Open 메뉴와 실제 조작은 미검증입니다.
+
+```text
+C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-2022.3.62f3-857cc275ee8b422587eb7f4717c46e4a
+```
+
+| 창 | 순서 | 예상 결과 |
+| --- | --- | --- |
+| CSV | Read CSV | 1행·2열, Days와 Ids 표시 |
+| CSV | 첫 열의 이름 Days, 타입 Enum, Array 선택, enum 이름 System.DayOfWeek 입력 | enum 배열 설정 |
+| CSV | 둘째 열의 이름 Ids, 타입 Int, Array 선택 | int 배열 설정 |
+| CSV | Validate & Preview | Game.Data.GuiData, IReadOnlyList와 두 배열 reader 생성 |
+| CSV | Enum을 잘못된 이름으로 변경 후 Validate | 오류 표시, 이전 생성 소스·Save 버튼 숨김 |
+| CSV | System.DayOfWeek로 복구하고 Array 해제 후 Validate | pipe 구분 셀을 scalar enum으로 읽을 수 없어 오류 |
+| CSV | Array 복구, Validate, Save C# | GuiData.cs 저장 대화상자 |
+| CSV | 다른 파일명으로 저장 | 파일명 오류, 파일 생성 안 됨 |
+| CSV | 한글 폴더에 GuiData.cs 저장, 같은 경로 덮어쓰기·취소 | UTF-8 source·컴파일, 취소 시 기존 파일 유지 |
+| VFX | Refresh, 다음 페이지·이전 페이지 | 15개 항목, 12개/3개 페이지 |
+| VFX | 검색 GUI Spark 14, Looping·OneShot 필터 | 해당 이름·경로·loop 설정으로 목록 필터 |
+| VFX | 별 선택, Favorites 켜기, 닫았다 재열기 | 해당 프로젝트의 즐겨찾기 유지 |
+| VFX | Analyze colors, Stop analysis, Orange 필터 | 분석 진행·중단, 분석된 orange 항목 표시 |
+| VFX | 항목 선택, Play·Restart·Replay·Speed·시간 이동 | 파티클·시간 갱신 |
+| VFX | 미리보기 드래그·휠·Fit | 카메라 회전·확대·bounds 정렬 |
+| VFX | Frame 변경, Refresh, 창 닫기 | 썸네일·분석 결과·미리보기 정리 |
+
+2026-10-07 computer-use로 수동 GUI 검증을 시도했습니다. 터미널의 GUI Editor 실행은 자동 승인 검토에서 거절됐고 구체적인 사유는 반환되지 않았습니다. 앱 실행·Hub 상태 조회는 가능했으나 사용자 입력 감지로 이어지는 조작을 중단했습니다. 이 표는 재현 절차이며 수동 통과 결과가 아닙니다. Windows 입력·저장 대화상자·덮어쓰기·취소는 아직 미검증입니다.
 
 자동 Editor 창 검사는 CSV 읽기 후 enum 배열·정수 배열 설정과 생성 소스 미리보기를 두 Editor 프레임에 걸쳐 그립니다. VFX는 색상 필터·썸네일·선택한 미리보기를 그린 뒤 창 닫기에서 리소스 정리를 확인합니다. 이 검사는 입력 장치로 버튼·체크박스를 직접 조작하는 수동 테스트를 대신하지 않습니다.
 
 - CSV Generator: enum 타입명 입력·잘못된 타입 오류, Array 선택·해제, Validate & Preview, 파일 저장 대화상자·덮어쓰기·한글 경로를 수동 확인합니다.
 - VFX Browser: 폴더·검색·페이지 이동·즐겨찾기·색상 필터·전체 분석/중단·Frame 변경과 카메라 조작을 수동 확인합니다.
-- 실제 프로젝트: 원본 Built-in의 실제 UI Canvas·stencil·마스크를 확인합니다. 별도 URP 프로젝트에서는 파티클 캡처를 확인했으며 Canvas 동작·전체 테스트·Player build는 별도 확인 대상입니다.
+- 실제 프로젝트: 원본 shader의 합성 Canvas 마스크 검사는 통과했습니다. 게임의 실제 prefab·scene·중첩 마스크·UI 파티클 연동과 Player 실행은 별도 확인 대상입니다. VFX Browser의 Canvas 마스크 재현은 지원 범위에 포함하지 않습니다.
 - 런타임: 모바일·IL2CPP에서 Sheets 데이터 로드와 생성 코드 사용을 확인합니다. Android ARM64 IL2CPP·High stripping APK 빌드는 통과했으며, 실행 증거는 Windows Mono Development build입니다.
 
 ## 발행 순서

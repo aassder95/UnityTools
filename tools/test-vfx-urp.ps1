@@ -1,7 +1,8 @@
 ﻿param(
     [Parameter(Mandatory = $true)]
     [string]$Project,
-    [string]$UnityPath
+    [string]$UnityPath,
+    [switch]$FullValidation
 )
 
 $ErrorActionPreference = 'Stop'
@@ -42,5 +43,27 @@ if (Test-Path -LiteralPath "$Project/project-vfx-source.json") {
     }
 }
 $result = [ordered]@{ Unity = $summary.Unity; Urp = $urpVersion; SourceRef = $summary.SourceRef; NativeUrpPreview = 'Passed'; Observations = $report; Output = $runPath }
+if ($FullValidation) {
+    $testArgs = @('-batchmode', '-projectPath', ('"' + $Project + '"'), '-runTests', '-testPlatform', 'EditMode', '-testFilter', 'UnityTools.Vfx.Editor.Tests', '-testResults', ('"' + $runPath + '/results.xml"'), '-logFile', ('"' + $runPath + '/tests.log"'))
+    $editor = Start-Process -FilePath $UnityPath -ArgumentList $testArgs -PassThru -WindowStyle Hidden
+    $editor.WaitForExit()
+    $editor.Refresh()
+    if ($editor.ExitCode -ne 0) { throw "URP 테스트 실행 실패: $runPath/tests.log" }
+    [xml]$tests = Get-Content -LiteralPath "$runPath/results.xml" -Raw
+    $run = $tests.'test-run'
+    if ($run.result -ne 'Passed' -or [int]$run.passed -le 0 -or [int]$run.skipped -gt 0) { throw "URP 테스트 실패: $($run.result), failed=$($run.failed), skipped=$($run.skipped). $runPath/results.xml" }
+    $buildArgs = @('-batchmode', '-projectPath', ('"' + $Project + '"'), '-executeMethod', 'VfxUrpValidation.BuildPlayer', '-quit', '-logFile', ('"' + $runPath + '/build.log"'))
+    $editor = Start-Process -FilePath $UnityPath -ArgumentList $buildArgs -PassThru -WindowStyle Hidden
+    $editor.WaitForExit()
+    $editor.Refresh()
+    if ($editor.ExitCode -ne 0) { throw "URP Player 빌드 실패: $runPath/build.log" }
+    $build = (Get-Content -LiteralPath "$runPath/build-result.txt" -Raw).Trim()
+    if (!$build.StartsWith($summary.Unity + ' | URP | Succeeded |')) { throw 'URP 빌드 결과 또는 실행 버전 불일치' }
+    if (@(Get-ChildItem -LiteralPath "$runPath/Build" -Recurse -Filter 'UnityTools.Vfx*.dll').Count -gt 0) { throw 'URP Player에 Editor 전용 VFX assembly가 포함됐습니다.' }
+    $result['Tests'] = "$($run.passed)/$($run.total)"
+    $result['Skipped'] = [int]$run.skipped
+    $result['Build'] = $build
+    $result['EditorAssemblyExcluded'] = $true
+}
 [IO.File]::WriteAllText("$runPath/summary.json", ($result | ConvertTo-Json), $utf8)
 $result | ConvertTo-Json
