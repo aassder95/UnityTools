@@ -41,7 +41,7 @@ function Invoke-Unity([string]$project, [string]$step, [string[]]$extra)
 $summaries = @()
 foreach ($scenario in $Scenarios)
 {
-    if ($scenario -notin @('timer','ui','ui-input','benchmark','persistence','ui-lab','save-lab','timer-lab','showcase')) { throw "알 수 없는 시나리오: $scenario" }
+    if ($scenario -notin @('timer','ui','ui-input','benchmark','persistence','ui-lab','save-lab','timer-lab','timer-dashboard','showcase')) { throw "알 수 없는 시나리오: $scenario" }
     if ($scenario -eq 'showcase' -and $Source -ne 'Local') { throw 'Showcase는 현재 로컬 소스로만 검증합니다. -Source Local을 지정하세요.' }
     $project = Join-Path $runRoot $scenario
     New-Item -ItemType Directory -Path "$project/Assets/Editor", "$project/Packages", "$project/ProjectSettings" -Force | Out-Null
@@ -62,6 +62,7 @@ foreach ($scenario in $Scenarios)
         'ui-input' { $packages = @('ui'); $samples = @('ui'); $filter = 'UnityTools.Ui.Tests'; $dependencies['com.unity.inputsystem'] = '1.14.0' }
         'benchmark' { $packages = @('benchmark'); $filter = 'UnityTools.Benchmark.Tests' }
         'persistence' { $packages = @('persistence'); $filter = 'UnityTools.Persistence.Tests' }
+        'timer-dashboard' { $packages = @('timer','ui'); $filter = 'UnityTools.TimerDashboard.Tests' }
         'timer-lab' { $packages = @('timer'); $samples = @('timer'); $filter = 'UnityTools.Timer'; $dependencies['com.unity.ugui'] = '1.0.0' }
         'save-lab' { $packages = @('persistence'); $samples = @('persistence'); $filter = 'UnityTools.Persistence'; $dependencies['com.unity.ugui'] = '1.0.0' }
         'ui-lab' { $packages = @('benchmark','ui'); $samples = @('benchmark'); $filter = 'UnityTools.Benchmark' }
@@ -94,6 +95,13 @@ foreach ($scenario in $Scenarios)
         Invoke-Unity $project 'showcase' @('-executeMethod','UnityTools.Showcase.Editor.ShowcaseSceneBuilder.BuildValidationScene','-quit')
         if (!(Test-Path "$project/Assets/Showcase/Showcase.unity")) { throw "Showcase 생성 장면 누락: $project" }
         [IO.File]::WriteAllText("$project/ValidationEntryScene.txt", 'Assets/Showcase/Showcase.unity', $utf8)
+    }
+    if ($scenario -eq 'timer-dashboard')
+    {
+        if ($Source -ne 'Local') { throw 'Timer Dashboard는 -Source Local로 검증합니다.' }
+        Copy-Item -LiteralPath (Join-Path $repoRoot 'UnityTools/Assets/TimerDashboard') -Destination "$project/Assets/TimerDashboard" -Recurse
+        Invoke-Unity $project 'dashboard' @('-executeMethod','UnityTools.TimerDashboard.Editor.TimerDashboardSceneBuilder.BuildValidationScene','-quit')
+        [IO.File]::WriteAllText("$project/ValidationEntryScene.txt", 'Assets/TimerDashboard/TimerDashboard.unity', $utf8)
     }
     Invoke-Unity $project 'scenes' @('-executeMethod','CompatibilityValidation.PrepareScenes','-quit')
     if (!(Test-Path "$project/scenes-ready.txt")) { throw "장면 검증 기록 누락: $project" }

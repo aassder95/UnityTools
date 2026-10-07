@@ -1,0 +1,15 @@
+{
+  "name": "UnityTools.TimerDashboard.Tests",
+  "references": [
+    "UnityTools.TimerDashboard",
+    "UnityTools.Timer",
+    "UnityEngine.UI"
+  ],
+  "autoReferenced": false,
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ]
+}

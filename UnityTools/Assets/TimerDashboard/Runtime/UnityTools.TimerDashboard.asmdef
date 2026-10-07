@@ -1,0 +1,9 @@
+{
+  "name": "UnityTools.TimerDashboard",
+  "references": [
+    "UnityTools.Timer",
+    "UnityTools.Ui",
+    "UnityEngine.UI"
+  ],
+  "autoReferenced": true
+}

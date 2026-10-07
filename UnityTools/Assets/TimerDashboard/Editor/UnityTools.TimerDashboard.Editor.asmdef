@@ -1,0 +1,12 @@
+{
+  "name": "UnityTools.TimerDashboard.Editor",
+  "references": [
+    "UnityTools.TimerDashboard",
+    "UnityTools.Ui",
+    "UnityEngine.UI"
+  ],
+  "autoReferenced": true,
+  "includePlatforms": [
+    "Editor"
+  ]
+}
