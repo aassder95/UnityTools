@@ -11,6 +11,8 @@ namespace UnityTools.Sheets.Editor
         [Header("CSV")]
         [SerializeField] private TextAsset _csv;
         [SerializeField] private List<CsvPresetColumn> _columns = new List<CsvPresetColumn>();
+        [SerializeField] private string _keyHeader = string.Empty;
+        [SerializeField] private List<CsvReferenceRule> _references = new List<CsvReferenceRule>();
         [Header("Output")]
         [SerializeField] private string _namespaceName;
         [SerializeField] private string _className;
@@ -19,6 +21,8 @@ namespace UnityTools.Sheets.Editor
         //============================================================
         // Properties
         //============================================================
+        public string KeyHeader => _keyHeader;
+        public IReadOnlyList<CsvReferenceRule> References => _references.AsReadOnly();
         public TextAsset Csv => _csv;
         public string NamespaceName => _namespaceName;
         public string ClassName => _className;
@@ -27,8 +31,18 @@ namespace UnityTools.Sheets.Editor
         //============================================================
         // Logic
         //============================================================
-        public void Capture(TextAsset csv, IReadOnlyList<CsvColumn> columns, IReadOnlyList<string> enumNames, string namespaceName, string className, string outputPath)
+        public void Capture(TextAsset csv, IReadOnlyList<CsvColumn> columns, IReadOnlyList<string> enumNames, string namespaceName, string className, string outputPath, string keyHeader = "", IReadOnlyList<CsvReferenceRule> references = null)
         {
+            _keyHeader = keyHeader;
+            _references.Clear();
+            if (references != null)
+            {
+                for (int idx = 0; idx < references.Count; idx++)
+                {
+                    _references.Add(references[idx]);
+                }
+            }
+
             _csv = csv;
             _namespaceName = namespaceName;
             _className = className;
