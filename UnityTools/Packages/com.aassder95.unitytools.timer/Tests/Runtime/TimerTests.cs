@@ -899,6 +899,38 @@ namespace UnityTools.Timer.Tests.Timer
             Assert.That(TaskTimer.TryDelete("A", null), Is.False);
             Assert.That(storage.SaveCnt, Is.Zero);
         }
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PeriodSnapshotsCaptureTimeAndRemainIndependent(bool isClosed)
+        {
+            MemoryStorage storage = new();
+            PeriodTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("A", out PeriodTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle, 2.0d, 3.0d), Is.True);
+            try
+            {
+                if (isClosed)
+                    Assert.That(handle.TryForceClosed(), Is.True);
+
+                PeriodTimerData before = service.GetSnapshots()[0];
+                int remainingSec = isClosed ? 180 : 120;
+                Assert.That(before.IsReady, Is.True);
+                Assert.That(before.RemainingSec, Is.EqualTo(remainingSec));
+                Assert.That(before.RemainingMin, Is.EqualTo(handle.RemainingMin));
+                _utcNow = _utcNow.AddSeconds(30.0d);
+                Assert.That(service.GetSnapshots()[0].RemainingSec, Is.EqualTo(remainingSec - 30));
+                Assert.That(before.RemainingSec, Is.EqualTo(remainingSec));
+                storage.DisableSave();
+                Assert.That(handle.TryForceOpen(), Is.False);
+                Assert.That(service.GetSnapshots()[0].RemainingSec, Is.EqualTo(remainingSec - 30));
+                Assert.That(service.GetSnapshots()[0].CurType, Is.EqualTo(before.CurType));
+            }
+            finally
+            {
+                service.Release();
+            }
+        }
+
         //============================================================
         // Callbacks
         //============================================================

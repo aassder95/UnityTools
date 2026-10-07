@@ -145,7 +145,7 @@ namespace UnityTools.Timer.Period
         //============================================================
         public virtual PeriodTimerData ToData()
         {
-            return new PeriodTimerData(_timer.Id, _timer.CurType);
+            return new PeriodTimerData(_timer.Id, _timer.CurType, _timer.RemainingSec, _timer.RemainingMin, _timer.IsReady);
         }
     }
 }
