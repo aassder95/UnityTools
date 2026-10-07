@@ -116,6 +116,16 @@ namespace UnityTools.Timer.Task
         //============================================================
         // Persistence
         //============================================================
+        public static bool TryDelete(string id, IStorage storage)
+        {
+            string normalizedId = id?.Trim();
+            if (string.IsNullOrEmpty(normalizedId) || storage == null)
+                return false;
+
+            string snapshot = $"1|0|0|{((int)ETaskTimerType.None).ToString(CultureInfo.InvariantCulture)}|0|0";
+            return storage.TrySave(GetSnapshotKey(normalizedId), snapshot);
+        }
+
         private bool TryLoad()
         {
             if (!_storage.TryHasKey(GetSnapshotKey(_id), out bool hasSnapshot))

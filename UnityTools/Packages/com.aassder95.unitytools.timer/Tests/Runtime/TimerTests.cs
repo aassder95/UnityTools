@@ -743,6 +743,162 @@ namespace UnityTools.Timer.Tests.Timer
             service.Release();
         }
 
+        [TestCase(0)]
+        [TestCase(1)]
+        [TestCase(2)]
+        [TestCase(3)]
+        public void TaskDeleteResetsRegisteredStateAndClaim(int stateIdx)
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("A", out TaskTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle), Is.True);
+            Assert.That(service.TryStart("A", 60.0d), Is.True);
+            if (stateIdx == 1)
+                Assert.That(service.TryPause("A"), Is.True);
+
+            if (stateIdx >= 2)
+                Assert.That(service.TryComplete("A"), Is.True);
+
+            if (stateIdx == 3)
+                Assert.That(service.TryClaim("A"), Is.True);
+
+            service.OnTimersChanged += OnTimersChanged;
+            handle.OnCompleted += OnTaskCompleted;
+            handle.OnClaimed += OnTaskClaimed;
+            try
+            {
+                Assert.That(service.TryDelete(" A "), Is.True);
+                Assert.That(service.TimerCnt, Is.Zero);
+                Assert.That(service.TryGetHandle("A", out _), Is.False);
+                Assert.That(_changedCnt, Is.EqualTo(1));
+                Assert.That(_completedCnt, Is.Zero);
+                Assert.That(_claimedCnt, Is.Zero);
+                Assert.That(handle.TryStart(30.0d), Is.False);
+                Assert.That(service.TryGetClaimed("A", out bool isClaimed), Is.True);
+                Assert.That(isClaimed, Is.False);
+                Assert.That(service.TryInit(handle), Is.True);
+                Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.None));
+                Assert.That(handle.ToData().DurationSec, Is.Zero);
+                Assert.That(service.TryStart("A", 30.0d), Is.True);
+                Assert.That(handle.RemainingSec, Is.EqualTo(30));
+            }
+            finally
+            {
+                service.OnTimersChanged -= OnTimersChanged;
+                handle.OnCompleted -= OnTaskCompleted;
+                handle.OnClaimed -= OnTaskClaimed;
+                service.Release();
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void TaskDeleteDoesNotRestoreLegacyData(bool isClaimed)
+        {
+            MemoryStorage storage = new();
+            storage.Seed("TaskTimer_A_UPDATED", _utcNow.Ticks.ToString());
+            if (!isClaimed)
+            {
+                storage.Seed("TaskTimer_A_START", _utcNow.Ticks.ToString());
+                storage.Seed("TaskTimer_A_DURATION", "600");
+                storage.Seed("TaskTimer_A_STATE", "1");
+            }
+
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            service.OnTimersChanged += OnTimersChanged;
+            try
+            {
+                Assert.That(service.TryDelete("A"), Is.True);
+                Assert.That(service.TryDelete("A"), Is.True);
+                Assert.That(_changedCnt, Is.Zero);
+                Assert.That(service.TryGetClaimed("A", out bool restoredClaim), Is.True);
+                Assert.That(restoredClaim, Is.False);
+                Assert.That(service.TryCreate("A", out TaskTimerHandle handle), Is.True);
+                Assert.That(service.TryInit(handle), Is.True);
+                Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.None));
+                Assert.That(handle.ToData().DurationSec, Is.Zero);
+            }
+            finally
+            {
+                service.OnTimersChanged -= OnTimersChanged;
+                service.Release();
+            }
+        }
+
+        [Test]
+        public void TaskDeleteSaveFailurePreservesRegistrationAndSnapshot()
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("A", out TaskTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle), Is.True);
+            Assert.That(service.TryStart("A", 60.0d), Is.True);
+            Assert.That(storage.TryLoad("TaskTimer_A_SNAPSHOT", out string snapshot), Is.True);
+            service.OnTimersChanged += OnTimersChanged;
+            try
+            {
+                storage.DisableSave();
+                Assert.That(service.TryDelete("A"), Is.False);
+                Assert.That(service.TimerCnt, Is.EqualTo(1));
+                Assert.That(service.TryGetHandle("A", out TaskTimerHandle current), Is.True);
+                Assert.That(current, Is.SameAs(handle));
+                Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.Processing));
+                Assert.That(storage.TryLoad("TaskTimer_A_SNAPSHOT", out string unchanged), Is.True);
+                Assert.That(unchanged, Is.EqualTo(snapshot));
+                Assert.That(_changedCnt, Is.Zero);
+                storage.EnableSave();
+                Assert.That(service.TryDelete("A"), Is.True);
+                Assert.That(_changedCnt, Is.EqualTo(1));
+            }
+            finally
+            {
+                service.OnTimersChanged -= OnTimersChanged;
+                service.Release();
+            }
+        }
+
+        [UnityTest]
+        public IEnumerator TaskDeleteStopsOldCoroutineAndKeepsOtherTimer()
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("A", out TaskTimerHandle removed), Is.True);
+            Assert.That(service.TryInit(removed), Is.True);
+            Assert.That(service.TryStart("A", 60.0d), Is.True);
+            Assert.That(service.TryCreate("B", out TaskTimerHandle other), Is.True);
+            Assert.That(service.TryInit(other), Is.True);
+            Assert.That(service.TryStart("B", 120.0d), Is.True);
+            try
+            {
+                Assert.That(service.TryDelete("A"), Is.True);
+                int saveCnt = storage.SaveCnt;
+                _utcNow = _utcNow.AddSeconds(61.0d);
+                yield return new WaitForSecondsRealtime(1.2f);
+                Assert.That(storage.SaveCnt, Is.EqualTo(saveCnt));
+                Assert.That(removed.CurType, Is.EqualTo(ETaskTimerType.Processing));
+                Assert.That(other.RemainingSec, Is.EqualTo(59));
+                Assert.That(service.TimerCnt, Is.EqualTo(1));
+                Assert.That(service.TryCreate("A", out TaskTimerHandle restored), Is.True);
+                Assert.That(service.TryInit(restored), Is.True);
+                Assert.That(restored.CurType, Is.EqualTo(ETaskTimerType.None));
+            }
+            finally
+            {
+                service.Release();
+            }
+        }
+
+        [Test]
+        public void TaskDeleteRejectsInvalidIdAndStorage()
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryDelete(null), Is.False);
+            Assert.That(service.TryDelete(" "), Is.False);
+            Assert.That(TaskTimer.TryDelete("A", null), Is.False);
+            Assert.That(storage.SaveCnt, Is.Zero);
+        }
         //============================================================
         // Callbacks
         //============================================================
@@ -847,6 +1003,7 @@ namespace UnityTools.Timer.Tests.Timer
                 _values[key] = value;
             }
         }
+
     }
 
 }

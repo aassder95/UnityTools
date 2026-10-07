@@ -76,6 +76,12 @@ timerHost.Release();
 
 취소는 수령 표시가 false인 기존 v1 snapshot을 저장한 후 coroutine·시간·진행률을 정리합니다. 취소 후 재접속해도 작업은 되살아나지 않으며 `TryGetClaimed`는 false를 반환합니다. 기존 `ITaskTimer` 계약은 유지하고, 선택적 `ICancellableTaskTimer`를 구현한 타이머만 handle에서 취소할 수 있습니다. Period Timer에는 취소를 추가하지 않습니다. 공개 `unitytools-timer/v1.1.0` tag에는 이 API가 포함되지 않습니다.
 
+## 작업 기록 삭제 (개발 버전)
+
+`TaskTimerService.TryDelete(id)`는 진행·정지·완료·수령 기록을 초기화하고 등록된 handle을 해제합니다. 미등록 ID와 반복 삭제도 저장에 성공하면 true이며, 잘못된 ID나 저장 실패는 false입니다. 등록된 항목을 제거할 때만 `OnTimersChanged`를 한 번 알리고 완료·수령 알림은 발생시키지 않습니다. 저장 실패 시 등록·작업 상태·저장 기록은 유지됩니다.
+
+삭제는 기존 v1 형식의 None·미수령 snapshot을 먼저 저장합니다. legacy 키를 물리적으로 지우지 않지만 snapshot이 우선되어 이전 작업·수령 기록이 복원되지 않습니다. 같은 ID 또는 기존 handle을 다시 초기화하면 새 작업을 시작할 수 있습니다. `TryUnregister`는 저장 기록을 유지하고, `TryCancel`은 등록을 유지한다는 점에서 다릅니다. 공개 Timer 1.2.0에는 삭제 API가 포함되지 않습니다.
+
 ## Persistence
 
 - 외부 저장소는 `IStorage`로 주입합니다.

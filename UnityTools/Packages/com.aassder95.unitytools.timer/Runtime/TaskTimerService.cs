@@ -118,6 +118,21 @@ namespace UnityTools.Timer
         //============================================================
         // Logic
         //============================================================
+        public bool TryDelete(string id)
+        {
+            if (!TryNormalizeId(id, out string normalizedId) || !TaskTimer.TryDelete(normalizedId, _storage))
+                return false;
+
+            if (_handles.Remove(normalizedId, out TaskTimerHandle handle))
+            {
+                UnbindEvents(normalizedId, handle);
+                handle.Release();
+                _onTimersChanged?.Invoke();
+            }
+
+            return true;
+        }
+
         public bool TryStart(string id, double durationSec)
         {
             return TryGetHandle(id, out TaskTimerHandle handle) && handle.TryStart(durationSec);
