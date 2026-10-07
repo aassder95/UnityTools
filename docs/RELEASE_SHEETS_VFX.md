@@ -58,6 +58,42 @@ C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-2022.3.62f3-5ac43e4750664f3d97
 C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa119b64b57e05e8d
 ```
 
+## IL2CPP 추가 검증
+
+`tools/test-sheets-il2cpp.ps1`은 앞선 Git 설치 검증이 완료된 Sheets 임시 프로젝트를 받아 IL2CPP·High managed stripping으로 추가 빌드합니다. 같은 프로젝트에서 동시에 실행하지 마세요. 이 도구는 임시 프로젝트의 빌드 대상·backend·stripping 설정을 변경하며 기존 Mono 결과와 별도 `Il2Cpp-<id>` 폴더에 결과를 기록합니다. 제품 프로젝트에서는 실행하지 않습니다.
+
+```powershell
+& tools/test-sheets-il2cpp.ps1 -Project '<Sheets 검증 프로젝트 절대 경로>' -Target Windows
+& tools/test-sheets-il2cpp.ps1 -Project '<Sheets 검증 프로젝트 절대 경로>' -Target Android
+```
+
+Windows는 GameAssembly.dll과 managed Sheets assembly 제외 여부를 검사하고 생성 코드의 Player 검증을 실행합니다. Android는 ARM64 APK의 `lib/arm64-v8a/libil2cpp.so`와 managed Sheets assembly 제외 여부를 검사합니다. Android 기기에 설치하거나 실행하지 않으며 summary의 Player는 `Not run (Android build only)`입니다. 생성 코드 검증은 한글·문화권, 일곱 가지 배열 타입, enum, 단일 키·그룹 조회, 잘못된 입력의 부분 결과 미공개를 포함합니다.
+
+2026-10-07 Windows IL2CPP는 Unity 2022.3.62f3·6000.3.20f1 모두 `ToolchainNotFoundException`으로 실패했습니다. Unity 로그가 Visual Studio C++ tool components와 Windows SDK 누락을 보고했습니다. IL2CPP 모듈은 설치돼 있으나 네이티브 컴파일·Player 실행은 검증하지 못했습니다. 기존 Windows Mono 성공 결과와 구분합니다.
+
+실패 로그:
+
+```text
+C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-2022.3.62f3-857cc275ee8b422587eb7f4717c46e4a\Il2Cpp-6c01d3c581c0490782556cb4a9f3a2ec\build.log
+C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-6000.3.20f1-e377dcda91bc42b29ad270d6fa5a7144\Il2Cpp-28f8b400a99b41c98394fd8a890c4946\build.log
+```
+
+Android ARM64 IL2CPP는 두 Unity 버전 모두 High stripping으로 APK 빌드에 성공했습니다. APK의 ARM64 `libil2cpp.so`와 managed Sheets assembly 제외 여부를 확인했습니다. 현재 adb에서 두 에뮬레이터가 offline으로 표시돼 기기 실행 증거는 없습니다. 네이티브 코드 생성·컴파일·패키징의 성공이며 enum reflection과 그룹 조회의 Android 실행 성공으로 해석하지 않습니다.
+
+| Unity | Android ARM64 IL2CPP | 기기 실행 |
+| --- | --- | --- |
+| 2022.3.62f3 | APK 빌드·native library 확인 통과 | 미실행 |
+| 6000.3.20f1 | APK 빌드·native library 확인 통과 | 미실행 |
+
+성공 결과의 `summary.json`, `build.log`, `Sheets.apk`:
+
+```text
+C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-2022.3.62f3-857cc275ee8b422587eb7f4717c46e4a\Il2Cpp-6f89b15fbaa04a96934c8e4f7fff0c6b
+C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-6000.3.20f1-e377dcda91bc42b29ad270d6fa5a7144\Il2Cpp-07a06b6231a5459fb40459e4081eafd3
+```
+
+검증 도구 자체는 Windows PowerShell 구문 검사와 미검증 로컬 소스 입력의 변경 전 거절을 확인했습니다. 두 Editor에서 C# 검증 스크립트가 컴파일됐으며 Windows 실패 경로와 Android 성공·APK 검사 경로를 실행했습니다. Windows IL2CPP Player 성공 경로는 환경 제약으로 미검증입니다.
+
 ## 사용 흐름과 남은 확인
 
 자동 Editor 창 검사는 CSV 읽기 후 enum 배열·정수 배열 설정과 생성 소스 미리보기를 두 Editor 프레임에 걸쳐 그립니다. VFX는 색상 필터·썸네일·선택한 미리보기를 그린 뒤 창 닫기에서 리소스 정리를 확인합니다. 이 검사는 입력 장치로 버튼·체크박스를 직접 조작하는 수동 테스트를 대신하지 않습니다.
@@ -65,7 +101,7 @@ C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa1
 - CSV Generator: enum 타입명 입력·잘못된 타입 오류, Array 선택·해제, Validate & Preview, 파일 저장 대화상자·덮어쓰기·한글 경로를 수동 확인합니다.
 - VFX Browser: 폴더·검색·페이지 이동·즐겨찾기·색상 필터·전체 분석/중단·Frame 변경과 카메라 조작을 수동 확인합니다.
 - 실제 프로젝트: 원본 URP의 머티리얼·UI Canvas·stencil·마스크를 확인합니다. 현재 실제 에셋 검증은 별도 Built-in 프로젝트입니다.
-- 런타임: 모바일·IL2CPP에서 Sheets 데이터 로드와 생성 코드 사용을 확인합니다. 현재 Player 증거는 Windows Mono Development build입니다.
+- 런타임: 모바일·IL2CPP에서 Sheets 데이터 로드와 생성 코드 사용을 확인합니다. Android ARM64 IL2CPP·High stripping APK 빌드는 통과했으며, 실행 증거는 Windows Mono Development build입니다.
 
 ## 발행 순서
 
