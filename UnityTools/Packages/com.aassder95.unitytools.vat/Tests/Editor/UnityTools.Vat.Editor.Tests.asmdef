@@ -1,0 +1,17 @@
+{
+  "name": "UnityTools.Vat.Editor.Tests",
+  "references": [
+    "UnityTools.Vat",
+    "UnityTools.Vat.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ]
+}

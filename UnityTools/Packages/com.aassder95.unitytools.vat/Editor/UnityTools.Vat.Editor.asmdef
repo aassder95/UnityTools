@@ -1,0 +1,9 @@
+{
+  "name": "UnityTools.Vat.Editor",
+  "references": [
+    "UnityTools.Vat"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ]
+}
