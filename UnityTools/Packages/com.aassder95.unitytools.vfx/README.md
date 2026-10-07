@@ -69,3 +69,7 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 ## VFX 비교 보기
 
 `Tools > UnityTools > VFX Compare` 또는 Browser의 Compare 버튼으로 비교 창을 엽니다. Left/Right에 파티클 prefab 두 개를 연결합니다. 같은 시간, 배속, Replay 구간으로 재생하며 드래그/휠은 양쪽 카메라에 함께 적용됩니다. Fit together는 두 효과의 bounds를 합쳐 같은 카메라 위치와 스케일로 비교합니다. 선택한 시점에 Fit together를 누르면 현재 파티클 범위로 다시 맞춥니다. 두 별도 PreviewScene만 사용하며 원본/사용자 스크립트/오디오는 실행하지 않습니다. 창 닫기, reload, Play Mode 진입, 에셋 변경 시 양쪽 자원을 해제합니다. 에셋 변경 후 Refresh previews로 다시 연결합니다. Canvas/VFX Graph 등 지원 범위는 기존 Browser와 같습니다.
+
+## 비용 요약
+
+Browser의 Analyze cost summary는 선택한 prefab의 파티클 시스템, 지원 renderer(Particle/Mesh/Sprite), material 슬롯/고유 material 수, 설정상 maxParticles 합을 표시합니다. 비활성 자식도 구조 수에 포함합니다. Replay 구간을 151개 고정 시점에서 별도 PreviewScene으로 샘플링해 관측 최대 생존 파티클 수도 표시합니다. 원본/사용자 스크립트는 실행하지 않습니다. 이 수치는 GPU 시간, draw call, overdraw 또는 기기 성능 측정이 아닙니다. 샘플 사이의 짧은 peak는 놓칠 수 있으며 prefab 선택/에셋 변경 시 초기화합니다. Replay를 바꾸면 다시 분석하세요.

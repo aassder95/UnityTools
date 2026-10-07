@@ -43,6 +43,7 @@ namespace UnityTools.Vfx.Editor
         // Fields
         //============================================================
         private VfxPreviewSession _preview;
+        private VfxCostSummary _costSummary;
         private DefaultAsset _folder;
         private Vector2 _scrollPos;
         private string _favoritesKey;
@@ -242,6 +243,7 @@ namespace UnityTools.Vfx.Editor
         private void SelectItem(VfxPrefabInfo item)
         {
             ReleasePreview();
+            _costSummary = null;
             _selectedGuid = item.Guid;
             LoadLabels();
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(item.Guid));
@@ -260,6 +262,7 @@ namespace UnityTools.Vfx.Editor
         {
             _preview?.Dispose();
             _preview = null;
+            _costSummary = null;
         }
 
         private void DrawLibrary()
@@ -430,6 +433,22 @@ namespace UnityTools.Vfx.Editor
                 _durationSec = EditorGUILayout.Slider("Replay (sec)", _durationSec, 0.1f, VfxPreviewSession.MAX_PREVIEW_SEC);
                 _speed = EditorGUILayout.Slider("Speed", _speed, 0.1f, 3.0f);
                 EditorGUILayout.LabelField("Live particles: " + _preview.ParticleCnt);
+                if (GUILayout.Button("Analyze cost summary"))
+                {
+                    GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(_selectedGuid));
+                    bool isAnalyzed = VfxCostSummary.TryAnalyze(prefab, _durationSec, 151, out _costSummary);
+                    if (!isAnalyzed)
+                        _thumbnailError = "비용 요약을 분석하지 못했습니다. prefab과 재생 구간을 확인하세요.";
+                }
+
+                if (_costSummary != null)
+                {
+                    EditorGUILayout.LabelField("Systems / renderers: " + _costSummary.SystemCnt + " / " + _costSummary.RendererCnt);
+                    EditorGUILayout.LabelField("Material slots / unique: " + _costSummary.MaterialSlotCnt + " / " + _costSummary.UniqueMaterialCnt);
+                    EditorGUILayout.LabelField("Configured max particles: " + _costSummary.MaxParticleCnt);
+                    EditorGUILayout.LabelField("Observed peak: " + _costSummary.PeakParticleCnt + " / " + _costSummary.SampleDurationSec + " sec / " + _costSummary.SampleCnt + " samples");
+                    EditorGUILayout.HelpBox("구조 및 고정 간격 샘플 요약입니다. GPU 시간·draw call·overdraw 측정이 아니며 샘플 사이의 peak는 놓칠 수 있습니다.", MessageType.Info);
+                }
             }
         }
 

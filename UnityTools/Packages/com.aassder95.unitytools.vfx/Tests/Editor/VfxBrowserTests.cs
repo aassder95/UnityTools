@@ -201,6 +201,29 @@ namespace UnityTools.Vfx.Editor.Tests
         }
 
         [Test]
+        public void CostSummaryCountsSharedMaterialsAndSamplesWithoutSourceChanges()
+        {
+            string path = AssetDatabase.GetAssetPath(_prefab);
+            byte[] before = File.ReadAllBytes(path);
+            Assert.That(VfxCostSummary.TryAnalyze(_prefab, 2.0f, 61, out VfxCostSummary summary), Is.True);
+            Assert.That(summary.SystemCnt, Is.EqualTo(1));
+            Assert.That(summary.RendererCnt, Is.EqualTo(1));
+            Assert.That(summary.MaterialSlotCnt, Is.EqualTo(1));
+            Assert.That(summary.UniqueMaterialCnt, Is.EqualTo(1));
+            Assert.That(summary.MaxParticleCnt, Is.EqualTo(_prefab.GetComponent<ParticleSystem>().main.maxParticles));
+            Assert.That(summary.PeakParticleCnt, Is.GreaterThan(0));
+            Assert.That(summary.PeakParticleCnt, Is.LessThanOrEqualTo(summary.MaxParticleCnt));
+            Assert.That(summary.SampleCnt, Is.EqualTo(61));
+            Assert.That(summary.SampleDurationSec, Is.EqualTo(2.0f));
+            Assert.That(File.ReadAllBytes(path), Is.EqualTo(before));
+            Assert.That(VfxCostSummary.TryAnalyze(_prefab, float.NaN, 61, out summary), Is.False);
+            Assert.That(VfxCostSummary.TryAnalyze(_prefab, 31.0f, 61, out summary), Is.False);
+            Assert.That(VfxCostSummary.TryAnalyze(_prefab, 1.0f, 1, out summary), Is.False);
+            Assert.That(VfxCostSummary.TryAnalyze(_prefab, 1.0f, 302, out summary), Is.False);
+            Assert.That(summary, Is.Null);
+        }
+
+        [Test]
         public void CatalogIncludesOnlyParticlePrefabs()
         {
             GameObject go = new GameObject("Plain");
