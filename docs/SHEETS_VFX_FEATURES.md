@@ -11,3 +11,7 @@ Unity 2022.3.62f3: Editor 25/25, skip 0, Windows Mono Development build 통과, 
 ## CSV 오류 목록과 데이터 참조
 
 Unity 2022.3.62f3: Editor 50/50, Play Mode 56/56, 생성 코드 컴파일/읽기, Windows Mono Development build/Player 통과. 여러 열/행의 타입 오류, quoted multiline 이후 물리적 행 번호, 빈/중복 키, 배열 참조의 모든 누락 ID, 빈 테이블의 잘못된 규칙, 프리셋 규칙 직렬화 검사. UI 저장은 모든 검증 통과 후만 제공한다.
+
+## VFX 디스크 분석 캐시
+
+Unity 2022.3.62f3: Editor 26/26, skip 0, Windows Mono Development build 통과, Editor DLL 미포함. 재로드 후 PNG/색상 복원, 파일 갱신 시각/바이트가 그대로 유지되는 캐시 hit, 프레임 변경, material 저장 후 실제 파일 변경과 캐시 miss, 손상 metadata 거부, 기존 자원 해제/메모리 상한 회귀 검사. 변경 이벤트에서는 기존 결과를 비우고 Refresh에서 복원한다. 의존성 키에는 import hash와 실제 의존 파일의 SHA256을 포함한다.

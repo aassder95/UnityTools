@@ -142,6 +142,7 @@ namespace UnityTools.Vfx.Editor
                 if (EditorGUI.EndChangeCheck())
                 {
                     ClearThumbnails();
+                    RestoreColors();
                     FilterCatalog();
                 }
 
@@ -156,6 +157,9 @@ namespace UnityTools.Vfx.Editor
             }
 
             EditorGUILayout.LabelField("Analyzed: " + _thumbnails.AnalyzedCnt + " / " + _catalog.Items.Count + " · textures: " + _thumbnails.TextureCnt + " / " + VfxThumbnailIndex.MAX_TEXTURE_CNT, EditorStyles.miniLabel);
+            if (!string.IsNullOrEmpty(_thumbnails.StorageError))
+                EditorGUILayout.HelpBox(_thumbnails.StorageError, MessageType.Warning);
+
             if (!string.IsNullOrEmpty(_thumbnailError))
                 EditorGUILayout.HelpBox(_thumbnailError, MessageType.Warning);
 
@@ -199,6 +203,7 @@ namespace UnityTools.Vfx.Editor
 
             _isIndexDirty = false;
             ClearThumbnails();
+            RestoreColors();
             _pageIdx = 0;
             FilterCatalog();
             ReleasePreview();
@@ -481,6 +486,14 @@ namespace UnityTools.Vfx.Editor
             _isIndexingColors = false;
             _scanIdx = 0;
             _thumbnailError = string.Empty;
+        }
+
+        private void RestoreColors()
+        {
+            for (int idx = 0; idx < _catalog.Items.Count; idx++)
+            {
+                _thumbnails.RestoreColor(_catalog.Items[idx].Guid, _thumbnailTimeSec);
+            }
         }
 
         private void TickThumbnails()
