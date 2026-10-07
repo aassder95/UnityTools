@@ -1,10 +1,10 @@
 # UnityTools Persistence
 
-**1.0.0 릴리스 후보를 준비 중이며 공개 tag는 아직 없습니다.** `0.1.0`과 공개 API·저장 envelope format을 유지하며 패키지 업그레이드 자체에 데이터 migration이 필요하지 않습니다.
+**1.0.0 공개 태그로 설치할 수 있습니다.** `0.1.0`과 공개 API·저장 envelope format을 유지하며 패키지 업그레이드 자체에 데이터 migration이 필요하지 않습니다.
 
 ## 설치
 
-현재 후보는 `Add package from disk...`에서 이 폴더의 `package.json`을 선택합니다. 정식 tag 발행 후 사용할 고정 주소는 다음과 같습니다. 발행 전에는 이 주소로 설치할 수 없습니다.
+Package Manager의 `Add package from git URL...`에 다음 주소를 입력합니다. 현재 checkout의 상세 실패 원인 API(`ESaveFailure`와 overload)는 공개 1.0.0 태그 이후의 개발 변경이며, 이 기능을 사용할 때는 `Add package from disk...`로 현재 폴더를 설치하세요.
 
 ```text
 https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.persistence#unitytools-persistence/v1.0.0

@@ -1,8 +1,8 @@
-# Persistence 1.0.0 릴리스 준비
+# Persistence 1.0.0 후보 검증 기록
 
-현재는 **미게시 릴리스 후보**입니다. 후보 package version은 1.0.0이고 예정 tag는 `unitytools-persistence/v1.0.0`입니다. 기존 공개 tag를 가리키는 설치 주소로 안내하지 않습니다. Benchmark는 이번 준비 범위에 포함하지 않습니다.
+이 문서는 발행 전 후보의 검증 기록입니다. `unitytools-persistence/v1.0.0`은 2026-10-01에 공개됐으며, 공개 태그 설치 결과는 [배포 기록](RELEASE_PACKAGES.md)에 있습니다. 아래 계약과 절차는 당시 후보 기준입니다. 현재 checkout의 `ESaveFailure`와 상세 실패 overload는 태그 이후의 추가 사항이며 기존 태그를 이동하지 않습니다.
 
-## 확정한 계약
+## 후보에서 확정한 계약
 
 - 공개 타입·method·signature를 변경하지 않습니다. `VersionedSaveStore<T>`, `SaveFileStore`, `ISaveCodec<T>`, `ISaveMigration`, `UnityJsonSaveCodec<T>`를 유지합니다.
 - `_version`/`_payload`/`_hash` envelope와 Base64 SHA-256 format을 유지합니다. package version은 payload schema version과 별개이며 0.1.0에서 업그레이드할 때 새 migration이 필요하지 않습니다.
@@ -73,7 +73,7 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools/test-persistence-relea
 
 Remote 모드는 tag의 실제 commit을 먼저 조회하고, 고정 HTTPS Git URL로 두 버전의 코어·샘플 검증을 반복합니다. 공개 tag가 없으면 검증을 중단하며 다른 ref로 자동 대체하지 않습니다. 이후 README 설치 링크·공개 검증 기록을 확정합니다.
 
-## Release 본문 초안
+## 당시 Release 본문 초안
 
 ### UnityTools Persistence 1.0.0
 

@@ -1,6 +1,7 @@
 {
   "name": "com.aassder95.unitytools.benchmark",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "license": "MIT",
   "displayName": "UnityTools Benchmark",
   "description": "Reusable frame, allocation, memory, and custom marker measurements for Unity scenarios.",
   "unity": "2022.3",
