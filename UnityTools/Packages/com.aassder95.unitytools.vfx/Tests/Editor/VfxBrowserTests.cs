@@ -57,6 +57,59 @@ namespace UnityTools.Vfx.Editor.Tests
         // Logic
         //============================================================
         [Test]
+        public void DiskCacheRestoresTexturesWithoutRenderingAndRejectsChangedDependencies()
+        {
+            string folder = Path.Combine(Path.GetTempPath(), "UnityToolsVfxCache-" + Guid.NewGuid().ToString("N"));
+            string guid = AssetDatabase.AssetPathToGUID(AssetDatabase.GetAssetPath(_prefab));
+            VfxThumbnailStorage storage = new VfxThumbnailStorage(folder);
+            try
+            {
+                using (VfxThumbnailIndex index = new VfxThumbnailIndex(storage))
+                {
+                    Assert.That(index.TryCapture(guid, _prefab, 1.0f), Is.True);
+                }
+
+                string path = Path.Combine(folder, guid + ".png");
+                byte[] bytes = File.ReadAllBytes(path);
+                DateTime writtenUtc = File.GetLastWriteTimeUtc(path);
+                string key = VfxThumbnailStorage.BuildKey(guid, 1.0f);
+                using (VfxThumbnailIndex restored = new VfxThumbnailIndex(storage))
+                {
+                    restored.RestoreColor(guid, 1.0f);
+                    Assert.That(restored.AnalyzedCnt, Is.EqualTo(1));
+                    Assert.That(restored.TryCapture(guid, _prefab, 1.0f), Is.True);
+                    Assert.That(restored.TryGetTexture(guid, out Texture2D texture), Is.True);
+                    Assert.That(texture.width, Is.EqualTo(96));
+                    Assert.That(File.GetLastWriteTimeUtc(path), Is.EqualTo(writtenUtc));
+                    Assert.That(File.ReadAllBytes(path), Is.EqualTo(bytes));
+                }
+
+                Assert.That(storage.TryReadColor(guid, VfxThumbnailStorage.BuildKey(guid, 2.0f), out EVfxColor frameColor), Is.False);
+                Material material = AssetDatabase.LoadAssetAtPath<Material>(_folderPath + "/Spark.mat");
+                byte[] materialBytes = File.ReadAllBytes(_folderPath + "/Spark.mat");
+                material.color = Color.blue;
+                EditorUtility.SetDirty(material);
+                AssetDatabase.SaveAssets();
+                Assert.That(File.ReadAllBytes(_folderPath + "/Spark.mat"), Is.Not.EqualTo(materialBytes));
+                string changedKey = VfxThumbnailStorage.BuildKey(guid, 1.0f);
+                Assert.That(changedKey, Is.Not.EqualTo(key));
+                Assert.That(storage.TryReadColor(guid, changedKey, out EVfxColor changedColor), Is.False);
+                File.WriteAllText(Path.Combine(folder, guid + ".txt"), "corrupt");
+                Assert.That(storage.TryLoad(guid, key, out Texture2D invalid, out EVfxColor invalidColor), Is.False);
+                Assert.That(invalid, Is.Null);
+            }
+            finally
+            {
+                if (Directory.Exists(folder))
+                {
+                    File.Delete(Path.Combine(folder, guid + ".png"));
+                    File.Delete(Path.Combine(folder, guid + ".txt"));
+                    Directory.Delete(folder);
+                }
+            }
+        }
+
+        [Test]
         public void CatalogIncludesOnlyParticlePrefabs()
         {
             GameObject go = new GameObject("Plain");

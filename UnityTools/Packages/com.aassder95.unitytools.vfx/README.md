@@ -12,7 +12,7 @@ Package Manager의 `Add package from disk...`에서 이 폴더의 `package.json`
 - Looping은 비활성 자식을 포함한 하위 ParticleSystem 중 하나라도 loop 설정이 켜져 있는 prefab입니다. 목록에는 시스템 개수를 표시하고, 미리보기 아래에는 현재 살아 있는 파티클 수를 표시합니다.
 - 목록은 페이지당 12개이며 포커스가 있는 창에서 항목별 대표 프레임을 순차 생성합니다. **Frame (sec)**으로 0~10초 중 캡처 시점을 고릅니다. 96×96 이미지 캐시는 최대 24개이며, 이미지가 제거되어도 분석 색상은 유지됩니다.
 - **Color**로 대표 색상·Unanalyzed(미분석)·Invisible(검출된 색상 없음)을 필터링합니다. **Analyze colors**는 현재 폴더 전체를 순차 분석하며 **Stop analysis**로 중단합니다. 색상 필터를 먼저 선택하면 목록이 비어 있을 수 있으므로 전체 분석을 실행하세요.
-- 프레임 변경, Refresh, 에셋 변경, Play Mode 전환, 창 닫기와 스크립트 리로드 시 썸네일과 분석 결과를 정리합니다. 분석 결과는 디스크에 저장하지 않습니다.
+- 프레임 변경, Refresh, 에셋 변경, Play Mode 전환, 창 닫기와 스크립트 리로드 시 메모리 썸네일과 분석 결과를 정리합니다. Refresh/프레임 변경 시 유효한 디스크 캐시를 복원합니다.
 - 목록에서 선택한 하나의 prefab을 미리보기합니다. **Play**, **Restart**, 시간 slider, **Replay**, **Speed**로 재생을 조절합니다.
 - 드래그로 카메라를 회전하고 휠로 확대합니다. **Fit**은 현재 파티클의 bounds에 화면을 맞춥니다. **Ping prefab**으로 원본을 찾습니다.
 - 원본 에셋 변경 감지 시 현재 미리보기를 종료하고 Refresh를 안내합니다. 재생은 창에 포커스가 있을 때만 진행합니다. Play Mode 전환·창 닫기·스크립트 리로드 시 미리보기 리소스를 정리합니다.
@@ -61,3 +61,7 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 ## 태그와 컬렉션
 
 `Create library`로 Editor 폴더에 라이브러리 `.asset`을 만들거나 Library 필드에서 기존 에셋을 선택합니다. 선택한 효과에 쉼표로 태그와 컬렉션을 입력하고 `Apply labels`로 저장합니다. 필터는 대소문자를 무시한 정확한 라벨 이름으로 적용하며, 이름/Loop/Favorites/Color 필터와 함께 사용할 수 있습니다. GUID 기반으로 prefab 이동/rename 이후에도 유지하며 원본 prefab에는 기록하지 않습니다. 라이브러리 에셋은 팀과 공유할 수 있습니다.
+
+## 분석 캐시 저장
+
+썸네일 PNG와 색상은 `Library/UnityTools/VfxThumbnails`에 GUID별로 저장합니다. 창 재열기/Refresh/reload에서 색상을 복원하고 필요한 썸네일만 메모리에 불러옵니다. 프레임 시간, prefab/material/texture 의존성, 활성 렌더 파이프라인, 색 공간, 그래픽 API, Unity 버전이 바뀌면 다시 분석합니다. 에셋당 최근 설정 하나를 저장하며 다른 대표 프레임을 사용하면 이전 캐시를 대체합니다. 메모리 텍스처 제한 24개는 유지합니다. 캐시 저장 실패는 경고로 표시하고 메모리 미리보기는 계속 사용할 수 있습니다. Library 캐시는 프로젝트 공유/Player 빌드 대상이 아닙니다.
