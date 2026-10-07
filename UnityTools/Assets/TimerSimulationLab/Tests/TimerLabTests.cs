@@ -18,6 +18,9 @@ namespace UnityTools.Timer.Samples.Tests
         [TestCase(ETimerLabScenario.ClockRollback)]
         [TestCase(ETimerLabScenario.SaveFailure)]
         [TestCase(ETimerLabScenario.DuplicateClaim)]
+        [TestCase(ETimerLabScenario.PauseResume)]
+        [TestCase(ETimerLabScenario.CancelRestart)]
+        [TestCase(ETimerLabScenario.UnregisterRestore)]
         public void FixtureChecksTimerStateAndPersistence(ETimerLabScenario scenario)
         {
             GameObject go = new GameObject("ClockFixture", typeof(RectTransform));
@@ -41,12 +44,30 @@ namespace UnityTools.Timer.Samples.Tests
                 }
                 else if (scenario == ETimerLabScenario.SaveFailure)
                 {
-                    Assert.That(report.Result, Does.Contain("Rejected saves=3"));
+                    Assert.That(report.Result, Does.Contain("Rejected saves=6"));
                 }
-                else
+                else if (scenario == ETimerLabScenario.DuplicateClaim)
                 {
                     Assert.That(report.After, Does.Contain("State: None"));
                     Assert.That(report.Result, Does.Contain("Second claim=False"));
+                }
+                else if (scenario == ETimerLabScenario.PauseResume)
+                {
+                    Assert.That(report.Result, Does.Contain("Paused state + 40 sec + snapshot preserved=True"));
+                    Assert.That(report.Result, Does.Contain("Resume=True, remaining=40 sec"));
+                    Assert.That(report.After, Does.Contain("State: Completed"));
+                }
+                else if (scenario == ETimerLabScenario.CancelRestart)
+                {
+                    Assert.That(report.Result, Does.Contain("claimed=False"));
+                    Assert.That(report.Result, Does.Contain("None preserved=True"));
+                    Assert.That(report.After, Does.Contain("Remaining: 30 sec"));
+                }
+                else
+                {
+                    Assert.That(report.Result, Does.Contain("Registered count=0, snapshot preserved=True"));
+                    Assert.That(report.Result, Does.Contain("Processing=True, remaining=10 sec"));
+                    Assert.That(report.After, Does.Contain("State: Completed"));
                 }
 
                 Assert.That(experiment.TryRun(scenario, out TimerLabReport repeated), Is.True);
@@ -94,7 +115,7 @@ namespace UnityTools.Timer.Samples.Tests
         {
             yield return SceneManager.LoadSceneAsync("TimerSimulationLab");
             TimerLabController controller = Object.FindFirstObjectByType<TimerLabController>();
-            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim" };
+            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister" };
             for (int idx = 0; idx < fields.Length; ++idx)
             {
                 ReadField<Button>(controller, fields[idx]).onClick.Invoke();
@@ -102,6 +123,14 @@ namespace UnityTools.Timer.Samples.Tests
                 Assert.That(ReadField<Text>(controller, "_txtBefore").text, Is.EqualTo(controller.Report.Before));
                 Assert.That(ReadField<Text>(controller, "_txtAfter").text, Is.EqualTo(controller.Report.After));
                 Assert.That(ReadField<Text>(controller, "_txtResult").text, Does.StartWith("PASS"));
+                Canvas.ForceUpdateCanvases();
+                string[] textFields = { "_txtBefore", "_txtAfter", "_txtResult" };
+                for (int textIdx = 0; textIdx < textFields.Length; ++textIdx)
+                {
+                    Text txt = ReadField<Text>(controller, textFields[textIdx]);
+                    Assert.That(txt.preferredHeight, Is.LessThanOrEqualTo(txt.rectTransform.rect.height), fields[idx] + " / " + textFields[textIdx]);
+                }
+
                 TimerLabReport snapshot = controller.Report;
                 yield return new WaitForSecondsRealtime(1.1f);
                 Assert.That(controller.Report, Is.SameAs(snapshot));
@@ -109,8 +138,11 @@ namespace UnityTools.Timer.Samples.Tests
 
             TimerLabReport previous = controller.Report;
             controller.enabled = false;
-            ReadField<Button>(controller, "_btnForwardTime").onClick.Invoke();
-            Assert.That(controller.Report, Is.SameAs(previous));
+            for (int idx = 0; idx < fields.Length; ++idx)
+            {
+                ReadField<Button>(controller, fields[idx]).onClick.Invoke();
+                Assert.That(controller.Report, Is.SameAs(previous));
+            }
             controller.enabled = true;
             ReadField<Button>(controller, "_btnForwardTime").onClick.Invoke();
             Assert.That(controller.Report, Is.Not.SameAs(previous));

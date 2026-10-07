@@ -1,6 +1,6 @@
 # UnityTools UI Framework
 
-현재 버전은 2.1.0입니다. 아래 공개 tag로 고정 설치할 수 있습니다.
+현재 checkout은 2.2.0 미게시 후보입니다. 반복 버튼·눌림 연출과 Button Input Sample을 포함합니다. 후보 검증과 발행 준비는 [다음 릴리스 안내](../../../docs/RELEASE_UI_TIMER_NEXT.md)를 참고하세요. 아래 설치 주소는 공개 안정 버전 2.1.0이며 후보 tag는 아직 없습니다.
 
 Unity 2022.3 이상에서 사용하는 uGUI 기반 UI 패키지입니다.
 

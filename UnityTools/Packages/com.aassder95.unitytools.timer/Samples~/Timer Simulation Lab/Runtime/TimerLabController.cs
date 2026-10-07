@@ -14,6 +14,9 @@ namespace UnityTools.Timer.Samples
         [SerializeField] private Button _btnRollback;
         [SerializeField] private Button _btnFailure;
         [SerializeField] private Button _btnClaim;
+        [SerializeField] private Button _btnPause;
+        [SerializeField] private Button _btnCancel;
+        [SerializeField] private Button _btnUnregister;
         [Header("Results")]
         [SerializeField] private Text _txtBefore;
         [SerializeField] private Text _txtAfter;
@@ -41,6 +44,9 @@ namespace UnityTools.Timer.Samples
             _btnRollback.onClick.AddListener(RunRollback);
             _btnFailure.onClick.AddListener(RunFailure);
             _btnClaim.onClick.AddListener(RunClaim);
+            _btnPause.onClick.AddListener(RunPause);
+            _btnCancel.onClick.AddListener(RunCancel);
+            _btnUnregister.onClick.AddListener(RunUnregister);
         }
 
         private void OnDisable()
@@ -50,6 +56,9 @@ namespace UnityTools.Timer.Samples
             _btnRollback.onClick.RemoveListener(RunRollback);
             _btnFailure.onClick.RemoveListener(RunFailure);
             _btnClaim.onClick.RemoveListener(RunClaim);
+            _btnPause.onClick.RemoveListener(RunPause);
+            _btnCancel.onClick.RemoveListener(RunCancel);
+            _btnUnregister.onClick.RemoveListener(RunUnregister);
         }
 
         //============================================================
@@ -78,5 +87,8 @@ namespace UnityTools.Timer.Samples
         private void RunRollback() => Run(ETimerLabScenario.ClockRollback);
         private void RunFailure() => Run(ETimerLabScenario.SaveFailure);
         private void RunClaim() => Run(ETimerLabScenario.DuplicateClaim);
+        private void RunPause() => Run(ETimerLabScenario.PauseResume);
+        private void RunCancel() => Run(ETimerLabScenario.CancelRestart);
+        private void RunUnregister() => Run(ETimerLabScenario.UnregisterRestore);
     }
 }

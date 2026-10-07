@@ -6,6 +6,9 @@ namespace UnityTools.Timer.Samples
         OfflineRestore,
         ClockRollback,
         SaveFailure,
-        DuplicateClaim
+        DuplicateClaim,
+        PauseResume,
+        CancelRestart,
+        UnregisterRestore
     }
 }

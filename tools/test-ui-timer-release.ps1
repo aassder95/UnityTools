@@ -39,9 +39,9 @@ foreach ($entry in @(@('ui', $UiVersion), @('timer', $TimerVersion)))
     [IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json -Depth 16) + "`n", $utf8)
     $changelogPath = Join-Path $packageRoot 'CHANGELOG.md'
     $changelog = [IO.File]::ReadAllText($changelogPath).Replace("`r`n", "`n")
-    $firstHeader = $changelog.IndexOf('## Unreleased')
-    if ($firstHeader -lt 0) { throw "미게시 변경 기록이 없습니다: $name" }
-    $changelog = $changelog.Substring(0, $firstHeader) + "## [$version] - Unreleased" + $changelog.Substring($firstHeader + '## Unreleased'.Length).Replace("## Unreleased`n`n", '')
+    $candidateHeader = [regex]::Match($changelog, '(?m)^##(?: Unreleased| \[Unreleased\]| \[\d+\.\d+\.\d+\] - Unreleased)$')
+    if (!$candidateHeader.Success) { throw "미게시 변경 기록이 없습니다: $name" }
+    $changelog = $changelog.Remove($candidateHeader.Index, $candidateHeader.Length).Insert($candidateHeader.Index, "## [$version] - Unreleased")
     [IO.File]::WriteAllText($changelogPath, $changelog, $utf8)
 }
 

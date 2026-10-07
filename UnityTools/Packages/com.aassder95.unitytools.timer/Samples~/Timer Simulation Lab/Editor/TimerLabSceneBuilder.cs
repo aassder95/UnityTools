@@ -48,26 +48,26 @@ namespace UnityTools.Timer.Samples.Editor
             CreateText(rtRoot, "Title", "UNITYTOOLS / TIMER SIMULATION LAB", 30, 28.0f, 22.0f, 1384.0f, 46.0f);
             CreateText(rtRoot, "Help", "Choose a controlled fixture. Inspect virtual UTC, storage snapshots and timer transitions. OS time stays unchanged.", 18, 28.0f, 76.0f, 1384.0f, 30.0f);
             TimerLabController controller = goCanvas.AddComponent<TimerLabController>();
-            string[] labels = { "FORWARD TIME", "OFFLINE RESTORE", "CLOCK ROLLBACK", "SAVE FAILURE", "DUPLICATE CLAIM" };
-            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim" };
+            string[] labels = { "FORWARD TIME", "OFFLINE RESTORE", "CLOCK ROLLBACK", "SAVE FAILURE", "DUPLICATE CLAIM", "PAUSE / RESUME", "CANCEL / RESTART", "UNREGISTER / RESTORE" };
+            string[] fields = { "_btnForwardTime", "_btnOffline", "_btnRollback", "_btnFailure", "_btnClaim", "_btnPause", "_btnCancel", "_btnUnregister" };
             for (int idx = 0; idx < labels.Length; ++idx)
             {
-                RectTransform rtButton = CreateRect(labels[idx], rtRoot, 28.0f + idx * 232.0f, 124.0f, 220.0f, 50.0f);
+                RectTransform rtButton = CreateRect(labels[idx], rtRoot, 28.0f + idx % 4 * 352.0f, 124.0f + idx / 4 * 60.0f, 328.0f, 50.0f);
                 Image img = rtButton.gameObject.AddComponent<Image>();
                 img.color = new Color(0.10f, 0.27f, 0.38f);
                 Button btn = rtButton.gameObject.AddComponent<Button>();
                 btn.targetGraphic = img;
-                Text label = CreateText(rtButton, "Label", labels[idx], 17, 0.0f, 0.0f, 220.0f, 50.0f);
+                Text label = CreateText(rtButton, "Label", labels[idx], 17, 0.0f, 0.0f, 328.0f, 50.0f);
                 label.alignment = TextAnchor.MiddleCenter;
                 Assign(controller, fields[idx], btn);
             }
 
-            CreateText(rtRoot, "BeforeTitle", "01 / INITIAL STATE", 20, 28.0f, 202.0f, 670.0f, 32.0f);
-            CreateText(rtRoot, "AfterTitle", "03 / FINAL STATE", 20, 742.0f, 202.0f, 670.0f, 32.0f);
-            Text before = CreateText(rtRoot, "Before", "VIRTUAL UTC + STATE + STORAGE\n\nSelect a scenario to inspect its input.", 17, 28.0f, 250.0f, 670.0f, 320.0f);
-            Text after = CreateText(rtRoot, "After", "VIRTUAL UTC + STATE + STORAGE\n\nCaptured after clock changes / initialization / claim.", 17, 742.0f, 250.0f, 670.0f, 320.0f);
+            CreateText(rtRoot, "BeforeTitle", "01 / INITIAL STATE", 20, 28.0f, 254.0f, 670.0f, 32.0f);
+            CreateText(rtRoot, "AfterTitle", "03 / FINAL STATE", 20, 742.0f, 254.0f, 670.0f, 32.0f);
+            Text before = CreateText(rtRoot, "Before", "VIRTUAL UTC + STATE + STORAGE\n\nSelect a scenario to inspect its input.", 17, 28.0f, 294.0f, 670.0f, 270.0f);
+            Text after = CreateText(rtRoot, "After", "VIRTUAL UTC + STATE + STORAGE\n\nCaptured after clock changes / initialization / claim.", 17, 742.0f, 294.0f, 670.0f, 270.0f);
             CreateText(rtRoot, "ResultTitle", "02 / OBSERVED OPERATIONS", 20, 28.0f, 590.0f, 1384.0f, 32.0f);
-            Text result = CreateText(rtRoot, "Result", "PASS means the observed behavior matches the scenario invariant, including expected failures.\nEach fixture uses a fresh injected clock and in-memory storage.\nService recreation simulates restart; this is not a disk persistence or anti-cheat demo.", 19, 28.0f, 634.0f, 1384.0f, 230.0f);
+            Text result = CreateText(rtRoot, "Result", "PASS means the observed behavior matches the scenario invariant, including expected failures.\nEach fixture uses a fresh injected clock and in-memory storage.\nService recreation simulates restart; this is not a disk persistence or anti-cheat demo.", 17, 28.0f, 634.0f, 1384.0f, 240.0f);
             Assign(controller, "_txtBefore", before);
             Assign(controller, "_txtAfter", after);
             Assign(controller, "_txtResult", result);
