@@ -52,6 +52,8 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 
 실제 prefab의 1초 썸네일에서 표시되는 색상, 머티리얼 shader 지원 여부·컴파일 오류, 커스텀 shader의 녹색 렌더링과 원본/사본 SHA-256 보존을 검사합니다. 결과는 `project-vfx-source.json`, `project-vfx-result.txt`, `ProjectVfxImages`, Editor 로그에 남습니다. 에셋 사본과 캡처 이미지는 임시 프로젝트에만 보존하며 패키지에 배포하지 않습니다.
 
-원본 프로젝트에 설치하거나 scene·prefab을 저장하지 않습니다. 검증은 Built-in pipeline의 격리된 프로젝트를 사용합니다. 원본 프로젝트의 URP 설정, 실제 UI Canvas·stencil·마스크, 창의 수동 조작과 다른 커스텀 shader는 별도 확인 대상입니다.
+원본 프로젝트에 설치하거나 scene·prefab을 저장하지 않습니다. 검증은 Built-in pipeline의 격리된 프로젝트를 사용합니다. Pizza-Idle 원본도 Built-in입니다. 실제 UI Canvas·stencil·마스크, 창의 수동 조작과 다른 커스텀 shader는 별도 확인 대상입니다.
+
+추가로 `tools/test-vfx-urp.ps1`에서 Unity 2022.3.62f3 / URP 14.0.12와 Unity 6000.3.20f1 / URP 17.3.0의 파티클 썸네일·시간 탐색·orbit·zoom 후 캡처를 확인했습니다. 두 환경 모두 URP Particles/Unlit 녹색 probe가 통과했고, 기존 분수와 Molip/UI_Additive도 표시됐습니다. 별도 검증 프로젝트의 캡처 결과이며 실제 Canvas·stencil·마스크, 다른 shader, 전체 URP 테스트와 Player build를 확인한 결과는 아닙니다. 자세한 결과와 보존 경로는 `docs/RELEASE_SHEETS_VFX.md`에 기록했습니다.
 
 2026-10-07, Unity 2022.3.62f3과 6000.3.20f1에서 위 실제 prefab 두 개의 썸네일(White)과 Molip/UI_Additive의 녹색 파티클 캡처가 통과했습니다. 두 버전 모두 VFX 테스트 23/23, skip 0, Windows Development build 성공과 Editor assembly 제외를 확인했습니다. 원본·사본 12개 파일의 SHA-256이 복사 전과 일치했습니다. fixture 복사 도구의 GUID 의존성·파일 보존, 소스/목적지 중첩 거부, 누락 의존성 실패 테스트도 통과했습니다.

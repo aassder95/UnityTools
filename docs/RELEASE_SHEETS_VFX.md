@@ -94,13 +94,39 @@ C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-6000.3.20f1-e377dcda91bc42b
 
 검증 도구 자체는 Windows PowerShell 구문 검사와 미검증 로컬 소스 입력의 변경 전 거절을 확인했습니다. 두 Editor에서 C# 검증 스크립트가 컴파일됐으며 Windows 실패 경로와 Android 성공·APK 검사 경로를 실행했습니다. Windows IL2CPP Player 성공 경로는 환경 제약으로 미검증입니다.
 
+## URP 미리보기 추가 검증
+
+Pizza-Idle 원본은 Built-in pipeline입니다. manifest에 URP가 없고 GraphicsSettings의 `m_CustomRenderPipeline`, 모든 QualitySettings의 `customRenderPipeline` 참조가 0임을 확인했습니다. 이전 문서의 원본 URP 표현을 정정합니다.
+
+`tools/test-vfx-urp.ps1`은 Git 설치 검증이 완료된 VFX 임시 프로젝트에 URP와 검증용 renderer/pipeline asset을 설정합니다. 제품 프로젝트에서는 실행하지 않습니다. 같은 프로젝트에서 동시에 실행하지 마세요. 기존 Built-in 검증 결과는 유지하고 추가 결과를 `Urp-<id>` 폴더에 기록합니다.
+
+```powershell
+& tools/test-vfx-urp.ps1 -Project '<VFX 검증 프로젝트 절대 경로>'
+```
+
+| Unity | URP | 파티클 미리보기 | 시간 탐색·orbit·zoom 후 캡처 |
+| --- | --- | --- | --- |
+| 2022.3.62f3 | 14.0.12 | Green 통과 | Green 통과 |
+| 6000.3.20f1 | 17.3.0 | Green 통과 | Green 통과 |
+
+고정 VFX 소스는 이전과 같은 `f9c1cf1b48086b04572ec0399bc284a0909625a2`입니다. 활성 pipeline, 실행한 Editor/URP 버전과 lock을 확인했습니다. 원본·사본 12개 파일의 SHA-256은 유지됐습니다. 두 버전에서 기존 분수 2개는 White, Molip/UI_Additive probe는 Green으로 관측했습니다. 기존 shader의 이번 미리보기 결과이며 URP용 shader 전반이나 실제 UI Canvas·stencil·마스크의 호환성을 보장하지 않습니다. 이번 추가 검증은 기존 24개 테스트 전체나 URP Player build를 다시 실행한 결과가 아닙니다.
+
+Unity 2022.3 최초 시도는 요청 URP 14.0.11과 Editor가 설치한 실제 14.0.12가 달라 버전 검증에서 거절됐습니다. 도구의 요청을 실제 버전에 맞추고 재실행해 위 결과를 확인했습니다. 미검증 소스 입력의 변경 전 거절과 PowerShell 구문 검사도 통과했습니다. 제품 VFX 코드는 변경하지 않았습니다.
+
+`summary.json`, `result.txt`, 단계별 로그와 PNG 캡처:
+
+```text
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-2022.3.62f3-5ac43e4750664f3d97700315c08f87b0\Urp-f70855d0278c463c95aa7d48aab2ed2b
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa119b64b57e05e8d\Urp-66b98e602e8944e5897aef87c1e6ef28
+```
+
 ## 사용 흐름과 남은 확인
 
 자동 Editor 창 검사는 CSV 읽기 후 enum 배열·정수 배열 설정과 생성 소스 미리보기를 두 Editor 프레임에 걸쳐 그립니다. VFX는 색상 필터·썸네일·선택한 미리보기를 그린 뒤 창 닫기에서 리소스 정리를 확인합니다. 이 검사는 입력 장치로 버튼·체크박스를 직접 조작하는 수동 테스트를 대신하지 않습니다.
 
 - CSV Generator: enum 타입명 입력·잘못된 타입 오류, Array 선택·해제, Validate & Preview, 파일 저장 대화상자·덮어쓰기·한글 경로를 수동 확인합니다.
 - VFX Browser: 폴더·검색·페이지 이동·즐겨찾기·색상 필터·전체 분석/중단·Frame 변경과 카메라 조작을 수동 확인합니다.
-- 실제 프로젝트: 원본 URP의 머티리얼·UI Canvas·stencil·마스크를 확인합니다. 현재 실제 에셋 검증은 별도 Built-in 프로젝트입니다.
+- 실제 프로젝트: 원본 Built-in의 실제 UI Canvas·stencil·마스크를 확인합니다. 별도 URP 프로젝트에서는 파티클 캡처를 확인했으며 Canvas 동작·전체 테스트·Player build는 별도 확인 대상입니다.
 - 런타임: 모바일·IL2CPP에서 Sheets 데이터 로드와 생성 코드 사용을 확인합니다. Android ARM64 IL2CPP·High stripping APK 빌드는 통과했으며, 실행 증거는 Windows Mono Development build입니다.
 
 ## 발행 순서
