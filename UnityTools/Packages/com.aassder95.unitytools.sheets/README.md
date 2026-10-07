@@ -139,3 +139,7 @@ Validate & Preview는 모든 데이터 타입 오류를 물리적 행 번호와 
 ## 일괄 검증과 생성
 
 `Tools > UnityTools > CSV Batch`에서 프리셋 목록을 연결하고 Validate all 또는 Generate all을 실행합니다. CSV/스키마/참조 규칙, 중복 출력/타입, 출력 경로를 모두 확인한 뒤 생성합니다. 오류가 하나라도 있으면 쓰지 않습니다. 출력 경로는 Assets 아래 기존 폴더의 ClassName.cs여야 합니다. Generate all은 확인 후 기존 파일을 덮어씁니다. 저장 도중 OS 파일 오류가 발생하면 실패 파일을 보고하고 앞서 저장한 파일은 유지합니다. 출력 경로는 CSV Generator에서 C#를 한 번 저장하거나 프리셋 Inspector에서 지정할 수 있습니다.
+
+## 데이터 변경 비교
+
+`Tools > UnityTools > CSV Diff`에서 Before/After CSV와 고유 Key header를 연결합니다. 행/열 순서 변경은 무시하며 키 기준으로 추가/삭제된 행의 셀과 변경된 값, 추가/삭제된 헤더를 표시합니다. 키와 값은 원문 문자열로 대소문자를 구분하며 01과 1도 다르게 봅니다. 빈/중복 키 또는 없는 키 열은 부분 결과 없이 거부합니다. 원본 CSV를 변경하지 않습니다.
