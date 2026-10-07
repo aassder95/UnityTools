@@ -2260,7 +2260,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5264247bcffe52f49ac9a43af52dfafc, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  _rankView: {fileID: 3843420519324890191}
+  _rankView: {fileID: 255715509558692628}
   _rankModelCnt: 10
 --- !u!1 &1238986600479774735
 GameObject:
@@ -4261,7 +4261,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 06aed1dc06166d349a3cf235097de3c0, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  _timerView: {fileID: 6688313853411142621}
+  _timerView: {fileID: 3403166698857699309}
 --- !u!1 &4028697014103123266
 GameObject:
   m_ObjectHideFlags: 0
@@ -4649,7 +4649,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b518ffc976032054caa3cfdf91ac5bc7, type: 3}
   m_Name:
   m_EditorClassIdentifier:
-  _invenView: {fileID: 748329683886800929}
+  _invenView: {fileID: 3105986118915845423}
   _invenModelCnt: 50
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
