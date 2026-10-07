@@ -18,6 +18,10 @@ Package Manager의 `Add package from disk...`에서 이 폴더의 `package.json`
 - 드래그로 카메라를 회전하고 휠로 확대합니다. **Fit**은 현재 파티클의 bounds에 화면을 맞춥니다. **Ping prefab**으로 원본을 찾습니다.
 - 원본 에셋 변경 감지 시 현재 미리보기를 종료하고 Refresh를 안내합니다. 재생은 창에 포커스가 있을 때만 진행합니다. Play Mode 전환·창 닫기·스크립트 리로드 시 미리보기 리소스를 정리합니다.
 
+## Shader 사용 현황
+
+`Tools > UnityTools > VFX > Shader Usage`에서 폴더별 Shader·Material을 조회합니다. 제외 폴더와 Shader 필터를 지원하며 에셋을 변경하지 않습니다. [사용법과 집계 범위](Editor/SHADER_USAGE.md)를 참고하세요.
+
 ## 지원 범위
 
 미리보기는 별도의 Preview scene에서 Transform, ParticleSystem/ParticleSystemRenderer, MeshFilter/MeshRenderer, SpriteRenderer만 복제합니다. 프로젝트 MonoBehaviour·Animator·AudioSource·Collider는 복제하지 않습니다. 원본 prefab을 인스턴스화하거나 머티리얼을 수정하지 않습니다.
