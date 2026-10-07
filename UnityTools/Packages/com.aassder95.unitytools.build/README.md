@@ -1,0 +1,7 @@
+# Build presets
+
+Editor-only package. Assets > Create > UnityTools > Build > Preset creates per-environment configuration. Set Windows64/Android/iOS, explicit Scene assets, a project-relative `Builds/` output path, Development/Script Debugging, Android APK/AAB and extra Define symbols. Separate DEV/QA/RELEASE preset assets are user data, not hardcoded environment templates.
+
+Tools > UnityTools > Build > Preset Runner validates the preset and builds. Switch the active platform manually before running; the tool does not auto-switch platforms. Define symbols are passed through BuildPlayerOptions.extraScriptingDefines and do not change global PlayerSettings. Android buildAppBundle is temporarily applied and restored in finally. Existing output requires confirmation in the window; programmatic TryBuild callers own overwrite authorization. No output deletion is performed. Signing credentials, SDKs, bundle IDs, provisioning and scripting backend remain project settings; presets do not store secrets. Invalid/duplicate scenes or Defines, path traversal, wrong extensions and debugging without Development are rejected before building.
+
+TryPrepare supports dry-run inspection without global setting mutation. TryBuild reports errors and returns the Unity BuildReport. Actual Android/iOS build success depends on installed toolchains and platform credentials. This feature does not publish to stores or alter build scenes globally.

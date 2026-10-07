@@ -1,0 +1,16 @@
+{
+  "name": "UnityTools.Build.Editor.Tests",
+  "references": [
+    "UnityTools.Build.Editor"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "optionalUnityReferences": [
+    "TestAssemblies"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ]
+}

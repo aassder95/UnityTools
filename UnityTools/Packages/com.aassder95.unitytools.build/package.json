@@ -1,0 +1,8 @@
+{
+  "name": "com.aassder95.unitytools.build",
+  "version": "0.1.0",
+  "displayName": "UnityTools Build",
+  "description": "Reusable build tools.",
+  "unity": "2022.3",
+  "dependencies": {}
+}

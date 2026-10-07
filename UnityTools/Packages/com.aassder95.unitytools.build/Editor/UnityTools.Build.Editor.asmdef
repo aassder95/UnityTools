@@ -1,0 +1,8 @@
+{
+  "name": "UnityTools.Build.Editor",
+  "references": [],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "autoReferenced": true
+}
