@@ -1,0 +1,9 @@
+{
+  "name": "UnityTools.Ui.Localization",
+  "rootNamespace": "UnityTools.Ui.Localization",
+  "references": [
+    "UnityTools.Ui",
+    "Unity.TextMeshPro"
+  ],
+  "autoReferenced": true
+}
