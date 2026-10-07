@@ -17,6 +17,7 @@ namespace UnityTools.Sheets.Editor
         [SerializeField] private string _outputPath = string.Empty;
         private CsvTable _table;
         private string _keyHeader = string.Empty;
+        private readonly List<CsvValueRule> _rules = new List<CsvValueRule>();
         private readonly List<CsvReferenceRule> _references = new List<CsvReferenceRule>();
         private readonly List<CsvValidationIssue> _issues = new List<CsvValidationIssue>();
         private readonly List<CsvColumn> _columns = new List<CsvColumn>();
@@ -51,6 +52,7 @@ namespace UnityTools.Sheets.Editor
                 _outputPath = string.Empty;
                 _issues.Clear();
                 _references.Clear();
+                _rules.Clear();
                 _keyHeader = string.Empty;
                 _table = null;
                 _columns.Clear();
@@ -177,6 +179,8 @@ namespace UnityTools.Sheets.Editor
                     _keyHeader = _preset.KeyHeader;
                     _references.Clear();
                     _references.AddRange(_preset.References);
+                    _rules.Clear();
+                    _rules.AddRange(_preset.Rules);
                 }
             }
         }
@@ -212,6 +216,39 @@ namespace UnityTools.Sheets.Editor
                 _references.Add(new CsvReferenceRule(_table.Headers[0], null, "Id", false));
             }
 
+            for (int idx = 0; idx < _rules.Count; idx++)
+            {
+                CsvValueRule rule = _rules[idx];
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    string header = EditorGUILayout.TextField("Rule header", rule.Header);
+                    ECsvRule kind = (ECsvRule)EditorGUILayout.EnumPopup("Rule", rule.Kind);
+                    double min = rule.Min;
+                    double max = rule.Max;
+                    if (kind != ECsvRule.Required)
+                    {
+                        min = EditorGUILayout.DoubleField("Min (inclusive)", min);
+                        max = EditorGUILayout.DoubleField("Max (inclusive)", max);
+                    }
+
+                    if (header != rule.Header || kind != rule.Kind || min != rule.Min || max != rule.Max)
+                        _rules[idx] = new CsvValueRule(header, kind, min, max);
+
+                    if (GUILayout.Button("Remove rule"))
+                    {
+                        GUI.changed = true;
+                        _rules.RemoveAt(idx);
+                        idx--;
+                    }
+                }
+            }
+
+            if (GUILayout.Button("Add value rule"))
+            {
+                GUI.changed = true;
+                _rules.Add(new CsvValueRule(_table.Headers[0], ECsvRule.Required));
+            }
+
             if (EditorGUI.EndChangeCheck())
             {
                 _source = null;
@@ -225,6 +262,7 @@ namespace UnityTools.Sheets.Editor
             _issues.Clear();
             _issues.AddRange(CsvCodeGenerator.Validate(_table, _columns, _namespaceName, _className));
             CsvConstraintValidator.Validate(_table, _keyHeader, _references, _issues);
+            CsvRuleValidator.Validate(_table, _rules, _issues);
             _error = string.Empty;
             if (_issues.Count > 0)
                 return;
@@ -238,6 +276,7 @@ namespace UnityTools.Sheets.Editor
         {
             _keyHeader = string.Empty;
             _references.Clear();
+            _rules.Clear();
             _csv = _preset.Csv;
             _source = null;
             _table = null;
@@ -267,7 +306,7 @@ namespace UnityTools.Sheets.Editor
             }
 
             Undo.RecordObject(_preset, "Save CSV preset");
-            _preset.Capture(_csv, _columns, _enumNames, _namespaceName, _className, _outputPath, _keyHeader, _references);
+            _preset.Capture(_csv, _columns, _enumNames, _namespaceName, _className, _outputPath, _keyHeader, _references, _rules);
             EditorUtility.SetDirty(_preset);
             AssetDatabase.SaveAssets();
             _error = string.Empty;
