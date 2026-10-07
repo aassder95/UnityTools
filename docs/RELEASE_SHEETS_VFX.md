@@ -1,0 +1,76 @@
+# Sheets / VFX 0.1.0 배포 준비
+
+현재 두 패키지는 0.1.0 개발 버전이며 공개 release tag는 없습니다. 아래 주소는 배포 준비를 위해 고정한 개발 커밋의 Git 설치 주소입니다. 정식 릴리스 발행을 의미하지 않습니다.
+
+| 패키지 | 버전 | 예정 tag | 의존성 |
+| --- | --- | --- | --- |
+| com.aassder95.unitytools.sheets | 0.1.0 | unitytools-sheets/v0.1.0 | 없음 |
+| com.aassder95.unitytools.vfx | 0.1.0 | unitytools-vfx/v0.1.0 | 없음, Editor 전용 |
+
+검증 소스는 `f9c1cf1b48086b04572ec0399bc284a0909625a2`입니다. Sheets 그룹 조회·enum·배열 지원은 `6439032`, 실제 VFX와 Editor 창 검증 도구는 `f9c1cf1`에 포함됐습니다. 버전은 유지하며 tag는 생성하거나 push하지 않았습니다. Timer·Persistence·데모 scene의 별도 작업은 이번 배포 범위에 포함하지 않습니다.
+
+## 고정 개발 커밋 설치
+
+Package Manager의 Add package from git URL에 필요한 패키지 주소를 입력합니다.
+
+```text
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.sheets#f9c1cf1b48086b04572ec0399bc284a0909625a2
+https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.vfx#f9c1cf1b48086b04572ec0399bc284a0909625a2
+```
+
+두 패키지 모두 Unity 2022.3 이상을 지원하며 패키지 안에 MIT 라이선스가 있습니다. Sheets Runtime은 UnityEngine 참조가 없는 일반 C# assembly이고 생성기는 Editor 전용입니다. VFX에는 Player용 assembly가 없습니다. 검증에 사용한 Pizza-Idle의 CSV·에셋 사본과 캡처 이미지는 임시 프로젝트에만 보존하며 패키지에 넣지 않습니다.
+
+## 재현 방법
+
+저장소 루트에서 다음 명령을 실행합니다. UnityVersion을 `6000.3.20f1`로 바꿔 Unity 6도 검사합니다. 설치된 Editor와 Windows build support, Git, 실제 렌더링을 위한 그래픽 장치가 필요합니다.
+
+```powershell
+$sourceRef = 'f9c1cf1b48086b04572ec0399bc284a0909625a2'
+& tools/test-sheets-package.ps1 -UnityVersion 2022.3.62f3 -SourceRef $sourceRef
+& tools/test-vfx-package.ps1 -UnityVersion 2022.3.62f3 -SourceRef $sourceRef
+```
+
+SourceRef를 생략하면 로컬 경로 패키지를 검사합니다. Git 검증과 구분하세요. `confirm-upm-source.ps1`은 manifest의 정확한 URL, lock의 source=git·hash, 설치 cache의 package 이름·0.1.0 버전·빈 dependency를 검사합니다. 프로젝트마다 `git-source-result.json`, `summary.json`, `editor-version.txt`, XML·로그·빌드를 보존합니다.
+
+Sheets의 `-ProjectCsvPaths`에는 SauceSeq_Palette.csv와 SauceSeq_Stages.csv 경로를 전달할 수 있습니다. ID 단일 조회, randomWeight/reward1Key 그룹, 숫자·bool·answer 정수 배열의 검증과 생성 코드 컴파일을 검사합니다. 게임 프로젝트 로드 경로는 변경하지 않습니다.
+
+VFX의 `-SourceAssets`와 `-VisualPaths`는 실제 prefab·머티리얼의 상대 경로를 받습니다. 현재 실제 VFX fixture는 Pizza-Idle의 분수 prefab 두 개와 UIAdditive.mat입니다. Python이 GUID 의존 파일을 별도 프로젝트에 복사하며 원본·사본 SHA-256 보존을 검사합니다. 자세한 대상과 한계는 VFX README에 있습니다.
+
+## 검증 결과
+
+2026-10-07 공개 Git 주소의 고정 소스 `f9c1cf1b48086b04572ec0399bc284a0909625a2`를 별도 프로젝트에 설치했습니다. 네 프로젝트 모두 manifest·lock·cache의 패키지 이름, 버전 0.1.0, 의존성 및 source hash를 확인했습니다. 실행한 Editor 버전도 각 프로젝트의 `editor-version.txt`로 확인했습니다.
+
+| Unity | 패키지 | Editor 테스트 | PlayMode 테스트 | 추가 검증 |
+| --- | --- | --- | --- | --- |
+| 2022.3.62f3 | Sheets | 43/43 | 56/56 | 생성 코드 컴파일·읽기, Windows build·Player 통과 |
+| 6000.3.20f1 | Sheets | 43/43 | 56/56 | 생성 코드 컴파일·읽기, Windows build·Player 통과 |
+| 2022.3.62f3 | VFX | 24/24 | 대상 없음 | 실제 VFX 3건·Windows build 통과 |
+| 6000.3.20f1 | VFX | 24/24 | 대상 없음 | 실제 VFX 3건·Windows build 통과 |
+
+모든 테스트의 실패·skip은 0입니다. 두 Unity 버전에서 실제 CSV의 Palette 7행·Stages 10행, ID 단일 조회와 그룹 조회, enum 및 배열 생성 코드를 검사했습니다. VFX는 분수 prefab 2개와 Molip/UI_Additive 초록색 probe를 검사했고 원본·복사본 12개 파일의 hash를 확인했습니다. 네 Windows build 모두 Editor assembly가 제외됐습니다. 검증 도구 회귀 테스트는 36/36 통과했습니다.
+
+검증 프로젝트와 결과는 아래 임시 경로에 보존했습니다. 각 폴더의 `summary.json`, `git-source-result.json`, `results-*.xml`과 단계별 로그를 확인할 수 있습니다. 임시 폴더는 운영체제 정리 대상이 될 수 있습니다.
+
+```text
+C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-2022.3.62f3-857cc275ee8b422587eb7f4717c46e4a
+C:\Users\search\AppData\Local\Temp\UnityTools-Sheets-6000.3.20f1-e377dcda91bc42b29ad270d6fa5a7144
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-2022.3.62f3-5ac43e4750664f3d97700315c08f87b0
+C:\Users\search\AppData\Local\Temp\UnityTools-Vfx-6000.3.20f1-6fadc999820b48efa119b64b57e05e8d
+```
+
+## 사용 흐름과 남은 확인
+
+자동 Editor 창 검사는 CSV 읽기 후 enum 배열·정수 배열 설정과 생성 소스 미리보기를 두 Editor 프레임에 걸쳐 그립니다. VFX는 색상 필터·썸네일·선택한 미리보기를 그린 뒤 창 닫기에서 리소스 정리를 확인합니다. 이 검사는 입력 장치로 버튼·체크박스를 직접 조작하는 수동 테스트를 대신하지 않습니다.
+
+- CSV Generator: enum 타입명 입력·잘못된 타입 오류, Array 선택·해제, Validate & Preview, 파일 저장 대화상자·덮어쓰기·한글 경로를 수동 확인합니다.
+- VFX Browser: 폴더·검색·페이지 이동·즐겨찾기·색상 필터·전체 분석/중단·Frame 변경과 카메라 조작을 수동 확인합니다.
+- 실제 프로젝트: 원본 URP의 머티리얼·UI Canvas·stencil·마스크를 확인합니다. 현재 실제 에셋 검증은 별도 Built-in 프로젝트입니다.
+- 런타임: 모바일·IL2CPP에서 Sheets 데이터 로드와 생성 코드 사용을 확인합니다. 현재 Player 증거는 Windows Mono Development build입니다.
+
+## 발행 순서
+
+1. 위 수동·대상 환경 확인 결과와 허용할 제한을 기록합니다.
+2. 발행할 소스를 확정합니다. 코드가 달라지면 새 고정 commit으로 Git 설치 검증을 다시 실행합니다.
+3. 해당 패키지 README·CHANGELOG의 개발 상태와 버전을 실제 발행 내용에 맞게 갱신합니다. 기존 enum 숫자와 GUID를 유지합니다.
+4. staged 파일 목록·stat·diff check·커밋 메시지를 확인해 발행 변경만 commit/push합니다.
+5. 확정 소스에 예정 tag를 만들고 push한 뒤, tag 설치 주소로 새 프로젝트 검증을 수행합니다. 현재 고정 commit 검증을 tag 검증으로 보고하지 않습니다.
