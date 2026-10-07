@@ -72,6 +72,37 @@ namespace UnityTools.Sheets.Tests
             Assert.That(dataSet, Is.Null);
         }
 
+        [Test]
+        public void GroupsPreserveInterleavedRowsAndRejectAmbiguousSingleLookup()
+        {
+            Assert.That(CsvParser.TryParse("Id,Name\nA,first\nB,second\nA,third\na,lower", out CsvTable table, out string error), Is.True, error);
+            Assert.That(CsvDataSet<string>.TryReadGroups(table, "Id", ReadName, out CsvDataSet<string> dataSet, out error), Is.True, error);
+            Assert.That(dataSet.Items, Is.EqualTo(new[] { "first", "second", "third", "lower" }));
+            Assert.That(dataSet.TryGetGroup("A", out IReadOnlyList<string> group), Is.True);
+            Assert.That(group, Is.EqualTo(new[] { "first", "third" }));
+            Assert.That(((ICollection<string>)group).IsReadOnly, Is.True);
+            Assert.That(dataSet.TryGet("A", out string item), Is.False);
+            Assert.That(item, Is.Null);
+            Assert.That(dataSet.TryGet("B", out item), Is.True);
+            Assert.That(item, Is.EqualTo("second"));
+            Assert.That(dataSet.TryGetGroup("a", out group), Is.True);
+            Assert.That(group, Is.EqualTo(new[] { "lower" }));
+            Assert.That(dataSet.TryGetGroup(null, out group), Is.False);
+            Assert.That(group, Is.Null);
+            Assert.That(dataSet.TryGetGroup("missing", out group), Is.False);
+        }
+
+        [TestCase("Id,Name\nA,first\nA,invalid")]
+        [TestCase("Id,Name\nA,first\nA,null")]
+        [TestCase("Id,Name\nA,first\n ,last")]
+        public void GroupsDoNotPublishPartialResults(string csv)
+        {
+            Assert.That(CsvParser.TryParse(csv, out CsvTable table, out string error), Is.True, error);
+            Assert.That(CsvDataSet<string>.TryReadGroups(table, "Id", ReadName, out CsvDataSet<string> dataSet, out error), Is.False);
+            Assert.That(dataSet, Is.Null);
+            Assert.That(error, Does.Contain("3행"));
+        }
+
         //============================================================
         // Utilities
         //============================================================

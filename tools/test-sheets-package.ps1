@@ -1,7 +1,10 @@
 ﻿param(
     [string]$UnityVersion = '6000.3.20f1',
     [string]$UnityPath,
-    [string]$OutputBase = $env:TEMP
+    [string]$OutputBase = $env:TEMP,
+    [string[]]$ProjectCsvPaths = @(),
+    [ValidatePattern('^[a-f0-9]{40}$')]
+    [string]$SourceRef
 )
 
 $ErrorActionPreference = 'Stop'
@@ -13,6 +16,7 @@ $project = Join-Path $OutputBase "UnityTools-Sheets-$UnityVersion-$([Guid]::NewG
 New-Item -ItemType Directory -Path "$project/Assets/Editor", "$project/Packages", "$project/ProjectSettings" -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'CompatibilityValidation.cs') -Destination "$project/Assets/Editor/CompatibilityValidation.cs"
 Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'SheetsCompatibilityValidation.cs') -Destination "$project/Assets/Editor/SheetsCompatibilityValidation.cs"
+Copy-Item -LiteralPath (Join-Path $PSScriptRoot 'SheetsValidationGrade.cs') -Destination "$project/Assets/SheetsValidationGrade.cs"
 $dependencies = [ordered]@{
     'com.aassder95.unitytools.sheets' = 'file:' + (Join-Path $repoRoot 'UnityTools/Packages/com.aassder95.unitytools.sheets').Replace('\', '/')
     'com.unity.test-framework' = '1.1.33'
@@ -24,10 +28,21 @@ $dependencies = [ordered]@{
     'com.unity.modules.imageconversion' = '1.0.0'
     'com.unity.modules.jsonserialize' = '1.0.0'
 }
+if ($SourceRef) {
+    $dependencies['com.aassder95.unitytools.sheets'] = "https://github.com/aassder95/UnityTools.git?path=/UnityTools/Packages/com.aassder95.unitytools.sheets#$SourceRef"
+}
 $manifest = @{ dependencies = $dependencies; testables = @('com.aassder95.unitytools.sheets') }
 [IO.File]::WriteAllText("$project/Packages/manifest.json", ($manifest | ConvertTo-Json -Depth 5), $utf8)
 [IO.File]::WriteAllText("$project/ProjectSettings/ProjectVersion.txt", "m_EditorVersion: $UnityVersion", $utf8)
 [IO.File]::WriteAllText("$project/ValidationSamples.txt", '', $utf8)
+if ($ProjectCsvPaths.Count -gt 0) {
+    $resolvedCsvPaths = @()
+    foreach ($csvPath in $ProjectCsvPaths) {
+        if (!(Test-Path -LiteralPath $csvPath -PathType Leaf)) { throw "CSV 파일을 찾을 수 없습니다: $csvPath" }
+        $resolvedCsvPaths += (Resolve-Path -LiteralPath $csvPath).ProviderPath
+    }
+    [IO.File]::WriteAllLines("$project/ProjectCsvPaths.txt", $resolvedCsvPaths, $utf8)
+}
 Write-Host "검증 결과 경로: $project"
 
 function Invoke-SheetsEditor([string]$step, [string[]]$extra)
@@ -42,6 +57,7 @@ function Invoke-SheetsEditor([string]$step, [string[]]$extra)
 }
 
 Invoke-SheetsEditor 'import' @('-executeMethod', 'CompatibilityValidation.ImportSamples', '-quit')
+if ($SourceRef) { & (Join-Path $PSScriptRoot 'confirm-upm-source.ps1') -Project $project -PackageName 'com.aassder95.unitytools.sheets' -SourceRef $SourceRef }
 Invoke-SheetsEditor 'generate' @('-executeMethod', 'SheetsCompatibilityValidation.GenerateFixture', '-quit')
 Invoke-SheetsEditor 'verify-generated' @('-executeMethod', 'SheetsCompatibilityValidation.VerifyGenerated', '-quit')
 Invoke-SheetsEditor 'tests-edit' @('-runTests', '-testPlatform', 'EditMode', '-testFilter', 'UnityTools.Sheets', '-testResults', ('"' + $project + '/results-edit.xml"'))
@@ -64,7 +80,8 @@ $player.Refresh()
 if ($player.ExitCode -ne 0 -or !(Test-Path -LiteralPath $resultPath) -or (Get-Content -LiteralPath $resultPath -Raw).Trim() -ne 'Passed') { throw "Player 검증 실패: $project/player.log" }
 $summary = [ordered]@{
     Unity = $UnityVersion
-    Source = 'Local'
+    Source = if ($SourceRef) { 'Git' } else { 'Local' }
+    SourceRef = $SourceRef
     EditMode = $results['edit']
     PlayMode = $results['play']
     GeneratedCode = (Get-Content -LiteralPath "$project/generated-result.txt" -Raw).Trim()
@@ -72,6 +89,7 @@ $summary = [ordered]@{
     Player = (Get-Content -LiteralPath $resultPath -Raw).Trim()
     EditorAssemblyExcluded = $true
     Project = $project
+    ProjectCsv = if (Test-Path -LiteralPath "$project/project-csv-result.txt") { (Get-Content -LiteralPath "$project/project-csv-result.txt" -Raw).Trim() } else { 'Not requested' }
 }
 [IO.File]::WriteAllText("$project/summary.json", ($summary | ConvertTo-Json -Depth 4), $utf8)
 $summary | ConvertTo-Json -Depth 4

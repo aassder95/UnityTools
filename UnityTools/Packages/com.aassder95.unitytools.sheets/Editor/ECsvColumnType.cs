@@ -7,6 +7,7 @@ namespace UnityTools.Sheets.Editor
         Long,
         Float,
         Double,
-        Bool
+        Bool,
+        Enum
     }
 }

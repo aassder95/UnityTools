@@ -15,6 +15,7 @@ namespace UnityTools.Sheets.Editor
         private TextAsset _csv;
         private CsvTable _table;
         private readonly List<CsvColumn> _columns = new List<CsvColumn>();
+        private readonly List<string> _enumNames = new List<string>();
         private string _namespaceName = "Game.Data";
         private string _className = "ItemData";
         private string _source;
@@ -32,6 +33,7 @@ namespace UnityTools.Sheets.Editor
             {
                 _table = null;
                 _columns.Clear();
+                _enumNames.Clear();
                 _source = null;
                 _error = string.Empty;
             }
@@ -52,13 +54,45 @@ namespace UnityTools.Sheets.Editor
                 for (int idx = 0; idx < _columns.Count; idx++)
                 {
                     CsvColumn column = _columns[idx];
+                    string name;
+                    ECsvColumnType type;
+                    bool isArray;
                     using (new EditorGUILayout.HorizontalScope())
                     {
                         EditorGUILayout.LabelField(column.Header, GUILayout.Width(160.0f));
-                        string name = EditorGUILayout.TextField(column.Name);
-                        ECsvColumnType type = (ECsvColumnType)EditorGUILayout.EnumPopup(column.Type, GUILayout.Width(90.0f));
-                        if (name != column.Name || type != column.Type)
-                            _columns[idx] = new CsvColumn(column.Header, name, type);
+                        name = EditorGUILayout.TextField(column.Name);
+                        type = (ECsvColumnType)EditorGUILayout.EnumPopup(column.Type, GUILayout.Width(90.0f));
+                        isArray = GUILayout.Toggle(column.IsArray, "Array", GUILayout.Width(60.0f));
+                    }
+
+                    string enumName = _enumNames[idx];
+                    if (type == ECsvColumnType.Enum)
+                        enumName = EditorGUILayout.TextField(new GUIContent("Enum", "public top-level enum의 전체 이름, 예: Game.Data.EGrade"), enumName);
+
+                    if (name != column.Name || type != column.Type || enumName != _enumNames[idx] || isArray != column.IsArray)
+                    {
+                        _enumNames[idx] = enumName;
+                        Type enumType = null;
+                        if (type == ECsvColumnType.Enum && System.Text.RegularExpressions.Regex.IsMatch(enumName, @"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$"))
+                        {
+                            System.Reflection.Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
+                            for (int assemblyIdx = 0; assemblyIdx < assemblies.Length; assemblyIdx++)
+                            {
+                                Type candidate = assemblies[assemblyIdx].GetType(enumName, false, false);
+                                if (candidate == null || candidate == enumType)
+                                    continue;
+
+                                if (enumType != null)
+                                {
+                                    enumType = null;
+                                    break;
+                                }
+
+                                enumType = candidate;
+                            }
+                        }
+
+                        _columns[idx] = new CsvColumn(column.Header, name, type, enumType, isArray);
                     }
                 }
 
@@ -102,12 +136,14 @@ namespace UnityTools.Sheets.Editor
         {
             _source = null;
             _columns.Clear();
+            _enumNames.Clear();
             if (!CsvParser.TryParse(_csv.text, out _table, out _error))
                 return;
 
             for (int idx = 0; idx < _table.Headers.Count; idx++)
             {
                 _columns.Add(new CsvColumn(_table.Headers[idx], "Column" + (idx + 1), ECsvColumnType.String));
+                _enumNames.Add(string.Empty);
             }
         }
 

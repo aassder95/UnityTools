@@ -9,7 +9,7 @@ namespace UnityTools.Sheets
         // Readonly
         //============================================================
         private readonly IReadOnlyList<T> _items;
-        private readonly Dictionary<string, T> _itemsByKey;
+        private readonly Dictionary<string, IReadOnlyList<T>> _groups;
 
         //============================================================
         // Properties
@@ -19,16 +19,49 @@ namespace UnityTools.Sheets
         //============================================================
         // Constructors
         //============================================================
-        private CsvDataSet(List<T> items, Dictionary<string, T> itemsByKey)
+        private CsvDataSet(List<T> items, Dictionary<string, List<T>> groups)
         {
             _items = items.AsReadOnly();
-            _itemsByKey = itemsByKey;
+            _groups = new Dictionary<string, IReadOnlyList<T>>(StringComparer.Ordinal);
+            foreach (KeyValuePair<string, List<T>> group in groups)
+            {
+                _groups.Add(group.Key, group.Value.AsReadOnly());
+            }
         }
 
         //============================================================
         // Logic
         //============================================================
         public static bool TryRead(CsvTable table, string keyHeader, CsvRowReader<T> reader, out CsvDataSet<T> dataSet, out string error)
+        {
+            return TryRead(table, keyHeader, reader, false, out dataSet, out error);
+        }
+
+        public static bool TryReadGroups(CsvTable table, string keyHeader, CsvRowReader<T> reader, out CsvDataSet<T> dataSet, out string error)
+        {
+            return TryRead(table, keyHeader, reader, true, out dataSet, out error);
+        }
+
+        public bool TryGet(string key, out T item)
+        {
+            item = null;
+            if (key == null || !_groups.TryGetValue(key, out IReadOnlyList<T> group) || group.Count != 1)
+                return false;
+
+            item = group[0];
+            return true;
+        }
+
+        public bool TryGetGroup(string key, out IReadOnlyList<T> items)
+        {
+            items = null;
+            return key != null && _groups.TryGetValue(key, out items);
+        }
+
+        //============================================================
+        // Utilities
+        //============================================================
+        private static bool TryRead(CsvTable table, string keyHeader, CsvRowReader<T> reader, bool canRepeatKeys, out CsvDataSet<T> dataSet, out string error)
         {
             dataSet = null;
             error = string.Empty;
@@ -55,7 +88,7 @@ namespace UnityTools.Sheets
             }
 
             List<T> items = new List<T>(table.Rows.Count);
-            Dictionary<string, T> itemsByKey = new Dictionary<string, T>(StringComparer.Ordinal);
+            Dictionary<string, List<T>> groups = new Dictionary<string, List<T>>(StringComparer.Ordinal);
             for (int idx = 0; idx < table.Rows.Count; idx++)
             {
                 CsvRow row = table.Rows[idx];
@@ -71,7 +104,7 @@ namespace UnityTools.Sheets
                     return false;
                 }
 
-                if (itemsByKey.ContainsKey(key))
+                if (!canRepeatKeys && groups.ContainsKey(key))
                 {
                     error = row.LineNum + "행의 키가 중복됩니다: " + key;
                     return false;
@@ -90,17 +123,17 @@ namespace UnityTools.Sheets
                 }
 
                 items.Add(item);
-                itemsByKey.Add(key, item);
+                if (!groups.TryGetValue(key, out List<T> group))
+                {
+                    group = new List<T>();
+                    groups.Add(key, group);
+                }
+
+                group.Add(item);
             }
 
-            dataSet = new CsvDataSet<T>(items, itemsByKey);
+            dataSet = new CsvDataSet<T>(items, groups);
             return true;
-        }
-
-        public bool TryGet(string key, out T item)
-        {
-            item = null;
-            return key != null && _itemsByKey.TryGetValue(key, out item);
         }
     }
 }

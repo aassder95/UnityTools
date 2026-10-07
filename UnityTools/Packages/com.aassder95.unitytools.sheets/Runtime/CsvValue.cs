@@ -7,6 +7,12 @@ namespace UnityTools.Sheets
         //============================================================
         // Logic
         //============================================================
+        public static bool TryParse(string text, out string value)
+        {
+            value = text;
+            return text != null;
+        }
+
         public static bool TryParse(string text, out int value)
         {
             return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out value);
