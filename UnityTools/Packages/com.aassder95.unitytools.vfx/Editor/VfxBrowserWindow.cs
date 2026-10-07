@@ -139,7 +139,7 @@ namespace UnityTools.Vfx.Editor
                 }
 
                 EditorGUI.BeginChangeCheck();
-                _thumbnailTimeSec = EditorGUILayout.Slider("Frame (sec)", _thumbnailTimeSec, 0.0f, 10.0f);
+                _thumbnailTimeSec = EditorGUILayout.Slider("Frame (sec)", _thumbnailTimeSec, 0.0f, VfxPreviewSession.MAX_PREVIEW_SEC);
                 if (EditorGUI.EndChangeCheck())
                 {
                     ClearThumbnails();
@@ -433,6 +433,25 @@ namespace UnityTools.Vfx.Editor
                 _durationSec = EditorGUILayout.Slider("Replay (sec)", _durationSec, 0.1f, VfxPreviewSession.MAX_PREVIEW_SEC);
                 _speed = EditorGUILayout.Slider("Speed", _speed, 0.1f, 3.0f);
                 EditorGUILayout.LabelField("Live particles: " + _preview.ParticleCnt);
+                if (GUILayout.Button("Select representative frame"))
+                {
+                    _isPlaying = false;
+                    GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(_selectedGuid));
+                    bool isSelected = VfxFrameSelector.TrySelect(prefab, _durationSec, 36, out float selectedSec);
+                    if (isSelected && _preview.TrySeek(selectedSec))
+                    {
+                        _thumbnailTimeSec = selectedSec;
+                        ClearThumbnails();
+                        RestoreColors();
+                        FilterCatalog();
+                        Repaint();
+                    }
+                    else
+                    {
+                        _thumbnailError = "대표 프레임을 찾지 못했습니다. 재생 구간과 시각 요소를 확인하세요.";
+                    }
+                }
+
                 if (GUILayout.Button("Analyze cost summary"))
                 {
                     GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(_selectedGuid));

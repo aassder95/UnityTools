@@ -625,6 +625,20 @@ namespace UnityTools.Vfx.Editor.Tests
             Assert.That(owned == null, Is.True);
         }
 
+        [Test]
+        public void RepresentativeSelectionRendersWithoutChangingPrefabOrLeakingScenes()
+        {
+            string path = AssetDatabase.GetAssetPath(_prefab);
+            byte[] before = File.ReadAllBytes(path);
+            int scenes = UnityEditor.SceneManagement.EditorSceneManager.previewSceneCount;
+            Assert.That(VfxFrameSelector.TrySelect(_prefab, 2.0f, 12, out float timeSec), Is.True);
+            Assert.That(timeSec, Is.GreaterThan(0.0f).And.LessThanOrEqualTo(2.0f));
+            Assert.That(File.ReadAllBytes(path), Is.EqualTo(before));
+            Assert.That(UnityEditor.SceneManagement.EditorSceneManager.previewSceneCount, Is.EqualTo(scenes));
+            Assert.That(VfxFrameSelector.TrySelect(_prefab, float.NaN, 12, out _), Is.False);
+            Assert.That(VfxFrameSelector.TrySelect(_prefab, 2.0f, 1, out _), Is.False);
+        }
+
         //============================================================
         // Utilities
         //============================================================

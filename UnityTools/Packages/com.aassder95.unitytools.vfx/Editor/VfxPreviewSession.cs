@@ -36,6 +36,7 @@ namespace UnityTools.Vfx.Editor
         // Properties
         //============================================================
         public float TimeSec => _timeSec;
+        public Bounds ViewBounds => _bounds;
         public int ParticleCnt
         {
             get
@@ -179,6 +180,12 @@ namespace UnityTools.Vfx.Editor
             ConfigureCamera(rect);
             _utility.Render(true);
             return _utility.EndPreview();
+        }
+
+        public void FitBounds(Bounds bounds)
+        {
+            _bounds = bounds;
+            _zoom = 1.0f;
         }
 
         public Texture2D Capture(int width, int height)
