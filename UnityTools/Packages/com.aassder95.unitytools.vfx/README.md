@@ -57,3 +57,7 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 추가로 `tools/test-vfx-urp.ps1`에서 Unity 2022.3.62f3 / URP 14.0.12와 Unity 6000.3.20f1 / URP 17.3.0의 파티클 썸네일·시간 탐색·orbit·zoom 후 캡처를 확인했습니다. 두 환경 모두 URP Particles/Unlit 녹색 probe가 통과했고, 기존 분수와 Molip/UI_Additive도 표시됐습니다. 별도 검증 프로젝트의 캡처 결과이며 실제 Canvas·stencil·마스크, 다른 shader, 전체 URP 테스트와 Player build를 확인한 결과는 아닙니다. 자세한 결과와 보존 경로는 `docs/RELEASE_SHEETS_VFX.md`에 기록했습니다.
 
 2026-10-07, Unity 2022.3.62f3과 6000.3.20f1에서 위 실제 prefab 두 개의 썸네일(White)과 Molip/UI_Additive의 녹색 파티클 캡처가 통과했습니다. 두 버전 모두 VFX 테스트 23/23, skip 0, Windows Development build 성공과 Editor assembly 제외를 확인했습니다. 원본·사본 12개 파일의 SHA-256이 복사 전과 일치했습니다. fixture 복사 도구의 GUID 의존성·파일 보존, 소스/목적지 중첩 거부, 누락 의존성 실패 테스트도 통과했습니다.
+
+## 태그와 컬렉션
+
+`Create library`로 Editor 폴더에 라이브러리 `.asset`을 만들거나 Library 필드에서 기존 에셋을 선택합니다. 선택한 효과에 쉼표로 태그와 컬렉션을 입력하고 `Apply labels`로 저장합니다. 필터는 대소문자를 무시한 정확한 라벨 이름으로 적용하며, 이름/Loop/Favorites/Color 필터와 함께 사용할 수 있습니다. GUID 기반으로 prefab 이동/rename 이후에도 유지하며 원본 prefab에는 기록하지 않습니다. 라이브러리 에셋은 팀과 공유할 수 있습니다.

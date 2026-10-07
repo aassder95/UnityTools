@@ -3,3 +3,7 @@
 ## 생성 설정 프리셋
 
 Unity 2022.3.62f3: Editor 46/46, Play Mode 56/56, 생성 코드 컴파일/읽기, Windows Mono Development build/Player 실행 통과. 프리셋 에셋 round-trip, Enum 배열, 한글 출력 경로, CSV rename 참조 유지, 헤더 불일치 시 원자적 거부를 검사했다. 실제 저장 대화상자와 수동 domain reload UI는 별도 확인 대상이다.
+
+## VFX 태그와 컬렉션
+
+Unity 2022.3.62f3: Editor 25/25, skip 0, Windows Mono Development build 통과, Player에 Editor DLL 미포함. 라벨 정규화/중복 제거, 저장 후 재로드, prefab rename 유지, 여러 필터 조합, 원본 prefab 바이트 보존 검증. 수동 GUI 입력/대화상자는 별도 확인 대상.
