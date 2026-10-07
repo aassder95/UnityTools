@@ -65,3 +65,7 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 ## 분석 캐시 저장
 
 썸네일 PNG와 색상은 `Library/UnityTools/VfxThumbnails`에 GUID별로 저장합니다. 창 재열기/Refresh/reload에서 색상을 복원하고 필요한 썸네일만 메모리에 불러옵니다. 프레임 시간, prefab/material/texture 의존성, 활성 렌더 파이프라인, 색 공간, 그래픽 API, Unity 버전이 바뀌면 다시 분석합니다. 에셋당 최근 설정 하나를 저장하며 다른 대표 프레임을 사용하면 이전 캐시를 대체합니다. 메모리 텍스처 제한 24개는 유지합니다. 캐시 저장 실패는 경고로 표시하고 메모리 미리보기는 계속 사용할 수 있습니다. Library 캐시는 프로젝트 공유/Player 빌드 대상이 아닙니다.
+
+## VFX 비교 보기
+
+`Tools > UnityTools > VFX Compare` 또는 Browser의 Compare 버튼으로 비교 창을 엽니다. Left/Right에 파티클 prefab 두 개를 연결합니다. 같은 시간, 배속, Replay 구간으로 재생하며 드래그/휠은 양쪽 카메라에 함께 적용됩니다. Fit together는 두 효과의 bounds를 합쳐 같은 카메라 위치와 스케일로 비교합니다. 선택한 시점에 Fit together를 누르면 현재 파티클 범위로 다시 맞춥니다. 두 별도 PreviewScene만 사용하며 원본/사용자 스크립트/오디오는 실행하지 않습니다. 창 닫기, reload, Play Mode 진입, 에셋 변경 시 양쪽 자원을 해제합니다. 에셋 변경 후 Refresh previews로 다시 연결합니다. Canvas/VFX Graph 등 지원 범위는 기존 Browser와 같습니다.

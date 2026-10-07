@@ -155,6 +155,19 @@ namespace UnityTools.Vfx.Editor
             _pitch = Mathf.Clamp(_pitch + delta.y, -85.0f, 85.0f);
         }
 
+        public void FitTogether(VfxPreviewSession peer)
+        {
+            if (_isDisposed || peer == null || peer._isDisposed)
+                return;
+
+            Fit();
+            peer.Fit();
+            _bounds.Encapsulate(peer._bounds);
+            peer._bounds = _bounds;
+            peer._yaw = _yaw;
+            peer._pitch = _pitch;
+        }
+
         public void Zoom(float delta)
         {
             _zoom = Mathf.Clamp(_zoom * Mathf.Exp(delta * 0.08f), 0.2f, 5.0f);

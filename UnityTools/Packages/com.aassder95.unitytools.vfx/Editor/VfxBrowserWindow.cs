@@ -420,6 +420,9 @@ namespace UnityTools.Vfx.Editor
                     if (GUILayout.Button("Fit"))
                         _preview.Fit();
 
+                    if (GUILayout.Button("Compare"))
+                        VfxCompareWindow.Open();
+
                     if (GUILayout.Button("Ping prefab"))
                         EditorGUIUtility.PingObject(AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(_selectedGuid)));
                 }

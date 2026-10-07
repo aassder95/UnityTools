@@ -15,3 +15,7 @@ Unity 2022.3.62f3: Editor 50/50, Play Mode 56/56, 생성 코드 컴파일/읽기
 ## VFX 디스크 분석 캐시
 
 Unity 2022.3.62f3: Editor 26/26, skip 0, Windows Mono Development build 통과, Editor DLL 미포함. 재로드 후 PNG/색상 복원, 파일 갱신 시각/바이트가 그대로 유지되는 캐시 hit, 프레임 변경, material 저장 후 실제 파일 변경과 캐시 miss, 손상 metadata 거부, 기존 자원 해제/메모리 상한 회귀 검사. 변경 이벤트에서는 기존 결과를 비우고 Refresh에서 복원한다. 의존성 키에는 import hash와 실제 의존 파일의 SHA256을 포함한다.
+
+## VFX 비교 보기
+
+Unity 2022.3.62f3: Editor 28/28, skip 0, Windows Mono Development build 통과, Editor DLL 미포함. 서로 다른 크기의 두 prefab을 같은 시간/카메라/화각으로 비교 렌더링, 잘못된 seek와 prefab 입력의 기존 상태 보존, 원본 prefab 바이트 보존, 별도 scene과 창의 양쪽 렌더링, 닫기 시 양쪽 자원 해제를 검사했다. 실제 마우스 드래그/휠/재생 버튼 조작은 수동 확인 대상이다.
