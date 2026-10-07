@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- FIFO·중복 key 억제·unscaled 표시 시간을 제공하는 UiToastQueue 추가
+
 ## [2.2.0] - 2026-10-07
 
 - unscaled 대기·가속 반복·release click 중복 방지·다중 포인터 소유권을 제공하는 UiRepeatButton 추가

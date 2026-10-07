@@ -136,3 +136,8 @@ Package Manager에서 `UI Sample Scene`을 Import하면 Inventory와 Rank naviga
 `UnityTools.Util.*` 호환 shim은 제공하지 않습니다. [migration 문서](https://github.com/aassder95/UnityTools/blob/unitytools-ui/v2.0.0/MIGRATION.md)를 따라 assembly와 namespace를 변경하세요.
 
 이 package의 자체 코드는 [MIT License](https://github.com/aassder95/UnityTools/blob/unitytools-ui/v2.0.0/LICENSE)로 배포됩니다.
+## 토스트 알림 큐 (개발 버전)
+
+`UiToastQueue`의 CanvasGroup과 Text를 Inspector에 명시적으로 연결합니다. `TryEnqueue(key, message, durationSec)`로 알림을 넣으면 FIFO 순서로 표시하고 unscaled 시간으로 숨깁니다. 현재 표시 중이거나 대기 중인 같은 key는 거절하며, 표시 종료 후에는 key를 재사용할 수 있습니다. 대기 개수 상한에 도달하면 false를 반환합니다. `TryDismiss()`는 현재 메시지를 닫고 다음 메시지를 표시하고, `Clear()`와 비활성화는 전체 대기를 정리합니다.
+
+입력을 차단하지 않으며 `OnShown`·`OnDismissed`로 표시 상태를 알립니다. 이벤트 구독자는 해제 책임을 가집니다. 알림은 보상 지급·저장 성공의 증거가 아니며 호출자는 Try 반환값을 처리해야 합니다. 공개 UI 2.2.0에는 포함되지 않습니다.
