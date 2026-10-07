@@ -42,4 +42,16 @@ VFX Graph, SkinnedMeshRenderer, Animator/스크립트 기반 연출, prefab 외�
 | 2022.3.62f3 | 23/23 통과, skip 0 | 미리보기·썸네일 색상 검사 통과 | 성공, VFX Editor assembly 제외 |
 | 6000.3.20f1 | 23/23 통과, skip 0 | 미리보기·썸네일 색상 검사 통과 | 성공, VFX Editor assembly 제외 |
 
-각 버전의 새 프로젝트에 이 로컬 패키지만 설치해 검증했습니다. 렌더링 검사는 테스트에서 생성한 prefab과 Built-in 파티클 shader를 사용합니다. 6개 패키지 정적 검사도 통과했습니다. 실제 프로젝트 prefab과 커스텀 render pipeline에서의 수동 GUI 조작은 아직 검증하지 않았습니다.
+각 버전의 새 프로젝트에 이 로컬 패키지만 설치해 검증했습니다. 위 렌더링 회귀 검사는 테스트에서 생성한 prefab과 Built-in 파티클 shader를 사용합니다. 6개 패키지 정적 검사도 통과했습니다.
+
+### 실제 프로젝트 VFX 검증
+
+`tools/test-vfx-package.ps1`의 `-SourceAssets`와 `-VisualPaths`로 원본 Assets 경로와 그 하위의 상대 경로를 전달할 수 있습니다. `tools/copy-vfx-fixture.py`가 prefab·머티리얼·shader·텍스처와 GUID 의존 파일을 임시 프로젝트의 Assets/ProjectVfx로 복사합니다. 원본 코드를 실행하지 않도록 C# 의존성은 거부합니다. 해석할 수 없는 GUID·경로형 shader include도 실패로 처리합니다. 복사 대상은 별도 임시 프로젝트로 제한하고 원본 또는 그 하위 경로를 목적지로 사용할 수 없습니다. Python 실행 환경이 필요하며 `-NoGraphics`와 함께 사용할 수 없습니다.
+
+검증용 fixture는 Pizza-Idle의 `Asset/PolygonShops/Prefabs/FX/FX_Fountain_Spray_01.prefab`, `FX_Fountain_Spray_02.prefab`, `3.Resources/Materials/UIAdditive.mat`입니다. 커스텀 shader 검사는 `Molip/UI_Additive` 머티리얼을 임시 녹색 파티클에 연결합니다. 실제 게임의 UI 효과 동작을 재현하는 검사는 아닙니다. 임의의 프로젝트 shader를 이 fixture의 성공 기준으로 자동 검증하지 않습니다.
+
+실제 prefab의 1초 썸네일에서 표시되는 색상, 머티리얼 shader 지원 여부·컴파일 오류, 커스텀 shader의 녹색 렌더링과 원본/사본 SHA-256 보존을 검사합니다. 결과는 `project-vfx-source.json`, `project-vfx-result.txt`, `ProjectVfxImages`, Editor 로그에 남습니다. 에셋 사본과 캡처 이미지는 임시 프로젝트에만 보존하며 패키지에 배포하지 않습니다.
+
+원본 프로젝트에 설치하거나 scene·prefab을 저장하지 않습니다. 검증은 Built-in pipeline의 격리된 프로젝트를 사용합니다. 원본 프로젝트의 URP 설정, 실제 UI Canvas·stencil·마스크, 창의 수동 조작과 다른 커스텀 shader는 별도 확인 대상입니다.
+
+2026-10-07, Unity 2022.3.62f3과 6000.3.20f1에서 위 실제 prefab 두 개의 썸네일(White)과 Molip/UI_Additive의 녹색 파티클 캡처가 통과했습니다. 두 버전 모두 VFX 테스트 23/23, skip 0, Windows Development build 성공과 Editor assembly 제외를 확인했습니다. 원본·사본 12개 파일의 SHA-256이 복사 전과 일치했습니다. fixture 복사 도구의 GUID 의존성·파일 보존, 소스/목적지 중첩 거부, 누락 의존성 실패 테스트도 통과했습니다.

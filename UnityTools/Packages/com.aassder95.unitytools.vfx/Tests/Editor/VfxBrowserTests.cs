@@ -374,6 +374,45 @@ namespace UnityTools.Vfx.Editor.Tests
             }
         }
 
+        [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator WindowDrawsColorFilteredThumbnailAndSelectedPreview()
+        {
+            if (SystemInfo.graphicsDeviceType == GraphicsDeviceType.Null)
+                Assert.Ignore("그래픽 장치가 없는 실행에서는 창의 렌더링을 검증할 수 없습니다.");
+
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+            VfxBrowserWindow window = ScriptableObject.CreateInstance<VfxBrowserWindow>();
+            GameObject copiedRoot = null;
+            Texture2D owned = null;
+            try
+            {
+                typeof(VfxBrowserWindow).GetField("_rootPath", flags).SetValue(window, _folderPath);
+                typeof(VfxBrowserWindow).GetMethod("RefreshCatalog", flags).Invoke(window, null);
+                VfxPrefabCatalog catalog = (VfxPrefabCatalog)typeof(VfxBrowserWindow).GetField("_catalog", flags).GetValue(window);
+                VfxThumbnailIndex thumbnails = (VfxThumbnailIndex)typeof(VfxBrowserWindow).GetField("_thumbnails", flags).GetValue(window);
+                Assert.That(thumbnails.TryCapture(catalog.Items[0].Guid, _prefab, 1.0f), Is.True);
+                Assert.That(thumbnails.TryGetTexture(catalog.Items[0].Guid, out owned), Is.True);
+                typeof(VfxBrowserWindow).GetField("_colorFilter", flags).SetValue(window, EVfxColor.Orange);
+                typeof(VfxBrowserWindow).GetMethod("FilterCatalog", flags).Invoke(window, null);
+                typeof(VfxBrowserWindow).GetMethod("SelectItem", flags).Invoke(window, new object[] { catalog.Items[0] });
+                VfxPreviewSession preview = (VfxPreviewSession)typeof(VfxBrowserWindow).GetField("_preview", flags).GetValue(window);
+                copiedRoot = (GameObject)typeof(VfxPreviewSession).GetField("_goRoot", flags).GetValue(preview);
+                window.Show();
+                window.Repaint();
+                yield return null;
+                window.Repaint();
+                yield return null;
+                Assert.That(copiedRoot != null, Is.True);
+            }
+            finally
+            {
+                window.Close();
+            }
+
+            Assert.That(copiedRoot == null, Is.True);
+            Assert.That(owned == null, Is.True);
+        }
+
         //============================================================
         // Utilities
         //============================================================
