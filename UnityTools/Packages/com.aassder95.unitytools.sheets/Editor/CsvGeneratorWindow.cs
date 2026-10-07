@@ -16,6 +16,9 @@ namespace UnityTools.Sheets.Editor
         [SerializeField] private CsvGeneratorPreset _preset;
         [SerializeField] private string _outputPath = string.Empty;
         private CsvTable _table;
+        private string _keyHeader = string.Empty;
+        private readonly List<CsvReferenceRule> _references = new List<CsvReferenceRule>();
+        private readonly List<CsvValidationIssue> _issues = new List<CsvValidationIssue>();
         private readonly List<CsvColumn> _columns = new List<CsvColumn>();
         private readonly List<string> _enumNames = new List<string>();
         private string _namespaceName = "Game.Data";
@@ -46,6 +49,9 @@ namespace UnityTools.Sheets.Editor
             {
                 _preset = null;
                 _outputPath = string.Empty;
+                _issues.Clear();
+                _references.Clear();
+                _keyHeader = string.Empty;
                 _table = null;
                 _columns.Clear();
                 _enumNames.Clear();
@@ -93,16 +99,19 @@ namespace UnityTools.Sheets.Editor
                 }
 
                 if (EditorGUI.EndChangeCheck())
+                {
                     _source = null;
+                    _issues.Clear();
+                }
+
+                DrawConstraints();
 
                 if (GUILayout.Button("Save preset"))
                     SavePreset();
 
                 if (GUILayout.Button("Validate & Preview"))
                 {
-                    bool isGenerated = CsvCodeGenerator.TryGenerate(_table, _columns, _namespaceName, _className, out _source, out _error);
-                    if (!isGenerated)
-                        _source = null;
+                    ValidateSource();
                 }
 
                 if (_source != null)
@@ -111,6 +120,18 @@ namespace UnityTools.Sheets.Editor
                         SaveSource();
 
                     EditorGUILayout.TextArea(_source);
+                }
+
+                for (int idx = 0; idx < _issues.Count; idx++)
+                {
+                    CsvValidationIssue issue = _issues[idx];
+                    using (new EditorGUILayout.HorizontalScope())
+                    {
+                        EditorGUILayout.LabelField(issue.LineNum + "행 / " + issue.Header, GUILayout.Width(160.0f));
+                        EditorGUILayout.LabelField(issue.Message, EditorStyles.wordWrappedLabel);
+                        if (GUILayout.Button("Open", GUILayout.Width(50.0f)))
+                            AssetDatabase.OpenAsset(_csv, Math.Max(1, issue.LineNum));
+                    }
                 }
 
                 EditorGUILayout.EndScrollView();
@@ -133,6 +154,7 @@ namespace UnityTools.Sheets.Editor
 
         private void ReadCsv()
         {
+            _issues.Clear();
             _source = null;
             _columns.Clear();
             _enumNames.Clear();
@@ -152,12 +174,70 @@ namespace UnityTools.Sheets.Editor
                     _namespaceName = _preset.NamespaceName;
                     _className = _preset.ClassName;
                     _outputPath = _preset.OutputPath;
+                    _keyHeader = _preset.KeyHeader;
+                    _references.Clear();
+                    _references.AddRange(_preset.References);
                 }
             }
         }
 
+        private void DrawConstraints()
+        {
+            EditorGUI.BeginChangeCheck();
+            _keyHeader = EditorGUILayout.TextField("Unique key header", _keyHeader);
+            for (int idx = 0; idx < _references.Count; idx++)
+            {
+                CsvReferenceRule rule = _references[idx];
+                using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+                {
+                    string header = EditorGUILayout.TextField("Source header", rule.Header);
+                    TextAsset target = (TextAsset)EditorGUILayout.ObjectField("Target CSV", rule.TargetCsv, typeof(TextAsset), false);
+                    string targetHeader = EditorGUILayout.TextField("Target key header", rule.TargetHeader);
+                    bool isArray = EditorGUILayout.Toggle("Pipe array", rule.IsArray);
+                    if (header != rule.Header || target != rule.TargetCsv || targetHeader != rule.TargetHeader || isArray != rule.IsArray)
+                        _references[idx] = new CsvReferenceRule(header, target, targetHeader, isArray);
+
+                    if (GUILayout.Button("Remove reference"))
+                    {
+                        GUI.changed = true;
+                        _references.RemoveAt(idx);
+                        idx--;
+                    }
+                }
+            }
+
+            if (GUILayout.Button("Add reference"))
+            {
+                GUI.changed = true;
+                _references.Add(new CsvReferenceRule(_table.Headers[0], null, "Id", false));
+            }
+
+            if (EditorGUI.EndChangeCheck())
+            {
+                _source = null;
+                _issues.Clear();
+            }
+        }
+
+        private void ValidateSource()
+        {
+            _source = null;
+            _issues.Clear();
+            _issues.AddRange(CsvCodeGenerator.Validate(_table, _columns, _namespaceName, _className));
+            CsvConstraintValidator.Validate(_table, _keyHeader, _references, _issues);
+            _error = string.Empty;
+            if (_issues.Count > 0)
+                return;
+
+            bool isGenerated = CsvCodeGenerator.TryGenerate(_table, _columns, _namespaceName, _className, out _source, out _error);
+            if (!isGenerated)
+                _source = null;
+        }
+
         private void LoadPreset()
         {
+            _keyHeader = string.Empty;
+            _references.Clear();
             _csv = _preset.Csv;
             _source = null;
             _table = null;
@@ -187,7 +267,7 @@ namespace UnityTools.Sheets.Editor
             }
 
             Undo.RecordObject(_preset, "Save CSV preset");
-            _preset.Capture(_csv, _columns, _enumNames, _namespaceName, _className, _outputPath);
+            _preset.Capture(_csv, _columns, _enumNames, _namespaceName, _className, _outputPath, _keyHeader, _references);
             EditorUtility.SetDirty(_preset);
             AssetDatabase.SaveAssets();
             _error = string.Empty;

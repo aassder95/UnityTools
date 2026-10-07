@@ -7,3 +7,7 @@ Unity 2022.3.62f3: Editor 46/46, Play Mode 56/56, 생성 코드 컴파일/읽기
 ## VFX 태그와 컬렉션
 
 Unity 2022.3.62f3: Editor 25/25, skip 0, Windows Mono Development build 통과, Player에 Editor DLL 미포함. 라벨 정규화/중복 제거, 저장 후 재로드, prefab rename 유지, 여러 필터 조합, 원본 prefab 바이트 보존 검증. 수동 GUI 입력/대화상자는 별도 확인 대상.
+
+## CSV 오류 목록과 데이터 참조
+
+Unity 2022.3.62f3: Editor 50/50, Play Mode 56/56, 생성 코드 컴파일/읽기, Windows Mono Development build/Player 통과. 여러 열/행의 타입 오류, quoted multiline 이후 물리적 행 번호, 빈/중복 키, 배열 참조의 모든 누락 ID, 빈 테이블의 잘못된 규칙, 프리셋 규칙 직렬화 검사. UI 저장은 모든 검증 통과 후만 제공한다.

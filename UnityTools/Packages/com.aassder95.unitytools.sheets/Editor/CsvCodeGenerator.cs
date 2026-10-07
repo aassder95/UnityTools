@@ -18,73 +18,11 @@ namespace UnityTools.Sheets.Editor
         {
             source = null;
             error = string.Empty;
-            if (table == null || columns == null || columns.Count != table.Headers.Count || columns.Count == 0)
+            IReadOnlyList<CsvValidationIssue> issues = Validate(table, columns, namespaceName, className);
+            if (issues.Count > 0)
             {
-                error = "CSV와 모든 열의 타입 설정이 필요합니다.";
+                error = issues[0].Message;
                 return false;
-            }
-
-            if (!IsIdentifier(className) || className[0] < 'A' || className[0] > 'Z' || className == "CsvSourceRow" || className == "CsvCellValue" || className == "UnityTools")
-            {
-                error = "클래스 이름은 영문 대문자로 시작하는 유효한 C# 식별자여야 합니다.";
-                return false;
-            }
-
-            if (string.IsNullOrEmpty(namespaceName))
-            {
-                error = "네임스페이스를 입력하세요.";
-                return false;
-            }
-
-            string[] namespaces = namespaceName.Split('.');
-            for (int idx = 0; idx < namespaces.Length; idx++)
-            {
-                if (!IsIdentifier(namespaces[idx]) || namespaces[idx] == "CsvSourceRow" || namespaces[idx] == "CsvCellValue")
-                {
-                    error = "네임스페이스의 각 이름은 유효한 C# 식별자여야 합니다.";
-                    return false;
-                }
-            }
-
-            HashSet<string> headers = new HashSet<string>(StringComparer.Ordinal);
-            HashSet<string> names = new HashSet<string>(StringComparer.Ordinal);
-            for (int idx = 0; idx < columns.Count; idx++)
-            {
-                CsvColumn column = columns[idx];
-                if (column == null || !IsIdentifier(column.Name) || column.Name[0] < 'A' || column.Name[0] > 'Z' || column.Name == className || column.Name == "TryRead" || column.Name == "CsvSourceRow" || column.Name == "CsvCellValue" || !names.Add(column.Name))
-                {
-                    error = $"{idx + 1}열: Property 이름은 영문 대문자로 시작하며 중복되거나 클래스/메서드 이름과 같을 수 없습니다.";
-                    return false;
-                }
-
-                if (column.Header == null || !ContainsHeader(table, column.Header) || !headers.Add(column.Header) || !Enum.IsDefined(typeof(ECsvColumnType), column.Type))
-                {
-                    error = $"{idx + 1}열: 헤더 연결 또는 타입 설정이 잘못되었습니다.";
-                    return false;
-                }
-
-                if (column.Type == ECsvColumnType.Bool && !column.IsArray && !column.Name.StartsWith("Is", StringComparison.Ordinal) && !column.Name.StartsWith("Has", StringComparison.Ordinal) && !column.Name.StartsWith("Can", StringComparison.Ordinal) && !column.Name.StartsWith("Should", StringComparison.Ordinal))
-                {
-                    error = $"{idx + 1}열: bool Property 이름은 Is, Has, Can, Should로 시작해야 합니다.";
-                    return false;
-                }
-
-                if (column.Type == ECsvColumnType.Enum && !IsEnumSupported(column.EnumType))
-                {
-                    error = $"{idx + 1}열: Player에서 참조 가능한 public top-level enum 타입이 필요합니다.";
-                    return false;
-                }
-
-                string[] enumNames = column.Type == ECsvColumnType.Enum ? Enum.GetNames(column.EnumType) : null;
-                for (int rowIdx = 0; rowIdx < table.Rows.Count; rowIdx++)
-                {
-                    CsvRow row = table.Rows[rowIdx];
-                    if (!row.TryGetCell(column.Header, out string text) || !IsCellValid(text, column, enumNames))
-                    {
-                        error = $"{row.LineNum}행, '{column.Header}'열: {column.Type} 값이 올바르지 않습니다.";
-                        return false;
-                    }
-                }
             }
 
             StringBuilder code = new StringBuilder();
@@ -188,6 +126,94 @@ namespace UnityTools.Sheets.Editor
             code.AppendLine("    }");
             code.AppendLine("}");
             source = code.ToString();
+            return true;
+        }
+
+        public static IReadOnlyList<CsvValidationIssue> Validate(CsvTable table, IReadOnlyList<CsvColumn> columns, string namespaceName, string className)
+        {
+            List<CsvValidationIssue> issues = new List<CsvValidationIssue>();
+            if (!TryValidateSchema(table, columns, namespaceName, className, out string error))
+            {
+                issues.Add(new CsvValidationIssue(0, string.Empty, error));
+                return issues.AsReadOnly();
+            }
+
+            for (int idx = 0; idx < columns.Count; idx++)
+            {
+                CsvColumn column = columns[idx];
+                string[] enumNames = column.Type == ECsvColumnType.Enum ? Enum.GetNames(column.EnumType) : null;
+                for (int rowIdx = 0; rowIdx < table.Rows.Count; rowIdx++)
+                {
+                    CsvRow row = table.Rows[rowIdx];
+                    if (!row.TryGetCell(column.Header, out string text) || !IsCellValid(text, column, enumNames))
+                        issues.Add(new CsvValidationIssue(row.LineNum, column.Header, $"{row.LineNum}행, '{column.Header}'열: {column.Type} 값이 올바르지 않습니다."));
+                }
+            }
+
+            return issues.AsReadOnly();
+        }
+
+        private static bool TryValidateSchema(CsvTable table, IReadOnlyList<CsvColumn> columns, string namespaceName, string className, out string error)
+        {
+            error = string.Empty;
+            if (table == null || columns == null || columns.Count != table.Headers.Count || columns.Count == 0)
+            {
+                error = "CSV와 모든 열의 타입 설정이 필요합니다.";
+                return false;
+            }
+
+            if (!IsIdentifier(className) || className[0] < 'A' || className[0] > 'Z' || className == "CsvSourceRow" || className == "CsvCellValue" || className == "UnityTools")
+            {
+                error = "클래스 이름은 영문 대문자로 시작하는 유효한 C# 식별자여야 합니다.";
+                return false;
+            }
+
+            if (string.IsNullOrEmpty(namespaceName))
+            {
+                error = "네임스페이스를 입력하세요.";
+                return false;
+            }
+
+            string[] namespaces = namespaceName.Split('.');
+            for (int idx = 0; idx < namespaces.Length; idx++)
+            {
+                if (!IsIdentifier(namespaces[idx]) || namespaces[idx] == "CsvSourceRow" || namespaces[idx] == "CsvCellValue")
+                {
+                    error = "네임스페이스의 각 이름은 유효한 C# 식별자여야 합니다.";
+                    return false;
+                }
+            }
+
+            HashSet<string> headers = new HashSet<string>(StringComparer.Ordinal);
+            HashSet<string> names = new HashSet<string>(StringComparer.Ordinal);
+            for (int idx = 0; idx < columns.Count; idx++)
+            {
+                CsvColumn column = columns[idx];
+                if (column == null || !IsIdentifier(column.Name) || column.Name[0] < 'A' || column.Name[0] > 'Z' || column.Name == className || column.Name == "TryRead" || column.Name == "CsvSourceRow" || column.Name == "CsvCellValue" || !names.Add(column.Name))
+                {
+                    error = $"{idx + 1}열: Property 이름은 영문 대문자로 시작하며 중복되거나 클래스/메서드 이름과 같을 수 없습니다.";
+                    return false;
+                }
+
+                if (column.Header == null || !ContainsHeader(table, column.Header) || !headers.Add(column.Header) || !Enum.IsDefined(typeof(ECsvColumnType), column.Type))
+                {
+                    error = $"{idx + 1}열: 헤더 연결 또는 타입 설정이 잘못되었습니다.";
+                    return false;
+                }
+
+                if (column.Type == ECsvColumnType.Bool && !column.IsArray && !column.Name.StartsWith("Is", StringComparison.Ordinal) && !column.Name.StartsWith("Has", StringComparison.Ordinal) && !column.Name.StartsWith("Can", StringComparison.Ordinal) && !column.Name.StartsWith("Should", StringComparison.Ordinal))
+                {
+                    error = $"{idx + 1}열: bool Property 이름은 Is, Has, Can, Should로 시작해야 합니다.";
+                    return false;
+                }
+
+                if (column.Type == ECsvColumnType.Enum && !IsEnumSupported(column.EnumType))
+                {
+                    error = $"{idx + 1}열: Player에서 참조 가능한 public top-level enum 타입이 필요합니다.";
+                    return false;
+                }
+            }
+
             return true;
         }
 
