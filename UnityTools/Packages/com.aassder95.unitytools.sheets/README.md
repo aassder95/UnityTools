@@ -127,3 +127,7 @@ Unity 2022.3.62f3과 6000.3.20f1에서 최종 Editor 30/30, Runtime 48/48, skip 
 두 Unity 버전에서 Editor 42/42, Runtime 56/56, skip 0, 생성 배열 코드 컴파일·읽기, Windows Development build·Player 실행이 통과했습니다. 실제 Player에서 String·Int·Long·Float·Double·Bool·Enum 배열의 값, 빈 목록과 잘못된 원소의 실패·null 결과를 검사했습니다. 생성 Property는 읽기 전용 목록이며 Runtime 테스트에서 내부 배열을 변경할 수 없는지 확인했습니다. 검증 도구 회귀 테스트는 33개 통과했습니다.
 
 Pizza-Idle의 Palette 7행·Stages 10행 검증도 다시 통과했습니다. 이번에는 Stages의 `answer`를 정수 배열로 설정해 모든 행을 검증하고 생성 코드를 컴파일했습니다. 원본 CSV는 변경하지 않았습니다. 이 실제 CSV 검사는 Editor에서의 타입 검증·코드 컴파일이며 원본 게임 실행 경로를 바꾸지 않습니다. 배열 선택란의 수동 GUI 조작과 모바일·IL2CPP는 별도 확인 대상입니다.
+
+## 생성 설정 프리셋
+
+`Save preset`으로 CSV 참조, 열 타입/Enum/배열, Namespace/Class, 출력 경로를 프로젝트 `.asset`에 저장합니다. Preset 필드에서 선택하면 창 재열기와 스크립트 reload 이후 복원됩니다. CSV 이동/rename은 GUID 참조로 유지됩니다. 헤더 수/이름/순서가 달라지면 자동 적용을 중단하고 경고합니다. 변경된 설정은 Save preset으로 명시적으로 저장하며, C# 저장 성공 시 출력 경로도 저장합니다. 프리셋은 Editor 전용 에셋이므로 Editor 폴더 아래에 저장하세요.

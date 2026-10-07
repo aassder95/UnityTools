@@ -12,7 +12,9 @@ namespace UnityTools.Sheets.Editor
         //============================================================
         // Fields
         //============================================================
-        private TextAsset _csv;
+        [SerializeField] private TextAsset _csv;
+        [SerializeField] private CsvGeneratorPreset _preset;
+        [SerializeField] private string _outputPath = string.Empty;
         private CsvTable _table;
         private readonly List<CsvColumn> _columns = new List<CsvColumn>();
         private readonly List<string> _enumNames = new List<string>();
@@ -25,12 +27,25 @@ namespace UnityTools.Sheets.Editor
         //============================================================
         // Unity Methods
         //============================================================
+        private void OnEnable()
+        {
+            if (_preset != null)
+                LoadPreset();
+        }
+
         private void OnGUI()
         {
+            EditorGUI.BeginChangeCheck();
+            _preset = (CsvGeneratorPreset)EditorGUILayout.ObjectField("Preset", _preset, typeof(CsvGeneratorPreset), false);
+            if (EditorGUI.EndChangeCheck() && _preset != null)
+                LoadPreset();
+
             EditorGUI.BeginChangeCheck();
             _csv = (TextAsset)EditorGUILayout.ObjectField("CSV", _csv, typeof(TextAsset), false);
             if (EditorGUI.EndChangeCheck())
             {
+                _preset = null;
+                _outputPath = string.Empty;
                 _table = null;
                 _columns.Clear();
                 _enumNames.Clear();
@@ -72,32 +87,16 @@ namespace UnityTools.Sheets.Editor
                     if (name != column.Name || type != column.Type || enumName != _enumNames[idx] || isArray != column.IsArray)
                     {
                         _enumNames[idx] = enumName;
-                        Type enumType = null;
-                        if (type == ECsvColumnType.Enum && System.Text.RegularExpressions.Regex.IsMatch(enumName, @"^[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*$"))
-                        {
-                            System.Reflection.Assembly[] assemblies = AppDomain.CurrentDomain.GetAssemblies();
-                            for (int assemblyIdx = 0; assemblyIdx < assemblies.Length; assemblyIdx++)
-                            {
-                                Type candidate = assemblies[assemblyIdx].GetType(enumName, false, false);
-                                if (candidate == null || candidate == enumType)
-                                    continue;
-
-                                if (enumType != null)
-                                {
-                                    enumType = null;
-                                    break;
-                                }
-
-                                enumType = candidate;
-                            }
-                        }
-
+                        Type enumType = CsvEnumResolver.Resolve(enumName);
                         _columns[idx] = new CsvColumn(column.Header, name, type, enumType, isArray);
                     }
                 }
 
                 if (EditorGUI.EndChangeCheck())
                     _source = null;
+
+                if (GUILayout.Button("Save preset"))
+                    SavePreset();
 
                 if (GUILayout.Button("Validate & Preview"))
                 {
@@ -145,11 +144,58 @@ namespace UnityTools.Sheets.Editor
                 _columns.Add(new CsvColumn(_table.Headers[idx], "Column" + (idx + 1), ECsvColumnType.String));
                 _enumNames.Add(string.Empty);
             }
+
+            if (_preset != null && _preset.Csv == _csv)
+            {
+                if (_preset.TryRestore(_table, _columns, _enumNames, out _error))
+                {
+                    _namespaceName = _preset.NamespaceName;
+                    _className = _preset.ClassName;
+                    _outputPath = _preset.OutputPath;
+                }
+            }
+        }
+
+        private void LoadPreset()
+        {
+            _csv = _preset.Csv;
+            _source = null;
+            _table = null;
+            _columns.Clear();
+            _enumNames.Clear();
+            _error = string.Empty;
+            if (_csv != null)
+                ReadCsv();
+        }
+
+        private void SavePreset()
+        {
+            if (_preset == null)
+            {
+                string path = EditorUtility.SaveFilePanelInProject("Save CSV preset", _className + "Preset", "asset", "프리셋 저장 경로를 선택하세요.");
+                if (string.IsNullOrEmpty(path))
+                    return;
+
+                if (AssetDatabase.LoadMainAssetAtPath(path) != null)
+                {
+                    _error = "기존 에셋은 Preset 필드에서 선택하세요.";
+                    return;
+                }
+
+                _preset = CreateInstance<CsvGeneratorPreset>();
+                AssetDatabase.CreateAsset(_preset, path);
+            }
+
+            Undo.RecordObject(_preset, "Save CSV preset");
+            _preset.Capture(_csv, _columns, _enumNames, _namespaceName, _className, _outputPath);
+            EditorUtility.SetDirty(_preset);
+            AssetDatabase.SaveAssets();
+            _error = string.Empty;
         }
 
         private void SaveSource()
         {
-            string path = EditorUtility.SaveFilePanelInProject("Save generated C#", _className, "cs", "생성할 C# 파일 경로를 선택하세요.");
+            string path = EditorUtility.SaveFilePanelInProject("Save generated C#", _className, "cs", "생성할 C# 파일 경로를 선택하세요.", string.IsNullOrEmpty(_outputPath) ? "Assets" : Path.GetDirectoryName(_outputPath));
             if (string.IsNullOrEmpty(path))
                 return;
 
@@ -163,6 +209,9 @@ namespace UnityTools.Sheets.Editor
             {
                 File.WriteAllText(path, _source, new UTF8Encoding(false));
                 AssetDatabase.ImportAsset(path);
+                _outputPath = path;
+                if (_preset != null)
+                    SavePreset();
                 _error = string.Empty;
             }
             catch (IOException ex)
