@@ -7,7 +7,7 @@ using UnityTools.Timer.Persistence;
 
 namespace UnityTools.Timer.Task
 {
-    public class TaskTimer : IPausableTaskTimer
+    public class TaskTimer : IPausableTaskTimer, ICancellableTaskTimer
     {
         //============================================================
         // Constants
@@ -293,6 +293,22 @@ namespace UnityTools.Timer.Task
             _pausedRemainSec = 0.0d;
             ChangeState(ETaskTimerType.Processing);
             StartUpdate();
+            return true;
+        }
+
+        public bool TryCancel()
+        {
+            if (!_isInit || (_curType != ETaskTimerType.Processing && _curType != ETaskTimerType.Paused))
+                return false;
+
+            DateTime now = GetUtcNow();
+            if (!TrySaveSnapshot(DateTime.MinValue, 0.0d, ETaskTimerType.None, now))
+                return false;
+
+            StopUpdate();
+            Clear();
+            _updatedTime = now;
+            ChangeState(ETaskTimerType.None);
             return true;
         }
 

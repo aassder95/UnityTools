@@ -130,6 +130,7 @@ namespace UnityTools.Timer
 
         public bool TryPause(string id) => TryGetHandle(id, out TaskTimerHandle handle) && handle.TryPause();
         public bool TryResume(string id) => TryGetHandle(id, out TaskTimerHandle handle) && handle.TryResume();
+        public bool TryCancel(string id) => TryGetHandle(id, out TaskTimerHandle handle) && handle.TryCancel();
 
         public bool TryComplete(string id)
         {

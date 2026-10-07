@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+- 진행·일시정지 작업을 수령 없이 취소하는 TryCancel과 선택적 ICancellableTaskTimer 추가
+- 취소 저장 실패 시 상태 유지와 취소 후 복원·재시작 검증 추가
+
 - 작업·주기 서비스에 저장 데이터를 유지하는 개별 등록 해제 TryUnregister 추가
 - 등록 해제 시 이벤트·coroutine 정리와 재등록 복원 검증 추가
 

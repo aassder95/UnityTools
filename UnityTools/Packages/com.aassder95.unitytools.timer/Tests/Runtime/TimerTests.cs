@@ -20,6 +20,8 @@ namespace UnityTools.Timer.Tests.Timer
         private TestRunner _runner;
         private DateTime _utcNow;
         private int _changedCnt;
+        private int _completedCnt;
+        private int _claimedCnt;
 
         //============================================================
         // Init/Register
@@ -31,6 +33,8 @@ namespace UnityTools.Timer.Tests.Timer
             _runner = _goRunner.AddComponent<TestRunner>();
             _utcNow = new DateTime(2026, 7, 24, 0, 0, 0, DateTimeKind.Utc);
             _changedCnt = 0;
+            _completedCnt = 0;
+            _claimedCnt = 0;
         }
 
         [TearDown]
@@ -624,12 +628,137 @@ namespace UnityTools.Timer.Tests.Timer
             }
         }
 
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CancelClearsWorkWithoutClaimAndAllowsRestart(bool isPaused)
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("Cancel", out TaskTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle), Is.True);
+            Assert.That(service.TryStart("Cancel", 60.0d), Is.True);
+            _utcNow = _utcNow.AddSeconds(20.0d);
+            if (isPaused)
+                Assert.That(service.TryPause("Cancel"), Is.True);
+
+            service.OnTimersChanged += OnTimersChanged;
+            handle.OnCompleted += OnTaskCompleted;
+            handle.OnClaimed += OnTaskClaimed;
+            try
+            {
+                Assert.That(service.TryCancel(" Cancel "), Is.True);
+                Assert.That(_changedCnt, Is.EqualTo(1));
+                TaskTimerData data = service.GetSnapshots()[0];
+                Assert.That(data.CurType, Is.EqualTo(ETaskTimerType.None));
+                Assert.That(data.RemainingSec, Is.Zero);
+                Assert.That(data.DurationSec, Is.Zero);
+                Assert.That(data.Progress, Is.Zero);
+                Assert.That(service.TimerCnt, Is.EqualTo(1));
+                Assert.That(_completedCnt, Is.Zero);
+                Assert.That(_claimedCnt, Is.Zero);
+                Assert.That(service.TryGetClaimed("Cancel", out bool isClaimed), Is.True);
+                Assert.That(isClaimed, Is.False);
+                Assert.That(storage.TryLoad("TaskTimer_Cancel_SNAPSHOT", out string snapshot), Is.True);
+                Assert.That(snapshot, Is.EqualTo($"1|0|0|0|{_utcNow.Ticks}|0"));
+                Assert.That(service.TryCancel("Cancel"), Is.False);
+                Assert.That(_changedCnt, Is.EqualTo(1));
+                Assert.That(service.TryUnregister("Cancel"), Is.True);
+                _utcNow = _utcNow.AddDays(1.0d);
+                Assert.That(service.TryInit(handle), Is.True);
+                Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.None));
+                Assert.That(handle.TryResume(), Is.False);
+                Assert.That(service.TryGetClaimed("Cancel", out isClaimed), Is.True);
+                Assert.That(isClaimed, Is.False);
+                Assert.That(handle.TryStart(30.0d), Is.True);
+                Assert.That(handle.RemainingSec, Is.EqualTo(30));
+                Assert.That(_completedCnt, Is.Zero);
+                Assert.That(_claimedCnt, Is.Zero);
+            }
+            finally
+            {
+                handle.OnCompleted -= OnTaskCompleted;
+                handle.OnClaimed -= OnTaskClaimed;
+                service.OnTimersChanged -= OnTimersChanged;
+                service.Release();
+            }
+        }
+
+        [TestCase(false)]
+        [TestCase(true)]
+        public void CancelSaveFailurePreservesWorkAndSnapshot(bool isPaused)
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("Cancel", out TaskTimerHandle handle), Is.True);
+            Assert.That(service.TryInit(handle), Is.True);
+            Assert.That(handle.TryStart(60.0d), Is.True);
+            if (isPaused)
+                Assert.That(handle.TryPause(), Is.True);
+
+            TaskTimerData before = handle.ToData();
+            Assert.That(storage.TryLoad("TaskTimer_Cancel_SNAPSHOT", out string snapshot), Is.True);
+            service.OnTimersChanged += OnTimersChanged;
+            try
+            {
+                storage.DisableSave();
+                Assert.That(service.TryCancel("Cancel"), Is.False);
+                Assert.That(handle.CurType, Is.EqualTo(before.CurType));
+                Assert.That(handle.RemainingSec, Is.EqualTo(before.RemainingSec));
+                Assert.That(handle.ToData().Progress, Is.EqualTo(before.Progress));
+                Assert.That(storage.TryLoad("TaskTimer_Cancel_SNAPSHOT", out string unchanged), Is.True);
+                Assert.That(unchanged, Is.EqualTo(snapshot));
+                Assert.That(_changedCnt, Is.Zero);
+                storage.EnableSave();
+                if (isPaused)
+                    Assert.That(handle.TryResume(), Is.True);
+
+                Assert.That(handle.TryComplete(), Is.True);
+                int saveCnt = storage.SaveCnt;
+                int changedCnt = _changedCnt;
+                Assert.That(handle.TryCancel(), Is.False);
+                Assert.That(handle.CurType, Is.EqualTo(ETaskTimerType.Completed));
+                Assert.That(storage.SaveCnt, Is.EqualTo(saveCnt));
+                Assert.That(_changedCnt, Is.EqualTo(changedCnt));
+                Assert.That(service.TryClaim("Cancel"), Is.True);
+            }
+            finally
+            {
+                service.OnTimersChanged -= OnTimersChanged;
+                service.Release();
+            }
+        }
+
+        [Test]
+        public void CancelRejectsMissingAndUninitializedTimersWithoutSaving()
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("Cancel", out TaskTimerHandle handle), Is.True);
+            Assert.That(handle.TryCancel(), Is.False);
+            Assert.That(service.TryCancel("Cancel"), Is.False);
+            Assert.That(service.TryCancel(null), Is.False);
+            Assert.That(service.TryCancel(" "), Is.False);
+            Assert.That(storage.SaveCnt, Is.Zero);
+            handle.Release();
+            service.Release();
+        }
+
         //============================================================
         // Callbacks
         //============================================================
         private void OnTimersChanged()
         {
             _changedCnt++;
+        }
+
+        private void OnTaskCompleted()
+        {
+            _completedCnt++;
+        }
+
+        private void OnTaskClaimed()
+        {
+            _claimedCnt++;
         }
 
         //============================================================

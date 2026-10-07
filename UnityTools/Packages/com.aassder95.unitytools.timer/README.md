@@ -70,6 +70,12 @@ timerHost.Release();
 
 정지 snapshot은 `2|startTicks|durationSec|3|updatedTicks|0|remainingSec`입니다. 기존 v1·4키 저장 데이터를 읽으며, 정지하지 않은 상태와 재개 후에는 기존 v1 형식을 씁니다. 정지 snapshot은 구버전 패키지에서 읽을 수 없으므로 저장 상태가 정지인 채로 downgrade하지 않습니다. 읽을 수 없는 snapshot을 덮어쓰지 않습니다. 기존 데이터의 일괄 변환은 필요하지 않습니다.
 
+## 작업 취소 (개발 버전)
+
+`TaskTimerService.TryCancel(id)`와 `TaskTimerHandle.TryCancel()`은 Processing·Paused 작업을 취소해 None 상태로 돌립니다. 서비스 등록은 유지하며 새 작업을 시작할 수 있습니다. 완료·수령 알림은 발생하지 않고 기존 상태 변경 및 서비스 `OnTimersChanged`로 취소를 알립니다. None·Completed 상태, 미등록 ID, 저장 실패는 false이며 기존 상태를 유지합니다. 완료된 보상을 버리는 기능은 포함하지 않습니다.
+
+취소는 수령 표시가 false인 기존 v1 snapshot을 저장한 후 coroutine·시간·진행률을 정리합니다. 취소 후 재접속해도 작업은 되살아나지 않으며 `TryGetClaimed`는 false를 반환합니다. 기존 `ITaskTimer` 계약은 유지하고, 선택적 `ICancellableTaskTimer`를 구현한 타이머만 handle에서 취소할 수 있습니다. Period Timer에는 취소를 추가하지 않습니다. 공개 `unitytools-timer/v1.1.0` tag에는 이 API가 포함되지 않습니다.
+
 ## Persistence
 
 - 외부 저장소는 `IStorage`로 주입합니다.
