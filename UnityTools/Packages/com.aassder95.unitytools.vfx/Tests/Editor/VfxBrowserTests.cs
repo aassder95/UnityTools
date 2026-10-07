@@ -110,6 +110,97 @@ namespace UnityTools.Vfx.Editor.Tests
         }
 
         [Test]
+        public void ComparisonSynchronizesTimeCameraAndPreservesSources()
+        {
+            string sourcePath = AssetDatabase.GetAssetPath(_prefab);
+            byte[] sourceBytes = File.ReadAllBytes(sourcePath);
+            GameObject go = (GameObject)PrefabUtility.InstantiatePrefab(_prefab);
+            go.transform.localScale = Vector3.one * 3.0f;
+            GameObject right = PrefabUtility.SaveAsPrefabAsset(go, _folderPath + "/Large.prefab");
+            Object.DestroyImmediate(go);
+            byte[] rightBytes = File.ReadAllBytes(_folderPath + "/Large.prefab");
+            GameObject leftRoot;
+            GameObject rightRoot;
+            using (VfxComparison comparison = new VfxComparison())
+            {
+                Assert.That(comparison.TrySetPrefabs(_prefab, right), Is.True);
+                Assert.That(comparison.TrySeek(1.0f), Is.True);
+                comparison.Advance(0.25f);
+                Assert.That(comparison.Left.TimeSec, Is.EqualTo(1.25f));
+                Assert.That(comparison.Right.TimeSec, Is.EqualTo(1.25f));
+                Assert.That(comparison.TrySeek(float.NaN), Is.False);
+                Assert.That(comparison.TrySeek(-1.0f), Is.False);
+                Assert.That(comparison.TrySeek(VfxPreviewSession.MAX_PREVIEW_SEC + 1.0f), Is.False);
+                Assert.That(comparison.TimeSec, Is.EqualTo(1.25f));
+                Assert.That(comparison.TrySetPrefabs(null, right), Is.False);
+                Assert.That(comparison.TimeSec, Is.EqualTo(1.25f));
+                comparison.Fit();
+                comparison.Orbit(new Vector2(12.0f, 6.0f));
+                comparison.Zoom(2.0f);
+                Texture2D leftImage = comparison.Left.Capture(128, 128);
+                Texture2D rightImage = comparison.Right.Capture(128, 128);
+                try
+                {
+                    Assert.That(leftImage.width, Is.EqualTo(rightImage.width));
+                    BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                    PreviewRenderUtility leftUtility = (PreviewRenderUtility)typeof(VfxPreviewSession).GetField("_utility", flags).GetValue(comparison.Left);
+                    PreviewRenderUtility rightUtility = (PreviewRenderUtility)typeof(VfxPreviewSession).GetField("_utility", flags).GetValue(comparison.Right);
+                    Assert.That(leftUtility.camera.transform.position, Is.EqualTo(rightUtility.camera.transform.position));
+                    Assert.That(leftUtility.camera.transform.rotation, Is.EqualTo(rightUtility.camera.transform.rotation));
+                    Assert.That(leftUtility.camera.fieldOfView, Is.EqualTo(rightUtility.camera.fieldOfView));
+                    leftRoot = (GameObject)typeof(VfxPreviewSession).GetField("_goRoot", flags).GetValue(comparison.Left);
+                    rightRoot = (GameObject)typeof(VfxPreviewSession).GetField("_goRoot", flags).GetValue(comparison.Right);
+                    Assert.That(leftRoot.scene, Is.Not.EqualTo(rightRoot.scene));
+                    string imagePath = Path.Combine(Path.GetTempPath(), "UnityTools-Vfx-Comparison-" + Guid.NewGuid().ToString("N") + ".png");
+                    File.WriteAllBytes(imagePath, rightImage.EncodeToPNG());
+                    TestContext.WriteLine("Comparison image: " + imagePath);
+                }
+                finally
+                {
+                    Object.DestroyImmediate(leftImage);
+                    Object.DestroyImmediate(rightImage);
+                }
+            }
+
+            Assert.That(leftRoot == null, Is.True);
+            Assert.That(rightRoot == null, Is.True);
+            Assert.That(File.ReadAllBytes(sourcePath), Is.EqualTo(sourceBytes));
+            Assert.That(File.ReadAllBytes(_folderPath + "/Large.prefab"), Is.EqualTo(rightBytes));
+        }
+
+        [UnityEngine.TestTools.UnityTest]
+        public System.Collections.IEnumerator CompareWindowRendersBothSidesAndReleasesOnClose()
+        {
+            VfxCompareWindow window = ScriptableObject.CreateInstance<VfxCompareWindow>();
+            GameObject leftRoot = null;
+            GameObject rightRoot = null;
+            try
+            {
+                BindingFlags flags = BindingFlags.Instance | BindingFlags.NonPublic;
+                typeof(VfxCompareWindow).GetField("_leftPrefab", flags).SetValue(window, _prefab);
+                typeof(VfxCompareWindow).GetField("_rightPrefab", flags).SetValue(window, _prefab);
+                typeof(VfxCompareWindow).GetMethod("RefreshPreviews", flags).Invoke(window, null);
+                VfxComparison comparison = (VfxComparison)typeof(VfxCompareWindow).GetField("_comparison", flags).GetValue(window);
+                leftRoot = (GameObject)typeof(VfxPreviewSession).GetField("_goRoot", flags).GetValue(comparison.Left);
+                rightRoot = (GameObject)typeof(VfxPreviewSession).GetField("_goRoot", flags).GetValue(comparison.Right);
+                window.Show();
+                window.Repaint();
+                yield return null;
+                window.Repaint();
+                yield return null;
+                Assert.That(comparison.HasPreviews, Is.True);
+            }
+            finally
+            {
+                window.Close();
+                Object.DestroyImmediate(window);
+            }
+
+            Assert.That(leftRoot == null, Is.True);
+            Assert.That(rightRoot == null, Is.True);
+        }
+
+        [Test]
         public void CatalogIncludesOnlyParticlePrefabs()
         {
             GameObject go = new GameObject("Plain");
