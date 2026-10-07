@@ -23,6 +23,11 @@ namespace UnityTools.Vfx.Editor
         //============================================================
         // Inspector Fields
         //============================================================
+        [Header("Library")]
+        [SerializeField] private VfxLibrary _library;
+        [SerializeField] private string _tag = string.Empty;
+        [SerializeField] private string _collection = string.Empty;
+        [Header("Catalog")]
         [SerializeField] private string _rootPath = "Assets";
         [SerializeField] private string _query = string.Empty;
         [SerializeField] private string _selectedGuid = string.Empty;
@@ -41,6 +46,8 @@ namespace UnityTools.Vfx.Editor
         private DefaultAsset _folder;
         private Vector2 _scrollPos;
         private string _favoritesKey;
+        private string _tagsText = string.Empty;
+        private string _collectionsText = string.Empty;
         private bool _isPlaying = true;
         private bool _isIndexDirty;
         private double _lastTickSec;
@@ -90,6 +97,7 @@ namespace UnityTools.Vfx.Editor
 
         private void OnGUI()
         {
+            DrawLibrary();
             using (new EditorGUILayout.HorizontalScope(EditorStyles.toolbar))
             {
                 EditorGUI.BeginChangeCheck();
@@ -216,6 +224,13 @@ namespace UnityTools.Vfx.Editor
                 }
             }
 
+            for (int idx = _results.Count - 1; idx >= 0; idx--)
+            {
+                bool matches = _library != null ? _library.Matches(_results[idx].Guid, _tag, _collection) : string.IsNullOrWhiteSpace(_tag) && string.IsNullOrWhiteSpace(_collection);
+                if (!matches)
+                    _results.RemoveAt(idx);
+            }
+
             _pageIdx = Mathf.Clamp(_pageIdx, 0, Mathf.Max(0, (_results.Count - 1) / PAGE_SIZE));
         }
 
@@ -223,6 +238,7 @@ namespace UnityTools.Vfx.Editor
         {
             ReleasePreview();
             _selectedGuid = item.Guid;
+            LoadLabels();
             GameObject prefab = AssetDatabase.LoadAssetAtPath<GameObject>(AssetDatabase.GUIDToAssetPath(item.Guid));
             if (prefab == null)
             {
@@ -239,6 +255,45 @@ namespace UnityTools.Vfx.Editor
         {
             _preview?.Dispose();
             _preview = null;
+        }
+
+        private void DrawLibrary()
+        {
+            EditorGUI.BeginChangeCheck();
+            _library = (VfxLibrary)EditorGUILayout.ObjectField("Library", _library, typeof(VfxLibrary), false);
+            _tag = EditorGUILayout.TextField("Tag filter", _tag);
+            _collection = EditorGUILayout.TextField("Collection filter", _collection);
+            if (EditorGUI.EndChangeCheck())
+            {
+                LoadLabels();
+                _pageIdx = 0;
+                FilterCatalog();
+            }
+
+            if (_library == null && GUILayout.Button("Create library"))
+            {
+                string path = EditorUtility.SaveFilePanelInProject("Save VFX library", "VfxLibrary", "asset", "태그와 컬렉션을 저장할 Editor 폴더를 선택하세요.");
+                if (string.IsNullOrEmpty(path))
+                    return;
+
+                if (AssetDatabase.LoadMainAssetAtPath(path) != null)
+                {
+                    _thumbnailError = "기존 에셋은 Library 필드에서 선택하세요.";
+                    return;
+                }
+
+                _library = CreateInstance<VfxLibrary>();
+                AssetDatabase.CreateAsset(_library, path);
+                AssetDatabase.SaveAssets();
+                LoadLabels();
+            }
+        }
+
+        private void LoadLabels()
+        {
+            VfxLabels labels = _library == null ? null : _library.FindLabels(_selectedGuid);
+            _tagsText = labels == null ? string.Empty : labels.TagsText;
+            _collectionsText = labels == null ? string.Empty : labels.CollectionsText;
         }
 
         private void DrawResults()
@@ -301,6 +356,21 @@ namespace UnityTools.Vfx.Editor
                 {
                     EditorGUILayout.HelpBox("파티클 prefab을 선택하세요. 이 미리보기는 프로젝트 스크립트·Animator·오디오를 실행하지 않습니다.", MessageType.Info);
                     return;
+                }
+
+                using (new EditorGUI.DisabledScope(_library == null))
+                {
+                    _tagsText = EditorGUILayout.TextField("Tags (comma)", _tagsText);
+                    _collectionsText = EditorGUILayout.TextField("Collections (comma)", _collectionsText);
+                    if (GUILayout.Button("Apply labels"))
+                    {
+                        Undo.RecordObject(_library, "Apply VFX labels");
+                        _library.SetLabels(_selectedGuid, _tagsText, _collectionsText);
+                        EditorUtility.SetDirty(_library);
+                        AssetDatabase.SaveAssets();
+                        LoadLabels();
+                        FilterCatalog();
+                    }
                 }
 
                 Rect rect = GUILayoutUtility.GetRect(200.0f, 200.0f, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
