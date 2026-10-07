@@ -1,7 +1,9 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 using UnityTools.Timer;
 using UnityTools.Timer.Persistence;
 using UnityTools.Timer.Period;
@@ -520,6 +522,108 @@ namespace UnityTools.Timer.Tests.Timer
             timer.Release();
         }
 
+        [UnityTest]
+        public IEnumerator TaskUnregisterStopsExecutionAndRestoresElapsedTime()
+        {
+            MemoryStorage storage = new();
+            TaskTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("A", out TaskTimerHandle first), Is.True);
+            Assert.That(service.TryInit(first), Is.True);
+            Assert.That(service.TryStart("A", 60.0d), Is.True);
+            Assert.That(service.TryCreate("B", out TaskTimerHandle second), Is.True);
+            Assert.That(service.TryInit(second), Is.True);
+            Assert.That(service.TryStart("B", 120.0d), Is.True);
+            Assert.That(storage.TryLoad("TaskTimer_A_SNAPSHOT", out string snapshot), Is.True);
+            int saveCnt = storage.SaveCnt;
+            service.OnTimersChanged += OnTimersChanged;
+            try
+            {
+                storage.DisableRead();
+                storage.DisableSave();
+                Assert.That(service.TryUnregister(" A "), Is.True);
+                Assert.That(_changedCnt, Is.EqualTo(1));
+                Assert.That(service.TimerCnt, Is.EqualTo(1));
+                Assert.That(service.GetSnapshots()[0].Id, Is.EqualTo("B"));
+                Assert.That(service.TryGetHandle("A", out _), Is.False);
+                Assert.That(service.TryUnregister("A"), Is.False);
+                Assert.That(service.TryUnregister(null), Is.False);
+                Assert.That(service.TryUnregister(" "), Is.False);
+                Assert.That(first.TryComplete(), Is.False);
+                Assert.That(_changedCnt, Is.EqualTo(1));
+                _utcNow = _utcNow.AddSeconds(61.0d);
+                yield return new WaitForSecondsRealtime(1.2f);
+                Assert.That(first.CurType, Is.EqualTo(ETaskTimerType.Processing));
+                Assert.That(storage.SaveCnt, Is.EqualTo(saveCnt));
+                storage.EnableRead();
+                storage.EnableSave();
+                Assert.That(storage.TryLoad("TaskTimer_A_SNAPSHOT", out string unchanged), Is.True);
+                Assert.That(unchanged, Is.EqualTo(snapshot));
+                Assert.That(service.TryInit(first), Is.True);
+                Assert.That(first.CurType, Is.EqualTo(ETaskTimerType.Completed));
+                Assert.That(service.TimerCnt, Is.EqualTo(2));
+                int prevCnt = _changedCnt;
+                Assert.That(service.TryClaim("A"), Is.True);
+                Assert.That(_changedCnt, Is.EqualTo(prevCnt + 2));
+            }
+            finally
+            {
+                service.OnTimersChanged -= OnTimersChanged;
+                service.Release();
+            }
+        }
+
+        [Test]
+        public void PeriodUnregisterPreservesSnapshotAndRebindsOnce()
+        {
+            MemoryStorage storage = new();
+            PeriodTimerService service = new(_runner, storage, GetUtcNow);
+            Assert.That(service.TryCreate("A", out PeriodTimerHandle first), Is.True);
+            Assert.That(service.TryInit(first, 1.0d, 2.0d), Is.True);
+            Assert.That(service.TryCreate("B", out PeriodTimerHandle second), Is.True);
+            Assert.That(service.TryInit(second, 1.0d, 2.0d), Is.True);
+            Assert.That(storage.TryLoad("PeriodTimer_A_SNAPSHOT", out string snapshot), Is.True);
+            int saveCnt = storage.SaveCnt;
+            service.OnTimersChanged += OnTimersChanged;
+            try
+            {
+                storage.DisableRead();
+                storage.DisableSave();
+                Assert.That(service.TryUnregister(" A "), Is.True);
+                Assert.That(_changedCnt, Is.EqualTo(1));
+                Assert.That(service.TimerCnt, Is.EqualTo(1));
+                Assert.That(service.GetSnapshots()[0].Id, Is.EqualTo("B"));
+                Assert.That(service.TryGetHandle("A", out _), Is.False);
+                Assert.That(first.IsReady, Is.False);
+                Assert.That(first.TryForceClosed(), Is.False);
+                Assert.That(service.TryUnregister("A"), Is.False);
+                Assert.That(service.TryUnregister(null), Is.False);
+                Assert.That(service.TryUnregister(" "), Is.False);
+                Assert.That(storage.SaveCnt, Is.EqualTo(saveCnt));
+                Assert.That(_changedCnt, Is.EqualTo(1));
+                storage.EnableRead();
+                storage.EnableSave();
+                Assert.That(storage.TryLoad("PeriodTimer_A_SNAPSHOT", out string unchanged), Is.True);
+                Assert.That(unchanged, Is.EqualTo(snapshot));
+                Assert.That(service.TryInit(first, 1.0d, 2.0d), Is.True);
+                Assert.That(first.IsReady, Is.True);
+                Assert.That(service.TimerCnt, Is.EqualTo(2));
+                int prevCnt = _changedCnt;
+                Assert.That(first.TryForceClosed(), Is.True);
+                Assert.That(_changedCnt, Is.EqualTo(prevCnt + 2));
+                Assert.That(service.TryUnregister("A"), Is.True);
+                Assert.That(service.TryUnregister("B"), Is.True);
+                Assert.That(service.GetSnapshots(), Is.Empty);
+                prevCnt = _changedCnt;
+                service.Release();
+                Assert.That(_changedCnt, Is.EqualTo(prevCnt));
+            }
+            finally
+            {
+                service.OnTimersChanged -= OnTimersChanged;
+                service.Release();
+            }
+        }
+
         //============================================================
         // Callbacks
         //============================================================
@@ -597,6 +701,11 @@ namespace UnityTools.Timer.Tests.Timer
             public void EnableSave()
             {
                 _canSave = true;
+            }
+
+            public void EnableRead()
+            {
+                _canRead = true;
             }
 
             public void DisableRead()

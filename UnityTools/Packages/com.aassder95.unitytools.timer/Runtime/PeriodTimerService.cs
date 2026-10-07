@@ -86,6 +86,17 @@ namespace UnityTools.Timer
             return true;
         }
 
+        public bool TryUnregister(string id)
+        {
+            if (!TryNormalizeId(id, out string normalizedId) || !_handles.Remove(normalizedId, out PeriodTimerHandle handle))
+                return false;
+
+            UnbindEvents(normalizedId, handle);
+            handle.Release();
+            _onTimersChanged?.Invoke();
+            return true;
+        }
+
         public void Release()
         {
             bool hasTimers = _handles.Count > 0;

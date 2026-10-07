@@ -42,6 +42,12 @@ taskTimers.TryStart("BUILD", 60.0d);
 
 같은 ID를 다시 등록하면 service가 이전 handle의 event와 coroutine을 해제하고 새 handle을 소유합니다. `Release`는 service가 소유한 모든 handle을 정리합니다.
 
+## 개별 등록 해제 (개발 버전)
+
+`TaskTimerService.TryUnregister(id)`와 `PeriodTimerService.TryUnregister(id)`는 등록된 타이머 하나의 coroutine과 이벤트 연결을 정리하고 서비스 목록에서 제외합니다. 성공하면 `OnTimersChanged`를 한 번 호출하며, 빈 ID·미등록 ID·중복 해제는 false입니다. 저장소를 읽거나 쓰지 않으므로 저장소 장애 중에도 해제할 수 있습니다.
+
+저장 데이터와 UTC 일정은 유지됩니다. 작업의 시간을 멈추려면 `TryPause`를 사용하고, 주기 저장 데이터를 삭제하려면 기존 `TryDelete`를 사용합니다. 해제한 handle은 `TryInit`으로 다시 등록할 수 있으며 그 사이의 실제 경과 시간을 반영해 복원합니다. 해제한 handle의 외부 구독은 구독자가 직접 정리합니다. 이 API는 공개 `unitytools-timer/v1.1.0` tag에 포함되지 않습니다.
+
 ## 선택적 TimerHost
 
 MonoBehaviour 수명주기가 필요한 프로젝트는 `TimerHost`를 사용할 수 있습니다.
