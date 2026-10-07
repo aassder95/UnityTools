@@ -15,7 +15,7 @@ Package Manager의 `Add package from disk...`에서 이 폴더의 `package.json`
 
 Property와 class 이름은 영문 대문자로 시작하는 ASCII C# 식별자, namespace는 점으로 나눈 ASCII 식별자를 사용합니다. 원본 CSV 헤더는 한글·공백·따옴표·개행을 포함할 수 있고 별도의 Property 이름으로 연결합니다. bool Property는 Is·Has·Can·Should 접두사를 사용합니다. 예약어, 중복 이름과 생성 API 이름 충돌은 거부합니다. 모든 헤더를 한 번씩 매핑해야 합니다.
 
-생성 타입은 private readonly field, 읽기 전용 Property, private 생성자, static `TryRead(CsvRow, out T, out string)`를 갖습니다. Reflection으로 런타임 값을 매핑하지 않습니다. Editor 창의 설정은 일시적이며 창 재생성이나 스크립트 리로드 후 다시 읽어 지정합니다. 생성 코드를 수동으로 고치면 다음 생성에서 덮어쓸 수 있습니다.
+생성 타입은 private readonly field, 읽기 전용 Property, private 생성자, static `TryRead(CsvRow, out T, out string)`를 갖습니다. Reflection으로 런타임 값을 매핑하지 않습니다. 저장한 프리셋을 선택하면 Editor 창의 생성 설정을 복원할 수 있습니다. 저장하지 않은 변경은 창 재생성이나 스크립트 리로드 후 유지되지 않습니다. 생성 코드를 수동으로 고치면 다음 생성에서 덮어쓸 수 있습니다.
 
 ## Enum 열
 
